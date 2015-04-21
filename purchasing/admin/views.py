@@ -12,7 +12,7 @@ class StageAdmin(sqla.ModelView):
 class ContractAdmin(sqla.ModelView):
     inline_models = (ContractProperty,)
 
-    form_columns = ['contract_type', 'description', 'contract_properties']
+    form_columns = ['contract_type', 'description', 'contract_properties', 'current_stage', 'current_flow']
 
 admin.add_view(ContractAdmin(ContractBase, db.session))
 admin.add_view(StageAdmin(Stage, db.session))
