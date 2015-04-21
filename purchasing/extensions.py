@@ -21,5 +21,5 @@ cache = Cache()
 from flask_debugtoolbar import DebugToolbarExtension
 debug_toolbar = DebugToolbarExtension()
 
-from flask.ext.admin import Admin
+from flask_admin import Admin
 admin = Admin()

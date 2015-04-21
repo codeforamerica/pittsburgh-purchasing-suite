@@ -17,17 +17,24 @@ class ContractBase(Model):
     updated_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     contract_type = Column(db.String(255))
     description = Column(db.Text)
-    current_stage = ReferenceCol('stage', nullable=True)
-    flow = ReferenceCol('flow', nullable=True)
+    current_stage = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
+    flow = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
     contract_properties = db.relationship('ContractProperty', lazy='dynamic', passive_deletes=True)
+
+    def __unicode__(self):
+        return self.description
 
 class ContractProperty(Model):
     __tablename__ = 'contract_property'
 
     id = Column(db.Integer, primary_key=True)
-    contract = ReferenceCol('contract', ondelete='CASCADE')
+    contract = db.relationship(ContractBase, backref='contract')
+    contract_id = ReferenceCol('contract', ondelete='CASCADE')
     key = Column(db.String(255))
     value = Column(db.String(255))
+
+    def __unicode__(self):
+        return '{key}: {value}'.format(key=self.key, value=self.value)
 
 # class ContractAudit(Model):
 #     __tablename__ = 'contract_audit'
@@ -40,12 +47,20 @@ class Stage(Model):
     contract = db.relationship('ContractBase', backref='stage_id', lazy='subquery', passive_deletes=True)
     name = Column(db.String(255))
 
+    def __unicode__(self):
+        return self.name
+
 class StageProperty(Model):
     __tablename__ = 'stage_property'
 
     id = Column(db.Integer, primary_key=True)
-    stage = ReferenceCol('stage', ondelete='CASCADE')
-    property = Column(db.Text)
+    stage = db.relationship(Stage, backref='stage')
+    stage_id = ReferenceCol('stage', ondelete='CASCADE')
+    key = Column(db.String(255))
+    value = Column(db.String(255))
+
+    def __unicode__(self):
+        return '{key}: {value}'.format(key=self.key, value=self.value)
 
 class Flow(Model):
     __tablename__ = 'flow'
@@ -54,3 +69,6 @@ class Flow(Model):
     flow_name = Column(db.Text, unique=True)
     contract = db.relationship('ContractBase', backref='flow_id', lazy='subquery')
     stage_order = Column(ARRAY(db.Integer))
+
+    def __unicode__(self):
+        return self.flow_name

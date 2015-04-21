@@ -43,6 +43,7 @@ def register_extensions(app):
 
 def register_blueprints(app):
     app.register_blueprint(public.blueprint)
+    from purchasing.admin import views
     return None
 
 def register_errorhandlers(app):
