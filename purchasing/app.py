@@ -11,6 +11,7 @@ from purchasing.extensions import (
     login_manager,
     migrate,
     debug_toolbar,
+    admin
 )
 from purchasing.public import views as public
 # import models so that flask-migrate can auto-detect
@@ -37,6 +38,7 @@ def register_extensions(app):
     login_manager.init_app(app)
     debug_toolbar.init_app(app)
     migrate.init_app(app, db)
+    admin.init_app(app)
     return None
 
 def register_blueprints(app):
