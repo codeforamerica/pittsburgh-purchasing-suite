@@ -64,7 +64,7 @@ class SurrogatePK(object):
         return None
 
 
-def ReferenceCol(tablename, nullable=False, pk_name='id', **kwargs):
+def ReferenceCol(tablename, nullable=False, ondelete=None, pk_name='id', **kwargs):
     """Column that adds primary key foreign key reference.
 
     Usage: ::
@@ -73,5 +73,5 @@ def ReferenceCol(tablename, nullable=False, pk_name='id', **kwargs):
         category = relationship('Category', backref='categories')
     """
     return db.Column(
-        db.ForeignKey("{0}.{1}".format(tablename, pk_name)),
+        db.ForeignKey("{0}.{1}".format(tablename, pk_name), ondelete=ondelete),
         nullable=nullable, **kwargs)

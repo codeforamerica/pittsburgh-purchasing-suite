@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 '''Public section, including homepage and signup.'''
 from flask import (
-    Blueprint, request, render_template,
-    flash, url_for, redirect
+    Blueprint, render_template
 )
 
 blueprint = Blueprint('public', __name__, static_folder="../static")
