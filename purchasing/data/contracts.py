@@ -12,7 +12,7 @@ def create_new_contract(contract_data):
     for property in properties:
         _property = property.items()[0]
         ContractProperty.create(**{
-            'contract': contract.id, 'key': _property[0], 'value': _property[1]
+            'contract_id': contract.id, 'key': _property[0], 'value': _property[1]
         })
 
     return contract

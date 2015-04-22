@@ -21,7 +21,7 @@ class ContractBase(Model):
     current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
     current_flow = db.relationship('Flow', lazy='subquery')
     flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
-    contract_properties = db.relationship('ContractProperty', lazy='dynamic')
+    contract_properties = db.relationship('ContractProperty', lazy='dynamic', cascade='delete')
 
     def __unicode__(self):
         return self.description

@@ -1,3 +1,4 @@
+from wtforms import FieldList, IntegerField, TextField, Form
 from purchasing.extensions import admin, db
 from flask_admin.contrib import sqla
 from purchasing.data.models import (
@@ -14,6 +15,9 @@ class ContractAdmin(sqla.ModelView):
 
     form_columns = ['contract_type', 'description', 'contract_properties', 'current_stage', 'current_flow']
 
+class FlowAdmin(sqla.ModelView):
+    form_columns = ['flow_name', 'stage_order']
+
 admin.add_view(ContractAdmin(ContractBase, db.session))
 admin.add_view(StageAdmin(Stage, db.session))
-admin.add_view(sqla.ModelView(Flow, db.session))
+admin.add_view(FlowAdmin(Flow, db.session))
