@@ -8,6 +8,36 @@ from purchasing.database import (
     ReferenceCol,
 )
 from sqlalchemy.dialects.postgres import ARRAY
+from sqlalchemy.schema import Table
+
+company_contract_association_table = Table(
+    'company_contract_association', Model.metadata,
+    Column('company_id', db.Integer, db.ForeignKey('company.id')),
+    Column('contract_id', db.Integer, db.ForeignKey('contract.id')),
+)
+
+class Company(Model):
+    __tablename__ = 'company'
+
+    id = Column(db.Integer, primary_key=True)
+    company_name = Column(db.String(255), nullable=False, unique=True)
+    contact_first_name = Column(db.String(255))
+    contact_second_name = Column(db.String(255))
+    contact_addr1 = Column(db.String(255))
+    contact_addr2 = Column(db.String(255))
+    contact_city = Column(db.String(255))
+    contact_state = Column(db.String(255))
+    contact_zip = Column(db.Integer)
+    contact_phone = Column(db.String(255))
+    contact_email = Column(db.String(255))
+    contracts = db.relationship(
+        'ContractBase',
+        secondary=company_contract_association_table,
+        backref='companies'
+    )
+
+    def __unicode__(self):
+        return self.company_name
 
 class ContractBase(Model):
     __tablename__ = 'contract'

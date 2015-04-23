@@ -2,7 +2,7 @@
 
 from purchasing.data.models import (
     ContractBase, ContractProperty,
-    Stage, StageProperty, Flow
+    Stage, StageProperty, Flow, Company
 )
 
 def insert_a_contract():
@@ -57,3 +57,12 @@ def insert_a_flow(name='test', stage_ids=None):
     })
 
     return flow
+
+def insert_a_company(name='test company'):
+    contract = insert_a_contract()
+    company = Company.create(**{
+        'company_name': name,
+        'contracts': [contract]
+    })
+
+    return company

@@ -39,10 +39,10 @@ class FlowTest(BaseTestCase):
         db.session.rollback()
 
         # assert we can't create the flow if the stage ids are not included
-        # self.assertRaises(Exception, create_new_flow, dict(
-        #     flow_name='flow2',
-        #     stage_order=[999]
-        # ))
+        self.assertRaises(Exception, create_new_flow, dict(
+            flow_name='flow2',
+            stage_order=[999]
+        ))
 
     def test_update_flow(self):
         flow = insert_a_flow(stage_ids=self.stage_ids)
