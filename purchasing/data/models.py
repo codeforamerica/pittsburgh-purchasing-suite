@@ -45,7 +45,7 @@ class Stage(Model):
     __tablename__ = 'stage'
 
     id = Column(db.Integer, primary_key=True)
-    stage_property = db.relationship('StageProperty', lazy='dynamic', cascade='delete')
+    stage_properties = db.relationship('StageProperty', lazy='dynamic', cascade='delete')
     contract = db.relationship('ContractBase', backref='stage_id', lazy='subquery')
     name = Column(db.String(255))
 

@@ -8,7 +8,7 @@ from purchasing.data.models import (
 class StageAdmin(sqla.ModelView):
     inline_models = (StageProperty, )
 
-    form_columns = ['name', 'stage_property']
+    form_columns = ['name', 'stage_properties']
 
 class ContractAdmin(sqla.ModelView):
     inline_models = (ContractProperty,)

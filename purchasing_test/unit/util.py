@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from purchasing.data.models import ContractBase, ContractProperty
+from purchasing.data.models import (
+    ContractBase, ContractProperty,
+    Stage, StageProperty
+)
 
 def insert_a_contract():
     contract_data = dict(
@@ -25,3 +28,24 @@ def get_a_property():
         contract = insert_a_contract()
 
     return contract.contract_properties.first()
+
+def insert_a_stage():
+    stage = Stage.create(**{
+        'name': 'foo'
+    })
+
+    properties = [
+        dict(stage_id=stage.id, key='foo', value='bar'),
+        dict(stage_id=stage.id, key='baz', value='qux')
+    ]
+
+    for property in properties:
+        StageProperty.create(**property)
+    return stage
+
+def get_a_stage_property():
+    stage = Stage.query.first()
+    if not stage:
+        stage = insert_a_stage()
+
+    return stage.stage_properties.first()
