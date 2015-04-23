@@ -52,7 +52,7 @@ class StageTest(BaseTestCase):
             'new name'
         )
 
-    def test_update_contract_property(self):
+    def test_update_stage_property(self):
         property = get_a_stage_property()
 
         update_stage_property(property.id, {'value': 'foo2'})
@@ -61,7 +61,7 @@ class StageTest(BaseTestCase):
             StageProperty.query.get(property.id).value, 'foo2'
         )
 
-    def test_delete_contract(self):
+    def test_delete_stage(self):
         stage = insert_a_stage()
 
         self.assertEquals(Stage.query.count(), 1)
