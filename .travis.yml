@@ -1,10 +1,13 @@
-# Config file for automatic testing at travis-ci.org
-
 language: python
-
 python:
-  - "2.7"
-
+- '2.7'
 install: pip install -r requirements/dev.txt
-
-script: py.test tests
+before_script:
+- psql -c 'create database purchasing_test;' -U postgres
+script: PYTHONPATH=. nosetests purchasing_test/ -sv --with-coverage --cover-package=purchasing
+notifications:
+  slack:
+    secure: VW0HQTnMb4L8svSdzHZMx16Mte79Y4DmZxeItWtSvdlKUT/oKwYuzLASA/o3/ixNBLugcfxht+rTnQQITnKlwQ5n4gxvV2ynXyBi4YAkYr3lvc74pvfsbiE1Auv7NYiX6dPZW9OAtKYZVVxIJTp7PiLpeyDiQVe2Ro0r3GtK4y8=
+branches:
+  only:
+    - master

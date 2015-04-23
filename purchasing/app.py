@@ -11,9 +11,11 @@ from purchasing.extensions import (
     login_manager,
     migrate,
     debug_toolbar,
+    admin
 )
-from purchasing import public
-
+from purchasing.public import views as public
+# import models so that flask-migrate can auto-detect
+from purchasing.data import models
 
 def create_app(config_object=ProdConfig):
     '''An application factory, as explained here:
@@ -28,7 +30,6 @@ def create_app(config_object=ProdConfig):
     register_errorhandlers(app)
     return app
 
-
 def register_extensions(app):
     assets.init_app(app)
     bcrypt.init_app(app)
@@ -37,13 +38,13 @@ def register_extensions(app):
     login_manager.init_app(app)
     debug_toolbar.init_app(app)
     migrate.init_app(app, db)
+    admin.init_app(app)
     return None
-
 
 def register_blueprints(app):
-    app.register_blueprint(public.views.blueprint)
+    app.register_blueprint(public.blueprint)
+    from purchasing.admin import views
     return None
-
 
 def register_errorhandlers(app):
     def render_error(error):
