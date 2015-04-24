@@ -4,6 +4,12 @@ from flask_admin.contrib import sqla
 from purchasing.data.models import (
     Stage, StageProperty, Flow, ContractBase, ContractProperty, Company
 )
+from purchasing.extensions import login_manager
+from purchasing.user.models import User
+
+@login_manager.user_loader
+def load_user(userid):
+    return User.get_by_id(int(userid))
 
 class StageAdmin(sqla.ModelView):
     inline_models = (StageProperty, )

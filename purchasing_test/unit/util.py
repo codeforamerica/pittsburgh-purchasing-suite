@@ -4,6 +4,7 @@ from purchasing.data.models import (
     ContractBase, ContractProperty,
     Stage, StageProperty, Flow, Company
 )
+from purchasing.user.models import User
 
 def insert_a_contract():
     contract_data = dict(
@@ -66,3 +67,11 @@ def insert_a_company(name='test company'):
     })
 
     return company
+
+def create_a_user(email='foo@foo.com'):
+    return User(email=email, first_name='foo', last_name='foo')
+
+def insert_a_user(email='foo@foo.com'):
+    user = create_a_user(email)
+    user.save()
+    return user.id

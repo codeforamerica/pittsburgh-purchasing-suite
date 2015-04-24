@@ -9,9 +9,9 @@
   <meta charset="utf-8">
 
   <title>{% block page_title %}
-  
+
     Pittsburgh Purchasing Suite
-  
+
     {% endblock %}
   </title>
   <meta name="description" content="{% block meta_description %}{% endblock %}">
@@ -50,7 +50,7 @@
         {% endfor %}
       </div><!-- end col-md -->
     </div><!-- end row -->
-        {% endif %}
+    {% endif %}
     {% endwith %}
 
     {% block content %}{% endblock %}
@@ -64,6 +64,7 @@
 {% assets "js_all" %}
     <script type="text/javascript" src="{{ ASSET_URL }}"></script>
 {% endassets %}
+<script src="https://login.persona.org/include.js"></script>
 {% block js %}{% endblock %}
 <!-- end scripts -->
 {% endblock %}

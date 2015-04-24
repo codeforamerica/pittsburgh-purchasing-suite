@@ -13,7 +13,8 @@ from purchasing.extensions import (
     debug_toolbar,
     admin
 )
-from purchasing.public import views as public
+from purchasing.public import views as public_views
+from purchasing.user import views as user_views
 # import models so that flask-migrate can auto-detect
 from purchasing.data import models
 
@@ -42,7 +43,8 @@ def register_extensions(app):
     return None
 
 def register_blueprints(app):
-    app.register_blueprint(public.blueprint)
+    app.register_blueprint(public_views.blueprint)
+    app.register_blueprint(user_views.blueprint)
     from purchasing.admin import views
     return None
 
