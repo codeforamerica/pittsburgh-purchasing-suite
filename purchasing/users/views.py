@@ -19,8 +19,7 @@ blueprint = Blueprint(
 
 @blueprint.route("/login", methods=["GET"])
 def login():
-    user = current_user if not current_user.is_anonymous() else dict(email=None)
-    return render_template("users/login.html", current_user=user)
+    return render_template("users/login.html", current_user=current_user)
 
 @blueprint.route('/logout', methods=['GET', 'POST'])
 def logout():

@@ -17,8 +17,8 @@ class TestUserAuth(BaseTestCase):
         request = self.client.get('/users/login')
         self.assert200(request)
         self.assert_template_used('users/login.html')
-        # test that new users have no email
-        self.assertEquals(self.get_context_variable('current_user').get('email'), None)
+        # test that new users are anonymous
+        self.assertTrue(self.get_context_variable('current_user').is_anonymous())
 
     @patch('urllib2.urlopen')
     def test_auth_persona_failure(self, urlopen):

@@ -26,9 +26,8 @@ def _make_context():
     return {'app': app, 'db': db}
 
 @manager.option('-e', '--email', dest='email', default=None)
-@manager.option('-a', '--admin', dest='is_admin', default=False)
-def seed_user(email, is_admin):
-    from purchasing.user.models import User
+def seed_user(email):
+    from purchasing.users.models import User
     seed_email = email if email else app.config.get('SEED_EMAIL')
     user_exists = User.query.filter(User.email == seed_email).first()
     if user_exists:
@@ -36,7 +35,7 @@ def seed_user(email, is_admin):
     else:
         try:
             new_user = User.create(
-                email=seed_email, is_admin=is_admin,
+                email=seed_email,
                 created_at=datetime.datetime.utcnow()
             )
             db.session.add(new_user)

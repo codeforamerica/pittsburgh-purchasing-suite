@@ -65,6 +65,60 @@
     <script type="text/javascript" src="{{ ASSET_URL }}"></script>
 {% endassets %}
 <script src="https://login.persona.org/include.js"></script>
+<script>
+{% if current_user.is_anonymous() or not current_user %}
+var currentUser = null;
+{% else %}
+var currentUser = {{current_user.email|tojson|safe}};
+{% endif %}
+
+navigator.id.watch({
+  loggedInUser: currentUser,
+  onlogin: function(assertion) {
+    // A user has logged in! Here you need to:
+    // 1. Send the assertion to your backend for verification and to create a session.
+    // 2. Update your UI.
+    $.ajax({ /* <-- This example uses jQuery, but you can use whatever you'd like */
+      type: 'POST',
+      url: '{{ url_for("users.auth") }}', // This is a URL on your website.
+      data: {assertion: assertion},
+      success: function(res, status, xhr) {
+        window.location.href = res;
+      },
+      error: function(xhr, status, err) {
+        alert("Login failure: " + err);
+      }
+    });
+  },
+  onlogout: function() {
+    // A user has logged out! Here you need to:
+    // Tear down the user's session by redirecting the user or making a call to your backend.
+    // Also, make sure loggedInUser will get set to null on the next page load.
+    // (That's a literal JavaScript null. Not false, 0, or undefined. null.)
+    $.ajax({
+      type: 'POST',
+      url: '{{ url_for("users.logout") }}', // This is a URL on your website.
+      success: function(res, status, xhr) { window.location.reload(); },
+      error: function(xhr, status, err) { alert("Logout failure: " + err); }
+    });
+  }
+});
+
+var signinLink = $('.js-signin');
+if (signinLink) {
+  signinLink.on('click', function() {
+    navigator.id.request();
+  });
+}
+
+var signoutLink = $('.js-signout');
+if (signoutLink) {
+  signoutLink.on('click', function() {
+    navigator.id.logout();
+  });
+}
+
+</script>
 {% block js %}{% endblock %}
 <!-- end scripts -->
 {% endblock %}
