@@ -8,19 +8,19 @@ from flask import (
     current_app, abort
 )
 
-from purchasing.user.models import User
+from purchasing.users.models import User
 
 from flask.ext.login import current_user, login_user, logout_user
 
 blueprint = Blueprint(
-    'user', __name__, url_prefix='/user',
+    'users', __name__, url_prefix='/users',
     template_folder='../templates'
 )
 
 @blueprint.route("/login", methods=["GET"])
 def login():
     user = current_user if not current_user.is_anonymous() else dict(email=None)
-    return render_template("user/login.html", current_user=user)
+    return render_template("users/login.html", current_user=user)
 
 @blueprint.route('/logout', methods=['GET', 'POST'])
 def logout():
@@ -29,7 +29,7 @@ def logout():
         return 'OK'
     else:
         flash('Logged out successfully!', 'alert-success')
-        return render_template('user/logout.html')
+        return render_template('users/logout.html')
 
 @blueprint.route('/auth', methods=['POST'])
 def auth():

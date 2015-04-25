@@ -3,7 +3,7 @@ from flask.ext.login import login_user
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import insert_a_user
-from purchasing.user.models import User
+from purchasing.users.models import User
 
 class TestUserAuth(BaseTestCase):
     render_templates = False
@@ -14,9 +14,9 @@ class TestUserAuth(BaseTestCase):
         insert_a_user(email=self.email)
 
     def test_login_route(self):
-        request = self.client.get('/user/login')
+        request = self.client.get('/users/login')
         self.assert200(request)
-        self.assert_template_used('user/login.html')
+        self.assert_template_used('users/login.html')
         # test that new users have no email
         self.assertEquals(self.get_context_variable('current_user').get('email'), None)
 
@@ -26,7 +26,7 @@ class TestUserAuth(BaseTestCase):
         mock_open.read.side_effect = ['{"status": "error"}']
         urlopen.return_value = mock_open
 
-        post = self.client.post('/user/auth', data=dict(
+        post = self.client.post('/users/auth', data=dict(
             assertion='test'
         ))
 
@@ -38,7 +38,7 @@ class TestUserAuth(BaseTestCase):
         mock_open.read.side_effect = ['{"status": "okay", "email": "not_a_valid_email"}']
         urlopen.return_value = mock_open
 
-        post = self.client.post('/user/auth', data=dict(
+        post = self.client.post('/users/auth', data=dict(
             assertion='test'
         ))
 
@@ -50,7 +50,7 @@ class TestUserAuth(BaseTestCase):
         mock_open.read.side_effect = ['{"status": "okay", "email": "' + self.email + '"}']
         urlopen.return_value = mock_open
 
-        post = self.client.post('/user/auth?next=/explore/', data=dict(
+        post = self.client.post('/users/auth?next=/explore/', data=dict(
             assertion='test'
         ))
 
@@ -62,10 +62,10 @@ class TestUserAuth(BaseTestCase):
 
         login_user(User.query.all()[0])
 
-        logout = self.client.get('/user/logout', follow_redirects=True)
+        logout = self.client.get('/users/logout', follow_redirects=True)
         self.assert_flashes('Logged out successfully!', 'alert-success')
-        self.assert_template_used('user/logout.html')
+        self.assert_template_used('users/logout.html')
 
         login_user(User.query.all()[0])
-        logout = self.client.post('/user/logout?persona=True', follow_redirects=True)
+        logout = self.client.post('/users/logout?persona=True', follow_redirects=True)
         self.assertTrue(logout.data, 'OK')

@@ -14,7 +14,7 @@ from purchasing.extensions import (
     admin
 )
 from purchasing.public import views as public_views
-from purchasing.user import views as user_views
+from purchasing.users import views as user_views
 # import models so that flask-migrate can auto-detect
 from purchasing.data import models
 

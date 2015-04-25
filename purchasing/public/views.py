@@ -4,7 +4,7 @@ from flask import (
     Blueprint, render_template
 )
 from purchasing.extensions import login_manager
-from purchasing.user.models import User
+from purchasing.users.models import User
 
 blueprint = Blueprint('public', __name__, static_folder="../static")
 

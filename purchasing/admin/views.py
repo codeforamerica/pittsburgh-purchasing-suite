@@ -5,7 +5,7 @@ from purchasing.data.models import (
     Stage, StageProperty, Flow, ContractBase, ContractProperty, Company
 )
 from purchasing.extensions import login_manager
-from purchasing.user.models import User
+from purchasing.users.models import User, Role
 
 @login_manager.user_loader
 def load_user(userid):
@@ -27,7 +27,11 @@ class CompanyAdmin(sqla.ModelView):
 class FlowAdmin(sqla.ModelView):
     form_columns = ['flow_name', 'stage_order']
 
+class UserAdmin(sqla.ModelView):
+    inline_models = (Role,)
+
 admin.add_view(ContractAdmin(ContractBase, db.session))
 admin.add_view(CompanyAdmin(Company, db.session))
 admin.add_view(StageAdmin(Stage, db.session))
 admin.add_view(FlowAdmin(Flow, db.session))
+admin.add_view(UserAdmin(User, db.session))

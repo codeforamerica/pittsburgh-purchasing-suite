@@ -4,7 +4,7 @@ from purchasing.data.models import (
     ContractBase, ContractProperty,
     Stage, StageProperty, Flow, Company
 )
-from purchasing.user.models import User
+from purchasing.users.models import User
 
 def insert_a_contract():
     contract_data = dict(
