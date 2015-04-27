@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from mock import Mock, patch
 from flask.ext.testing import TestCase
 
 from purchasing.settings import TestConfig
@@ -32,3 +33,14 @@ class BaseTestCase(TestCase):
                 raise AssertionError('nothing flashed')
             assert expected_message in message
             assert expected_category == category
+
+    @patch('urllib2.urlopen')
+    def login_user(self, user, urlopen):
+        _email = user.email if user else 'foo@foo.com'
+        mock_open = Mock()
+        mock_open.read.side_effect = ['{"status": "okay", "email": "' + _email + '"}']
+        urlopen.return_value = mock_open
+
+        self.client.post('/users/auth', data=dict(
+            assertion='test'
+        ))

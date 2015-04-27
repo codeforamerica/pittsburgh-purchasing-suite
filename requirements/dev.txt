@@ -5,6 +5,7 @@
 nose==1.3.6
 coverage==3.7.1
 Flask-Testing==0.4.2
+mock==1.0.1
 
 # Management script
 Flask-Script

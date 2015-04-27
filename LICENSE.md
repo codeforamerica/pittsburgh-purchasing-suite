@@ -1,4 +1,4 @@
-Copyright (c) 2015, Ben Smithgall
+Copyright (c) 2015, Code for America
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:

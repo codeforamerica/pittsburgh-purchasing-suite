@@ -3,6 +3,8 @@
 in app.py
 """
 
+from purchasing.decorators import AuthMixin
+
 from flask_bcrypt import Bcrypt
 bcrypt = Bcrypt()
 
@@ -21,5 +23,10 @@ cache = Cache()
 from flask_debugtoolbar import DebugToolbarExtension
 debug_toolbar = DebugToolbarExtension()
 
-from flask_admin import Admin
-admin = Admin()
+from flask_admin import Admin, AdminIndexView, expose
+class PermissionsBase(AuthMixin, AdminIndexView):
+    @expose('/')
+    def index(self):
+        return self.render('admin/admin-root.html')
+
+admin = Admin(endpoint='admin', index_view=PermissionsBase())
