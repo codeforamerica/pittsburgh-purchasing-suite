@@ -16,11 +16,10 @@ from purchasing.database import (
 class Role(SurrogatePK, Model):
     __tablename__ = 'roles'
     name = Column(db.String(80), unique=True, nullable=False)
-    user_id = ReferenceCol('users', nullable=True)
-    user = relationship('User', backref='roles')
+    users = db.relationship('User', lazy='dynamic', backref='role')
 
-    def __init__(self, name, **kwargs):
-        db.Model.__init__(self, name=name, **kwargs)
+    def __init__(self, name):
+        db.Model.__init__(self, name=name)
 
     def __repr__(self):
         return '<Role({name})>'.format(name=self.name)
@@ -36,6 +35,7 @@ class User(UserMixin, SurrogatePK, Model):
     first_name = Column(db.String(30), nullable=True)
     last_name = Column(db.String(30), nullable=True)
     active = Column(db.Boolean(), default=False)
+    role_id = ReferenceCol('roles', ondelete='SET NULL', nullable=True)
 
     def __init__(self, email, **kwargs):
         db.Model.__init__(self, email=email, **kwargs)

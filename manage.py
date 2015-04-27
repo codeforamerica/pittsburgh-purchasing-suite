@@ -26,7 +26,8 @@ def _make_context():
     return {'app': app, 'db': db}
 
 @manager.option('-e', '--email', dest='email', default=None)
-def seed_user(email):
+@manager.option('-r', '--role', dest='role', default=None)
+def seed_user(email, role):
     from purchasing.users.models import User
     seed_email = email if email else app.config.get('SEED_EMAIL')
     user_exists = User.query.filter(User.email == seed_email).first()
@@ -36,7 +37,8 @@ def seed_user(email):
         try:
             new_user = User.create(
                 email=seed_email,
-                created_at=datetime.datetime.utcnow()
+                created_at=datetime.datetime.utcnow(),
+                role_id=role
             )
             db.session.add(new_user)
             db.session.commit()

@@ -1,71 +1,108 @@
-Pittsburgh Purchasing Suite
-===========================
+[![Build Status](https://travis-ci.org/codeforamerica/pittsburgh-purchasing-suite.svg?branch=master)](https://travis-ci.org/codeforamerica/pittsburgh-purchasing-suite)
 
-A collection of apps to manage, view, and advertise contracts
+# Pittsburgh Purchasing Suite
 
-Quickstart
-----------
+## What is it?
 
-First, set your app’s secret key as an environment variable. For
-example, example add the following to `.bashrc` or `.bash_profile`.
+The Pittsburgh Purchasing Suite is a collection of small applets backed by a common data store. These applets allow users to manage, view, and advertise contracts.
+
+#### What's the status?
+The Pittsburgh Purchasing Suite is currently in pre-alpha development.
+
+##### Feature status:
+
+| Feature | Status |
+|---------|--------|
+| Backend & Basic Admin | Developing Alpha |
+| Wexplorer - a tool to look up contracts | Developing Alpha |
+| To Be Named opportunity outreach site | Designing initial prototype |
+| To be named contract management tool | Designing initial prototype |
+
+## Who made it?
+The purchasing suite is a project of the 2015 Pittsburgh Code for America [fellowship team](http://codeforamerica.org/governments/pittsburgh)
+
+## How
+#### Core Dependencies
+The purchasing suite is a [Flask](http://flask.pocoo.org/) app. It uses [Postgres](http://www.postgresql.org/) for a database and uses [bower](http://bower.io/) to manage most of its dependencies. It also uses [less](http://lesscss.org/) to compile style assets. Big thanks to the [cookiecutter-flask](https://github.com/sloria/cookiecutter-flask) project for a nice kickstart.
+
+It is highly recommended that you use use [virtualenv](https://readthedocs.org/projects/virtualenv/) (and [virtualenvwrapper](https://virtualenvwrapper.readthedocs.org/en/latest/) for convenience). For a how-to on getting set up, please consult this [howto](https://github.com/codeforamerica/howto/blob/master/Python-Virtualenv.md). Additionally, you'll need node to install bower (see this [howto](https://github.com/codeforamerica/howto/blob/master/Node.js.md) for more on Node), and it is recommended that you use [postgres.app](http://postgresapp.com/) to handle your Postgres (assuming you are developing on OSX).
+
+#### Install (for development)
+Use the following commands to bootstrap your environment:
+
+**python app**:
 
 ```bash
-export PITTSBURGH-PURCHASING-SUITE_SECRET='something-really-secret'
+# clone the repo
+git clone https://github.com/codeforamerica/pittsburgh-purchasing-suite
+# change into the repo directory
+cd pittsburgh-purchasing-suite
+# install python dependencies
+pip install -r requirements/dev.txt
+# note, if you are looking to deploy, you won't need dev dependencies.
+# uncomment & run this command instead:
+# pip install -r requirements.txt
 ```
 
-Then run the following commands to bootstrap your environment.
+**database**:
 
-    git clone https://github.com/bsmithgall/pittsburgh-purchasing-suite
-    cd pittsburgh-purchasing-suite
-    pip install -r requirements/dev.txt
-    python manage.py server
+```bash
+# login to postgres. If you are using postgres.app, you can click
+# the little elephant in your taskbar to open this instead of using
+# psql
+psql
+create database purchasing;
+```
 
-You will see a pretty welcome screen.
+Once you've created your database, you'll need to open `purchasing/settings.py` and edit the `DevConfig` to use the proper SQLAlchemy database configuration string. Then:
 
-Once you have installed your DBMS, run the following to create your
-app’s database tables and perform the initial migration:
+```bash
+# upgrade your database to the latest version
+python manage.py db upgrade
+```
 
-    python manage.py db init
-    python manage.py db migrate
-    python manage.py db upgrade
-    python manage.py server
+**front-end**:
 
-Deployment
-----------
+```bash
+# install bower
+npm install -g bower
+# use bower to install the dependencies
+bower install
+```
 
-In your production environment, make sure the
-`PITTSBURGH-PURCHASING-SUITE_ENV` environment variable is set to
-`"prod"`.
+Now, you are ready to roll!
 
-Shell
------
+```bash
+# run the server
+python manage.py server
+```
 
-To open the interactive shell, run :
+**login and user accounts**
 
-    python manage.py shell
+The Pittsburgh Purchasing Suite uses [persona](https://login.persona.org/about) to handle authentication. The app uses its own user database to manage roles and object-based authorization. You will need to sign in through persona and then enter yourself into the database in order to have access to admin and other pages.
 
-By default, you will have access to `app`, `db`, and the `User` model.
+A manage task has been created to allow you to quickly create a user to access the admin and other staff-only tasks. To add an email, run the following command (NOTE: if you updated your database as per above, you will probably want to give youself a role of 1, which will give you superadmin privledges):
 
-Running Tests
--------------
+```bash
+python manage.py seed_email -e <your-email-here> -r <your-desired-role>
+```
 
-To run all tests, run :
+Now, logging in through persona should also give you access to the app.
 
-    python manage.py test
+#### Testing
 
-Migrations
-----------
+In order to run the tests, you will need to create a test database. You can follow the same procedures outlined in the install section. By default, the database should be named `purchasing_test`:
 
-Whenever a database migration needs to be made. Run the following
-commmands: :
+    psql
+    create database purchasing_test;
 
-    python manage.py db migrate
+Tests are located in the `purchasing_test` directory. To run the tests, run
 
-This will generate a new migration script. Then run: :
+    PYTHONPATH=. nosetests purchasing_test/
 
-    python manage.py db upgrade
+from inside the root directory. For more coverage information, run
 
-To apply the migration.
+    PYTHONPATH=. nosetests purchasing_test/ -v --with-coverage --cover-package=purchasing_test --cover-erase
 
-For a full migration command reference, run
-`python manage.py db --help`.
+## License
+See [LICENCE.md](https://github.com/codeforamerica/pittsburgh-purchasing-suite/blob/master/LICENCE.md).
