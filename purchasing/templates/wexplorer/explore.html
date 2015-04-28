@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div class="row text-center">
+
+  <h2>helps you find goods and services</h2>
+  <h2 class="text-muted padded-bottom h2-mobile-fixed-two-rows"><strong id="js-cycle-phrases">for the lowest price.</strong></h2>
+
+  <form id="search-box" method="GET" class="form form-inline" action="/explore/" role="login">
+    <div class="form-group">
+    <input class="form-control input-lg" placeholder="I'm looking for...">
+    </div>
+    <input class="btn btn-default btn-success input-lg" type="submit" value="Search">
+  </form>
+
+  <div class="spacer-20"></div>
+
+  <h4 class="text-muted">
+    Search company names, contract descriptions, controller numbers, <br />
+    spec numbers, or items that have been entered into Wexplorer.
+  </h4>
+
+</div>
+
+
+{% endblock %}
