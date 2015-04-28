@@ -35,7 +35,7 @@ class UserAdmin(AuthMixin, sqla.ModelView):
 
     def is_accessible(self):
         if current_user.is_anonymous():
-            return url_for('users.login', next=request.url)
+            return url_for('users.login', next=request.path)
         if current_user.role.name == 'admin':
             return True
 
