@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+{% import 'macros/render_field_if_exists.html' as macros %}
+{% block content %}
+<pre>{{ contract.__dict__ }}</pre>
+
+<div class="row">
+  <div class="col-md-3">
+    {% include 'wexplorer/shared/side_search.html' %}
+  </div>
+  <div class="col-md-9">
+    <h3>{{ contract.description }}</h3>
+    {% if current_user.role.name in ['admin', 'superadmin'] %}
+    <p class="pull-right">
+      <a href="{{ url_for('contract.edit_view', id=contract.id) }}">test</a>
+    </p>
+    {% endif %}
+    <hr>
+    <div class="row">
+      <div class="col-md-6">
+        <p class="lead">Contract Information</p>
+        <ul>
+          <li>{{ macros.render_field_if_exists(contract.contract_type) }}</li>
+          <li>{{ macros.render_field_if_exists(contract.expiration_date) }}</li>
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <p class="lead">Awarded Companies</p>
+        <ul>
+        {% for company in contract.companies %}
+          <li>
+            <a href="{{ url_for('wexplorer.company', company_id=company.id) }}">{{ company.company_name }}</a>
+          </li>
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

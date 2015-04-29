@@ -31,6 +31,7 @@ def wrap_form(form=None, template=None):
     def add_form(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
+            _form = form()
             template_name = template
             if not template_name:
                 template_name = request.endpoint.replace('.', '/') + '.html'
@@ -38,7 +39,7 @@ def wrap_form(form=None, template=None):
             if ctx is None:
                 ctx = {}
             if isinstance(ctx, dict):
-                ctx['wrapped_form'] = form
+                ctx['wrapped_form'] = _form
             elif isinstance(ctx, basestring):
                 return ctx
             return render_template(template_name, **ctx)

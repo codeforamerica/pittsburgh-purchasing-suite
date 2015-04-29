@@ -53,10 +53,10 @@ class UserRoleAdmin(SuperAdminMixin, sqla.ModelView):
 class RoleAdmin(SuperAdminMixin, sqla.ModelView):
     pass
 
-admin.add_view(ContractAdmin(ContractBase, db.session))
-admin.add_view(CompanyAdmin(Company, db.session))
-admin.add_view(StageAdmin(Stage, db.session))
-admin.add_view(FlowAdmin(Flow, db.session))
+admin.add_view(ContractAdmin(ContractBase, db.session, endpoint='contract'))
+admin.add_view(CompanyAdmin(Company, db.session, endpoint='company'))
+admin.add_view(StageAdmin(Stage, db.session, endpoint='stage'))
+admin.add_view(FlowAdmin(Flow, db.session, endpoint='flow'))
 admin.add_view(UserAdmin(User, db.session, name='User', endpoint='user'))
 admin.add_view(UserRoleAdmin(User, db.session, name='User w/Roles', endpoint='user-roles'))
-admin.add_view(RoleAdmin(Role, db.session))
+admin.add_view(RoleAdmin(Role, db.session, endpoint='role'))

@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+{% import 'macros/render_field_if_exists.html' as macros %}
+{% block content %}
+
+<div class="row">
+  <div class="col-md-3">
+    {% include 'wexplorer/shared/side_search.html' %}
+  </div>
+  <div class="col-md-9">
+    <div>
+      <h3>{{ company.company_name }}</h3>
+      {% if current_user.role.name in ['admin', 'superadmin'] %}
+      <p class="pull-right">
+        <a href="{{ url_for('company.edit_view', id=company.id) }}">test</a>
+      </p>
+      {% endif %}
+    </div>
+    <hr>
+
+    <div class="row">
+      <div class="col-md-6">
+        <p class="lead">
+          Contact Information
+        </p>
+        <ul class="list-unstyled">
+          <li>
+            {{ macros.render_field_if_exists(company.contact_first_name) }}
+            {{ macros.render_field_if_exists(company.contact_last_name) }}
+          </li>
+          <li>
+            {{ macros.render_field_if_exists(company.contact_addr1) }}
+            {{ macros.render_field_if_exists(company.contact_addr2) }}
+          </li>
+          <li>
+            {{ macros.render_field_if_exists(company.contact_city, ',') }}
+            {{ macros.render_field_if_exists(company.contact_state) }}
+            {{ macros.render_field_if_exists(company.contact_zip) }}
+          </li>
+        </ul>
+
+      </div>
+      <div class="col-md-6">
+        <p class="lead">
+          Contracts
+        </p>
+        <ul>
+        {% for contract in company.contracts %}
+          <li>
+            <a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">{{ contract.description }}</a>
+          </li>
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

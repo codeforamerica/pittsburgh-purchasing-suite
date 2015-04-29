@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from flask import Blueprint, render_template, current_app, request
+from flask import Blueprint, render_template, current_app, request, abort
 from flask_login import current_user
 
 from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form
 from purchasing.wexplorer.forms import SearchForm
-from purchasing.data.models import ContractBase, Company
+from purchasing.data.companies import get_one_company
+from purchasing.data.contracts import get_one_contract
 
 blueprint = Blueprint(
     'wexplorer', __name__, url_prefix='/wexplorer',
@@ -29,7 +30,7 @@ def search():
     The search results page for wexplorer. Renders the "side search"
     along with paginated results.
     '''
-    search_form = SearchForm(request.form)
+    wrapped_form = SearchForm(request.form)
     pagination_per_page = current_app.config.get('PER_PAGE', 50)
 
     results = []
@@ -70,13 +71,21 @@ def search():
         'wexplorer/search.html',
         results=results,
         pagination=pagination,
-        search_form=search_form
+        wrapped_form=wrapped_form
     )
 
 @blueprint.route('/companies/<int:company_id>')
+@wrap_form(SearchForm, 'wexplorer/company.html')
 def company(company_id):
-    return str(company_id)
+    company = get_one_company(company_id)
+    if company:
+        return dict(company=company)
+    abort(404)
 
 @blueprint.route('/contracts/<int:contract_id>')
+@wrap_form(SearchForm, 'wexplorer/contract.html')
 def contract(contract_id):
-    return str(contract_id)
+    contract = get_one_contract(contract_id)
+    if contract:
+        return dict(contract=contract)
+    abort(404)
