@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+{% import 'macros/render_pagination.html' as macros %}
+{% block content %}
+
+{% if results %}
+
+<div class="row">
+  <div class="col-md-3">
+    {% include 'wexplorer/shared/side_search.html' %}
+  </div>
+  <div class="col-md-9">
+    <h3 class="text-muted">
+      {{ pagination.total_count }} results found for "{{ request.args.get('q') }}"
+      {% if pagination.pages > 1 %}({{ (results | length) }} shown) {% endif %}<br>
+      {% if last_updated %}<small>Last Updated: {% if last_updated %}{{ last_updated }}{% endif %}</small>{% endif %}
+    </h3>
+    <table class="table table-condensed" id="js-explore-search-results">
+      <thead>
+        <tr>
+          <th class="js-sortable-th">Company</th>
+          <th class="js-sortable-th">Contract Discription</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for result in results %}
+        <tr>
+          <td><a href="{{ url_for('wexplorer.company', company_id=result.company_id) }}">{{ result.company_name }}</a></td>
+          <td><a href="{{ url_for('wexplorer.contract', contract_id=result.contract_id) }}">{{ result.contract_description }}</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if pagination.pages > 1 %}
+      {{ macros.render_pagination(pagination) }}
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="row text-center">
+  <h4>There are no results!</h4>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -6,11 +6,11 @@ from purchasing.data.models import (
 )
 from purchasing.users.models import User, Role
 
-def insert_a_contract():
+def insert_a_contract(**kwargs):
     contract_data = dict(
         contract_type='test',
         description='test2',
-    )
+    ) if not kwargs else dict(kwargs)
 
     contract = ContractBase.create(**contract_data)
 
@@ -59,12 +59,15 @@ def insert_a_flow(name='test', stage_ids=None):
 
     return flow
 
-def insert_a_company(name='test company'):
-    contract = insert_a_contract()
-    company = Company.create(**{
-        'company_name': name,
-        'contracts': [contract]
-    })
+def insert_a_company(name='test company', insert_contract=True):
+    if insert_contract:
+        contract = insert_a_contract()
+        company = Company.create(**{
+            'company_name': name,
+            'contracts': [contract]
+        })
+    else:
+        company = Company.create(**{'company_name': name})
 
     return company
 

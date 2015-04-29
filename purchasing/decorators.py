@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import redirect, url_for, flash, request, abort
+from flask import redirect, url_for, flash, request, abort, render_template
 from flask_login import current_user
 from functools import wraps
 
@@ -18,6 +18,32 @@ def requires_roles(*roles):
             return view_function(*args, **kwargs)
         return decorated_function
     return check_roles
+
+def wrap_form(form=None, template=None):
+    '''
+    wrap_form takes a form name and a template location, and adds
+    the form as 'wrapped_form' into the template. Returns the
+    rendered template.
+
+    Modified from:
+    http://flask.pocoo.org/docs/0.10/patterns/viewdecorators/#templating-decorator
+    '''
+    def add_form(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            template_name = template
+            if not template_name:
+                template_name = request.endpoint.replace('.', '/') + '.html'
+            ctx = f(*args, **kwargs)
+            if ctx is None:
+                ctx = {}
+            if isinstance(ctx, dict):
+                ctx['wrapped_form'] = form
+            elif isinstance(ctx, basestring):
+                return ctx
+            return render_template(template_name, **ctx)
+        return decorated_function
+    return add_form
 
 class AuthMixin(object):
     accepted_roles = ['admin', 'superadmin']

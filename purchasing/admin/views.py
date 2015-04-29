@@ -20,12 +20,20 @@ class StageAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['name', 'stage_properties']
 
 class ContractAdmin(AuthMixin, sqla.ModelView):
-    inline_models = (ContractProperty, Company)
+    inline_models = (ContractProperty,)
 
-    form_columns = ['contract_type', 'description', 'contract_properties', 'current_stage', 'current_flow']
+    form_columns = [
+        'contract_type', 'description', 'contract_properties',
+        'expiration_date', 'current_stage', 'current_flow', 'companies'
+    ]
 
 class CompanyAdmin(AuthMixin, sqla.ModelView):
-    inline_models = (ContractBase,)
+    form_columns = [
+        'company_name', 'contact_first_name', 'contact_last_name',
+        'contact_addr1', 'contact_addr2', 'contact_city',
+        'contact_state', 'contact_zip', 'contact_phone',
+        'contact_email', 'contracts'
+    ]
 
 class FlowAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['flow_name', 'stage_order']

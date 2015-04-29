@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from mock import Mock, patch
 from flask.ext.login import login_user
 

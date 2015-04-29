@@ -1,0 +1,13 @@
+<div class="sidebar side-nav">
+
+  <a href="{{ url_for('wexplorer.explore') }}"><img src="{{ url_for('static', filename='img/wexplorer-logo.png') }}"></a>
+
+
+  <form id="search-box" method="GET" class="form form-inline" action="/explore/" role="login">
+    <div class="form-group">
+      {{ search_form.q(placeholder="I'm looking for...", class_="form-control") }}
+    </div>
+    <input class="btn btn-default btn-success" type="submit" value="Search">
+  </form>
+
+</div>
