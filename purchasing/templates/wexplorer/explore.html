@@ -1,4 +1,4 @@
-{% extends 'layout.html' %}
+{% extends 'wexplorer/layout.html' %}
 
 {% block content %}
 
@@ -11,7 +11,7 @@
 
   <form id="search-box" method="GET" class="form form-inline" action="{{ url_for('wexplorer.search') }}" role="login">
     <div class="form-group">
-      {{ wrapped_form.q(placeholder="I'm looking for...", class_="form-control") }}
+      {{ search_form.q(placeholder="I'm looking for...", class_="form-control input-lg") }}
     </div>
     <input class="btn btn-default btn-success input-lg" type="submit" value="Search">
   </form>

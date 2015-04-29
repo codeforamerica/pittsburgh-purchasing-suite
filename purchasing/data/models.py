@@ -9,6 +9,7 @@ from purchasing.database import (
 )
 from sqlalchemy.dialects.postgres import ARRAY
 from sqlalchemy.schema import Table
+from sqlalchemy.orm import backref
 
 company_contract_association_table = Table(
     'company_contract_association', Model.metadata,
@@ -52,7 +53,6 @@ class ContractBase(Model):
     current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
     current_flow = db.relationship('Flow', lazy='subquery')
     flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
-    contract_properties = db.relationship('ContractProperty', lazy='dynamic', cascade='delete')
 
     def __unicode__(self):
         return self.description
@@ -61,9 +61,11 @@ class ContractProperty(Model):
     __tablename__ = 'contract_property'
 
     id = Column(db.Integer, primary_key=True)
-    contract = db.relationship('ContractBase', backref='contract')
+    contract = db.relationship('ContractBase', backref=backref(
+        'properties', lazy='dynamic', cascade='save-update, delete'
+    ))
     contract_id = ReferenceCol('contract', ondelete='CASCADE')
-    key = Column(db.String(255))
+    key = Column(db.String(255), nullable=False)
     value = Column(db.String(255))
 
     def __unicode__(self):
@@ -76,7 +78,6 @@ class Stage(Model):
     __tablename__ = 'stage'
 
     id = Column(db.Integer, primary_key=True)
-    stage_properties = db.relationship('StageProperty', lazy='dynamic', cascade='delete')
     contract = db.relationship('ContractBase', backref='stage_id', lazy='subquery')
     name = Column(db.String(255))
 
@@ -87,9 +88,11 @@ class StageProperty(Model):
     __tablename__ = 'stage_property'
 
     id = Column(db.Integer, primary_key=True)
-    stage = db.relationship('Stage', backref='stage')
+    stage = db.relationship('Stage', backref=backref(
+        'properties', lazy='dynamic', cascade='save-update, delete'
+    ))
     stage_id = ReferenceCol('stage', ondelete='CASCADE')
-    key = Column(db.String(255))
+    key = Column(db.String(255), nullable=False)
     value = Column(db.String(255))
 
     def __unicode__(self):

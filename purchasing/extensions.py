@@ -27,6 +27,6 @@ from flask_admin import Admin, AdminIndexView, expose
 class PermissionsBase(AuthMixin, AdminIndexView):
     @expose('/')
     def index(self):
-        return self.render('admin/admin-root.html')
+        return self.render('admin/index.html')
 
-admin = Admin(endpoint='admin', index_view=PermissionsBase())
+admin = Admin(endpoint='admin', index_view=PermissionsBase(), template_mode='bootstrap3')

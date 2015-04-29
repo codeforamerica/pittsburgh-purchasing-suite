@@ -1,7 +1,9 @@
 from flask import url_for, request
+from jinja2 import Markup
 
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin
+from wtforms import TextField
 from flask_admin.contrib import sqla
 from flask_login import current_user
 from purchasing.data.models import (
@@ -17,17 +19,22 @@ def load_user(userid):
 class StageAdmin(AuthMixin, sqla.ModelView):
     inline_models = (StageProperty, )
 
-    form_columns = ['name', 'stage_properties']
+    form_columns = ['name']
 
 class ContractAdmin(AuthMixin, sqla.ModelView):
     inline_models = (ContractProperty,)
 
+    column_searchable_list = ('description', 'contract_type')
+
     form_columns = [
-        'contract_type', 'description', 'contract_properties',
+        'contract_type', 'description', 'properties',
         'expiration_date', 'current_stage', 'current_flow', 'companies'
     ]
 
 class CompanyAdmin(AuthMixin, sqla.ModelView):
+
+    column_searchable_list = ('company_name',)
+
     form_columns = [
         'company_name', 'contact_first_name', 'contact_last_name',
         'contact_addr1', 'contact_addr2', 'contact_city',

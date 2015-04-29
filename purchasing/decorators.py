@@ -19,7 +19,7 @@ def requires_roles(*roles):
         return decorated_function
     return check_roles
 
-def wrap_form(form=None, template=None):
+def wrap_form(form=None, form_name=None, template=None):
     '''
     wrap_form takes a form name and a template location, and adds
     the form as 'wrapped_form' into the template. Returns the
@@ -32,6 +32,7 @@ def wrap_form(form=None, template=None):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             _form = form()
+            _form_name = form_name if form_name else 'wrapped_form'
             template_name = template
             if not template_name:
                 template_name = request.endpoint.replace('.', '/') + '.html'
@@ -39,7 +40,7 @@ def wrap_form(form=None, template=None):
             if ctx is None:
                 ctx = {}
             if isinstance(ctx, dict):
-                ctx['wrapped_form'] = _form
+                ctx[_form_name] = _form
             elif isinstance(ctx, basestring):
                 return ctx
             return render_template(template_name, **ctx)

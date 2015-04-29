@@ -28,7 +28,7 @@ def get_a_property():
     if not contract:
         contract = insert_a_contract()
 
-    return contract.contract_properties.first()
+    return contract.properties.first()
 
 def insert_a_stage():
     stage = Stage.create(**{
@@ -49,7 +49,7 @@ def get_a_stage_property():
     if not stage:
         stage = insert_a_stage()
 
-    return stage.stage_properties.first()
+    return stage.properties.first()
 
 def insert_a_flow(name='test', stage_ids=None):
     flow = Flow.create(**{

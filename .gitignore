@@ -46,7 +46,9 @@ docs/_build
 env
 env*
 
+# Bower Installs
 libs/
 
+# Flask-assets output
 common.css
 common.js

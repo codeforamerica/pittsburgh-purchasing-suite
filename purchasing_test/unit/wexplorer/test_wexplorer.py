@@ -20,7 +20,7 @@ class TestWexplorer(BaseTestCase):
         # test the request processes correctly
         self.assert200(request)
         # test that we have the wrapped form
-        self.assertTrue(self.get_context_variable('wrapped_form') is not None)
+        self.assertTrue(self.get_context_variable('search_form') is not None)
 
     def test_search(self):
         self.client.get('/wexplorer/search?q=aaa')
@@ -40,7 +40,7 @@ class TestWexplorer(BaseTestCase):
         # test that this works
         self.assert200(request)
         # test that we have the wrapped form and the company object
-        self.assertTrue(self.get_context_variable('wrapped_form') is not None)
+        self.assertTrue(self.get_context_variable('search_form') is not None)
         self.assertTrue(self.get_context_variable('company') is not None)
         # test that invalid company ids 404
         self.assert404(self.client.get('/wexplorer/companies/abcd'))
@@ -50,7 +50,7 @@ class TestWexplorer(BaseTestCase):
         request = self.client.get('/wexplorer/contracts/1')
         self.assert200(request)
         # test that we have the wrapped form and the company object
-        self.assertTrue(self.get_context_variable('wrapped_form') is not None)
+        self.assertTrue(self.get_context_variable('search_form') is not None)
         self.assertTrue(self.get_context_variable('contract') is not None)
         # test that invalid company ids 404
         self.assert404(self.client.get('/wexplorer/contracts/abcd'))

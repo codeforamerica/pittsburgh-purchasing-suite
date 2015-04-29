@@ -16,7 +16,7 @@ blueprint = Blueprint(
 )
 
 @blueprint.route('/', methods=['GET'])
-@wrap_form(SearchForm, 'wexplorer/explore.html')
+@wrap_form(SearchForm, 'search_form', 'wexplorer/explore.html')
 def explore():
     '''
     The landing page for wexplorer. Renders the "big search"
@@ -30,7 +30,7 @@ def search():
     The search results page for wexplorer. Renders the "side search"
     along with paginated results.
     '''
-    wrapped_form = SearchForm(request.form)
+    search_form = SearchForm(request.form)
     pagination_per_page = current_app.config.get('PER_PAGE', 50)
 
     results = []
@@ -71,11 +71,11 @@ def search():
         'wexplorer/search.html',
         results=results,
         pagination=pagination,
-        wrapped_form=wrapped_form
+        search_form=search_form
     )
 
 @blueprint.route('/companies/<int:company_id>')
-@wrap_form(SearchForm, 'wexplorer/company.html')
+@wrap_form(SearchForm, 'search_form', 'wexplorer/company.html')
 def company(company_id):
     company = get_one_company(company_id)
     if company:
@@ -83,7 +83,7 @@ def company(company_id):
     abort(404)
 
 @blueprint.route('/contracts/<int:contract_id>')
-@wrap_form(SearchForm, 'wexplorer/contract.html')
+@wrap_form(SearchForm, 'search_form', 'wexplorer/contract.html')
 def contract(contract_id):
     contract = get_one_contract(contract_id)
     if contract:

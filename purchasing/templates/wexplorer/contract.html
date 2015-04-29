@@ -1,7 +1,5 @@
-{% extends 'layout.html' %}
-{% import 'macros/render_field_if_exists.html' as macros %}
+{% extends 'wexplorer/layout.html' %}
 {% block content %}
-<pre>{{ contract.__dict__ }}</pre>
 
 <div class="row">
   <div class="col-md-3">
@@ -10,17 +8,27 @@
   <div class="col-md-9">
     <h3>{{ contract.description }}</h3>
     {% if current_user.role.name in ['admin', 'superadmin'] %}
-    <p class="pull-right">
-      <a href="{{ url_for('contract.edit_view', id=contract.id) }}">test</a>
+    <p>
+      <a href="{{ url_for('contract.edit_view', id=contract.id) }}">Edit this contract</a>
     </p>
     {% endif %}
     <hr>
     <div class="row">
       <div class="col-md-6">
-        <p class="lead">Contract Information</p>
+        <p class="lead">Basic Contract Information</p>
         <ul>
-          <li>{{ macros.render_field_if_exists(contract.contract_type) }}</li>
-          <li>{{ macros.render_field_if_exists(contract.expiration_date) }}</li>
+          {% if contract.contract_type %}
+          <li>Contract Type: {{ contract.contract_type }}</li>
+          {% endif %}
+          {% if contract.expiration_date %}
+          <li>Expiration Date: {{ contract.expiration_date }}</li>
+          {% endif %}
+        </ul>
+        <p class="lead">More Details</p>
+        <ul>
+        {% for property in contract.properties %}
+          <li>{{ property.key }}: {{ property.value }}</li>
+        {% endfor %}
         </ul>
       </div>
       <div class="col-md-6">
