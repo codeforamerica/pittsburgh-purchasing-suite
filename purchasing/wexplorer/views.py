@@ -44,6 +44,7 @@ def search():
     lower_bound_result = (page - 1) * pagination_per_page
     upper_bound_result = lower_bound_result + pagination_per_page
 
+    # TODO: Make this more efficient.
     contracts = db.session.execute(
         '''
         SELECT
@@ -54,9 +55,11 @@ def search():
             SELECT
                 cp.id as company_id, ct.id as contract_id,
                 cp.company_name, ct.description
-            FROM company cp,
-            company_contract_association cca,
-            contract ct
+            FROM company cp
+            FULL OUTER JOIN company_contract_association cca
+            ON cp.id = cca.company_id
+            FULL OUTER JOIN contract ct
+            ON ct.id = cca.contract_id
             WHERE cp.company_name ilike :search_for_wc
             OR ct.description ilike :search_for_wc
         ) x
