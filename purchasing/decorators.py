@@ -12,7 +12,7 @@ def requires_roles(*roles):
     def check_roles(view_function):
         @wraps(view_function)
         def decorated_function(*args, **kwargs):
-            if current_user.role not in roles:
+            if current_user.role.name not in roles:
                 flash('ERROR! ERROR! ERROR!', 'alert-danger')
                 return redirect(request.args.get('next') or '/')
             return view_function(*args, **kwargs)

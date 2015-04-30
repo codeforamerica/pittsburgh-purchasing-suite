@@ -14,11 +14,14 @@
       {% if pagination.pages > 1 %}({{ (results | length) }} shown) {% endif %}<br>
       {% if last_updated %}<small>Last Updated: {% if last_updated %}{{ last_updated }}{% endif %}</small>{% endif %}
     </h3>
-    <table class="table table-condensed" id="js-explore-search-results">
+    <table class="table table-condensed table-striped" id="js-explore-search-results">
       <thead>
         <tr>
           <th class="js-sortable-th">Company</th>
           <th class="js-sortable-th">Contract Discription</th>
+          {% if current_user.role.name %}
+          <th>Subscribe to updates</th>
+          {% endif %}
         </tr>
       </thead>
       <tbody>
@@ -26,6 +29,11 @@
         <tr>
           <td><a href="{{ url_for('wexplorer.company', company_id=result.company_id) }}">{{ result.company_name }}</a></td>
           <td><a href="{{ url_for('wexplorer.contract', contract_id=result.contract_id) }}">{{ result.contract_description }}</a></td>
+          {% if current_user.email in result.users %}
+          <td><a href="{{ url_for('wexplorer.unsubscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-danger">Stop receiving updates</a></td>
+          {% elif current_user.role.name %}
+          <td><a href="{{ url_for('wexplorer.subscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-primary">Subscribe for updates</a></td>
+          {% endif %}
         </tr>
         {% endfor %}
       </tbody>

@@ -1,9 +1,7 @@
 from flask import url_for, request
-from jinja2 import Markup
 
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin
-from wtforms import TextField
 from flask_admin.contrib import sqla
 from flask_login import current_user
 from purchasing.data.models import (
@@ -28,7 +26,8 @@ class ContractAdmin(AuthMixin, sqla.ModelView):
 
     form_columns = [
         'contract_type', 'description', 'properties',
-        'expiration_date', 'current_stage', 'current_flow', 'companies'
+        'expiration_date', 'current_stage', 'current_flow', 'companies',
+        'users'
     ]
 
 class CompanyAdmin(AuthMixin, sqla.ModelView):
