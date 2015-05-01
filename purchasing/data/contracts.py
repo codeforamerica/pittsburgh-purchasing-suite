@@ -58,3 +58,36 @@ def get_all_contracts():
     TODO: Paginate these results.
     '''
     return ContractBase.query.all()
+
+def follow_a_contract(contract_id, user):
+    '''
+    Takes in a contract_id and a user model, and
+    associates the user model with the relevant
+    contract. This makes the user "follow" the
+    contract for notification purposes. NOTE -
+    normally we would just use the UPDATE method above,
+    but because the user lives on an array, this would
+    prevent multiple users from following one contract
+    '''
+    contract = get_one_contract(contract_id)
+    if contract:
+        if user not in contract.users:
+            contract.users.append(user)
+            contract.update()
+            return ('Successfully subscribed!', 'alert-success'), contract
+        return ('Already subscribed!', 'alert-info'), contract
+    return None, None
+
+def unfollow_a_contract(contract_id, user):
+    '''
+    Takes in a contract_id and a user model, and pops the
+    user out of the list of users.
+    '''
+    contract = get_one_contract(contract_id)
+    if contract:
+        if user in contract.users:
+            contract.users.remove(user)
+            contract.update()
+            return ('Successfully unsubscribed', 'alert-success'), contract
+        return ('You haven\'t subscribed to this contract!', 'alert-warning'), contract
+    return None, None

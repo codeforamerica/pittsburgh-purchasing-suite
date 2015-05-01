@@ -50,5 +50,5 @@ env*
 libs/
 
 # Flask-assets output
-common.css
+css
 common.js

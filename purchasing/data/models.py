@@ -17,6 +17,12 @@ company_contract_association_table = Table(
     Column('contract_id', db.Integer, db.ForeignKey('contract.id')),
 )
 
+contract_user_association_table = Table(
+    'contract_user_association', Model.metadata,
+    Column('user_id', db.Integer, db.ForeignKey('users.id')),
+    Column('contract_id', db.Integer, db.ForeignKey('contract.id')),
+)
+
 class Company(Model):
     __tablename__ = 'company'
 
@@ -53,6 +59,11 @@ class ContractBase(Model):
     current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
     current_flow = db.relationship('Flow', lazy='subquery')
     flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
+    users = db.relationship(
+        'User',
+        secondary=contract_user_association_table,
+        backref='contracts_following'
+    )
 
     def __unicode__(self):
         return self.description

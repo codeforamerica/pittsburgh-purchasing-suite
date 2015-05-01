@@ -6,7 +6,14 @@
     {% include 'wexplorer/shared/side_search.html' %}
   </div>
   <div class="col-md-9">
-    <h3>{{ contract.description }}</h3>
+    <h3>
+      {{ contract.description }}
+      {% if current_user in contract.users %}
+        <a href="{{ url_for('wexplorer.unsubscribe', contract_id=contract.id, next=path) }}" class="btn btn-danger">Stop receiving updates</a>
+      {% elif current_user.role.name %}
+        <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}" class="btn btn-primary">Subscribe for updates</a>
+      {% endif %}
+    </h3>
     {% if current_user.role.name in ['admin', 'superadmin'] %}
     <p>
       <a href="{{ url_for('contract.edit_view', id=contract.id) }}">Edit this contract</a>
