@@ -1,0 +1,7 @@
+{% extends 'layout.html' %}
+
+{% block assets %}
+  {% assets "wexplorer_less" %}
+    <link rel="stylesheet" href="{{ ASSET_URL }}">
+  {% endassets %}
+{% endblock %}

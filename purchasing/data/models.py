@@ -9,6 +9,7 @@ from purchasing.database import (
 )
 from sqlalchemy.dialects.postgres import ARRAY
 from sqlalchemy.schema import Table
+from sqlalchemy.orm import backref
 
 company_contract_association_table = Table(
     'company_contract_association', Model.metadata,
@@ -22,7 +23,7 @@ class Company(Model):
     id = Column(db.Integer, primary_key=True)
     company_name = Column(db.String(255), nullable=False, unique=True)
     contact_first_name = Column(db.String(255))
-    contact_second_name = Column(db.String(255))
+    contact_last_name = Column(db.String(255))
     contact_addr1 = Column(db.String(255))
     contact_addr2 = Column(db.String(255))
     contact_city = Column(db.String(255))
@@ -46,12 +47,12 @@ class ContractBase(Model):
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     updated_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     contract_type = Column(db.String(255))
+    expiration_date = Column(db.Date)
     description = Column(db.Text)
     current_stage = db.relationship('Stage', lazy='subquery')
     current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
     current_flow = db.relationship('Flow', lazy='subquery')
     flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
-    contract_properties = db.relationship('ContractProperty', lazy='dynamic', cascade='delete')
 
     def __unicode__(self):
         return self.description
@@ -60,9 +61,11 @@ class ContractProperty(Model):
     __tablename__ = 'contract_property'
 
     id = Column(db.Integer, primary_key=True)
-    contract = db.relationship('ContractBase', backref='contract')
+    contract = db.relationship('ContractBase', backref=backref(
+        'properties', lazy='dynamic', cascade='save-update, delete'
+    ))
     contract_id = ReferenceCol('contract', ondelete='CASCADE')
-    key = Column(db.String(255))
+    key = Column(db.String(255), nullable=False)
     value = Column(db.String(255))
 
     def __unicode__(self):
@@ -75,7 +78,6 @@ class Stage(Model):
     __tablename__ = 'stage'
 
     id = Column(db.Integer, primary_key=True)
-    stage_properties = db.relationship('StageProperty', lazy='dynamic', cascade='delete')
     contract = db.relationship('ContractBase', backref='stage_id', lazy='subquery')
     name = Column(db.String(255))
 
@@ -86,9 +88,11 @@ class StageProperty(Model):
     __tablename__ = 'stage_property'
 
     id = Column(db.Integer, primary_key=True)
-    stage = db.relationship('Stage', backref='stage')
+    stage = db.relationship('Stage', backref=backref(
+        'properties', lazy='dynamic', cascade='save-update, delete'
+    ))
     stage_id = ReferenceCol('stage', ondelete='CASCADE')
-    key = Column(db.String(255))
+    key = Column(db.String(255), nullable=False)
     value = Column(db.String(255))
 
     def __unicode__(self):

@@ -1,0 +1,63 @@
+{% extends 'wexplorer/layout.html' %}
+{% block content %}
+
+<div class="row">
+  <div class="col-md-3">
+    {% include 'wexplorer/shared/side_search.html' %}
+  </div>
+  <div class="col-md-9">
+    <div>
+      <h3>{{ company.company_name }}</h3>
+      {% if current_user.role.name in ['admin', 'superadmin'] %}
+      <p>
+        <a href="{{ url_for('company.edit_view', id=company.id) }}">Edit this company</a>
+      </p>
+      {% endif %}
+    </div>
+    <hr>
+
+    <div class="row">
+      <div class="col-md-6">
+        <p class="lead">
+          Contact Information
+        </p>
+        <ul class="list-unstyled">
+          {% if company.contact_first_name or company.contact_last_name %}
+          <li>
+            {{ company.contact_first_name or '' }}
+            {{ company.contact_last_name or '' }}
+          </li>
+          {% endif %}
+          {% if company.addr1 or company.addr2 %}
+          <li>
+            {{ company.contact_addr1 or '' }}
+            {{ company.contact_addr2 or '' }}
+          </li>
+          {% endif %}
+          {% if company.contact_city or company.contact_state or company.contact_state_zip %}
+          <li>
+            {{ company.contact_city or '' }}{% if company.contact_city and company.contact_state %},{% endif %}
+            {{ company.contact_state or '' }}
+            {{ company.contact_zip or '' }}
+          </li>
+          {% endif %}
+        </ul>
+
+      </div>
+      <div class="col-md-6">
+        <p class="lead">
+          Contracts
+        </p>
+        <ul>
+        {% for contract in company.contracts %}
+          <li>
+            <a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">{{ contract.description }}</a>
+          </li>
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
