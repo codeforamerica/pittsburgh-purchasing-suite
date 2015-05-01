@@ -44,7 +44,8 @@ def search():
     lower_bound_result = (page - 1) * pagination_per_page
     upper_bound_result = lower_bound_result + pagination_per_page
 
-    # TODO: Make this more efficient.
+    # TODO: Make this more efficient. Maybe break it into multiple
+    # queries and them join those together in the python?
     contracts = db.session.execute(
         '''
         SELECT

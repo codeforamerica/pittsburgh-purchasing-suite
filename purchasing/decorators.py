@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import redirect, url_for, flash, request, abort, render_template
+from flask import redirect, url_for, flash, request, render_template
 from flask_login import current_user
 from functools import wraps
 
@@ -12,8 +12,8 @@ def requires_roles(*roles):
     def check_roles(view_function):
         @wraps(view_function)
         def decorated_function(*args, **kwargs):
-            if current_user.role.name not in roles:
-                flash('ERROR! ERROR! ERROR!', 'alert-danger')
+            if current_user.is_anonymous() or current_user.role.name not in roles:
+                flash('You do not have sufficent permissions to do that!', 'alert-danger')
                 return redirect(request.args.get('next') or '/')
             return view_function(*args, **kwargs)
         return decorated_function
@@ -23,7 +23,8 @@ def wrap_form(form=None, form_name=None, template=None):
     '''
     wrap_form takes a form name and a template location, and adds
     the form as 'wrapped_form' into the template. Returns the
-    rendered template.
+    rendered template. Very useful if you need to pass a form into
+    a bunch of different views and that form is handled in one place
 
     Modified from:
     http://flask.pocoo.org/docs/0.10/patterns/viewdecorators/#templating-decorator
