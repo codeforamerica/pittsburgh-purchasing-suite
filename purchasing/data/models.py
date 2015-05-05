@@ -28,15 +28,6 @@ class Company(Model):
 
     id = Column(db.Integer, primary_key=True)
     company_name = Column(db.String(255), nullable=False, unique=True)
-    contact_first_name = Column(db.String(255))
-    contact_last_name = Column(db.String(255))
-    contact_addr1 = Column(db.String(255))
-    contact_addr2 = Column(db.String(255))
-    contact_city = Column(db.String(255))
-    contact_state = Column(db.String(255))
-    contact_zip = Column(db.Integer)
-    contact_phone = Column(db.String(255))
-    contact_email = Column(db.String(255))
     contracts = db.relationship(
         'ContractBase',
         secondary=company_contract_association_table,
@@ -45,6 +36,31 @@ class Company(Model):
 
     def __unicode__(self):
         return self.company_name
+
+class CompanyContact(Model):
+    __tablename__ = 'company_contact'
+
+    id = Column(db.Integer, primary_key=True)
+    company = db.relationship(
+        'Company',
+        backref=backref('contacts', lazy='dynamic', cascade='save-update, delete')
+    )
+    company_id = ReferenceCol('company', ondelete='cascade')
+    first_name = Column(db.String(255))
+    last_name = Column(db.String(255))
+    addr1 = Column(db.String(255))
+    addr2 = Column(db.String(255))
+    city = Column(db.String(255))
+    state = Column(db.String(255))
+    zip_code = Column(db.Integer)
+    phone_number = Column(db.String(255))
+    email = Column(db.String(255))
+
+    def __unicode__(self):
+        return '{first} {last} - {email}'.format(
+            first=self.first_name, last=self.last_name,
+            email=self.email
+        )
 
 class ContractBase(Model):
     __tablename__ = 'contract'
