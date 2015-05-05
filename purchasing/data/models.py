@@ -13,8 +13,8 @@ from sqlalchemy.orm import backref
 
 company_contract_association_table = Table(
     'company_contract_association', Model.metadata,
-    Column('company_id', db.Integer, db.ForeignKey('company.id')),
-    Column('contract_id', db.Integer, db.ForeignKey('contract.id')),
+    Column('company_id', db.Integer, db.ForeignKey('company.id', ondelete='SET NULL')),
+    Column('contract_id', db.Integer, db.ForeignKey('contract.id', ondelete='SET NULL')),
 )
 
 contract_user_association_table = Table(
@@ -31,7 +31,7 @@ class Company(Model):
     contracts = db.relationship(
         'ContractBase',
         secondary=company_contract_association_table,
-        backref='companies'
+        backref='companies',
     )
 
     def __unicode__(self):
@@ -43,7 +43,7 @@ class CompanyContact(Model):
     id = Column(db.Integer, primary_key=True)
     company = db.relationship(
         'Company',
-        backref=backref('contacts', lazy='dynamic', cascade='save-update, delete')
+        backref=backref('contacts', lazy='dynamic', cascade='all, delete-orphan')
     )
     company_id = ReferenceCol('company', ondelete='cascade')
     first_name = Column(db.String(255))
@@ -54,6 +54,7 @@ class CompanyContact(Model):
     state = Column(db.String(255))
     zip_code = Column(db.Integer)
     phone_number = Column(db.String(255))
+    fax_number = Column(db.String(255))
     email = Column(db.String(255))
 
     def __unicode__(self):
@@ -78,7 +79,7 @@ class ContractBase(Model):
     users = db.relationship(
         'User',
         secondary=contract_user_association_table,
-        backref='contracts_following'
+        backref='contracts_following',
     )
 
     def __unicode__(self):
@@ -89,7 +90,7 @@ class ContractProperty(Model):
 
     id = Column(db.Integer, primary_key=True)
     contract = db.relationship('ContractBase', backref=backref(
-        'properties', lazy='dynamic', cascade='save-update, delete'
+        'properties', lazy='dynamic', cascade='all, delete-orphan'
     ))
     contract_id = ReferenceCol('contract', ondelete='CASCADE')
     key = Column(db.String(255), nullable=False)
@@ -116,7 +117,7 @@ class StageProperty(Model):
 
     id = Column(db.Integer, primary_key=True)
     stage = db.relationship('Stage', backref=backref(
-        'properties', lazy='dynamic', cascade='save-update, delete'
+        'properties', lazy='dynamic', cascade='all, delete-orphan'
     ))
     stage_id = ReferenceCol('stage', ondelete='CASCADE')
     key = Column(db.String(255), nullable=False)
