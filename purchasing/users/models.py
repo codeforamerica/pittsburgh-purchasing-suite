@@ -12,6 +12,12 @@ from purchasing.database import (
     SurrogatePK,
 )
 
+DEPARTMENT_CHOICES = [
+    ('Innovation and Performance', 'Innovation and Performance'),
+    ('Office of Management and Budget', 'Office of Management and Budget'),
+    ('Other', 'Other')
+]
+
 class Role(SurrogatePK, Model):
     __tablename__ = 'roles'
     name = Column(db.String(80), unique=True, nullable=False)
@@ -33,6 +39,7 @@ class User(UserMixin, SurrogatePK, Model):
     created_at = Column(db.DateTime, nullable=False, default=dt.datetime.utcnow)
     first_name = Column(db.String(30), nullable=True)
     last_name = Column(db.String(30), nullable=True)
+    department = Column(db.String(255), nullable=False)
     active = Column(db.Boolean(), default=False)
     role_id = ReferenceCol('roles', ondelete='SET NULL', nullable=True)
 

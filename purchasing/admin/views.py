@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 from flask import url_for, request
 
+from wtforms.fields import SelectField
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin
 from flask_admin.contrib import sqla
@@ -9,7 +11,7 @@ from purchasing.data.models import (
     Company, CompanyContact
 )
 from purchasing.extensions import login_manager
-from purchasing.users.models import User, Role
+from purchasing.users.models import User, Role, DEPARTMENT_CHOICES
 
 @login_manager.user_loader
 def load_user(userid):
@@ -44,7 +46,12 @@ class FlowAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['flow_name', 'stage_order']
 
 class UserAdmin(AuthMixin, sqla.ModelView):
-    form_columns = ['email', 'first_name', 'last_name']
+    form_columns = ['email', 'first_name', 'last_name', 'department']
+
+    form_overrides = dict(department=SelectField)
+    form_args = dict(department={
+        'choices': DEPARTMENT_CHOICES
+    })
 
     def is_accessible(self):
         if current_user.is_anonymous():
@@ -53,7 +60,7 @@ class UserAdmin(AuthMixin, sqla.ModelView):
             return True
 
 class UserRoleAdmin(SuperAdminMixin, sqla.ModelView):
-    form_columns = ['email', 'first_name', 'last_name', 'role']
+    form_columns = ['email', 'first_name', 'last_name', 'department', 'role']
 
 class RoleAdmin(SuperAdminMixin, sqla.ModelView):
     pass

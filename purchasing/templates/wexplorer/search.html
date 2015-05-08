@@ -2,13 +2,13 @@
 {% import 'macros/render_pagination.html' as macros %}
 {% block content %}
 
-{% if results %}
 
 <div class="row">
   <div class="col-md-3">
     {% include 'wexplorer/shared/side_search.html' %}
   </div>
   <div class="col-md-9">
+  {% if results %}
     <h3 class="text-muted">
       {{ pagination.total_count }} results found for "{{ request.args.get('q') }}"
       {% if pagination.pages > 1 %}({{ (results | length) }} shown) {% endif %}<br>
@@ -51,11 +51,11 @@
       {{ macros.render_pagination(pagination) }}
     {% endif %}
   </div>
+  {% else %}
+  <div class="row text-center">
+    <h4>There are no results!</h4>
+  </div>
+  {% endif %}
 </div>
-{% else %}
-<div class="row text-center">
-  <h4>There are no results!</h4>
-</div>
-{% endif %}
 
 {% endblock %}

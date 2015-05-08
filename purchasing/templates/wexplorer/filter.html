@@ -1,0 +1,27 @@
+{% extends 'wexplorer/layout.html' %}
+{% import 'macros/render_pagination.html' as macros %}
+{% block content %}
+
+<div class="row">
+  <div class="col-md-3">
+    {% include 'wexplorer/shared/side_search.html' %}
+  </div>
+
+  <div class="col-md-9">
+  {% if results %}
+    <h3>Here are the contracts that have subscribers from {{ department }}:</h3>
+    <ul>
+    {% for result in results %}
+      <li><a href="{{ url_for('wexplorer.contract', contract_id=result.id) }}">{{ result.description }}</a></li>
+    {% endfor %}
+    </ul>
+    {% if pagination.pages > 1 %}
+      {{ macros.render_pagination(pagination) }}
+    {% endif %}
+  {% else %}
+    <h4>No one from this department has subscribed to any contracts yet! Why not try searching instead?</h4>
+  {% endif %}
+  </div>
+
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@
 
 from flask import (
     Blueprint, render_template, current_app,
-    request, abort, flash, redirect
+    request, abort, flash, redirect, url_for
 )
 from flask_login import current_user
 
@@ -10,6 +10,7 @@ from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.wexplorer.forms import SearchForm
+from purchasing.data.models import ContractBase
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
     get_one_contract, follow_a_contract, unfollow_a_contract
@@ -29,6 +30,40 @@ def explore():
     '''
     return dict(current_user=current_user)
 
+@blueprint.route('/filter', methods=['GET'])
+@wrap_form(SearchForm, 'search_form', 'wexplorer/filter.html')
+def filter():
+    '''
+    Filter contracts by which ones have departmental subscribers
+    '''
+    department = request.args.get('department', None)
+
+    pagination_per_page = current_app.config.get('PER_PAGE', 50)
+    page = int(request.args.get('page', 1))
+    lower_bound_result = (page - 1) * pagination_per_page
+    upper_bound_result = lower_bound_result + pagination_per_page
+
+    if department is None:
+        flash('You must choose a department!', 'alert-danger')
+        return redirect(url_for('wexplorer.explore'))
+
+    contracts = ContractBase.query.filter(
+        ContractBase.users.any(department=department)
+    ).all()
+
+    pagination = SimplePagination(page, pagination_per_page, len(contracts))
+
+    results = contracts[lower_bound_result:upper_bound_result]
+
+    return dict(
+        results=results,
+        pagination=pagination,
+        department=department,
+        path='{path}?{query}'.format(
+            path=request.path, query=request.query_string
+        )
+    )
+
 @blueprint.route('/search', methods=['GET'])
 def search():
     '''
@@ -36,10 +71,10 @@ def search():
     along with paginated results.
     '''
     search_form = SearchForm(request.form)
-    pagination_per_page = current_app.config.get('PER_PAGE', 50)
-
-    results = []
     search_for = request.args.get('q', '')
+    results = []
+
+    pagination_per_page = current_app.config.get('PER_PAGE', 50)
     page = int(request.args.get('page', 1))
     lower_bound_result = (page - 1) * pagination_per_page
     upper_bound_result = lower_bound_result + pagination_per_page
@@ -77,8 +112,6 @@ def search():
         }
     ).fetchall()
 
-    pagination = SimplePagination(page, pagination_per_page, len(contracts))
-
     for contract in contracts[lower_bound_result:upper_bound_result]:
         results.append({
             'company_id': contract[0],
@@ -87,6 +120,8 @@ def search():
             'contract_description': contract[3],
             'users': contract[4]
         })
+
+    pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
     return render_template(
         'wexplorer/search.html',
