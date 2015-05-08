@@ -1,4 +1,4 @@
-"""empty message
+"""Create initial models & tables
 
 Revision ID: 22427b19886b
 Revises: None

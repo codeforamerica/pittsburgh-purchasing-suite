@@ -1,4 +1,4 @@
-"""empty message
+"""Split out contacts from company base model
 
 Revision ID: 242a8bdd8fee
 Revises: 534f16295a9b

@@ -1,4 +1,4 @@
-"""empty message
+"""Make contract/stage property key field non-nullable.
 
 Revision ID: 409fc0730412
 Revises: 36764b18f75f

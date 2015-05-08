@@ -1,4 +1,4 @@
-"""empty message
+"""Add many-to-many relationship between users and contracts.
 
 Revision ID: 534f16295a9b
 Revises: 409fc0730412

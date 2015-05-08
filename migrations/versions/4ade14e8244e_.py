@@ -1,4 +1,4 @@
-"""empty message
+"""Add financial_id to Contract model.
 
 Revision ID: 4ade14e8244e
 Revises: 242a8bdd8fee
