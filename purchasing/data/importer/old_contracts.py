@@ -68,23 +68,14 @@ def main(file_target='./files/2015-05-05-contractlist.csv'):
                 db.session, ContractBase,
                 contract_type=convert_empty_to_none(row.get('TYPE OF CONTRACT')),
                 expiration_date=expiration,
+                financial_id=convert_empty_to_none(row.get('CONTROLLER')),
                 description=convert_empty_to_none(row.get('SERVICE'))
             )
-
-            controller_number, new_controller_number = get_or_create(
-                db.session, ContractProperty, commit=False,
-                contract_id=contract.id,
-                key='Controller Number',
-                value=convert_empty_to_none(row.get('CONTROLLER'))
-            )
-
-            if new_controller_number:
-                db.session.add(controller_number)
 
             contract_number, new_contract_number = get_or_create(
                 db.session, ContractProperty, commit=False,
                 contract_id=contract.id,
-                key='Contract Number',
+                key='Spec Number',
                 value=convert_empty_to_none(row.get('CONTRACT'))
             )
 

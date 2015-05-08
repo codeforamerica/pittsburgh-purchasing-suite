@@ -67,6 +67,7 @@ class ContractBase(Model):
     __tablename__ = 'contract'
 
     id = Column(db.Integer, primary_key=True)
+    financial_id = Column(db.Integer)
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     updated_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     contract_type = Column(db.String(255))
