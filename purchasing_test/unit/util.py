@@ -71,11 +71,11 @@ def insert_a_company(name='test company', insert_contract=True):
 
     return company
 
-def create_a_user(email='foo@foo.com', role=None):
-    return User(email=email, first_name='foo', last_name='foo', role_id=role)
+def create_a_user(email='foo@foo.com', department='Other', role=None):
+    return User(email=email, first_name='foo', last_name='foo', department=department, role_id=role)
 
-def insert_a_user(email='foo@foo.com', role=None):
-    user = create_a_user(email, role)
+def insert_a_user(email='foo@foo.com', department='Other', role=None):
+    user = create_a_user(email, department, role)
     user.save()
     return user
 

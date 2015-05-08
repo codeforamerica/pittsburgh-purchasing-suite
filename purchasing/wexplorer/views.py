@@ -9,7 +9,7 @@ from flask_login import current_user
 from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
-from purchasing.wexplorer.forms import SearchForm
+from purchasing.wexplorer.forms import SearchForm, DEPARTMENT_CHOICES
 from purchasing.data.models import ContractBase
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
@@ -31,7 +31,6 @@ def explore():
     return dict(current_user=current_user)
 
 @blueprint.route('/filter', methods=['GET'])
-@wrap_form(SearchForm, 'search_form', 'wexplorer/filter.html')
 def filter():
     '''
     Filter contracts by which ones have departmental subscribers
@@ -43,8 +42,8 @@ def filter():
     lower_bound_result = (page - 1) * pagination_per_page
     upper_bound_result = lower_bound_result + pagination_per_page
 
-    if department is None:
-        flash('You must choose a department!', 'alert-danger')
+    if department is None or department not in [i[0] for i in DEPARTMENT_CHOICES]:
+        flash('You must choose a valid department!', 'alert-danger')
         return redirect(url_for('wexplorer.explore'))
 
     contracts = ContractBase.query.filter(
@@ -55,7 +54,9 @@ def filter():
 
     results = contracts[lower_bound_result:upper_bound_result]
 
-    return dict(
+    return render_template(
+        'wexplorer/filter.html',
+        search_form=SearchForm(),
         results=results,
         pagination=pagination,
         department=department,

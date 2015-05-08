@@ -27,12 +27,16 @@ class BaseTestCase(TestCase):
         Taken from: http://blog.paulopoiati.com/2013/02/22/testing-flash-messages-in-flask/
         '''
         with self.client.session_transaction() as session:
+            messages, categories = [], []
             try:
-                category, message = session['_flashes'][0]
+                flashes = session['_flashes']
+                for flash in flashes:
+                    categories.append(flash[0])
+                    messages.append(flash[1])
             except KeyError:
                 raise AssertionError('nothing flashed')
-            assert expected_message in message
-            assert expected_category == category
+            assert expected_message in messages
+            assert expected_category in categories
 
     @patch('urllib2.urlopen')
     def login_user(self, user, urlopen):
