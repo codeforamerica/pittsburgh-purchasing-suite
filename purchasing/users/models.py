@@ -13,6 +13,7 @@ from purchasing.database import (
 )
 
 DEPARTMENT_CHOICES = [
+    ('', '-----'),
     ('Innovation and Performance', 'Innovation and Performance'),
     ('Office of Management and Budget', 'Office of Management and Budget'),
     ('Other', 'Other')

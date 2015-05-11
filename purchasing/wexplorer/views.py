@@ -71,6 +71,10 @@ def search():
     The search results page for wexplorer. Renders the "side search"
     along with paginated results.
     '''
+    department = request.args.get('department')
+    if department and department != '':
+        return redirect(url_for('wexplorer.filter', department=department))
+
     search_form = SearchForm(request.form)
     search_for = request.args.get('q', '')
     results = []

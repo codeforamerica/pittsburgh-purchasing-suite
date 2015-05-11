@@ -4,12 +4,17 @@
 
 /* universal */
 
+@import "_variables.less";
+
 html {
   overflow-y: scroll;
+  position: relative;
+  min-height: 100%;
 }
 
 body {
   padding-top: 60px;
+  margin-bottom: @footer-height;
 }
 
 section {
@@ -97,4 +102,12 @@ footer .footer-nav {
 
 footer a {
   color: @link-color;
+}
+
+.spacer-20 {
+  padding-bottom: 20px;
+}
+
+.spacer-10 {
+  padding-bottom: 10px;
 }

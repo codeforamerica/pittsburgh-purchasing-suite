@@ -8,26 +8,31 @@
 
   <h2>helps you find goods and services</h2>
 
+  <div class="spacer-10"></div>
+
   <form id="search-box" method="GET" class="form form-inline" action="{{ url_for('wexplorer.search') }}">
+
+    <h4>
+      Search company names and contract descriptions,
+    </h4>
     <div class="form-group">
       {{ search_form.q(placeholder="I'm looking for...", class_="form-control input-lg") }}
     </div>
-    <input class="btn btn-default btn-success input-lg" type="submit" value="Search">
-  </form>
 
-    <div class="spacer-20"></div>
-
-    <h4 class="text-muted">
-      Search company names and contract descriptions.
+    <h4>
+      <div class="spacer-10"></div>
+      or see what contracts a department is using.
     </h4>
 
-    <h3>Or, see what contracts a department is using.</h3>
+    <div class="spacer-10"></div>
 
-  <form id="filter-box" method="GET" class="form form-inline" action="{{ url_for('wexplorer.filter') }}">
     <div class="form-group">
       {{ search_form.department(class_="form-control") }}
     </div>
-    <input class="btn btn-default btn-success" type="submit" value="Search">
+
+    <div class="spacer-20"></div>
+
+    <input class="btn btn-default btn-success input-lg" type="submit" value="Search">
   </form>
 
 </div>
