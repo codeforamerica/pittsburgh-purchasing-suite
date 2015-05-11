@@ -17,31 +17,36 @@
     <hr>
 
     <div class="row">
+      {% if company.contacts.count() > 0 %}
       <div class="col-md-6">
         <p class="lead">
           Contact Information
         </p>
         <ul class="list-unstyled">
-          {% if company.contact_first_name or company.contact_last_name %}
-          <li>
-            {{ company.contact_first_name or '' }}
-            {{ company.contact_last_name or '' }}
-          </li>
-          {% endif %}
-          {% if company.addr1 or company.addr2 %}
-          <li>
-            {{ company.contact_addr1 or '' }}
-            {{ company.contact_addr2 or '' }}
-          </li>
-          {% endif %}
-          {% if company.contact_city or company.contact_state or company.contact_state_zip %}
-          <li>
-            {{ company.contact_city or '' }}{% if company.contact_city and company.contact_state %},{% endif %}
-            {{ company.contact_state or '' }}
-            {{ company.contact_zip or '' }}
-          </li>
-          {% endif %}
+          {% for contact in company.contacts %}
+            {% if contact.first_name or contact.last_name %}
+            <li>
+              {{ contact.first_name or '' }}
+              {{ contact.last_name or '' }}
+            </li>
+            {% endif %}
+            {% if contact.addr1 or contact.addr2 %}
+            <li>
+              {{ contact.addr1 or '' }}
+              {{ contact.addr2 or '' }}
+            </li>
+            {% endif %}
+            {% if contact.city or contact.state or contact.zip %}
+            <li>
+              {{ contact.city or '' }}{% if contact.city and contact.state %},{% endif %}
+              {{ contact.state or '' }}
+              {{ contact.zip or '' }}
+            </li>
+            {% endif %}
+            {% if not loop.last %}<hr>{% endif %}
+          {% endfor %}
         </ul>
+        {% endif %}
 
       </div>
       <div class="col-md-6">

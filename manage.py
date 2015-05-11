@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import os
-from flask_script import Manager, Shell, Server
+from flask_script import Manager, Shell, Server, prompt_bool
 from flask_migrate import MigrateCommand
 
 from purchasing.app import create_app
@@ -47,6 +47,26 @@ def seed_user(email, role):
             print 'Something went wrong: {exception}'.format(exception=e.message)
     return
 
+@manager.option(
+    '-f', '--file', dest='filepath',
+    default='./purchasing/data/importer/files/2015-05-05-contractlist.csv'
+)
+def import_old_contracts(filepath):
+    from purchasing.data.importer.old_contracts import main
+    print 'Importing data from {filepath}\n'.format(filepath=filepath)
+    main(filepath)
+    print 'Import finished!'
+    return
+
+@manager.command
+def delete_contracts():
+    if prompt_bool("Are you sure you want to lose all contracts & companies?"):
+        print 'Deleting!'
+        from purchasing.data.models import ContractBase, Company
+        ContractBase.query.delete()
+        Company.query.delete()
+        db.session.commit()
+    return
 
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))
 manager.add_command('shell', Shell(make_context=_make_context))

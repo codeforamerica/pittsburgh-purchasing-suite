@@ -1,4 +1,4 @@
-"""empty message
+"""Create initial models & tables
 
 Revision ID: 22427b19886b
 Revises: None
@@ -65,8 +65,8 @@ def upgrade():
     op.create_table('company_contract_association',
     sa.Column('company_id', sa.Integer(), nullable=True),
     sa.Column('contract_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['company_id'], ['company.id'], ),
-    sa.ForeignKeyConstraint(['contract_id'], ['contract.id'], )
+    sa.ForeignKeyConstraint(['company_id'], ['company.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['contract_id'], ['contract.id'], ondelete='SET NULL')
     )
     op.create_table('contract_property',
     sa.Column('id', sa.Integer(), nullable=False),

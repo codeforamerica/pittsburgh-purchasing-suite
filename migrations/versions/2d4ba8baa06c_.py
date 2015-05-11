@@ -1,4 +1,4 @@
-"""empty message
+"""Add users/roles tables, staff, admin, superadmin roles.
 
 Revision ID: 2d4ba8baa06c
 Revises: 22427b19886b

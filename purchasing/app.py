@@ -13,6 +13,7 @@ from purchasing.extensions import (
     debug_toolbar,
     admin
 )
+from purchasing.utils import url_for_other_page
 from purchasing.public import views as public_views
 from purchasing.users import views as user_views
 from purchasing.wexplorer import views as wexplorer_views
@@ -47,6 +48,7 @@ def register_blueprints(app):
     app.register_blueprint(public_views.blueprint)
     app.register_blueprint(user_views.blueprint)
     app.register_blueprint(wexplorer_views.blueprint)
+    app.jinja_env.globals['url_for_other_page'] = url_for_other_page
     from purchasing.admin import views
     return None
 

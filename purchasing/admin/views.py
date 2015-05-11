@@ -5,7 +5,8 @@ from purchasing.decorators import AuthMixin, SuperAdminMixin
 from flask_admin.contrib import sqla
 from flask_login import current_user
 from purchasing.data.models import (
-    Stage, StageProperty, Flow, ContractBase, ContractProperty, Company
+    Stage, StageProperty, Flow, ContractBase, ContractProperty,
+    Company, CompanyContact
 )
 from purchasing.extensions import login_manager
 from purchasing.users.models import User, Role
@@ -31,14 +32,12 @@ class ContractAdmin(AuthMixin, sqla.ModelView):
     ]
 
 class CompanyAdmin(AuthMixin, sqla.ModelView):
+    inline_models = (CompanyContact,)
 
     column_searchable_list = ('company_name',)
 
     form_columns = [
-        'company_name', 'contact_first_name', 'contact_last_name',
-        'contact_addr1', 'contact_addr2', 'contact_city',
-        'contact_state', 'contact_zip', 'contact_phone',
-        'contact_email', 'contracts'
+        'company_name', 'contracts'
     ]
 
 class FlowAdmin(AuthMixin, sqla.ModelView):

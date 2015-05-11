@@ -1,4 +1,4 @@
-"""empty message
+"""Add forgotten expiration date to contracts
 
 Revision ID: 36764b18f75f
 Revises: 2d4ba8baa06c

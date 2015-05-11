@@ -13,8 +13,8 @@ from sqlalchemy.orm import backref
 
 company_contract_association_table = Table(
     'company_contract_association', Model.metadata,
-    Column('company_id', db.Integer, db.ForeignKey('company.id')),
-    Column('contract_id', db.Integer, db.ForeignKey('contract.id')),
+    Column('company_id', db.Integer, db.ForeignKey('company.id', ondelete='SET NULL')),
+    Column('contract_id', db.Integer, db.ForeignKey('contract.id', ondelete='SET NULL')),
 )
 
 contract_user_association_table = Table(
@@ -28,28 +28,46 @@ class Company(Model):
 
     id = Column(db.Integer, primary_key=True)
     company_name = Column(db.String(255), nullable=False, unique=True)
-    contact_first_name = Column(db.String(255))
-    contact_last_name = Column(db.String(255))
-    contact_addr1 = Column(db.String(255))
-    contact_addr2 = Column(db.String(255))
-    contact_city = Column(db.String(255))
-    contact_state = Column(db.String(255))
-    contact_zip = Column(db.Integer)
-    contact_phone = Column(db.String(255))
-    contact_email = Column(db.String(255))
     contracts = db.relationship(
         'ContractBase',
         secondary=company_contract_association_table,
-        backref='companies'
+        backref='companies',
     )
 
     def __unicode__(self):
         return self.company_name
 
+class CompanyContact(Model):
+    __tablename__ = 'company_contact'
+
+    id = Column(db.Integer, primary_key=True)
+    company = db.relationship(
+        'Company',
+        backref=backref('contacts', lazy='dynamic', cascade='all, delete-orphan')
+    )
+    company_id = ReferenceCol('company', ondelete='cascade')
+    first_name = Column(db.String(255))
+    last_name = Column(db.String(255))
+    addr1 = Column(db.String(255))
+    addr2 = Column(db.String(255))
+    city = Column(db.String(255))
+    state = Column(db.String(255))
+    zip_code = Column(db.Integer)
+    phone_number = Column(db.String(255))
+    fax_number = Column(db.String(255))
+    email = Column(db.String(255))
+
+    def __unicode__(self):
+        return '{first} {last} - {email}'.format(
+            first=self.first_name, last=self.last_name,
+            email=self.email
+        )
+
 class ContractBase(Model):
     __tablename__ = 'contract'
 
     id = Column(db.Integer, primary_key=True)
+    financial_id = Column(db.Integer)
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     updated_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     contract_type = Column(db.String(255))
@@ -62,7 +80,7 @@ class ContractBase(Model):
     users = db.relationship(
         'User',
         secondary=contract_user_association_table,
-        backref='contracts_following'
+        backref='contracts_following',
     )
 
     def __unicode__(self):
@@ -73,7 +91,7 @@ class ContractProperty(Model):
 
     id = Column(db.Integer, primary_key=True)
     contract = db.relationship('ContractBase', backref=backref(
-        'properties', lazy='dynamic', cascade='save-update, delete'
+        'properties', lazy='dynamic', cascade='all, delete-orphan'
     ))
     contract_id = ReferenceCol('contract', ondelete='CASCADE')
     key = Column(db.String(255), nullable=False)
@@ -100,7 +118,7 @@ class StageProperty(Model):
 
     id = Column(db.Integer, primary_key=True)
     stage = db.relationship('Stage', backref=backref(
-        'properties', lazy='dynamic', cascade='save-update, delete'
+        'properties', lazy='dynamic', cascade='all, delete-orphan'
     ))
     stage_id = ReferenceCol('stage', ondelete='CASCADE')
     key = Column(db.String(255), nullable=False)

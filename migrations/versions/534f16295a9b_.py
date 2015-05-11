@@ -1,4 +1,4 @@
-"""empty message
+"""Add many-to-many relationship between users and contracts.
 
 Revision ID: 534f16295a9b
 Revises: 409fc0730412
@@ -19,8 +19,8 @@ def upgrade():
     op.create_table('contract_user_association',
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('contract_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['contract_id'], ['contract.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], )
+    sa.ForeignKeyConstraint(['contract_id'], ['contract.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='SET NULL')
     )
     ### end Alembic commands ###
 
