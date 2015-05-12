@@ -27,7 +27,11 @@ def _make_context():
 
 @manager.option('-e', '--email', dest='email', default=None)
 @manager.option('-r', '--role', dest='role', default=None)
-def seed_user(email, role):
+@manager.option('-d', '--department', dest='dept', default='Other')
+def seed_user(email, role, dept):
+    '''
+    Creates a new user in the database.
+    '''
     from purchasing.users.models import User
     seed_email = email if email else app.config.get('SEED_EMAIL')
     user_exists = User.query.filter(User.email == seed_email).first()
@@ -38,7 +42,8 @@ def seed_user(email, role):
             new_user = User.create(
                 email=seed_email,
                 created_at=datetime.datetime.utcnow(),
-                role_id=role
+                role_id=role,
+                department=dept
             )
             db.session.add(new_user)
             db.session.commit()
@@ -52,9 +57,28 @@ def seed_user(email, role):
     default='./purchasing/data/importer/files/2015-05-05-contractlist.csv'
 )
 def import_old_contracts(filepath):
+    '''
+    Takes a csv of old contracts and imports them into the DB
+    '''
     from purchasing.data.importer.old_contracts import main
     print 'Importing data from {filepath}\n'.format(filepath=filepath)
     main(filepath)
+    print 'Import finished!'
+    return
+
+@manager.option(
+    '-d', '--directory', dest='directory',
+    default='./purchasing/data/importer/files/costars/'
+)
+def import_costars(directory):
+    '''
+    Takes a directory which contains a number of csv files with the
+    costars data, and then important them into the DB
+    '''
+    from purchasing.data.importer.costars import main
+    for file in os.listdir(directory):
+        print 'Importing data from {file}'.format(file=file)
+        main(os.path.join(directory, file), file)
     print 'Import finished!'
     return
 

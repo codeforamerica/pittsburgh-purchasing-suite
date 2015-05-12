@@ -2,6 +2,9 @@
 
 import csv
 
+def convert_empty_to_none(val):
+    return val if val not in ['', 'None'] else None
+
 def extract(file_target, first_row_headers=[]):
     '''
     Pulls csv data out of a file target.

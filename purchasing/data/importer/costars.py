@@ -1,28 +1,37 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
-import datetime
-from purchasing.database import db
 from purchasing.data.importer import extract, get_or_create, convert_empty_to_none
+from purchasing.database import db
 from purchasing.data.models import (
     CompanyContact,
     Company,
     ContractBase,
-    ContractProperty
+    ContractProperty,
+    LineItem
 )
 
-def main(file_target='./files/2015-05-05-contractlist.csv'):
-    data = extract(file_target)
+CONSTANT_FIELDS = [
+    'CONTROLLER', 'Expiration', 'Company',
+    'CONTACT', 'ADDRESS1',  'ADDRESS2',
+    'E-MAIL ADDRESS', 'FAX #', 'PHONE #'
+]
+
+def convert_to_bool(field):
+    if field == 'Yes' or field == 'yes':
+        return True
+    return False
+
+def main(filetarget, filename):
+
+    data = extract(filetarget)
 
     try:
         for row in data:
-            # create or select the company
             company, new_company = get_or_create(
                 db.session, Company,
-                company_name=convert_empty_to_none(row.get('COMPANY'))
+                company_name=convert_empty_to_none(row.get('Company'))
             )
 
-            # parse some fields for the company contact
             try:
                 first_name, last_name = row.get('CONTACT').split()
             except:
@@ -63,21 +72,45 @@ def main(file_target='./files/2015-05-05-contractlist.csv'):
             # create or select the contract object
             contract, new_contract = get_or_create(
                 db.session, ContractBase,
-                contract_type=convert_empty_to_none(row.get('TYPE OF CONTRACT')),
+                contract_type='COSTARS',
                 expiration_date=expiration,
                 financial_id=convert_empty_to_none(row.get('CONTROLLER')),
-                description=convert_empty_to_none(row.get('SERVICE'))
+                description='{costars} - {company}'.format(
+                    costars=filename.replace('_', ' ').strip('.csv'),
+                    company=convert_empty_to_none(row.get('Company'))
+                )
             )
 
-            contract_number, new_contract_number = get_or_create(
-                db.session, ContractProperty, commit=False,
-                contract_id=contract.id,
-                key='Spec Number',
-                value=convert_empty_to_none(row.get('CONTRACT'))
-            )
+            for k, v in row.iteritems():
+                if k in CONSTANT_FIELDS:
+                    continue
 
-            if new_contract_number:
-                db.session.add(contract_number)
+                elif k == 'County Served':
+                    county_served, new_county_served = get_or_create(
+                        db.session, ContractProperty, commit=False,
+                        contract_id=contract.id,
+                        key='Counties Served',
+                        value=convert_empty_to_none(row.get('County Served'))
+                    )
+
+                    if new_county_served:
+                        db.session.add(county_served)
+
+                elif k == 'Manufacturers':
+                    pass
+
+                else:
+                    if convert_to_bool(convert_empty_to_none(v)):
+                        line_item, new_line_item = get_or_create(
+                            db.session, LineItem, commit=False,
+                            contract_id=contract.id,
+                            description=convert_empty_to_none(k)
+                        )
+                    else:
+                        continue
+
+                    if new_line_item:
+                        db.session.add(line_item)
 
             db.session.commit()
 
