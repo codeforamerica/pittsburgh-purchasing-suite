@@ -146,6 +146,7 @@ def search():
 @wrap_form(SearchForm, 'search_form', 'wexplorer/company.html')
 def company(company_id):
     company = get_one_company(company_id)
+
     if company:
         return dict(
             company=company,
@@ -160,8 +161,19 @@ def company(company_id):
 def contract(contract_id):
     contract = get_one_contract(contract_id)
     if contract:
+
+        pagination_per_page = 5 #current_app.config.get('PER_PAGE', 5)
+        page = int(request.args.get('page', 1))
+        lower_bound_result = (page - 1) * pagination_per_page
+        upper_bound_result = lower_bound_result + pagination_per_page
+
+        pagination = SimplePagination(page, pagination_per_page, contract.line_items.count())
+
         return dict(
             contract=contract,
+            pagination=pagination,
+            lower_bound_result=lower_bound_result,
+            upper_bound_result=upper_bound_result,
             path='{path}?{query}'.format(
                 path=request.path, query=request.query_string
             )
