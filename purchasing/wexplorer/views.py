@@ -113,6 +113,7 @@ def search():
         LEFT OUTER JOIN
         users u
         ON cca.user_id = u.id
+        WHERE x.contract_id IS NOT NULL
         group by 1,2,3,4
         ''',
         {

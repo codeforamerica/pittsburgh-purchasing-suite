@@ -9,7 +9,7 @@ from purchasing_test.unit.util import (
 from purchasing.data.models import ContractBase
 
 class TestWexplorer(BaseTestCase):
-    render_templates = False
+    render_templates = True
 
     def setUp(self):
         super(TestWexplorer, self).setUp()
@@ -35,17 +35,20 @@ class TestWexplorer(BaseTestCase):
         self.assertTrue(self.get_context_variable('search_form') is not None)
 
     def test_search(self):
-        self.client.get('/wexplorer/search?q=aaa')
+        self.assert200(self.client.get('/wexplorer/search?q=aaa'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.client.get('/wexplorer/search?q=BB')
+        self.assert200(self.client.get('/wexplorer/search?q=BB'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.client.get('/wexplorer/search?q=CC')
+        self.assert200(self.client.get('/wexplorer/search?q=CC'))
         self.assertEquals(len(self.get_context_variable('results')), 2)
 
-        self.client.get('/wexplorer/search?q=dd')
+        self.assert200(self.client.get('/wexplorer/search?q=dd'))
         self.assertEquals(len(self.get_context_variable('results')), 2)
+
+        self.assert200(self.client.get('/wexplorer/search?q=FAKEFAKEFAKE'))
+        self.assertEquals(len(self.get_context_variable('results')), 0)
 
     def test_companies(self):
         request = self.client.get('/wexplorer/companies/1')
