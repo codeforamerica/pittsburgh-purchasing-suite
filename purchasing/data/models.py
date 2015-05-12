@@ -100,6 +100,25 @@ class ContractProperty(Model):
     def __unicode__(self):
         return '{key}: {value}'.format(key=self.key, value=self.value)
 
+class LineItem(Model):
+    __tablename__ = 'line_item'
+
+    id = Column(db.Integer, primary_key=True)
+    contract = db.relationship('ContractBase', backref=backref(
+        'line_items', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+    contract_id = ReferenceCol('contract', ondelete='CASCADE')
+    description = Column(db.Text, nullable=False)
+    manufacturer = Column(db.Text)
+    model_number = Column(db.Text)
+    quantity = Column(db.Integer)
+    unit_of_measure = Column(db.String(255))
+    unit_cost = Column(db.Float)
+    total_cost = Column(db.Float)
+
+    def __unicode__(self):
+        return self.description
+
 # class ContractAudit(Model):
 #     __tablename__ = 'contract_audit'
 

@@ -8,7 +8,7 @@ from flask_admin.contrib import sqla
 from flask_login import current_user
 from purchasing.data.models import (
     Stage, StageProperty, Flow, ContractBase, ContractProperty,
-    Company, CompanyContact
+    Company, CompanyContact, LineItem
 )
 from purchasing.extensions import login_manager
 from purchasing.users.models import User, Role, DEPARTMENT_CHOICES
@@ -23,12 +23,12 @@ class StageAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['name']
 
 class ContractAdmin(AuthMixin, sqla.ModelView):
-    inline_models = (ContractProperty,)
+    inline_models = (ContractProperty, LineItem,)
 
     column_searchable_list = ('description', 'contract_type')
 
     form_columns = [
-        'contract_type', 'description', 'properties',
+        'contract_type', 'description', 'properties', 'financial_id',
         'expiration_date', 'current_stage', 'current_flow', 'companies',
         'users'
     ]
