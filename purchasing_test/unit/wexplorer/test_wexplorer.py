@@ -122,9 +122,16 @@ class TestWexplorer(BaseTestCase):
         self.client.get('/wexplorer/contracts/1/subscribe')
         self.client.get('/wexplorer/contracts/2/subscribe')
 
+        # login as superadmin user and subscribe to one contract
+        self.login_user(self.superadmin_user)
+        self.client.get('/wexplorer/contracts/1/subscribe')
+
         # filter by contracts associated with Other department
         self.client.get('/wexplorer/filter?department=Other')
         self.assertEquals(len(self.get_context_variable('results')), 2)
+        # assert that contract 1 is first
+        self.assertEquals(self.get_context_variable('results')[0].id, 1)
+        self.assertEquals(self.get_context_variable('results')[0].cnt, 2)
 
         # assert innovation and performance has no results
         self.client.get('/wexplorer/filter?department=Innovation+and+Performance')

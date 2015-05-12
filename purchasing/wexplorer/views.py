@@ -10,7 +10,7 @@ from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.wexplorer.forms import SearchForm, DEPARTMENT_CHOICES
-from purchasing.data.models import ContractBase
+from purchasing.data.models import ContractBase, contract_user_association_table
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
     get_one_contract, follow_a_contract, unfollow_a_contract
@@ -46,9 +46,12 @@ def filter():
         flash('You must choose a valid department!', 'alert-danger')
         return redirect(url_for('wexplorer.explore'))
 
-    contracts = ContractBase.query.filter(
+    contracts = db.session.query(
+        ContractBase.id, ContractBase.description,
+        db.func.count(contract_user_association_table.c.user_id).label('cnt')
+    ).join(contract_user_association_table).filter(
         ContractBase.users.any(department=department)
-    ).all()
+    ).group_by(ContractBase).order_by('cnt DESC').all()
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
