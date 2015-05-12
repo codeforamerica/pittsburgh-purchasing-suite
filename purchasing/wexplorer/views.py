@@ -2,14 +2,15 @@
 
 from flask import (
     Blueprint, render_template, current_app,
-    request, abort, flash, redirect
+    request, abort, flash, redirect, url_for
 )
 from flask_login import current_user
 
 from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
-from purchasing.wexplorer.forms import SearchForm
+from purchasing.wexplorer.forms import SearchForm, DEPARTMENT_CHOICES
+from purchasing.data.models import ContractBase, contract_user_association_table
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
     get_one_contract, follow_a_contract, unfollow_a_contract
@@ -29,17 +30,59 @@ def explore():
     '''
     return dict(current_user=current_user)
 
+@blueprint.route('/filter', methods=['GET'])
+def filter():
+    '''
+    Filter contracts by which ones have departmental subscribers
+    '''
+    department = request.args.get('department', None)
+
+    pagination_per_page = current_app.config.get('PER_PAGE', 50)
+    page = int(request.args.get('page', 1))
+    lower_bound_result = (page - 1) * pagination_per_page
+    upper_bound_result = lower_bound_result + pagination_per_page
+
+    if department is None or department not in [i[0] for i in DEPARTMENT_CHOICES]:
+        flash('You must choose a valid department!', 'alert-danger')
+        return redirect(url_for('wexplorer.explore'))
+
+    contracts = db.session.query(
+        ContractBase.id, ContractBase.description,
+        db.func.count(contract_user_association_table.c.user_id).label('cnt')
+    ).join(contract_user_association_table).filter(
+        ContractBase.users.any(department=department)
+    ).group_by(ContractBase).order_by('cnt DESC').all()
+
+    pagination = SimplePagination(page, pagination_per_page, len(contracts))
+
+    results = contracts[lower_bound_result:upper_bound_result]
+
+    return render_template(
+        'wexplorer/filter.html',
+        search_form=SearchForm(),
+        results=results,
+        pagination=pagination,
+        department=department,
+        path='{path}?{query}'.format(
+            path=request.path, query=request.query_string
+        )
+    )
+
 @blueprint.route('/search', methods=['GET'])
 def search():
     '''
     The search results page for wexplorer. Renders the "side search"
     along with paginated results.
     '''
-    search_form = SearchForm(request.form)
-    pagination_per_page = current_app.config.get('PER_PAGE', 50)
+    department = request.args.get('department')
+    if department and department != '':
+        return redirect(url_for('wexplorer.filter', department=department))
 
-    results = []
+    search_form = SearchForm(request.form)
     search_for = request.args.get('q', '')
+    results = []
+
+    pagination_per_page = current_app.config.get('PER_PAGE', 50)
     page = int(request.args.get('page', 1))
     lower_bound_result = (page - 1) * pagination_per_page
     upper_bound_result = lower_bound_result + pagination_per_page
@@ -70,14 +113,13 @@ def search():
         LEFT OUTER JOIN
         users u
         ON cca.user_id = u.id
+        WHERE x.contract_id IS NOT NULL
         group by 1,2,3,4
         ''',
         {
             'search_for_wc': '%' + str(search_for) + '%'
         }
     ).fetchall()
-
-    pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
     for contract in contracts[lower_bound_result:upper_bound_result]:
         results.append({
@@ -87,6 +129,8 @@ def search():
             'contract_description': contract[3],
             'users': contract[4]
         })
+
+    pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
     return render_template(
         'wexplorer/search.html',

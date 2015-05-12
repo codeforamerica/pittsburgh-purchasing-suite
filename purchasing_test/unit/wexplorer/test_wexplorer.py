@@ -9,7 +9,7 @@ from purchasing_test.unit.util import (
 from purchasing.data.models import ContractBase
 
 class TestWexplorer(BaseTestCase):
-    render_templates = False
+    render_templates = True
 
     def setUp(self):
         super(TestWexplorer, self).setUp()
@@ -35,17 +35,20 @@ class TestWexplorer(BaseTestCase):
         self.assertTrue(self.get_context_variable('search_form') is not None)
 
     def test_search(self):
-        self.client.get('/wexplorer/search?q=aaa')
+        self.assert200(self.client.get('/wexplorer/search?q=aaa'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.client.get('/wexplorer/search?q=BB')
+        self.assert200(self.client.get('/wexplorer/search?q=BB'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.client.get('/wexplorer/search?q=CC')
+        self.assert200(self.client.get('/wexplorer/search?q=CC'))
         self.assertEquals(len(self.get_context_variable('results')), 2)
 
-        self.client.get('/wexplorer/search?q=dd')
+        self.assert200(self.client.get('/wexplorer/search?q=dd'))
         self.assertEquals(len(self.get_context_variable('results')), 2)
+
+        self.assert200(self.client.get('/wexplorer/search?q=FAKEFAKEFAKE'))
+        self.assertEquals(len(self.get_context_variable('results')), 0)
 
     def test_companies(self):
         request = self.client.get('/wexplorer/companies/1')
@@ -115,3 +118,34 @@ class TestWexplorer(BaseTestCase):
 
         # test you can't unsubscribe from a nonexistant contract
         self.assert404(self.client.get('/wexplorer/contracts/999/unsubscribe'))
+
+    def test_filter(self):
+        # login as admin user and subscribe to two contracts
+        self.login_user(self.admin_user)
+        self.client.get('/wexplorer/contracts/1/subscribe')
+        self.client.get('/wexplorer/contracts/2/subscribe')
+
+        # login as superadmin user and subscribe to one contract
+        self.login_user(self.superadmin_user)
+        self.client.get('/wexplorer/contracts/1/subscribe')
+
+        # filter by contracts associated with Other department
+        self.client.get('/wexplorer/filter?department=Other')
+        self.assertEquals(len(self.get_context_variable('results')), 2)
+        # assert that contract 1 is first
+        self.assertEquals(self.get_context_variable('results')[0].id, 1)
+        self.assertEquals(self.get_context_variable('results')[0].cnt, 2)
+
+        # assert innovation and performance has no results
+        self.client.get('/wexplorer/filter?department=Innovation+and+Performance')
+        self.assertEquals(len(self.get_context_variable('results')), 0)
+
+        # assert you must have a department
+        request = self.client.get('/wexplorer/filter')
+        self.assertEquals(request.status_code, 302)
+        self.assert_flashes('You must choose a valid department!', 'alert-danger')
+
+        # assert that the department must be a real department
+        request = self.client.get('/wexplorer/filter?department=FAKEFAKEFAKE')
+        self.assertEquals(request.status_code, 302)
+        self.assert_flashes('You must choose a valid department!', 'alert-danger')

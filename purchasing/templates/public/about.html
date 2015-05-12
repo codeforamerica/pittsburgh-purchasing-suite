@@ -3,10 +3,10 @@
 
 {% block content %}
 <div class="body-content">
-    <div class="row">
-      <h1>About</h1>
-      <p>This template was created by <a href="http://github.com/sloria/">Steven Loria</a> for use with the <a href="http://github.com/audreyr/cookiecutter/">cookiecutter</a> package by <a href="http://github.com/audreyr/">Audrey Roy</a>.</p>
-    </div>
+  <div class="row">
+    <h2>About</h2>
+    <p>The Pittsburgh Purchasing Suite is a collection of apps to help purchasers. It includes <a href="{{ url_for('wexplorer.explore') }}">Wexplorer</a>, a tool for discovering items that are on contract right now, and <a href="{{ url_for('public.home') }}">Sherpa</a>, a tool for understanding the procurement process and helping navigate specific pieces.
+  </div>
 </div>
 {% endblock %}
 
