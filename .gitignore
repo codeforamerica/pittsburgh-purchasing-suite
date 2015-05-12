@@ -45,7 +45,6 @@ docs/_build
 
 # Virtualenvs
 env
-env*
 
 # Bower Installs
 libs/
