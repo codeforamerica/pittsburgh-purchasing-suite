@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime as dt
 
-from flask.ext.login import UserMixin
+from flask.ext.login import UserMixin, AnonymousUserMixin
 
 from purchasing.database import (
     Column,
@@ -11,7 +11,6 @@ from purchasing.database import (
     relationship,
     SurrogatePK,
 )
-
 
 class Role(SurrogatePK, Model):
     __tablename__ = 'roles'
@@ -49,3 +48,6 @@ class User(UserMixin, SurrogatePK, Model):
 
     def __unicode__(self):
         return self.email
+
+class AnonymousUser(AnonymousUserMixin):
+    role = {'name': 'anonymous'}

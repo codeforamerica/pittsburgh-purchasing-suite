@@ -13,6 +13,7 @@ from purchasing.extensions import (
     debug_toolbar,
     admin
 )
+from purchasing.users.models import AnonymousUser
 from purchasing.utils import url_for_other_page
 from purchasing.public import views as public_views
 from purchasing.users import views as user_views
@@ -39,6 +40,7 @@ def register_extensions(app):
     cache.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
+    login_manager.anonymous_user = AnonymousUser
     debug_toolbar.init_app(app)
     migrate.init_app(app, db)
     admin.init_app(app)
