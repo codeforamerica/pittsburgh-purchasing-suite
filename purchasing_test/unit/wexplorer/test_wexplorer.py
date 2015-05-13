@@ -9,7 +9,7 @@ from purchasing_test.unit.util import (
 from purchasing.data.models import ContractBase
 
 class TestWexplorer(BaseTestCase):
-    render_templates = True
+    render_templates = False
 
     def setUp(self):
         super(TestWexplorer, self).setUp()

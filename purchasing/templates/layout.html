@@ -74,10 +74,10 @@ navigator.id.watch({
     // 2. Update your UI.
     $.ajax({ /* <-- This example uses jQuery, but you can use whatever you'd like */
       type: 'POST',
-      url: '{{ url_for("users.auth") }}', // This is a URL on your website.
+      url: '{{ url_for("users.auth", next=thispage()) }}', // This is a URL on your website.
       data: {assertion: assertion},
       success: function(res, status, xhr) {
-        window.location.href = res;
+        window.location.href = res.split('thispage')[0];
       },
       error: function(xhr, status, err) {
         alert("Login failure: " + err);

@@ -11,7 +11,7 @@
       {{ contract.description }}
       {% if current_user in contract.users %}
         <a href="{{ url_for('wexplorer.unsubscribe', contract_id=contract.id, next=path) }}" class="btn btn-danger">Stop receiving updates</a>
-      {% elif current_user.role.name %}
+      {% elif current_user.role.name != 'anonymous' %}
         <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}" class="btn btn-primary">Subscribe for updates</a>
       {% endif %}
     </h3>
