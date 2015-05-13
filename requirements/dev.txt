@@ -11,5 +11,5 @@ mock==1.0.1
 Flask-Script
 
 # Scraping
-selenium==2.45.0
+scrapelib==1.0.0
 beautifulsoup4==4.3.2
