@@ -25,12 +25,12 @@ css = Bundle(
 js = Bundle(
     'libs/jQuery/dist/jquery.js',
     'libs/bootstrap/dist/js/bootstrap.js',
-    'js/plugins.js',
     filters='jsmin',
     output='public/js/common.js'
 )
 
 assets = Environment()
+test_assets = Environment()
 
 assets.register('js_all', js)
 assets.register('css_all', less)

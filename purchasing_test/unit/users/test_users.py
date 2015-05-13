@@ -8,6 +8,8 @@ from purchasing_test.unit.util import insert_a_user
 from purchasing.users.models import User
 
 class TestUserAuth(BaseTestCase):
+    render_template = True
+
     def setUp(self):
         super(TestUserAuth, self).setUp()
         self.email = 'foo@foo.com'

@@ -4,6 +4,7 @@ import datetime
 import os
 from flask_script import Manager, Shell, Server, prompt_bool
 from flask_migrate import MigrateCommand
+from flask.ext.assets import ManageAssets
 
 from purchasing.app import create_app
 from purchasing.settings import DevConfig, ProdConfig
@@ -95,6 +96,7 @@ def delete_contracts():
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))
 manager.add_command('shell', Shell(make_context=_make_context))
 manager.add_command('db', MigrateCommand)
+manager.add_command('assets', ManageAssets)
 
 if __name__ == '__main__':
     manager.run()

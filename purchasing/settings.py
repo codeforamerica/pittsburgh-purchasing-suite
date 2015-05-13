@@ -36,3 +36,4 @@ class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing_test')
     WTF_CSRF_ENABLED = False  # Allows form testing
     BROWSERID_URL = 'test'
+    ASSETS_DEBUG = True

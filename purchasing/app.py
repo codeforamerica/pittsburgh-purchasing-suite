@@ -3,7 +3,7 @@
 from flask import Flask, render_template
 
 from purchasing.settings import ProdConfig
-from purchasing.assets import assets
+from purchasing.assets import assets, test_assets
 from purchasing.extensions import (
     bcrypt,
     cache,
@@ -35,7 +35,7 @@ def create_app(config_object=ProdConfig):
     return app
 
 def register_extensions(app):
-    assets.init_app(app)
+    test_assets.init_app(app) if app.config.get('TESTING') else assets.init_app(app)
     bcrypt.init_app(app)
     cache.init_app(app)
     db.init_app(app)
