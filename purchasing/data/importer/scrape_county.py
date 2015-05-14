@@ -162,10 +162,37 @@ def parse_currency(field):
         return Decimal(value)
     return None
 
-def remap_characters(text):
-    # right curly quote
-    text = text.replace(u'\u0094', u'\u2033')
-    return text
+def get_contract(description, ifb):
+    return db.session.query(
+        ContractBase.id, ContractBase.description,
+        ContractProperty.key, ContractProperty.value
+    ).join(ContractProperty).filter(or_(
+        ContractBase.description.ilike(description),
+        ContractProperty.value.ilike(ifb.split('-')[1])
+    )).first()
+
+def save_line_item(_line_items, contract):
+    '''
+    Saves the line items to the db
+    '''
+    for item in _line_items:
+        line_item, new_line_item = get_or_create(
+            db.session, LineItem,
+            contract_id=contract.id,
+            description=item.get('description'),
+            manufacturer=item.get('manufacturer'),
+            model_number=item.get('model_number'),
+            quantity=item.get('quantity'),
+            unit_of_measure=item.get('unit_of_measure'),
+            unit_cost=parse_currency(item.get('unit_cost')),
+            total_cost=parse_currency(item.get('total_cost'))
+        )
+
+        if new_line_item:
+            db.session.add(line_item)
+
+    db.session.commit()
+    return
 
 def main():
     '''
@@ -180,14 +207,10 @@ def main():
     line_item_links = generate_line_item_links(item_table)
 
     for ix, (line_item_link, description, ifb, deadline) in enumerate(line_item_links):
+
         try:
-            contract = db.session.query(
-                ContractBase.id, ContractBase.description,
-                ContractProperty.key, ContractProperty.value
-            ).join(ContractProperty).filter(or_(
-                ContractBase.description.ilike(description),
-                ContractProperty.value.ilike(ifb.split('-')[1])
-            )).first()
+            contract = get_contract(description, ifb)
+
             if not contract:
                 continue
             if ix % 50 == 0:
@@ -197,28 +220,11 @@ def main():
             _line_items = grab_line_items(line_item_page)
 
             if _line_items:
-                for item in _line_items:
-                    line_item, new_line_item = get_or_create(
-                        db.session, LineItem,
-                        contract_id=contract.id,
-                        description=item.get('description'),
-                        manufacturer=item.get('manufacturer'),
-                        model_number=item.get('model_number'),
-                        quantity=item.get('quantity'),
-                        unit_of_measure=item.get('unit_of_measure'),
-                        unit_cost=parse_currency(item.get('unit_cost')),
-                        total_cost=parse_currency(item.get('total_cost'))
-                    )
-
-                    added += 1
-
-                    if new_line_item:
-                        db.session.add(line_item)
+                added += 1
+                save_line_item(_line_items, contract)
 
             else:
                 skipped += 1
-
-            db.session.commit()
 
         except scrapelib.HTTPError:
             print 'Could not open {url}, skipping'.format(url=line_item_link)
