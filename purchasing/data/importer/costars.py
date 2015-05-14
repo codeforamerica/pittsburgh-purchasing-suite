@@ -86,18 +86,31 @@ def main(filetarget, filename):
                     continue
 
                 elif k == 'County Served':
-                    county_served, new_county_served = get_or_create(
-                        db.session, ContractProperty, commit=False,
-                        contract_id=contract.id,
-                        key='Counties Served',
-                        value=convert_empty_to_none(row.get('County Served'))
-                    )
+                    if row.get('County Served') != '':
+                        county_located, new_county_located = get_or_create(
+                            db.session, ContractProperty, commit=False,
+                            contract_id=contract.id,
+                            key='Located in',
+                            value=convert_empty_to_none(
+                                '{county} County'.format(county=row.get('County Served'))
+                            )
+                        )
+                    else:
+                        continue
 
-                    if new_county_served:
-                        db.session.add(county_served)
+                    if new_county_located:
+                        db.session.add(county_located)
 
                 elif k == 'Manufacturers':
-                    pass
+                    manufacturer, new_manufacturer = get_or_create(
+                        db.session, ContractProperty, commit=False,
+                        contract_id=contract.id,
+                        key='List of manufacturers',
+                        value=convert_empty_to_none(row.get('Manufacturers'))
+                    )
+
+                    if new_manufacturer:
+                        db.session.add(manufacturer)
 
                 else:
                     if convert_to_bool(convert_empty_to_none(v)):

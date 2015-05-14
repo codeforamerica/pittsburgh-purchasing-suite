@@ -95,7 +95,7 @@ class ContractProperty(Model):
     ))
     contract_id = ReferenceCol('contract', ondelete='CASCADE')
     key = Column(db.String(255), nullable=False)
-    value = Column(db.String(255))
+    value = Column(db.Text)
 
     def __unicode__(self):
         return '{key}: {value}'.format(key=self.key, value=self.value)
