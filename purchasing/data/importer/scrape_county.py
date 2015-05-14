@@ -3,14 +3,17 @@
 import urllib
 import datetime
 import re
+from decimal import Decimal
 
 import scrapelib
 from bs4 import BeautifulSoup
 from urlparse import urlparse
 
+from sqlalchemy import or_
 from purchasing.database import db
-from purchasing.data.contracts import get_all_contracts
-from purchasing.data.models import ContractBase
+from purchasing.data.models import ContractBase, ContractProperty, LineItem
+
+from purchasing.data.importer import get_or_create
 
 BASE_COUNTY_URL = 'http://www.govbids.com/scripts/PAPG/public/OpenBids/ViewSolicitations.asp?' + \
     'page=1&Agency=1100&AgencyName=Allegheny+County+-+Division+of+Purchasing+and+Supplies&DisplayBy=' + \
@@ -21,16 +24,7 @@ BASE_LINE_ITEM_URL = 'http://www.govbids.com/scripts/PAPG/public/OpenBids/Notice
     'AN=Allegheny%20County%20-%20Division%20of%20Purchasing%20and%20Supplies&AID=1100'
 
 ITEM_NUMBER_REGEX = re.compile('Item #\d')
-
-def not_main_window(driver, main_window):
-    final_window = None
-    for window in driver.window_handles:
-        if window == main_window:
-            pass
-    else:
-        final_window = window
-
-    return final_window
+CURRENCY_REGEX = re.compile('[^\d.]')
 
 def grab_line_items(soup):
     '''
@@ -124,8 +118,9 @@ def generate_line_item_links(item_table):
     Crawls through a table of information and pulls out
     related IFB information.
 
-    Returns a list of 3-tuples that contain:
+    Returns a list of 4-tuples that contain:
         + the link
+        + the description from the site
         + the stripped IFB number
         + the deadline that that contract was due
     '''
@@ -148,39 +143,85 @@ def generate_line_item_links(item_table):
 
         line_item_links.append((
             build_alert_links(link, document_number),
+            link.text.strip(),
             document_number,
             datetime.datetime.strptime(deadline.text.strip(), '%m/%d/%Y')
         ))
 
     return line_item_links
 
+def parse_currency(field):
+    '''
+    Takes currency and returns the float value
+    '''
+    return Decimal(re.sub(CURRENCY_REGEX, '', field))
+
+def remap_characters(text):
+    # right curly quote
+    text = text.replace(u'\u0094', u'\u2033')
+    return text
+
 def main():
     '''
     Boots up and starts the scraping
     '''
     s = scrapelib.Scraper(requests_per_minute=120, retry_attempts=2, retry_wait_seconds=2)
-    skipped = 0
-    line_items = []
+    skipped, added = 0, 0
 
-    main_page = BeautifulSoup(s.get(BASE_COUNTY_URL).text)
+    main_page = BeautifulSoup(s.get(BASE_COUNTY_URL).content, from_encoding='windows-1252')
 
     item_table = main_page.find('table', recursive=False)
     line_item_links = generate_line_item_links(item_table)
 
-    for ix, (line_item_link, ifb, deadline) in enumerate(line_item_links):
+    for ix, (line_item_link, description, ifb, deadline) in enumerate(line_item_links):
         try:
+            contract = db.session.query(
+                ContractBase.id, ContractBase.description,
+                ContractProperty.key, ContractProperty.value
+            ).join(ContractProperty).filter(or_(
+                ContractBase.description.ilike(description),
+                ContractProperty.value.ilike(ifb.split('-')[1])
+            )).first()
+            if not contract:
+                continue
             if ix % 50 == 0:
                 print 'scraped {n} records'.format(n=ix)
-            line_item_page = BeautifulSoup(s.get(line_item_link).text)
+
+            line_item_page = BeautifulSoup(s.get(line_item_link).content, from_encoding='windows-1252')
             _line_items = grab_line_items(line_item_page)
+
             if _line_items:
-                line_items.append((_line_items, ifb, deadline))
+                for item in _line_items:
+                    line_item, new_line_item = get_or_create(
+                        db.session, LineItem,
+                        contract_id=contract.id,
+                        description=item.get('description'),
+                        manufacturer=item.get('manufacturer'),
+                        model_number=item.get('model_number'),
+                        quantity=item.get('quantity'),
+                        unit_of_measure=item.get('unit_of_measure'),
+                        unit_cost=parse_currency(item.get('unit_cost')),
+                        total_cost=parse_currency(item.get('total_cost'))
+                    )
+
+                    added += 1
+
+                    if new_line_item:
+                        db.session.add(line_item)
+
             else:
                 skipped += 1
-        except scrapelib.HTTPException:
+
+            db.session.commit()
+
+        except scrapelib.HTTPError:
             print 'Could not open {url}, skipping'.format(url=line_item_link)
             continue
 
+        except Exception, e:
+            raise e
+
     print 'Completed! Parsed {ix} records, ({skipped} skipped)'.format(
-        ix=len(line_items), skipped=skipped
+        ix=added, skipped=skipped
     )
+    return
