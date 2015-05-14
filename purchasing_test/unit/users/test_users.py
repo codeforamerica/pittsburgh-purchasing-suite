@@ -8,7 +8,7 @@ from purchasing_test.unit.util import insert_a_user
 from purchasing.users.models import User
 
 class TestUserAuth(BaseTestCase):
-    render_templates = False
+    render_template = True
 
     def setUp(self):
         super(TestUserAuth, self).setUp()
@@ -21,6 +21,10 @@ class TestUserAuth(BaseTestCase):
         self.assert_template_used('users/login.html')
         # test that new users are anonymous
         self.assertTrue(self.get_context_variable('current_user').is_anonymous())
+
+    def test_thispage(self):
+        request = self.client.get('/about', follow_redirects=True)
+        self.assertTrue('?next=%2Fabout%2F' in request.data)
 
     @patch('urllib2.urlopen')
     def test_auth_persona_failure(self, urlopen):
@@ -49,7 +53,10 @@ class TestUserAuth(BaseTestCase):
     @patch('urllib2.urlopen')
     def test_auth_success(self, urlopen):
         mock_open = Mock()
-        mock_open.read.side_effect = ['{"status": "okay", "email": "' + self.email + '"}']
+        mock_open.read.side_effect = [
+            '{"status": "okay", "email": "' + self.email + '"}',
+            '{"status": "okay", "email": "' + self.email + '"}'
+        ]
         urlopen.return_value = mock_open
 
         post = self.client.post('/users/auth?next=/explore/', data=dict(
@@ -59,13 +66,15 @@ class TestUserAuth(BaseTestCase):
         self.assert200(post)
         self.assertEquals(post.data, '/explore/')
 
+        self.client.get('/users/logout')
+
     @patch('urllib2.urlopen')
     def test_logout(self, urlopen):
 
         login_user(User.query.all()[0])
 
         logout = self.client.get('/users/logout', follow_redirects=True)
-        self.assert_flashes('Logged out successfully!', 'alert-success')
+        self.assertTrue('Logged out successfully' in logout.data)
         self.assert_template_used('users/logout.html')
 
         login_user(User.query.all()[0])

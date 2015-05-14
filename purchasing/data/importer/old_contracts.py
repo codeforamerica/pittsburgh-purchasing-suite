@@ -3,16 +3,13 @@
 from __future__ import unicode_literals
 import datetime
 from purchasing.database import db
-from purchasing.data.importer import extract, get_or_create
+from purchasing.data.importer import extract, get_or_create, convert_empty_to_none
 from purchasing.data.models import (
     CompanyContact,
     Company,
     ContractBase,
     ContractProperty
 )
-
-def convert_empty_to_none(val):
-    return val if val not in ['', 'None'] else None
 
 def main(file_target='./files/2015-05-05-contractlist.csv'):
     data = extract(file_target)

@@ -1,4 +1,5 @@
 {% extends 'wexplorer/layout.html' %}
+{% import 'macros/render_pagination.html' as macros %}
 {% block content %}
 
 <div class="row">
@@ -10,7 +11,7 @@
       {{ contract.description }}
       {% if current_user in contract.users %}
         <a href="{{ url_for('wexplorer.unsubscribe', contract_id=contract.id, next=path) }}" class="btn btn-danger">Stop receiving updates</a>
-      {% elif current_user.role.name %}
+      {% elif current_user.role.name != 'anonymous' %}
         <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}" class="btn btn-primary">Subscribe for updates</a>
       {% endif %}
     </h3>
@@ -30,6 +31,9 @@
           {% if contract.expiration_date %}
           <li>Expiration Date: {{ contract.expiration_date }}</li>
           {% endif %}
+          {% if contract.financial_id %}
+          <li>Controller Number: {{ contract.financial_id }}</li>
+          {% endif %}
         </ul>
         <p class="lead">More Details</p>
         <ul>
@@ -39,6 +43,21 @@
         </ul>
       </div>
       <div class="col-md-6">
+        <h4>Line Items
+        {% if pagination.pages > 1 %}
+          {{ macros.render_pagination(pagination) }}
+        {% endif %}
+        </h4>
+        <table class="table table-condensed table-striped">
+          <thead><th>Description</th></thead>
+          <tbody>
+          {% for _item in contract.line_items[lower_bound_result:upper_bound_result] %}
+            <tr>
+              <td>{{ _item.description }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
         <p class="lead">Awarded Companies</p>
         <ul>
         {% for company in contract.companies %}

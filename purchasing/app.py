@@ -3,7 +3,7 @@
 from flask import Flask, render_template
 
 from purchasing.settings import ProdConfig
-from purchasing.assets import assets
+from purchasing.assets import assets, test_assets
 from purchasing.extensions import (
     bcrypt,
     cache,
@@ -14,7 +14,7 @@ from purchasing.extensions import (
     admin
 )
 from purchasing.users.models import AnonymousUser
-from purchasing.utils import url_for_other_page
+from purchasing.utils import url_for_other_page, thispage
 from purchasing.public import views as public_views
 from purchasing.users import views as user_views
 from purchasing.wexplorer import views as wexplorer_views
@@ -35,7 +35,7 @@ def create_app(config_object=ProdConfig):
     return app
 
 def register_extensions(app):
-    assets.init_app(app)
+    test_assets.init_app(app) if app.config.get('TESTING') else assets.init_app(app)
     bcrypt.init_app(app)
     cache.init_app(app)
     db.init_app(app)
@@ -51,6 +51,7 @@ def register_blueprints(app):
     app.register_blueprint(user_views.blueprint)
     app.register_blueprint(wexplorer_views.blueprint)
     app.jinja_env.globals['url_for_other_page'] = url_for_other_page
+    app.jinja_env.globals['thispage'] = thispage
     from purchasing.admin import views
     return None
 
