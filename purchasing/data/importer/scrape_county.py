@@ -141,6 +141,9 @@ def generate_line_item_links(item_table):
         if not document_number.startswith('IFB'):
             continue
 
+        if len(document_number.split('-')) != 2:
+            continue
+
         line_item_links.append((
             build_alert_links(link, document_number),
             link.text.strip(),
@@ -154,7 +157,10 @@ def parse_currency(field):
     '''
     Takes currency and returns the float value
     '''
-    return Decimal(re.sub(CURRENCY_REGEX, '', field))
+    value = re.sub(CURRENCY_REGEX, '', field)
+    if value != '':
+        return Decimal(value)
+    return None
 
 def remap_characters(text):
     # right curly quote
@@ -218,8 +224,8 @@ def main():
             print 'Could not open {url}, skipping'.format(url=line_item_link)
             continue
 
-        except Exception, e:
-            raise e
+        except Exception:
+            raise
 
     print 'Completed! Parsed {ix} records, ({skipped} skipped)'.format(
         ix=added, skipped=skipped
