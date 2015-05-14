@@ -29,7 +29,9 @@
       {% endfor %}
     </div>
 
-    {{ content }}
+    {{ content | safe }}
+
+    <p>Go back: <a href="{{ prev.url }}">{{ prev.text }}</a>, or go to <a href="{{ url_for('sherpa.index') }}">the beginning</a>.</p>
 
   </div>
 
