@@ -85,8 +85,8 @@ def main(filetarget, filename):
                 if k in CONSTANT_FIELDS:
                     continue
 
-                elif k == 'County Served':
-                    if row.get('County Served') != '':
+                elif k == 'County Located':
+                    if row.get('County Located') != '':
                         county_located, new_county_located = get_or_create(
                             db.session, ContractProperty, commit=False,
                             contract_id=contract.id,
