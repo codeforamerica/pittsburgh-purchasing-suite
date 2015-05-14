@@ -18,6 +18,7 @@ from purchasing.utils import url_for_other_page, thispage
 from purchasing.public import views as public_views
 from purchasing.users import views as user_views
 from purchasing.wexplorer import views as wexplorer_views
+from purchasing.sherpa import views as sherpa_views
 # import models so that flask-migrate can auto-detect
 from purchasing.data import models
 
@@ -50,6 +51,7 @@ def register_blueprints(app):
     app.register_blueprint(public_views.blueprint)
     app.register_blueprint(user_views.blueprint)
     app.register_blueprint(wexplorer_views.blueprint)
+    app.register_blueprint(sherpa_views.blueprint)
     app.jinja_env.globals['url_for_other_page'] = url_for_other_page
     app.jinja_env.globals['thispage'] = thispage
     from purchasing.admin import views

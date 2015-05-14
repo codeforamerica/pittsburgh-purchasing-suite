@@ -15,11 +15,11 @@ wexplorer_less = Bundle(
     depends=('less/*.less', 'less/**/*.less')
 )
 
-css = Bundle(
-    'libs/bootstrap/dist/css/bootstrap.css',
-    'css/style.css',
-    filters='cssmin',
-    output='public/css/common.css'
+sherpa_less = Bundle(
+    'less/sherpa_main.less',
+    filters='less',
+    output='public/css/sherpa.css',
+    depends=('less/*.less', 'less/**/*.less')
 )
 
 js = Bundle(
@@ -35,3 +35,4 @@ test_assets = Environment()
 assets.register('js_all', js)
 assets.register('css_all', less)
 assets.register('wexplorer_less', wexplorer_less)
+assets.register('sherpa_less', sherpa_less)
