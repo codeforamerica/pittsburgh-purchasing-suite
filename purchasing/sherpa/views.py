@@ -31,8 +31,7 @@ def index():
     buttons = [{
         'url': url_for('sherpa.index'),
         'text': 'Start a contract!'
-    },
-    {
+    }, {
         'url': url_for('sherpa.buy_something'),
         'text': 'Buy something!'
     }]
@@ -53,12 +52,10 @@ def buy_something():
     buttons = [{
         'url': url_for('sherpa.use_it'),
         'text': 'Yes'
-    },
-    {
+    }, {
         'url': url_for('sherpa.sourcing'),
         'text': 'No'
-    },
-    {
+    }, {
         'url': '../wexplorer',
         'text': "I don't know"
     }]
@@ -99,12 +96,11 @@ def sourcing():
     title = "What are you sourcing?"
     buttons = [{
         'url': url_for('sherpa.emergency_prof_services'),
-        'text': 'Professional Services'},
-    {
+        'text': 'Professional Services'
+    }, {
         'url': url_for('sherpa.goods_services'),
         'text': 'Goods/Services'
-    },
-    {
+    }, {
         'url': url_for('sherpa.construction'),
         'text': "Construction"
     }]
@@ -113,14 +109,15 @@ def sourcing():
         'text': 'Is it on contract?'
     }
     content = '''
-        <h4>What's the difference between professional services and goods/services?</h4><p>Good \
-        question! The following definition of professional services is excerpted from a City \
-        of Pittsburgh 2009 policy memo about such services: </p><blockquote><p><strong>\
-        Professional Services contract</strong> - a contract involving services of members \
-        of the medical or legal profession, registered architects, appraisers, auditors, \
-        engineers, certified public accountants or other personal services that involve quality \
-        as the paramount concern and require a recognized professional and special expertise.\
-        </p></blockquote>
+        <h4>What's the difference between professional services and goods/services?</h4>
+        <p>
+          Good question! The following definition of professional services is excerpted from a City of Pittsburgh 2009 policy memo about such services:
+        </p>
+        <blockquote>
+          <p>
+            <strong>Professional Services contract</strong> - a contract involving services of members of the medical or legal profession, registered architects, appraisers, auditors, engineers, certified public accountants or other personal services that involve quality as the paramount concern and require a recognized professional and special expertise.
+          </p>
+        </blockquote>
     '''
 
     return render_template(
@@ -141,9 +138,7 @@ def construction():
         'url': url_for('sherpa.sourcing'),
         'text': "What are you sourcing?"
     }
-    content = '''
-        <p>More information about the construction process coming soon!</p>
-    '''
+    content = '<p>More information about the construction process coming soon!</p>'
 
     return render_template(
         "sherpa/question.html",
@@ -161,8 +156,7 @@ def emergency_prof_services():
     buttons = [{
         'url': url_for('sherpa.wallace_prof'),
         'text': 'Yes'
-    },
-    {
+    }, {
         'url': url_for('sherpa.sole_source'),
         'text': 'No'
     }]
@@ -189,9 +183,12 @@ def wallace_prof():
         'text': 'Is it an emergency?'
     }
     content = '''
-        <p>The Wallace Act covers the emergency purchase of goods and services not on a contract \
-        whose costs exceed $2,000. These purchases will require City Council approval after \
-        the fact.</p><p>More information about the Wallace Act is coming soon.</p>
+        <p>
+          The Wallace Act covers the emergency purchase of goods and services not on a contract whose costs exceed $2,000. These purchases will require City Council approval after the fact.
+        </p>
+        <p>
+          More information about the Wallace Act is coming soon.
+        </p>
     '''
 
     return render_template(
@@ -210,8 +207,7 @@ def sole_source():
     buttons = [{
         'url': url_for('sherpa.sole_rfp'),
         'text': 'Yes'
-    },
-    {
+    }, {
         'url': url_for('sherpa.dept_rfp'),
         'text': 'No'
     }]
@@ -238,14 +234,18 @@ def sole_rfp():
         'text': 'Is there only one supplier?'
     }
     content = '''
-        <p>Sole source agreements are unique professional service agreements which may include \
-        subscriptions, sometimes include maintenance/warranty work on equipment.</p><p>According \
-        to a 2009 City of Pittsburgh policy document,</p><blockquote><p>a <strong>Sole Source \
-        Professional Services contract</strong> is a contract involving unique professional \
-        services that are documented to be "available from one source only. An example could \
-        be art restoration by a particular artist on his or her own work. The term may also \
-        include specialized training or maintenance services on verified sole-source purchases.\
-        </p></blockquote><p>More information about sole source contracts is coming soon.</p>
+        <p>Sole source agreements are unique professional service agreements which may include
+        subscriptions, sometimes include maintenance/warranty work on equipment.</p>
+        <p>According to a 2009 City of Pittsburgh policy document,</p>
+
+        <blockquote><p>
+          a <strong>Sole Source Professional Services contract</strong> is a contract
+          involving unique professional services that are documented to be "available from one source only. An example could
+          be art restoration by a particular artist on his or her own work. The term may also
+          include specialized training or maintenance services on verified sole-source purchases.
+        </p></blockquote>
+
+        <p>More information about sole source contracts is coming soon.</p>
     '''
 
     return render_template(
@@ -266,14 +266,15 @@ def dept_rfp():
         'text': 'Is there only one supplier?'
     }
     content = '''
-        <p>More information about RFPs and the RFP writing process is coming soon. For some \
-        reference materials, take a look at the list of currently open contract bids in the \
-        following places: </p><ul><li><a href="http://pittsburghpa.gov/omb/contract-bids">\
-        Office of Management and Budget</a></li><li><a href="http://pittsburghpa.gov/dcp/rfp-rfq"> \
-        Department of City Planning</a></li><li><a href="http://www.pgh2o.com/doing-business"> \
-        Pittsburgh Water and Sewer Authority</a></li><li>\
-        <a href="http://www.ura.org/working_with_us/proposals.php">Urban Redevelopment Authority \
-        of Pittsburgh</a></li></ul>
+        <p>More information about RFPs and the RFP writing process is coming soon. For some
+        reference materials, take a look at the list of currently open contract bids in the
+        following places: </p>
+        <ul>
+          <li><a href="http://pittsburghpa.gov/omb/contract-bids"> Office of Management and Budget</a></li>
+          <li><a href="http://pittsburghpa.gov/dcp/rfp-rfq">Department of City Planning</a></li>
+          <li><a href="http://www.pgh2o.com/doing-business">Pittsburgh Water and Sewer Authority</a></li>
+          <li><a href="http://www.ura.org/working_with_us/proposals.php">Urban Redevelopment Authority of Pittsburgh</a></li>
+        </ul>
     '''
 
     return render_template(
@@ -292,8 +293,7 @@ def goods_services():
     buttons = [{
         'url': url_for('sherpa.explanatory'),
         'text': 'Yes'
-    },
-    {
+    }, {
         'url': url_for('sherpa.emergency_goods'),
         'text': 'No'
     }]
@@ -320,9 +320,9 @@ def explanatory():
         'text': "Is the item's cost under $2000?"
     }
     content = '''
-        <p>The Explanatory Process allows you to purchase an item whose total cost is \
-        $2,000 or less without a contract. However, this purchase must receive \
-        <em>pre-approval</em> from both the Director of your department and the Director \
+        <p>The Explanatory Process allows you to purchase an item whose total cost is
+        $2,000 or less without a contract. However, this purchase must receive
+        <em>pre-approval</em> from both the Director of your department and the Director
         of the Office of Management and Budget, and final approval from City Council.</p>
     '''
 
@@ -343,8 +343,7 @@ def emergency_goods():
     buttons = [{
         'url': url_for('sherpa.wallace_goods'),
         'text': 'Yes'
-    },
-    {
+    }, {
         'url': url_for('sherpa.thirty_thousand'),
         'text': 'No'
     }]
@@ -371,9 +370,10 @@ def wallace_goods():
         'text': 'Is it an emergency?'
     }
     content = '''
-        <p>The Wallace Act covers the emergency purchase of goods and services not on a contract \
-        whose costs exceed $2,000. These purchases will require City Council approval after \
-        the fact.</p><p>More information about the Wallace Act is coming soon.</p>
+        <p>The Wallace Act covers the emergency purchase of goods and services not on a contract
+        whose costs exceed $2,000. These purchases will require City Council approval after
+        the fact.</p>
+        <p>More information about the Wallace Act is coming soon.</p>
     '''
 
     return render_template(
@@ -392,8 +392,7 @@ def thirty_thousand():
     buttons = [{
         'url': url_for('sherpa.county_rfp'),
         'text': 'Yes'
-    },
-    {
+    }, {
         'url': url_for('sherpa.multiple_purchases'),
         'text': 'No'
     }]
@@ -420,9 +419,10 @@ def county_rfp():
         'text': "Is the items cost over $30,000?"
     }
     content = '''
-        <p>More information about the County's RFP process is coming soon. \
-        For some example RFPs, take a look at the list of \
-        <a href="http://apps.county.allegheny.pa.us/BidsSearch/SpecSearch.aspx">in-use contracts.</a></p>
+        <p>
+          More information about the County's RFP process is coming soon. For some example RFPs, take a look at the list of
+          <a href="http://apps.county.allegheny.pa.us/BidsSearch/SpecSearch.aspx">in-use contracts.</a>
+        </p>
     '''
 
     return render_template(
@@ -441,8 +441,7 @@ def multiple_purchases():
     buttons = [{
         'url': url_for('sherpa.service'),
         'text': 'Yes'
-    },
-    {
+    }, {
         'url': url_for('sherpa.phone_single'),
         'text': 'No'
     }]
@@ -469,10 +468,12 @@ def phone_single():
         'text': "Will there be multiple purchases of this item over time?"
     }
     content = '''
-        <p>In order to do a phone quote, you must provide the Office of Management and \
-        Budget's procurement team with detailed specifications and contract information \
-        for at least three likely bidders</p><p>More information on the phone quote \
-        process is coming soon.</p>
+        <p>
+          In order to do a phone quote, you must provide the Office of Management and
+          Budget's procurement team with detailed specifications and contract information
+          for at least three likely bidders
+        </p>
+        <p>More information on the phone quote process is coming soon.</p>
     '''
 
     return render_template(
@@ -491,8 +492,7 @@ def service():
     buttons = [{
         'url': url_for('sherpa.between_10_30'),
         'text': 'Yes'
-    },
-    {
+    }, {
         'url': url_for('sherpa.phone_service'),
         'text': 'No'
     }]
@@ -519,10 +519,12 @@ def phone_service():
         'text': "Will there be multiple purchases of this item over time?"
     }
     content = '''
-        <p>In order to do a phone quote, you must provide the Office of Management and \
-        Budget's procurement team with detailed specifications and contract information \
-        for at least three likely bidders</p><p>More information on the phone quote \
-        process is coming soon.</p>
+        <p>
+          In order to do a phone quote, you must provide the Office of Management and
+          Budget's procurement team with detailed specifications and contract information
+          for at least three likely bidders.
+        </p>
+        <p>More information on the phone quote process is coming soon.</p>
     '''
 
     return render_template(
@@ -541,8 +543,7 @@ def between_10_30():
     buttons = [{
         'url': url_for('sherpa.b_bid'),
         'text': 'Yes'
-    },
-    {
+    }, {
         'url': url_for('sherpa.phone_not_b'),
         'text': 'No'
     }]
@@ -569,8 +570,8 @@ def phone_not_b():
         'text': "Is the item between $10,000 and $30,000?"
     }
     content = '''
-        <p>In order to do a phone quote, you must provide the Office \
-        of Management and Budget's procurement team with detailed specifications \
+        <p>In order to do a phone quote, you must provide the Office
+        of Management and Budget's procurement team with detailed specifications
         and contract information for at least three likely bidders</p>
         <p>More information on the phone quote process is coming soon.</p>
     '''
