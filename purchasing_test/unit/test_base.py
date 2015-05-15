@@ -21,6 +21,26 @@ class BaseTestCase(TestCase):
         db.drop_all()
         db.get_engine(self.app).dispose()
 
+    def assertTemplatesUsed(self, names, tmpl_name_attribute='name'):
+        '''
+        Subclass assertTemplateUsed from the flask-testing TestCase to
+        allow for multiple templates
+        '''
+        if isinstance(names, basestring):
+            names = [names]
+
+        used_templates = []
+
+        for template, context in self.templates:
+            if getattr(template, tmpl_name_attribute) in names:
+                return True
+
+            used_templates.append(template)
+
+        raise AssertionError("template %s not used. Templates were used: %s" % (names, ' '.join(used_templates)))
+
+    assert_template_used = assertTemplatesUsed
+
     def assert_flashes(self, expected_message, expected_category='message'):
         '''
         Helper to test if we have flashes.
