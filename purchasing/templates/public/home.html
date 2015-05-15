@@ -24,7 +24,7 @@
   <div class="container">
     <div class="row text-center">
       <div class="col-lg-10 col-lg-offset-1 spacer-50">
-        <h2>Our Services</h2>
+        <h2>Purchasing Tools</h2>
         <hr class="small">
         <div class="row">
 
@@ -35,7 +35,7 @@
                 <i class="fa fa-search fa-stack-1x fa-body-bg"></i>
               </span>
               <h4>
-                <strong>Wexplorer</strong>
+                <strong><a href="{{ url_for('wexplorer.explore') }}">Wexplorer</a></strong>
               </h4>
               <p>Search for contracts, companies, and items.</p>
               <a href="{{ url_for('wexplorer.explore') }}" class="btn btn-dark">Visit Wexplorer</a>
@@ -49,7 +49,7 @@
                 <i class="fa fa-sitemap fa-stack-1x fa-body-bg"></i>
               </span>
               <h4>
-                <strong>Sherpa</strong>
+                <strong><a href="{{ url_for('sherpa.index') }}">Sherpa</a></strong>
               </h4>
               <p>Explore the procurement process and start new contracts.</p>
               <a href="{{ url_for('sherpa.index') }}" class="btn btn-dark">Visit Sherpa</a>
