@@ -18,11 +18,15 @@ def url_for_other_page(page):
     return url_for(request.endpoint, **args)
 
 def thispage():
-    args = dict(request.view_args.items() + request.args.to_dict().items())
-    args['thispage'] = '{path}?{query}'.format(
-        path=request.path, query=request.query_string
-    )
-    return url_for(request.endpoint, **args)
+    try:
+        args = dict(request.view_args.items() + request.args.to_dict().items())
+        args['thispage'] = '{path}?{query}'.format(
+            path=request.path, query=request.query_string
+        )
+        return url_for(request.endpoint, **args)
+    # pass for favicon
+    except AttributeError:
+        pass
 
 class SimplePagination(object):
     '''

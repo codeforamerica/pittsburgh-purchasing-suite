@@ -104,10 +104,38 @@ footer a {
   color: @link-color;
 }
 
+.spacer-50 {
+  padding-bottom: 50px;
+}
+
 .spacer-20 {
   padding-bottom: 20px;
 }
 
 .spacer-10 {
   padding-bottom: 10px;
+}
+
+hr {
+  color: @gray-darker;
+}
+
+hr.small {
+  max-width: 100px;
+}
+
+.fa-body-bg {
+  color: @body-bg;
+}
+
+.btn-dark {
+    color: #333;
+    background-color: darken(@body-bg, 10%);
+}
+
+.btn-dark:hover,
+.btn-dark:focus,
+.btn-dark:active {
+    color: #333;
+    background-color: darken(@body-bg, 15%);
 }
