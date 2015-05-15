@@ -4,6 +4,17 @@ import os
 os_env = os.environ
 
 class Config(object):
+    DB_NAME = os_env.get('DB_NAME')
+    DB_USER = os_env.get('DB_USER')
+    DB_PASS = os_env.get('DB_PASS')
+    DB_HOST = os_env.get('DB_HOST')
+    DB_PORT = os_env.get('DB_PORT')
+    if DB_NAME is None or DB_USER is None or DB_HOST is None:
+        SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing')
+    else:
+        SQLALCHEMY_DATABASE_URI = 'postgresql://{0}:{1}@{2}:{3}/{4}'.format(
+            DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME
+        )
     SECRET_KEY = os_env.get('PITTSBURGH-PURCHASING-SUITE_SECRET', 'secret-key')  # TODO: Change me
     APP_DIR = os.path.abspath(os.path.dirname(__file__))  # This directory
     PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, os.pardir))
@@ -28,7 +39,6 @@ class ProdConfig(Config):
     """Production configuration."""
     ENV = 'prod'
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing')  # TODO: Change me
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
     FLASK_ASSETS_USE_S3 = True
     S3_BUCKET_NAME = os_env.get('S3_BUCKET_NAME')
@@ -56,7 +66,7 @@ class DevConfig(Config):
 class TestConfig(Config):
     TESTING = True
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing_test')
+    SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/purchasing_test'
     WTF_CSRF_ENABLED = False  # Allows form testing
     BROWSERID_URL = 'test'
     ASSETS_DEBUG = True
