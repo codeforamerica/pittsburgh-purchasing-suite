@@ -1,9 +1,9 @@
 {% extends 'sherpa/layout.html' %}
 {% block content %}
 
-<div class="post">
+<div class="post question-main">
 
-  <div class="post-header">
+  <div class="post-header spacer-20">
     <h1 class="post-title">{{ title }}</h1>
   </div>
 
@@ -18,10 +18,10 @@
       </p>
     {% endfor %}
 
-    <div class="btn-group">
+    <div class="spacer-20">
       {% for button in buttons %}
         <a
-          class="pure-button pure-button-primary button-xlarge"
+          class="btn btn-primary btn-sherpa"
           href="{{ button.url }}"
         >
           {{ button.text }}
@@ -31,7 +31,9 @@
 
     {{ content | safe }}
 
-    <p>Go back: <a href="{{ prev.url }}">{{ prev.text }}</a>, or go to <a href="{{ url_for('sherpa.index') }}">the beginning</a>.</p>
+    {% if prev %}
+    <p class="prev-block">Go back: <a href="{{ prev.url }}">{{ prev.text }}</a>, or go to <a href="{{ url_for('sherpa.index') }}">the beginning</a>.</p>
+    {% endif %}
 
   </div>
 

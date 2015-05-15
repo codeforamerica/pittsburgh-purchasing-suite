@@ -1,0 +1,105 @@
+{% extends 'sherpa/layout.html' %}
+{% block content %}
+
+<div class="post">
+
+  <div class="post-header">
+    <h1 class="post-title">{{ title }}</h1>
+  </div>
+
+  <div class="post-content">
+    <div class="row">
+
+      <div class="col-md-8 col-sm-6">
+
+        <div class="left-content-description">
+          <strong>What is this?</strong>
+          <div class="spacer-10"></div>
+
+          <p>{{ left_content_description }}</p>
+        </div>
+
+        <div class="step-by-step-walkthrough">
+          <strong>What you'll need:</strong>
+          <ol>
+          {% for step in steps %}
+            <li>
+              <div class="step-title"><h3>{{ step.title }}</h3></div>
+
+              <div class="step-body">
+
+                {% if step.format == 'list' %}
+                  <table class="step-list table table-striped table-condensed">
+                    <tbody>
+                    {% for todo in step.todos %}
+                      <tr class="step-list-todo"><td>{{ todo }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
+
+                {% elif step.format == 'infoboxes' %}
+
+                  <table class="step-infoboxes table table-striped table-condensed">
+                    <tbody>
+                    {% for todo in step.todos %}
+                      <tr>
+                        <td>
+                          <input type="checkbox"> {{ todo }}
+                      </td>
+                      </tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
+
+                {% elif step.format == 'extlink' %}
+
+                  <p class="extlink-description">
+                    {{ step.extlink_description }}
+                  </p>
+
+                  <a class="btn btn-primary btn-sherpa" href="{{ step.url }}" target="_blank">
+                    {{ step.button_text }}
+                  </a>
+
+                {% endif %}
+              </div>
+            </li>
+          {% endfor %}
+          </ol>
+        </div>
+
+        <div class="btn-group">
+          {% for button in buttons %}
+            <a class="btn btn-primary btn-sherpa" href="{{ button.url }}">
+              {{ button.text }}
+            </a>
+          {% endfor %}
+        </div>
+
+        {{ content }}
+
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <strong class="spacer-10">What to expect:</strong>
+        <div class="spacer-10"></div>
+        <ul class="timeline-node-list">
+        {% for node in timeline %}
+          <li class="timeline-node">
+            {% if node.title %}{{ node.title }}<br>{% endif %}
+            <span class="timeline-node-body">{{ node.body }}</span>
+          </li>
+        {% endfor %}
+        </ul>
+      </div>
+
+    </div>
+
+    {% if prev %}
+    <p class="prev-block">Go back: <a href="{{ prev.url }}">{{ prev.text }}</a>, or go to <a href="{{ url_for('sherpa.index') }}">the beginning</a>.</p>
+    {% endif %}
+
+  </div>
+
+</div>
+
+{% endblock %}
