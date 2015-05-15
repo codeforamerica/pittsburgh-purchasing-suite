@@ -1,33 +1,70 @@
 
 {% extends "public/layout.html" %}
 {% block content %}
-<!-- Main jumbotron for a primary marketing message or call to action -->
-<div class="jumbotron">
 
-  <h1>Welcome to Pittsburgh Purchasing Suite</h1>
-
-  <p>This is a starter Flask template. It includes Bootstrap 3, jQuery 2, Flask-SQLAlchemy, WTForms, and various testing utilities out of the box.</p>
-  <p><a href="https://github.com/sloria/cookiecutter-flask" class="btn btn-primary btn-large">Learn more &raquo;</a></p>
-</div><!-- /.jumbotron -->
-
-<div class="body-content">
-  <div class="row">
-    <div class="col-lg-4">
-      <h2><i class="fa fa-code"></i> Bootstrap 3</h2>
-      <p>Sleek, intuitive, and powerful mobile-first front-end framework for faster and easier web development.</p>
-      <p><a class="btn btn-default" href="http://getbootstrap.com/">Official website &raquo;</a></p>
+<!-- About -->
+<section id="about" class="about">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h1>Pittsburgh Purchasing Suite</h1>
+        <h4>The Pittsburgh Purchasing Suite is a collection of apps that help you procure things more quickly and easily.</h4>
+      </div>
     </div>
-    <div class="col-lg-4">
-      <h2><i class="fa fa-flask"></i> SQLAlchemy</h2>
-      <p>SQLAlchemy is the Python SQL toolkit and Object Relational Mapper that gives application developers the full power and flexibility of SQL.</p>
-      <p><a href="http://www.sqlalchemy.org/" class="btn btn-default" href="#">Official website &raquo;</a></p>
-   </div>
-    <div class="col-lg-4">
-      <h2><i class="fa fa-edit"></i> WTForms</h2>
-      <p>WTForms is a flexible forms validation and rendering library for python web development.</p>
-      <p><a href="http://wtforms.simplecodes.com/" class="btn btn-default" href="#">Official website &raquo;</a></p>
+    <!-- /.row -->
+  </div>
+  <!-- /.container -->
+</section>
+
+<div class="spacer-50"></div>
+
+<!-- /.row -->
+<section id="services" class="services">
+  <div class="spacer-10"></div>
+  <div class="container">
+    <div class="row text-center">
+      <div class="col-lg-10 col-lg-offset-1 spacer-50">
+        <h2>Purchasing Tools</h2>
+        <hr class="small">
+        <div class="row">
+
+          <div class="col-md-6 col-sm-6">
+            <div class="service-item">
+              <span class="fa-stack fa-4x">
+                <i class="fa fa-circle fa-stack-2x"></i>
+                <i class="fa fa-search fa-stack-1x fa-body-bg"></i>
+              </span>
+              <h4>
+                <strong><a href="{{ url_for('wexplorer.explore') }}">Wexplorer</a></strong>
+              </h4>
+              <p>Search for contracts, companies, and items.</p>
+              <a href="{{ url_for('wexplorer.explore') }}" class="btn btn-dark">Visit Wexplorer</a>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-sm-6">
+            <div class="service-item">
+              <span class="fa-stack fa-4x">
+                <i class="fa fa-circle fa-stack-2x"></i>
+                <i class="fa fa-sitemap fa-stack-1x fa-body-bg"></i>
+              </span>
+              <h4>
+                <strong><a href="{{ url_for('sherpa.index') }}">Sherpa</a></strong>
+              </h4>
+              <p>Explore the procurement process and start new contracts.</p>
+              <a href="{{ url_for('sherpa.index') }}" class="btn btn-dark">Visit Sherpa</a>
+            </div>
+          </div>
+
+        <!-- /.row (nested) -->
+      </div>
+
+      <!-- /.col-lg-10 -->
     </div>
-  </div><!-- /.row -->
-</div>
+    <!-- /.row -->
+  </div>
+  <!-- /.container -->
+</section>
+
 {% endblock %}
 

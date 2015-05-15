@@ -15,21 +15,21 @@ blueprint = Blueprint(
 def load_user(userid):
     return User.get_by_id(int(userid))
 
-@blueprint.route("/", methods=["GET", "POST"])
+@blueprint.route('/')
 def index():
     '''
     Landing page for sherpa
     '''
-    title = "Explore the Pittsburgh Procurement Process!"
+    title = 'Explore the Pittsburgh Procurement Process!'
     pre_button_content = [{
         'title': 'What are you doing?',
         'content': '''
-            Need to start a contract or wondering which process you should use to buy \
+            Need to start a contract or wondering which process you should use to buy
             something? Get started by selecting an option below!
         '''
     }]
     buttons = [{
-        'url': url_for('sherpa.index'),
+        'url': url_for('sherpa.start_a_psa'),
         'text': 'Start a contract!'
     }, {
         'url': url_for('sherpa.buy_something'),
@@ -37,18 +37,18 @@ def index():
     }]
 
     return render_template(
-        "sherpa/index.html",
+        'sherpa/question.html',
         title=title,
         pre_button_content=pre_button_content,
         buttons=buttons,
     )
 
-@blueprint.route("/is-it-on-contract", methods=["GET", "POST"])
+@blueprint.route('/is-it-on-contract')
 def buy_something():
     '''
     First question for the buy something flow
     '''
-    title = "Is it on contract?"
+    title = 'Is it on contract?'
     buttons = [{
         'url': url_for('sherpa.use_it'),
         'text': 'Yes'
@@ -65,13 +65,13 @@ def buy_something():
     }
 
     return render_template(
-        "sherpa/question.html",
+        'sherpa/question.html',
         title=title,
         buttons=buttons,
         prev=prev
     )
 
-@blueprint.route("/use-it", methods=["GET", "POST"])
+@blueprint.route("/use-it")
 def use_it():
     '''
     For those who don't really need to use this app
@@ -88,12 +88,12 @@ def use_it():
         prev=prev
     )
 
-@blueprint.route("/what-are-you-sourcing", methods=["GET", "POST"])
+@blueprint.route("/what-are-you-sourcing")
 def sourcing():
     '''
     Second question for the buy something flow
     '''
-    title = "What are you sourcing?"
+    title = 'What are you sourcing?'
     buttons = [{
         'url': url_for('sherpa.emergency_prof_services'),
         'text': 'Professional Services'
@@ -121,14 +121,14 @@ def sourcing():
     '''
 
     return render_template(
-        "sherpa/question.html",
+        'sherpa/question.html',
         title=title,
         buttons=buttons,
         prev=prev,
         content=content
     )
 
-@blueprint.route("/construction", methods=["GET", "POST"])
+@blueprint.route("/construction")
 def construction():
     '''
     End of the construction flow
@@ -147,12 +147,12 @@ def construction():
         content=content
     )
 
-@blueprint.route("/emergency-professional-services", methods=["GET", "POST"])
+@blueprint.route("/emergency-professional-services")
 def emergency_prof_services():
     '''
     First question for professional services sub-flow
     '''
-    title = "Is it an emergency?"
+    title = 'Is it an emergency?'
     buttons = [{
         'url': url_for('sherpa.wallace_prof'),
         'text': 'Yes'
@@ -166,18 +166,18 @@ def emergency_prof_services():
     }
 
     return render_template(
-        "sherpa/question.html",
+        'sherpa/question.html',
         title=title,
         buttons=buttons,
         prev=prev
     )
 
-@blueprint.route("/wallace-act-professional-service", methods=["GET", "POST"])
+@blueprint.route("/wallace-act-professional-service")
 def wallace_prof():
     '''
     End of emergency professional services flow
     '''
-    title = "Use the Wallace Act Process"
+    title = 'Use the Wallace Act Process'
     prev = {
         'url': url_for('sherpa.emergency_prof_services'),
         'text': 'Is it an emergency?'
@@ -192,18 +192,18 @@ def wallace_prof():
     '''
 
     return render_template(
-        "sherpa/question.html",
+        'sherpa/question.html',
         title=title,
         prev=prev,
         content=content
     )
 
-@blueprint.route("/is-it-sole-sourced", methods=["GET", "POST"])
+@blueprint.route('/is-it-sole-sourced')
 def sole_source():
     '''
     First question for professional services sub-flow
     '''
-    title = "Is there only one supplier (sole sourced)?"
+    title = 'Is there only one supplier (sole sourced)?'
     buttons = [{
         'url': url_for('sherpa.sole_rfp'),
         'text': 'Yes'
@@ -217,18 +217,18 @@ def sole_source():
     }
 
     return render_template(
-        "sherpa/question.html",
+        'sherpa/question.html',
         title=title,
         buttons=buttons,
         prev=prev
     )
 
-@blueprint.route("/sole-source-department-rfp", methods=["GET", "POST"])
+@blueprint.route('/sole-source-department-rfp')
 def sole_rfp():
     '''
     End of sole source professional services flow
     '''
-    title = "Write a sole source RFP"
+    title = 'Write a sole source RFP'
     prev = {
         'url': url_for('sherpa.sole_source'),
         'text': 'Is there only one supplier?'
@@ -249,18 +249,18 @@ def sole_rfp():
     '''
 
     return render_template(
-        "sherpa/question.html",
+        'sherpa/question.html',
         title=title,
         prev=prev,
         content=content
     )
 
-@blueprint.route("/department-rfp", methods=["GET", "POST"])
+@blueprint.route('/department-rfp')
 def dept_rfp():
     '''
     End of competitive bid professional services flow
     '''
-    title = "Write and issue a department RFP"
+    title = 'Write and issue a department RFP'
     prev = {
         'url': url_for('sherpa.sole_source'),
         'text': 'Is there only one supplier?'
@@ -278,13 +278,13 @@ def dept_rfp():
     '''
 
     return render_template(
-        "sherpa/question.html",
+        'sherpa/question.html',
         title=title,
         prev=prev,
         content=content
     )
 
-@blueprint.route("/goods-services", methods=["GET", "POST"])
+@blueprint.route('/goods-services')
 def goods_services():
     '''
     First question for goods/services flow
@@ -303,18 +303,18 @@ def goods_services():
     }
 
     return render_template(
-        "sherpa/question.html",
+        'sherpa/question.html',
         title=title,
         buttons=buttons,
         prev=prev
     )
 
-@blueprint.route("/explanatory", methods=["GET", "POST"])
+@blueprint.route('/explanatory')
 def explanatory():
     '''
     End of the explanatory process flow
     '''
-    title = "Use the Explanatory Process"
+    title = 'Use the Explanatory Process'
     prev = {
         'url': url_for('sherpa.goods_services'),
         'text': "Is the item's cost under $2000?"
@@ -327,19 +327,19 @@ def explanatory():
     '''
 
     return render_template(
-        "sherpa/question.html",
+        'sherpa/question.html',
         title=title,
         prev=prev,
         content=content
     )
 
 
-@blueprint.route("/emergency-goods", methods=["GET", "POST"])
+@blueprint.route('/emergency-goods')
 def emergency_goods():
     '''
     Followup for goods/services flow
     '''
-    title = "Is it an emergency purchase?"
+    title = 'Is it an emergency purchase?'
     buttons = [{
         'url': url_for('sherpa.wallace_goods'),
         'text': 'Yes'
@@ -359,7 +359,7 @@ def emergency_goods():
         prev=prev
     )
 
-@blueprint.route("/wallace-act-goods", methods=["GET", "POST"])
+@blueprint.route("/wallace-act-goods")
 def wallace_goods():
     '''
     End of emergency goods flow
@@ -383,7 +383,7 @@ def wallace_goods():
         content=content
     )
 
-@blueprint.route("/over-30-thousand", methods=["GET", "POST"])
+@blueprint.route("/over-30-thousand")
 def thirty_thousand():
     '''
     Followup for non emergency purchases more than $2000
@@ -408,7 +408,7 @@ def thirty_thousand():
         prev=prev
     )
 
-@blueprint.route("/county-rfp-process", methods=["GET", "POST"])
+@blueprint.route("/county-rfp-process")
 def county_rfp():
     '''
     End of the county RFP flow
@@ -432,7 +432,7 @@ def county_rfp():
         content=content
     )
 
-@blueprint.route("/multiple-purchases", methods=["GET", "POST"])
+@blueprint.route("/multiple-purchases")
 def multiple_purchases():
     '''
     Followup for non emergency purchases less than $30000
@@ -451,13 +451,13 @@ def multiple_purchases():
     }
 
     return render_template(
-        "sherpa/question.html",
+        'sherpa/question.html',
         title=title,
         buttons=buttons,
         prev=prev
     )
 
-@blueprint.route("/phone-quote-single-use", methods=["GET", "POST"])
+@blueprint.route("/phone-quote-single-use")
 def phone_single():
     '''
     End of the single-use less than $30000 flow
@@ -483,7 +483,7 @@ def phone_single():
         content=content
     )
 
-@blueprint.route("/is-it-a-service", methods=["GET", "POST"])
+@blueprint.route("/is-it-a-service")
 def service():
     '''
     Followup for multiple purchases
@@ -508,7 +508,7 @@ def service():
         prev=prev
     )
 
-@blueprint.route("/phone-quote-service", methods=["GET", "POST"])
+@blueprint.route("/phone-quote-service")
 def phone_service():
     '''
     End of the service less than $10000 flow
@@ -534,7 +534,7 @@ def phone_service():
         content=content
     )
 
-@blueprint.route("/between-10-and-30-thousand", methods=["GET", "POST"])
+@blueprint.route("/between-10-and-30-thousand")
 def between_10_30():
     '''
     Followup for services
@@ -559,7 +559,7 @@ def between_10_30():
         prev=prev
     )
 
-@blueprint.route("/phone-quote-not-b-bid", methods=["GET", "POST"])
+@blueprint.route("/phone-quote-not-b-bid")
 def phone_not_b():
     '''
     End of the < $30000 services flow
@@ -583,7 +583,7 @@ def phone_not_b():
         content=content
     )
 
-@blueprint.route("/b-bid", methods=["GET", "POST"])
+@blueprint.route("/b-bid")
 def b_bid():
     '''
     End of the $30000+ services flow
@@ -602,4 +602,63 @@ def b_bid():
         title=title,
         prev=prev,
         content=content
+    )
+
+@blueprint.route('/start-a-professional-services-agreement')
+def start_a_psa():
+    '''
+    Termination node for starting a new professional
+    services agreement
+    '''
+
+    title = 'Start a Professional Services Agreement'
+    left_content_description = "The professional services agreement is the last step in the RFP process. It is drafted by the legal department based on the information and documents provided throughout that process provided by the RFP committee's point person."
+
+    steps = [
+        {
+            'title': "You'll need to know",
+            'format': 'list',
+            'todos': [
+                "Name of point person for RFP", "List of other departments participating in RFP",
+                "1-2 Sentence Description of Professional Services to be rendered",
+                "Proposed start date for Agreement",
+            ]
+        }, {
+            'title': 'Gather required documents',
+            'format': 'infoboxes',
+            'todos': [
+                "Scope of work section from RFP", "Project budget",
+                "Awarded vendor's proposal in response to RFP",
+                "Awarded vendor's current insurance certificate",
+            ]
+        }, {
+            'title': 'Complete Request Form',
+            'format': 'extlink',
+            'external': True,
+            'extlink_description': "Once you're ready, fill in the form and upload required documents at the link below",
+            'url': 'https://teampgh.typeform.com/to/im7FNa',
+            'button_text': 'Start PSA Request Form'
+        }
+    ]
+
+    timeline = [
+        {'body': "Prepare documents and information"},
+        {'body': "Complete and submit request form"},
+        {'body': "Your request is submitted to a solicitor"},
+        {'body': "Solicitor approves request and asks you to make changes"},
+        {'body': "You send approved professional services agreement to awarded vendor for approval"},
+        {'body': "Vendor's legal department and City Solicitor agree on a final Professional Services Agreement. Vendor signs four hard copies and sends them to you"},
+        {'body': "You gather signatures from your Department Director, the Director of Finance, the Director of OMB, and your solicitor before you submit the agreement to the Controller's Office"},
+        {'body': "Once the City Controller approves, your PSA is finalized, and you can begin to work with your awarded vendor"}
+    ]
+
+    prev = {
+        'url': url_for('sherpa.index'),
+        'text': 'Getting Started'
+    }
+
+    return render_template(
+        'sherpa/termination.html',
+        title=title, left_content_description=left_content_description,
+        steps=steps, timeline=timeline, prev=prev
     )
