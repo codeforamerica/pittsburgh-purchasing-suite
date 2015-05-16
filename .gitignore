@@ -61,3 +61,6 @@ log
 
 # File uploads
 uploads
+
+# Docker environments
+.dockerenv

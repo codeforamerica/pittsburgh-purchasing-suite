@@ -71,6 +71,7 @@ def auth():
         'assertion': request.form.get('assertion'),
         'audience': current_app.config.get('BROWSERID_URL')
     })
+
     req = urllib2.Request('https://verifier.login.persona.org/verify', data)
 
     response = json.loads(urllib2.urlopen(req).read())

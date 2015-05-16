@@ -64,6 +64,7 @@ class DevConfig(Config):
     MAIL_SUPPRESS_SEND = True
 
 class TestConfig(Config):
+    ENV = 'test'
     TESTING = True
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/purchasing_test'

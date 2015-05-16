@@ -14,7 +14,7 @@ from purchasing.utils import _get_aggressive_cache_headers, connect_to_s3
 
 from purchasing.public.models import AppStatus
 
-if os.environ.get("PITTSBURGH-PURCHASING-SUITE_ENV") == 'prod':
+if os.environ.get("ENV") == 'prod':
     app = create_app(ProdConfig)
 else:
     app = create_app(DevConfig)

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 '''The app module, containing the app factory function.'''
+
 import logging
 import os
 import sys
 import datetime
+
 from flask import Flask, render_template
 
 from purchasing.settings import ProdConfig
