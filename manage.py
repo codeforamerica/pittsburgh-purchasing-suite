@@ -84,6 +84,14 @@ def import_costars(directory):
     return
 
 @manager.command
+def scrape():
+    from purchasing.data.importer.scrape_county import main
+    print 'Scraping County'
+    main()
+    print 'Scraping Finished'
+    return
+
+@manager.command
 def delete_contracts():
     if prompt_bool("Are you sure you want to lose all contracts & companies?"):
         print 'Deleting!'

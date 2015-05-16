@@ -92,7 +92,7 @@ def main(filetarget, filename):
                             contract_id=contract.id,
                             key='Located in',
                             value=convert_empty_to_none(
-                                '{county} County'.format(county=row.get('County Served'))
+                                '{county} County'.format(county=row.get('County Located'))
                             )
                         )
                     else:
