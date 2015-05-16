@@ -22,8 +22,55 @@ Core Pittsburgh Purchasing Suite features are in alpha, with other features in d
 The purchasing suite is a project of the 2015 Pittsburgh Code for America [fellowship team](http://codeforamerica.org/governments/pittsburgh).
 
 ## How
-#### Core Dependencies
 The purchasing suite is a [Flask](http://flask.pocoo.org/) app. It uses [Postgres](http://www.postgresql.org/) for a database and uses [bower](http://bower.io/) to manage most of its dependencies. It also uses [less](http://lesscss.org/) to compile style assets. Big thanks to the [cookiecutter-flask](https://github.com/sloria/cookiecutter-flask) project for a nice kickstart.
+
+### With Docker
+
+#### Setting up Docker
+
+The best way to get set up with Docker is to install [boot2docker](http://boot2docker.io/), a tiny core linux VM specifically designed to run Docker containers. For a complete description of how to download and get started with Docker using boot2docker, the best resource is on [Docker's site](http://docs.docker.com/installation/mac/). The Suite also uses [Docker Compose](https://docs.docker.com/compose/), a tool for managing and linking multiple containers together. Installation instructions for Compose can be found [here](https://docs.docker.com/compose/install/).
+
+Once you've installed and verified that Docker, boot2docker, and Docker Compose are installed and ready for use on your system, go ahead and clone the repo:
+
+```bash
+git clone https://github.com/codeforamerica/pittsburgh-purchasing-suite
+cd pittsburgh-purchasing-suite
+```
+
+Now that you have the code, you'll need to create your environment file to make sure that the containers link properly:
+
+```bash
+sh dockerenv.sh
+```
+
+This will create a new `.dockerenv` file with the necessary variables set for you. The `dockerenv.sh` script will output the address of your Docker container. If you don't remember it, you can run `boot2docker ip` to find it at any time. For now, you should be ready to go:
+
+```bash
+docker-compose up
+```
+
+Navigate to the IP address at port 9000, and you should be ready to go!
+
+#### Setting up the database
+
+While Docker will create a Postgres container for you, it won't set up the database tables. Fortunately, you can run one-off commands with Docker Compose. Here are some tasks that have been set up for you:
+
+```bash
+# create the db models
+docker-compose run web python manage.py db upgrade
+# create a user
+docker-compose run web python manage.py seed_user -e <your-email-here> -r <your-desired-role>
+# import some contracts
+docker-compose run web python manage.py import_old_contracts
+```
+
+Now everything should be ready to go.
+
+### Without Docker
+
+Though using Docker is a good way to get started, you can also use the app without Docker.
+
+#### Core Dependencies
 
 It is highly recommended that you use use [virtualenv](https://readthedocs.org/projects/virtualenv/) (and [virtualenvwrapper](https://virtualenvwrapper.readthedocs.org/en/latest/) for convenience). For a how-to on getting set up, please consult this [howto](https://github.com/codeforamerica/howto/blob/master/Python-Virtualenv.md). Additionally, you'll need node to install bower (see this [howto](https://github.com/codeforamerica/howto/blob/master/Node.js.md) for more on Node), and it is recommended that you use [postgres.app](http://postgresapp.com/) to handle your Postgres (assuming you are developing on OSX).
 
@@ -118,7 +165,7 @@ Now you should be ready to roll with some seed data to get you started!
 python manage.py server
 ```
 
-#### Testing
+### Testing
 
 In order to run the tests, you will need to create a test database. You can follow the same procedures outlined in the install section. By default, the database should be named `purchasing_test`:
 
