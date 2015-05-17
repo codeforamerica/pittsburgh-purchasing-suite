@@ -1,4 +1,18 @@
+# Install the base image
 FROM heroku/cedar:14
+
+# make sure apt is up to date
+RUN apt-get update
+
+# install nodejs and npm
+RUN apt-get install -y nodejs npm
+
+# Install less & bower
+RUN npm install -g less
+RUN npm install -g bower
+
+# Symlink /usr/bin/nodejs to /usr/bin/node
+RUN ln -s /usr/bin/nodejs /usr/bin/node
 
 RUN useradd -d /app -m app
 USER app
@@ -30,4 +44,5 @@ ONBUILD COPY . /app/
 ONBUILD RUN git clone https://github.com/heroku/heroku-buildpack-python.git /tmp/python-pack --depth 1
 ONBUILD RUN bash -l /tmp/python-pack/bin/compile /app /tmp/cache /app/.env
 
-ONBUILD COPY . /app/src/
+ONBUILD USER root
+ONBUILD RUN cd /app/ && bower install --allow-root
