@@ -13,6 +13,7 @@ class Config(object):
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
     BROWSERID_URL = os_env.get('BROWSERID_URL')
     PER_PAGE = 50
+    CITY_DOMAIN = 'pittsburghpa.gov'
 
 class ProdConfig(Config):
     """Production configuration."""
@@ -29,6 +30,7 @@ class DevConfig(Config):
     DEBUG_TB_ENABLED = True
     ASSETS_DEBUG = True  # Don't bundle/minify static assets
     BROWSERID_URL = os_env.get('BROWSERID_URL', 'http://127.0.0.1:9000')
+    SQLALCHEMY_ECHO = True
 
 class TestConfig(Config):
     TESTING = True
@@ -37,3 +39,4 @@ class TestConfig(Config):
     WTF_CSRF_ENABLED = False  # Allows form testing
     BROWSERID_URL = 'test'
     ASSETS_DEBUG = True
+    CITY_DOMAIN = 'foo.com'

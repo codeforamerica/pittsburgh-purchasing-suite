@@ -42,7 +42,7 @@ def filter():
     lower_bound_result = (page - 1) * pagination_per_page
     upper_bound_result = lower_bound_result + pagination_per_page
 
-    if department is None or department not in [i[0] for i in DEPARTMENT_CHOICES]:
+    if department not in [i[0] for i in DEPARTMENT_CHOICES] or department is None:
         flash('You must choose a valid department!', 'alert-danger')
         return redirect(url_for('wexplorer.explore'))
 
@@ -75,7 +75,7 @@ def search():
     along with paginated results.
     '''
     department = request.args.get('department')
-    if department and department != '':
+    if department and department not in ['', 'None']:
         return redirect(url_for('wexplorer.filter', department=department))
 
     search_form = SearchForm(request.form)

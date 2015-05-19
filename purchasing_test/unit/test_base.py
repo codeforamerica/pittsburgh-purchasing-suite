@@ -35,7 +35,7 @@ class BaseTestCase(TestCase):
             if getattr(template, tmpl_name_attribute) in names:
                 return True
 
-            used_templates.append(template)
+            used_templates.append(template.name)
 
         raise AssertionError("template %s not used. Templates were used: %s" % (names, ' '.join(used_templates)))
 

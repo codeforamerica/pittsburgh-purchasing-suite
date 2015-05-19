@@ -8,12 +8,11 @@ from purchasing.database import (
     db,
     Model,
     ReferenceCol,
-    relationship,
     SurrogatePK,
 )
 
 DEPARTMENT_CHOICES = [
-    ('', '-----'),
+    (None, '-----'),
     ('Innovation and Performance', 'Innovation and Performance'),
     ('Office of Management and Budget', 'Office of Management and Budget'),
     ('Other', 'Other')
