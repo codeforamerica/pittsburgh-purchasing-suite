@@ -26,6 +26,7 @@ gunicorn>=19.1.1
 Flask-Assets==0.10
 cssmin>=0.2.0
 jsmin>=2.0.11
+Flask-S3==0.1.7
 
 # Auth
 Flask-Login==0.2.11
@@ -39,3 +40,6 @@ Flask-DebugToolbar==0.9.2
 
 # Admin
 Flask-Admin==1.1.0
+
+# Monitoring
+newrelic>=2.50

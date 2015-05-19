@@ -7,19 +7,20 @@
 The Pittsburgh Purchasing Suite is a collection of small applets backed by a common data store. These applets allow users to manage, view, and advertise contracts.
 
 #### What's the status?
-The Pittsburgh Purchasing Suite is currently in pre-alpha development.
+Core Pittsburgh Purchasing Suite features are in alpha, with other features in different stages of early development.
 
 ##### Feature status:
 
 | Feature | Status |
 |---------|--------|
-| Backend & Basic Admin | Developing Alpha |
-| Wexplorer - a tool to look up contracts | Developing Alpha |
+| Backend & Basic Admin | Alpha Deployed |
+| Wexplorer - a tool to look up contracts | Alpha Deployed |
+| Sherpa - | A tool to explore the procurement process | Alpha Deployed |
 | To Be Named opportunity outreach site | Designing initial prototype |
 | To be named contract management tool | Designing initial prototype |
 
 ## Who made it?
-The purchasing suite is a project of the 2015 Pittsburgh Code for America [fellowship team](http://codeforamerica.org/governments/pittsburgh)
+The purchasing suite is a project of the 2015 Pittsburgh Code for America [fellowship team](http://codeforamerica.org/governments/pittsburgh).
 
 ## How
 #### Core Dependencies
@@ -84,7 +85,7 @@ The Pittsburgh Purchasing Suite uses [persona](https://login.persona.org/about) 
 A manage task has been created to allow you to quickly create a user to access the admin and other staff-only tasks. To add an email, run the following command (NOTE: if you updated your database as per above, you will probably want to give youself a role of 1, which will give you superadmin privledges):
 
 ```bash
-python manage.py seed_email -e <your-email-here> -r <your-desired-role>
+python manage.py seed_user -e <your-email-here> -r <your-desired-role>
 ```
 
 Now, logging in through persona should also give you access to the app.
@@ -93,16 +94,22 @@ Now, logging in through persona should also give you access to the app.
 
 In order to run the tests, you will need to create a test database. You can follow the same procedures outlined in the install section. By default, the database should be named `purchasing_test`:
 
-    psql
-    create database purchasing_test;
+```bash
+psql
+create database purchasing_test;
+```
 
 Tests are located in the `purchasing_test` directory. To run the tests, run
 
-    PYTHONPATH=. nosetests purchasing_test/
+```bash
+PYTHONPATH=. nosetests purchasing_test/
+```
 
 from inside the root directory. For more coverage information, run
 
-    PYTHONPATH=. nosetests purchasing_test/ -v --with-coverage --cover-package=purchasing_test --cover-erase
+```bash
+PYTHONPATH=. nosetests purchasing_test/ -v --with-coverage --cover-package=purchasing_test --cover-erase
+```
 
 ## License
 See [LICENCE.md](https://github.com/codeforamerica/pittsburgh-purchasing-suite/blob/master/LICENCE.md).

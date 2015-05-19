@@ -57,6 +57,8 @@ def filter():
 
     results = contracts[lower_bound_result:upper_bound_result]
 
+    current_app.logger.debug('WEXFILTER - {department}: Filter by {department}'.format(department=department))
+
     return render_template(
         'wexplorer/filter.html',
         search_form=SearchForm(),
@@ -140,6 +142,8 @@ def search():
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
+    current_app.logger.debug('WEXSEARCH - {search_for}: Searched for {search_for}'.format(search_for=search_for))
+
     return render_template(
         'wexplorer/search.html',
         results=results,
@@ -170,7 +174,7 @@ def contract(contract_id):
     contract = get_one_contract(contract_id)
     if contract:
 
-        pagination_per_page = 5 #current_app.config.get('PER_PAGE', 5)
+        pagination_per_page = current_app.config.get('LINE_ITEMS_PER_PAGE', 5)
         page = int(request.args.get('page', 1))
         lower_bound_result = (page - 1) * pagination_per_page
         upper_bound_result = lower_bound_result + pagination_per_page
@@ -198,6 +202,8 @@ def subscribe(contract_id):
     next_url = request.args.get('next', '/wexplorer')
     if contract:
         flash(message[0], message[1])
+
+        'SUBSCRIBE: {user} subscribed to {contract}'.format(user=current_user.email, contract=contract_id)
         return redirect(next_url)
     elif contract is None:
         abort(404)
@@ -213,6 +219,8 @@ def unsubscribe(contract_id):
     next_url = request.args.get('next', '/wexplorer')
     if contract:
         flash(message[0], message[1])
+
+        'UNSUBSCRIBE: {user} unsubscribed from {contract}'.format(user=current_user.email, contract=contract_id)
         return redirect(next_url)
     elif contract is None:
         abort(404)

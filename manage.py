@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import os
+from flask import current_app
 from flask_script import Manager, Shell, Server, prompt_bool
 from flask_migrate import MigrateCommand
 from flask.ext.assets import ManageAssets
@@ -9,6 +10,8 @@ from flask.ext.assets import ManageAssets
 from purchasing.app import create_app
 from purchasing.settings import DevConfig, ProdConfig
 from purchasing.database import db
+
+from purchasing.public.models import AppStatus
 
 if os.environ.get("PITTSBURGH-PURCHASING-SUITE_ENV") == 'prod':
     app = create_app(ProdConfig)
@@ -99,6 +102,61 @@ def delete_contracts():
         ContractBase.query.delete()
         Company.query.delete()
         db.session.commit()
+    return
+
+@manager.option('-u', '--user_id', dest='user')
+@manager.option('-p', '--secret', dest='secret')
+@manager.option('-b', '--bucket', dest='bucket')
+def upload_assets(user, secret, bucket):
+    access_key = user if user else app.config['AWS_ACCESS_KEY_ID']
+    access_secret = secret if secret else app.config['AWS_SECRET_ACCESS_KEY']
+    bucket = bucket if bucket else app.config['S3_BUCKET_NAME']
+
+    import subprocess
+    # build assets and capture the output
+    print 'Building assets...'
+    proc = subprocess.Popen(
+        ['python', 'manage.py', 'assets', 'build'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT
+    )
+    proc.wait()
+
+    print 'Connecting to S3...'
+    from boto.s3.connection import S3Connection
+    conn = S3Connection(
+        aws_access_key_id=access_key,
+        aws_secret_access_key=access_secret
+    )
+    bucket = conn.get_bucket(bucket)
+
+    print 'Uploading files...'
+    for path in proc.communicate()[0].split('\n')[:-1]:
+        key = path.split('public')[1]
+        file = current_app.config['APP_DIR'] + '/static' + key
+        print 'Uploading {}'.format(key)
+        _file = bucket.new_key('/static' + key)
+        _file.set_contents_from_filename(file)
+        _file.set_acl('public-read')
+
+    print 'Uploading images...'
+    for root, _, files in os.walk(current_app.config['APP_DIR'] + '/static/img'):
+        for file in files:
+            print 'Uploading {}'.format(file)
+            _file = bucket.new_key('/static/img/' + file)
+            _file.set_contents_from_filename(os.path.join(root, file))
+            _file.set_acl('public-read')
+    return
+
+@manager.command
+def all_clear(prod=False):
+    app = create_app(ProdConfig) if prod else create_app(DevConfig)
+    status = AppStatus.query.first()
+    status.status = 'ok'
+    status.last_updated = datetime.datetime.now()
+    status.message = None
+    db.session.commit()
+    print 'All clear!'
     return
 
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))

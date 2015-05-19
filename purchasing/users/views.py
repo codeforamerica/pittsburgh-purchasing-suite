@@ -53,6 +53,7 @@ def profile():
         db.session.commit()
 
         flash('Updated your profile!', 'alert-success')
+        current_app.logger.debug('Updated profile for {email}'.format(email=user.email))
         return redirect(url_for('users.profile'))
 
     return render_template('users/profile.html', form=form, user=current_user)
@@ -71,6 +72,7 @@ def auth():
 
     response = json.loads(urllib2.urlopen(req).read())
     if response.get('status') != 'okay':
+        current_app.logger.debug('REJECTEDUSER: User login rejected from persona. Messages: {}'.format(response))
         abort(403)
 
     next_url = request.args.get('next', None)
@@ -82,12 +84,17 @@ def auth():
     if user:
         login_user(user)
         flash('Logged in successfully!', 'alert-success')
+
+        current_app.logger.debug('LOGIN: User {} logged in successfully'.format(user.email))
         return next_url if next_url else '/'
 
     elif domain == current_app.config.get('CITY_DOMAIN'):
         user = User.create(email=email, role_id=3, department='New User')
         login_user(user)
+
+        current_app.logger.debug('NEWUSER: New User {} successfully created'.format(user.email))
         return '/users/register'
 
     else:
+        current_app.logger.debug('NOTINDB: User {} not in DB -- aborting!'.format(email))
         abort(403)

@@ -10,7 +10,6 @@
 build
 eggs
 parts
-bin
 var
 sdist
 develop-eggs
@@ -45,6 +44,7 @@ docs/_build
 
 # Virtualenvs
 env
+.env
 
 # Bower Installs
 libs/
@@ -52,3 +52,6 @@ libs/
 # Flask-assets output
 css
 common.js
+
+# App logs (from foreman)
+log
