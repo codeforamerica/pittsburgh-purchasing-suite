@@ -35,12 +35,12 @@ class Role(SurrogatePK, Model):
 class User(UserMixin, SurrogatePK, Model):
 
     __tablename__ = 'users'
-    email = Column(db.String(80), unique=True, nullable=False)
+    email = Column(db.String(80), unique=True, nullable=False, index=True)
     created_at = Column(db.DateTime, nullable=False, default=dt.datetime.utcnow)
     first_name = Column(db.String(30), nullable=True)
     last_name = Column(db.String(30), nullable=True)
     department = Column(db.String(255), nullable=False)
-    active = Column(db.Boolean(), default=False)
+    active = Column(db.Boolean(), default=True)
     role_id = ReferenceCol('roles', ondelete='SET NULL', nullable=True)
 
     def __init__(self, email, **kwargs):

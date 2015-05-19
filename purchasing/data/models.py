@@ -13,21 +13,21 @@ from sqlalchemy.orm import backref
 
 company_contract_association_table = Table(
     'company_contract_association', Model.metadata,
-    Column('company_id', db.Integer, db.ForeignKey('company.id', ondelete='SET NULL')),
-    Column('contract_id', db.Integer, db.ForeignKey('contract.id', ondelete='SET NULL')),
+    Column('company_id', db.Integer, db.ForeignKey('company.id', ondelete='SET NULL'), index=True),
+    Column('contract_id', db.Integer, db.ForeignKey('contract.id', ondelete='SET NULL'), index=True),
 )
 
 contract_user_association_table = Table(
     'contract_user_association', Model.metadata,
-    Column('user_id', db.Integer, db.ForeignKey('users.id')),
-    Column('contract_id', db.Integer, db.ForeignKey('contract.id')),
+    Column('user_id', db.Integer, db.ForeignKey('users.id'), index=True),
+    Column('contract_id', db.Integer, db.ForeignKey('contract.id'), index=True),
 )
 
 class Company(Model):
     __tablename__ = 'company'
 
-    id = Column(db.Integer, primary_key=True)
-    company_name = Column(db.String(255), nullable=False, unique=True)
+    id = Column(db.Integer, primary_key=True, index=True)
+    company_name = Column(db.String(255), nullable=False, unique=True, index=True)
     contracts = db.relationship(
         'ContractBase',
         secondary=company_contract_association_table,
@@ -40,7 +40,7 @@ class Company(Model):
 class CompanyContact(Model):
     __tablename__ = 'company_contact'
 
-    id = Column(db.Integer, primary_key=True)
+    id = Column(db.Integer, primary_key=True, index=True)
     company = db.relationship(
         'Company',
         backref=backref('contacts', lazy='dynamic', cascade='all, delete-orphan')
@@ -72,7 +72,7 @@ class ContractBase(Model):
     updated_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     contract_type = Column(db.String(255))
     expiration_date = Column(db.Date)
-    description = Column(db.Text)
+    description = Column(db.Text, index=True)
     current_stage = db.relationship('Stage', lazy='subquery')
     current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
     current_flow = db.relationship('Flow', lazy='subquery')
@@ -89,7 +89,7 @@ class ContractBase(Model):
 class ContractProperty(Model):
     __tablename__ = 'contract_property'
 
-    id = Column(db.Integer, primary_key=True)
+    id = Column(db.Integer, primary_key=True, index=True)
     contract = db.relationship('ContractBase', backref=backref(
         'properties', lazy='dynamic', cascade='all, delete-orphan'
     ))
@@ -103,12 +103,12 @@ class ContractProperty(Model):
 class LineItem(Model):
     __tablename__ = 'line_item'
 
-    id = Column(db.Integer, primary_key=True)
+    id = Column(db.Integer, primary_key=True, index=True)
     contract = db.relationship('ContractBase', backref=backref(
         'line_items', lazy='dynamic', cascade='all, delete-orphan'
     ))
     contract_id = ReferenceCol('contract', ondelete='CASCADE')
-    description = Column(db.Text, nullable=False)
+    description = Column(db.Text, nullable=False, index=True)
     manufacturer = Column(db.Text)
     model_number = Column(db.Text)
     quantity = Column(db.Integer)
@@ -125,7 +125,7 @@ class LineItem(Model):
 class Stage(Model):
     __tablename__ = 'stage'
 
-    id = Column(db.Integer, primary_key=True)
+    id = Column(db.Integer, primary_key=True, index=True)
     contract = db.relationship('ContractBase', backref='stage_id', lazy='subquery')
     name = Column(db.String(255))
 
@@ -135,7 +135,7 @@ class Stage(Model):
 class StageProperty(Model):
     __tablename__ = 'stage_property'
 
-    id = Column(db.Integer, primary_key=True)
+    id = Column(db.Integer, primary_key=True, index=True)
     stage = db.relationship('Stage', backref=backref(
         'properties', lazy='dynamic', cascade='all, delete-orphan'
     ))
@@ -149,7 +149,7 @@ class StageProperty(Model):
 class Flow(Model):
     __tablename__ = 'flow'
 
-    id = Column(db.Integer, primary_key=True)
+    id = Column(db.Integer, primary_key=True, index=True)
     flow_name = Column(db.Text, unique=True)
     contract = db.relationship('ContractBase', backref='flow', lazy='subquery')
     stage_order = Column(ARRAY(db.Integer))

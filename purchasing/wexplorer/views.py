@@ -104,8 +104,15 @@ def search():
             ON cp.id = cca.company_id
             FULL OUTER JOIN contract ct
             ON ct.id = cca.contract_id
+            LEFT JOIN contract_property ctp
+            ON ct.id = ctp.contract_id
+            LEFT JOIN line_item li
+            ON ct.id = li.contract_id
             WHERE cp.company_name ilike :search_for_wc
             OR ct.description ilike :search_for_wc
+            OR ctp.value ilike :search_for_wc
+            OR li.description ilike :search_for_wc
+            OR ct.financial_id::VARCHAR = :search_for
         ) x
         FULL OUTER JOIN
         contract_user_association cca
@@ -117,7 +124,8 @@ def search():
         group by 1,2,3,4
         ''',
         {
-            'search_for_wc': '%' + str(search_for) + '%'
+            'search_for_wc': '%' + str(search_for) + '%',
+            'search_for': str(search_for)
         }
     ).fetchall()
 

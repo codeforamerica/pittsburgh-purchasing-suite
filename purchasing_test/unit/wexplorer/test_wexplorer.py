@@ -6,7 +6,7 @@ from purchasing_test.unit.util import (
     insert_a_user, insert_a_role
 )
 
-from purchasing.data.models import ContractBase
+from purchasing.data.models import ContractBase, ContractProperty, LineItem
 
 class TestWexplorer(BaseTestCase):
     render_templates = False
@@ -24,10 +24,13 @@ class TestWexplorer(BaseTestCase):
         company_2 = insert_a_company(name='ccc', insert_contract=False)
         insert_a_company(name='CCC')
         insert_a_contract(description='AAA', companies=[company_2])
-        insert_a_contract(description='ddd', companies=[company_1])
-        insert_a_contract(description='DDD')
+        insert_a_contract(description='ddd', companies=[company_1], line_items=[LineItem(description='fff')])
+        insert_a_contract(description='DDD', financial_id=123, properties=[ContractProperty(key='foo', value='EEE')])
 
     def test_explore(self):
+        '''
+        Ensure explore endpoint works as expected
+        '''
         request = self.client.get('/wexplorer/')
         # test the request processes correctly
         self.assert200(request)
@@ -35,6 +38,9 @@ class TestWexplorer(BaseTestCase):
         self.assertTrue(self.get_context_variable('search_form') is not None)
 
     def test_search(self):
+        '''
+        Check all possible searches return properly: descriptions, names, properties, line items, financial ids
+        '''
         self.assert200(self.client.get('/wexplorer/search?q=aaa'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
@@ -50,7 +56,19 @@ class TestWexplorer(BaseTestCase):
         self.assert200(self.client.get('/wexplorer/search?q=FAKEFAKEFAKE'))
         self.assertEquals(len(self.get_context_variable('results')), 0)
 
+        self.assert200(self.client.get('/wexplorer/search?q=EEE'))
+        self.assertEquals(len(self.get_context_variable('results')), 1)
+
+        self.assert200(self.client.get('/wexplorer/search?q=ff'))
+        self.assertEquals(len(self.get_context_variable('results')), 1)
+
+        self.assert200(self.client.get('/wexplorer/search?q=123'))
+        self.assertEquals(len(self.get_context_variable('results')), 1)
+
     def test_companies(self):
+        '''
+        Test that the companies page works as expected, including throwing 404s where appropriate
+        '''
         request = self.client.get('/wexplorer/companies/1')
         # test that this works
         self.assert200(request)
@@ -62,6 +80,9 @@ class TestWexplorer(BaseTestCase):
         self.assert404(self.client.get('/wexplorer/companies/999'))
 
     def test_contracts(self):
+        '''
+        Test that the contracts page works as expected, including throwing 404s where appropriate
+        '''
         request = self.client.get('/wexplorer/contracts/1')
         self.assert200(request)
         # test that we have the wrapped form and the company object
@@ -72,6 +93,9 @@ class TestWexplorer(BaseTestCase):
         self.assert404(self.client.get('/wexplorer/contracts/999'))
 
     def test_subscribe(self):
+        '''
+        Tests all possible combinations of subscribing to a contract
+        '''
         # test that you can't subscribe to a contract unless you are signed in
         request = self.client.get('/wexplorer/contracts/1/subscribe')
         self.assertEquals(request.status_code, 302)
@@ -93,7 +117,9 @@ class TestWexplorer(BaseTestCase):
         self.assert404(self.client.get('/wexplorer/contracts/999/subscribe'))
 
     def test_unsubscribe(self):
-
+        '''
+        Tests ability to unsubscribe from a contract
+        '''
         # test that you can't subscribe to a contract unless you are signed in
         request = self.client.get('/wexplorer/contracts/1/unsubscribe')
         self.assertEquals(request.status_code, 302)
@@ -120,6 +146,9 @@ class TestWexplorer(BaseTestCase):
         self.assert404(self.client.get('/wexplorer/contracts/999/unsubscribe'))
 
     def test_filter(self):
+        '''
+        Test that the filter page works properly and shows the error where appropriate
+        '''
         # login as admin user and subscribe to two contracts
         self.login_user(self.admin_user)
         self.client.get('/wexplorer/contracts/1/subscribe')
