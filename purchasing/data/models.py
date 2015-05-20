@@ -84,10 +84,7 @@ class ContractBase(Model):
         backref='contracts_following',
     )
     opportunities = db.relationship(
-        'Opportunity',
-        backref=backref(
-            'created_from_contract', lazy='dyanmic', cascade='all'
-        )
+        'Opportunity', lazy='dynamic', backref='created_from_contract'
     )
 
     def __unicode__(self):
@@ -175,14 +172,17 @@ class Opportunity(Model):
     __tablename__ = 'opportunity'
 
     id = Column(db.Integer, primary_key=True)
-    created_from_contract = ReferenceCol('contract', ondelete='cascade')
-    # Also the opportunity open date
+    contract_id = ReferenceCol('contract', ondelete='cascade')
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
+
+    # Also the opportunity open date
     title = Column(db.String(255))
     department = Column(db.String(255))
     # Autopopulated using title and department plus boilerplate copy?
-    description = Column(Text)
+    description = Column(db.Text)
+
     category_id = ReferenceCol('category', ondelete='SET NULL')
     category = db.relationship('Category', lazy='subquery')
+
     # Date department opens bids
     bid_open = Column(db.DateTime)
