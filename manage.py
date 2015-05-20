@@ -70,11 +70,14 @@ def import_old_contracts(filepath):
     print 'Import finished!'
     return
 
+@manager.option('-u', '--user_id', dest='user', default=os.environ.get('AWS_ACCESS_KEY_ID'))
+@manager.option('-p', '--secret', dest='secret', default=os.environ.get('AWS_SECRET_ACCESS_KEY'))
+@manager.option('-b', '--bucket', dest='bucket', default=os.environ.get('S3_BUCKET_NAME'))
 @manager.option(
     '-d', '--directory', dest='directory',
     default='./purchasing/data/importer/files/costars/'
 )
-def import_costars(directory):
+def import_costars(user, secret, bucket, directory):
     '''
     Takes a directory which contains a number of csv files with the
     costars data, and then important them into the DB
@@ -82,7 +85,7 @@ def import_costars(directory):
     from purchasing.data.importer.costars import main
     for file in os.listdir(directory):
         print 'Importing data from {file}'.format(file=file)
-        main(os.path.join(directory, file), file)
+        main(os.path.join(directory, file), file, user, secret, bucket)
     print 'Import finished!'
     return
 

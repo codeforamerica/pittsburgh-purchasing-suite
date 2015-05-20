@@ -12,7 +12,7 @@ from purchasing_test.unit.test_base import BaseTestCase
 
 class TestCostarsImport(BaseTestCase):
     def test_costars_import(self):
-        main(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/COSTARS_1.csv', 'COSTARS_1.csv')
+        main(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/COSTARS_1.csv', 'COSTARS_1.csv', '', '', '')
 
         contracts = get_all_contracts()
         # assert we got both contracts
