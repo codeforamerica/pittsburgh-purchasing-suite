@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 from purchasing.data.importer import extract, get_or_create, convert_empty_to_none
 from purchasing.database import db
 from purchasing.data.models import (
@@ -47,27 +48,36 @@ def main(filetarget, filename):
                 city, state, zip_code = None, None, None
 
             try:
-                expiration = datetime.datetime.strptime(data[0].get('EXPIRATION'), '%Y-%m-%d')
-            except:
+                expiration = datetime.datetime.strptime(data[0].get('Expiration'), '%m/%d/%y')
+            except ValueError:
                 expiration = None
 
-            # create the new company contact
-            company_contact, new_contact = get_or_create(
-                db.session, CompanyContact,
-                company_id=company.id,
-                first_name=convert_empty_to_none(first_name),
-                last_name=convert_empty_to_none(last_name),
-                addr1=convert_empty_to_none(row.get('ADDRESS1')),
-                city=convert_empty_to_none(city),
-                state=convert_empty_to_none(state),
-                zip_code=convert_empty_to_none(zip_code),
-                phone_number=convert_empty_to_none(row.get('PHONE #')),
-                fax_number=convert_empty_to_none(row.get('FAX #')),
-                email=convert_empty_to_none(row.get('E-MAIL ADDRESS')),
-            )
-            if new_contact:
-                db.session.add(company_contact)
-                db.session.commit()
+            _first_name = convert_empty_to_none(first_name)
+            _last_name = convert_empty_to_none(last_name)
+            _addr1 = convert_empty_to_none(row.get('ADDRESS1'))
+            _city = convert_empty_to_none(city)
+            _state = convert_empty_to_none(state)
+            _zip_code = convert_empty_to_none(zip_code)
+            _phone_number = convert_empty_to_none(row.get('PHONE #'))
+            _fax_number = convert_empty_to_none(row.get('FAX #'))
+            _email = convert_empty_to_none(row.get('E-MAIL ADDRESS'))
+
+            if any(
+                (_first_name, _last_name, _addr1, _city, _state, _zip_code, _phone_number, _fax_number, _email)
+            ):
+
+                # create the new company contact
+                company_contact, new_contact = get_or_create(
+                    db.session, CompanyContact,
+                    company_id=company.id, first_name=_first_name,
+                    last_name=_last_name, addr1=_addr1, city=_city,
+                    state=_state, zip_code=_zip_code, phone_number=_phone_number,
+                    fax_number=_fax_number, email=_email
+                )
+
+                if new_contact:
+                    db.session.add(company_contact)
+                    db.session.commit()
 
             # create or select the contract object
             contract, new_contract = get_or_create(
