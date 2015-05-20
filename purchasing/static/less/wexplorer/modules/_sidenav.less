@@ -9,8 +9,12 @@
 
 .side-nav {
   margin-top: 14px;
-  @media @desktop, @desktop-xl {
+  @media @desktop-xl {
     position: fixed;
+  }
+  @media @desktop {
+    position: fixed;
+    max-width: 224px;
   }
   @media @tablet, @mobile {
     position: relative;

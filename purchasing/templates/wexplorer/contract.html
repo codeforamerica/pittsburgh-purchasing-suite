@@ -7,6 +7,7 @@
     {% include 'wexplorer/shared/side_search.html' %}
   </div>
   <div class="col-md-9">
+
     <h3>
       {{ contract.description }}
       {% if current_user in contract.users %}
@@ -15,12 +16,15 @@
         <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}" class="btn btn-primary">Subscribe for updates</a>
       {% endif %}
     </h3>
+
     {% if current_user.role.name in ['admin', 'superadmin'] %}
     <p>
       <a href="{{ url_for('contract.edit_view', id=contract.id) }}">Edit this contract</a>
     </p>
     {% endif %}
+
     <hr>
+
     <div class="row">
       <div class="col-md-6">
         <p class="lead">Basic Contract Information</p>
@@ -38,16 +42,20 @@
         <p class="lead">More Details</p>
         <ul>
         {% for property in contract.properties %}
-          <li>{{ property.key }}: {{ property.value }}</li>
+          <li>{{ property.key }}: {{ property.value|urlize(30) }}</li>
         {% endfor %}
         </ul>
       </div>
+
       <div class="col-md-6">
-        <h4>Line Items
+
+        {% if contract.line_items.count() > 0 %}
+        <p class="lead">Line Items
         {% if pagination.pages > 1 %}
-          {{ macros.render_pagination(pagination) }}
+          <small>{{ macros.render_pagination(pagination) }}</small>
         {% endif %}
-        </h4>
+        </p>
+
         <table class="table table-condensed table-striped">
           <thead><th>Description</th></thead>
           <tbody>
@@ -58,6 +66,8 @@
           {% endfor %}
           </tbody>
         </table>
+        {% endif %}
+
         <p class="lead">Awarded Companies</p>
         <ul>
         {% for company in contract.companies %}
@@ -66,6 +76,7 @@
           </li>
         {% endfor %}
         </ul>
+
       </div>
     </div>
   </div>

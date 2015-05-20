@@ -34,7 +34,6 @@ class DevConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing') # TODO: Change me
     DEBUG_TB_ENABLED = True
-    ASSETS_DEBUG = True  # Don't bundle/minify static assets
     BROWSERID_URL = os_env.get('BROWSERID_URL', 'http://127.0.0.1:9000')
 
 class TestConfig(Config):
