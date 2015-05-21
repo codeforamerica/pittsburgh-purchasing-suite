@@ -109,32 +109,32 @@ class TestUserAuth(BaseTestCase):
         # assert we add a new user and redirect to the register page
         self.assertEquals(User.query.count(), 2)
         self.assertEquals(post.status_code, 200)
-        self.assertEquals(post.data, '/users/register')
+        self.assertEquals(post.data, '/users/profile')
 
         # assert we get the new user message
-        register = self.client.get('/users/register')
+        register = self.client.get('/users/profile')
         self.assertTrue('Welcome to the Pittsbugh Purchasing Suite!' in register.data)
         self.assert_template_used('users/profile.html')
 
         # assert that you cannot update with junk information
-        bad_update = self.client.post('/users/register', data=dict(
+        bad_update = self.client.post('/users/profile', data=dict(
             department='THIS IS NOT A VALID DEPARTMENT'
         ), follow_redirects=True)
         self.assertFalse(User.query.get(2).department == 'THIS IS NOT A VALID DEPARTMENT')
         self.assertTrue('Not a valid choice' in bad_update.data)
 
         # update the user successfully
-        update = self.client.post('/users/register', data=dict(
+        update = self.client.post('/users/profile', data=dict(
             first_name='foo', last_name='bar', department='Other'
         ))
 
         # assert we successfully update
         self.assertEquals(update.status_code, 302)
-        self.assertEquals(update.location, 'http://localhost/users/register')
+        self.assertEquals(update.location, 'http://localhost/users/profile')
         self.assert_flashes('Updated your profile!', 'alert-success')
 
         # make sure the new user message is gone
-        updated = self.client.get('/users/register')
+        updated = self.client.get('/users/profile')
 
         self.assertTrue('Welcome to the Pittsbugh Purchasing Suite!' not in updated.data)
         self.assert_template_used('users/profile.html')

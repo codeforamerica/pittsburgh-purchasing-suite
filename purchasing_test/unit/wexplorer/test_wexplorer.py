@@ -158,23 +158,21 @@ class TestWexplorer(BaseTestCase):
         self.login_user(self.superadmin_user)
         self.client.get('/wexplorer/contracts/1/subscribe')
 
+        # filter base page successfully returns
+        self.assert200(self.client.get('/wexplorer/filter'))
+
         # filter by contracts associated with Other department
-        self.client.get('/wexplorer/filter?department=Other')
+        self.client.get('/wexplorer/filter/Other')
         self.assertEquals(len(self.get_context_variable('results')), 2)
         # assert that contract 1 is first
         self.assertEquals(self.get_context_variable('results')[0].id, 1)
         self.assertEquals(self.get_context_variable('results')[0].cnt, 2)
 
         # assert innovation and performance has no results
-        self.client.get('/wexplorer/filter?department=Innovation+and+Performance')
+        self.client.get('/wexplorer/filter/Innovation and Performance')
         self.assertEquals(len(self.get_context_variable('results')), 0)
 
-        # assert you must have a department
-        request = self.client.get('/wexplorer/filter')
-        self.assertEquals(request.status_code, 302)
-        self.assert_flashes('You must choose a valid department!', 'alert-danger')
-
         # assert that the department must be a real department
-        request = self.client.get('/wexplorer/filter?department=FAKEFAKEFAKE')
+        request = self.client.get('/wexplorer/filter/FAKEFAKEFAKE')
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('You must choose a valid department!', 'alert-danger')

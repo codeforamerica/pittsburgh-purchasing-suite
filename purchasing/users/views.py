@@ -33,7 +33,6 @@ def logout():
         return render_template('users/logout.html')
 
 @blueprint.route('/profile', methods=['GET', 'POST'])
-@blueprint.route('/register', methods=['GET', 'POST'])
 @login_required
 def profile():
 
@@ -53,7 +52,11 @@ def profile():
         db.session.commit()
 
         flash('Updated your profile!', 'alert-success')
-        current_app.logger.debug('Updated profile for {email}'.format(email=user.email))
+        data = data.to_dict().pop('csrf_token', None)
+        current_app.logger.debug('PROFILE UPDATE: Updated profile for {email} with {data}'.format(
+            email=user.email, data=data
+        ))
+
         return redirect(url_for('users.profile'))
 
     return render_template('users/profile.html', form=form, user=current_user)
@@ -93,7 +96,7 @@ def auth():
         login_user(user)
 
         current_app.logger.debug('NEWUSER: New User {} successfully created'.format(user.email))
-        return '/users/register'
+        return '/users/profile'
 
     else:
         current_app.logger.debug('NOTINDB: User {} not in DB -- aborting!'.format(email))

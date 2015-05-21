@@ -30,7 +30,9 @@
 <body class="{% block body_class %}{% endblock %}">
 {% block body %}
 {% with form=form  %}
-{% include "nav.html" %}
+{% block nav %}
+
+{% endblock %}
 {% endwith %}
 
 <header>{% block header %}{% endblock %}</header>

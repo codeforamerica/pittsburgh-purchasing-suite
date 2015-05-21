@@ -58,7 +58,7 @@ def seed_user(email, role, dept):
 
 @manager.option(
     '-f', '--file', dest='filepath',
-    default='./purchasing/data/importer/files/2015-05-05-contractlist.csv'
+    default='./purchasing/data/importer/files/2015-05-22-contractlist.csv'
 )
 def import_old_contracts(filepath):
     '''

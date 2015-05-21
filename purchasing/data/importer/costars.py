@@ -3,7 +3,10 @@
 import datetime
 from difflib import SequenceMatcher as SM
 
-from purchasing.data.importer import extract, get_or_create, convert_empty_to_none
+from purchasing.data.importer import (
+    extract, get_or_create, convert_empty_to_none,
+    determine_company_contact
+)
 from purchasing.database import db
 from purchasing.data.models import (
     CompanyContact,
@@ -15,7 +18,7 @@ from purchasing.data.models import (
 
 CONSTANT_FIELDS = [
     'CONTROLLER', 'Expiration', 'Company',
-    'CONTACT', 'ADDRESS1',  'ADDRESS2',
+    'CONTACT', 'ADDRESS1', 'ADDRESS2',
     'E-MAIL ADDRESS', 'FAX #', 'PHONE #'
 ]
 
@@ -30,6 +33,9 @@ def connect_to_s3_bucket(access_key, access_secret, bucket):
     '''
     from boto.s3.connection import S3Connection
     from boto.exception import NoAuthHandlerFound, S3ResponseError
+
+    if not all((access_key, access_secret, bucket)):
+        return
 
     try:
         conn = S3Connection(
@@ -64,46 +70,15 @@ def main(filetarget, filename, access_key, access_secret, bucket):
                 company_name=convert_empty_to_none(row.get('Company'))
             )
 
-            try:
-                first_name, last_name = row.get('CONTACT').split()
-            except:
-                first_name, last_name = None, None
+            company_contact = determine_company_contact(row)
 
-            try:
-                tmp = row.get('ADDRESS2')
-                city = tmp.split(',')[0]
-                state, zip_code = tmp.split(',')[1].split()
-                if '-' in zip_code:
-                    zip_code = zip_code.split('-')[0]
-            except:
-                city, state, zip_code = None, None, None
-
-            try:
-                expiration = datetime.datetime.strptime(data[0].get('Expiration'), '%m/%d/%y')
-            except ValueError:
-                expiration = None
-
-            _first_name = convert_empty_to_none(first_name)
-            _last_name = convert_empty_to_none(last_name)
-            _addr1 = convert_empty_to_none(row.get('ADDRESS1'))
-            _city = convert_empty_to_none(city)
-            _state = convert_empty_to_none(state)
-            _zip_code = convert_empty_to_none(zip_code)
-            _phone_number = convert_empty_to_none(row.get('PHONE #'))
-            _fax_number = convert_empty_to_none(row.get('FAX #'))
-            _email = convert_empty_to_none(row.get('E-MAIL ADDRESS'))
-
-            if any(
-                (_first_name, _last_name, _addr1, _city, _state, _zip_code, _phone_number, _fax_number, _email)
-            ):
+            if company_contact:
 
                 # create the new company contact
                 company_contact, new_contact = get_or_create(
                     db.session, CompanyContact,
-                    company_id=company.id, first_name=_first_name,
-                    last_name=_last_name, addr1=_addr1, city=_city,
-                    state=_state, zip_code=_zip_code, phone_number=_phone_number,
-                    fax_number=_fax_number, email=_email
+                    company_id=company.id,
+                    **company_contact
                 )
 
                 if new_contact:
@@ -112,6 +87,11 @@ def main(filetarget, filename, access_key, access_secret, bucket):
 
             costars_awardee = convert_empty_to_none(row.get('Company'))
 
+            try:
+                expiration = datetime.datetime.strptime(row.get('Expiration'), '%m/%d/%y')
+            except ValueError:
+                expiration = None
+
             # create or select the contract object
             contract, new_contract = get_or_create(
                 db.session, ContractBase,
@@ -119,7 +99,7 @@ def main(filetarget, filename, access_key, access_secret, bucket):
                 expiration_date=expiration,
                 financial_id=convert_empty_to_none(row.get('CONTROLLER')),
                 description='{costars} - {company}'.format(
-                    costars=filename.replace('_', ' ').strip('.csv'),
+                    costars=filename.replace('-', ' ').strip('.csv'),
                     company=costars_awardee
                 )
             )
@@ -129,7 +109,7 @@ def main(filetarget, filename, access_key, access_secret, bucket):
                 # all files start with 'costars-{number}-', which we should be
                 # able to get from our filename
 
-                startswith = filename.replace('_', '-').strip('.csv').lower()
+                startswith = filename.strip('.csv').lower()
                 for _file in s3_files:
                     _filename = _file.name.encode('utf-8').strip('.pdf')
 
@@ -156,12 +136,7 @@ def main(filetarget, filename, access_key, access_secret, bucket):
                         continue
 
                 # use the best match that we have
-                costars_url, new_costars_url = get_or_create(
-                    db.session, ContractProperty, commit=False,
-                    contract_id=contract.id,
-                    key='Link to Contract',
-                    value=max_ratio[0]
-                )
+                contract.contract_href = max_ratio[0]
 
             for k, v in row.iteritems():
                 if k in CONSTANT_FIELDS:

@@ -19,7 +19,7 @@ class TestOldContractsImport(BaseTestCase):
         companies = get_all_companies()
         self.assertEquals(len(companies), 3)
 
-        controller_nums = [45753, 50582, 47894]
+        controller_nums = [49020, 49011, 49189]
 
         for contract in contracts:
             self.assertTrue(contract.financial_id in controller_nums)

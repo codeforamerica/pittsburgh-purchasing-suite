@@ -73,6 +73,7 @@ class ContractBase(Model):
     contract_type = Column(db.String(255))
     expiration_date = Column(db.Date)
     description = Column(db.Text, index=True)
+    contract_href = Column(db.Text)
     current_stage = db.relationship('Stage', lazy='subquery')
     current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
     current_flow = db.relationship('Flow', lazy='subquery')

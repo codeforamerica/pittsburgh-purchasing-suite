@@ -9,11 +9,12 @@ from flask_login import current_user
 from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
-from purchasing.wexplorer.forms import SearchForm, DEPARTMENT_CHOICES
+from purchasing.wexplorer.forms import SearchForm
 from purchasing.data.models import ContractBase, contract_user_association_table
+from purchasing.users.models import DEPARTMENT_CHOICES
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
-    get_one_contract, follow_a_contract, unfollow_a_contract
+    get_one_contract, follow_a_contract, unfollow_a_contract, get_all_contracts
 )
 
 blueprint = Blueprint(
@@ -28,21 +29,20 @@ def explore():
     The landing page for wexplorer. Renders the "big search"
     template.
     '''
-    return dict(current_user=current_user)
+    return dict(current_user=current_user, choices=DEPARTMENT_CHOICES[1:])
 
 @blueprint.route('/filter', methods=['GET'])
-def filter():
+@blueprint.route('/filter/<department>', methods=['GET'])
+def filter(department=None):
     '''
     Filter contracts by which ones have departmental subscribers
     '''
-    department = request.args.get('department', None)
-
     pagination_per_page = current_app.config.get('PER_PAGE', 50)
     page = int(request.args.get('page', 1))
     lower_bound_result = (page - 1) * pagination_per_page
     upper_bound_result = lower_bound_result + pagination_per_page
 
-    if department not in [i[0] for i in DEPARTMENT_CHOICES] or department is None:
+    if department not in [i[0] for i in DEPARTMENT_CHOICES]:
         flash('You must choose a valid department!', 'alert-danger')
         return redirect(url_for('wexplorer.explore'))
 
@@ -65,6 +65,7 @@ def filter():
         results=results,
         pagination=pagination,
         department=department,
+        choices=DEPARTMENT_CHOICES[1:],
         path='{path}?{query}'.format(
             path=request.path, query=request.query_string
         )
@@ -96,11 +97,13 @@ def search():
         SELECT
             x.company_id, x.contract_id,
             x.company_name, x.description,
+            x.expiration_date, x.financial_id,
             array_agg(u.email)
         FROM (
             SELECT
                 cp.id as company_id, ct.id as contract_id,
-                cp.company_name, ct.description
+                cp.company_name, ct.description,
+                ct.expiration_date, ct.financial_id
             FROM company cp
             FULL OUTER JOIN company_contract_association cca
             ON cp.id = cca.company_id
@@ -123,7 +126,7 @@ def search():
         users u
         ON cca.user_id = u.id
         WHERE x.contract_id IS NOT NULL
-        group by 1,2,3,4
+        group by 1,2,3,4,5,6
         ''',
         {
             'search_for_wc': '%' + str(search_for) + '%',
@@ -137,7 +140,9 @@ def search():
             'contract_id': contract[1],
             'company_name': contract[2],
             'contract_description': contract[3],
-            'users': contract[4]
+            'expiration_date': contract[4],
+            'financial_id': contract[5],
+            'users': contract[6]
         })
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
@@ -146,9 +151,11 @@ def search():
 
     return render_template(
         'wexplorer/search.html',
+        search_for=search_for,
         results=results,
         pagination=pagination,
         search_form=search_form,
+        choices=DEPARTMENT_CHOICES[1:],
         path='{path}?{query}'.format(
             path=request.path, query=request.query_string
         )
@@ -162,6 +169,7 @@ def company(company_id):
     if company:
         return dict(
             company=company,
+            choices=DEPARTMENT_CHOICES[1:],
             path='{path}?{query}'.format(
                 path=request.path, query=request.query_string
             )
@@ -172,20 +180,15 @@ def company(company_id):
 @wrap_form(SearchForm, 'search_form', 'wexplorer/contract.html')
 def contract(contract_id):
     contract = get_one_contract(contract_id)
+
     if contract:
 
-        pagination_per_page = current_app.config.get('LINE_ITEMS_PER_PAGE', 5)
-        page = int(request.args.get('page', 1))
-        lower_bound_result = (page - 1) * pagination_per_page
-        upper_bound_result = lower_bound_result + pagination_per_page
-
-        pagination = SimplePagination(page, pagination_per_page, contract.line_items.count())
+        departments = set([i.department for i in contract.users])
 
         return dict(
             contract=contract,
-            pagination=pagination,
-            lower_bound_result=lower_bound_result,
-            upper_bound_result=upper_bound_result,
+            departments=departments,
+            choices=DEPARTMENT_CHOICES[1:],
             path='{path}?{query}'.format(
                 path=request.path, query=request.query_string
             )

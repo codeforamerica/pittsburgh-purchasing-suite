@@ -1,0 +1,24 @@
+{% extends "nav.html" %}
+
+{% block brandhref %}{{ url_for('wexplorer.explore') }}{% endblock %}
+
+{% block brand %}Wexplorer{% endblock %}
+
+{% block applinks %}
+<form id="search-box" method="GET" class="navbar-form navbar-left" action="{{ url_for('wexplorer.search') }}" role="search">
+  <div class="form-group">
+    {{ search_form.q(placeholder="I'm looking for...", class_="form-control") }}
+  </div>
+  <button type="submit" class="btn btn-success">Submit</button>
+</form>
+
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Browse a Department <span class="caret"></span></a>
+  <ul class="dropdown-menu" role="menu">
+    {% for choice in choices[1:] %}
+    <li><a href="{{ url_for('wexplorer.filter', department=choice[0]) }}">{{ choice[1] }}</a></li>
+    {% endfor %}
+  </ul>
+</li>
+
+{% endblock %}

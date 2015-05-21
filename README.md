@@ -65,8 +65,9 @@ python manage.py db upgrade
 **front-end**:
 
 ```bash
-# install bower
+# install bower & uglifyjs
 npm install -g bower
+npm install -g uglifyjs
 # use bower to install the dependencies
 bower install
 ```

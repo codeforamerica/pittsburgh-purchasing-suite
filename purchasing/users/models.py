@@ -13,8 +13,25 @@ from purchasing.database import (
 
 DEPARTMENT_CHOICES = [
     (None, '-----'),
+    ('Bureau of Neighborhood Empowerment', 'Bureau of Neighborhood Empowerment'),
+    ('Citizen Police Review Boar', 'Citizen Police Review Boar'),
+    ("City Clerk's Office", "City Clerk's Office"),
+    ('City Controller', 'City Controller'),
+    ('City Council', 'City Council'),
+    ('Commission on Human Relations', 'Commission on Human Relations'),
+    ('Department of City Planning', 'Department of City Planning'),
+    ('Department of Finance', 'Department of Finance'),
+    ('Department of Law', 'Department of Law'),
+    ('Department of Parks and Recreation', 'Department of Parks and Recreation'),
+    ('Department of Permits, Licenses, and Inspections', 'Department of Permits, Licenses, and Inspections'),
+    ('Department of Public Safety', 'Department of Public Safety'),
+    ('Department of Public Work', 'Department of Public Work'),
+    ('Ethics Board', 'Ethics Board'),
     ('Innovation and Performance', 'Innovation and Performance'),
     ('Office of Management and Budget', 'Office of Management and Budget'),
+    ('Office of Municipal Investigations', 'Office of Municipal Investigations'),
+    ('Office of the Mayor', 'Office of the Mayor'),
+    ('Personnel and Civil Service Commission', 'Personnel and Civil Service Commission'),
     ('Other', 'Other')
 ]
 

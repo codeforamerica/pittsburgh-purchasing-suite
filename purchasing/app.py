@@ -74,7 +74,6 @@ def create_app(config_object=ProdConfig):
 
     return app
 
-
 def register_extensions(app):
     test_assets.init_app(app) if app.config.get('TESTING') else assets.init_app(app)
     bcrypt.init_app(app)

@@ -3,21 +3,21 @@
 {% block content %}
 
 <div class="row">
-  <div class="col-md-3">
-    {% include 'wexplorer/shared/side_search.html' %}
-  </div>
 
-  <div class="col-md-9">
+  <div class="col-md-12">
   {% if results %}
-    <h3>Here are the contracts that have subscribers from {{ department }}:</h3>
-    <table class="table">
+    <div class="col-md-9"><h4>{{ department }} subscribes to:</h4></div>
+    <div class="col-md-3">{% include "wexplorer/choices.html" %}</div>
+    <table class="table wexplorer-table table-striped">
       <thead>
         <tr><th>Contract</th><th>Number of Subscribers</th>
       </thead>
       <tbody>
       {% for result in results %}
         <tr>
-          <td><a href="{{ url_for('wexplorer.contract', contract_id=result.id) }}">{{ result.description }}</a></td>
+          <td><a href="{{ url_for('wexplorer.contract', contract_id=result.id) }}">
+            {{ result.description|title }}
+          </a></td>
           <td>{{ result.cnt }}</td>
         </tr>
       {% endfor %}
@@ -28,10 +28,15 @@
     {% if pagination.pages > 1 %}
       {{ macros.render_pagination(pagination) }}
     {% endif %}
+  {% elif department %}
+    <h4>No one from this department has subscribed to any contracts yet!</h4>
+    <p>Is this your department? Help compile a list of contracts by <a href="{{ url_for('users.profile') }}">updating your profile</a> and subscribing to contracts that you use!</p>
+
+    {% include "wexplorer/choices.html" %}
   {% else %}
-    <h4>No one from this department has subscribed to any contracts yet! Why not try searching instead?</h4>
+    <h4>Choose a department to get started!</h4>
+    {% include "wexplorer/choices.html" %}
   {% endif %}
   </div>
-
 </div>
 {% endblock %}
