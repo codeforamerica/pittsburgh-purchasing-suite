@@ -40,9 +40,6 @@ class Role(SurrogatePK, Model):
     name = Column(db.String(80), unique=True, nullable=False)
     users = db.relationship('User', lazy='dynamic', backref='role')
 
-    def __init__(self, name):
-        db.Model.__init__(self, name=name)
-
     def __repr__(self):
         return '<Role({name})>'.format(name=self.name)
 
@@ -59,9 +56,6 @@ class User(UserMixin, SurrogatePK, Model):
     department = Column(db.String(255), nullable=False)
     active = Column(db.Boolean(), default=True)
     role_id = ReferenceCol('roles', ondelete='SET NULL', nullable=True)
-
-    def __init__(self, email, **kwargs):
-        db.Model.__init__(self, email=email, **kwargs)
 
     @property
     def full_name(self):

@@ -62,6 +62,12 @@ class UserAdmin(AuthMixin, sqla.ModelView):
 class UserRoleAdmin(SuperAdminMixin, sqla.ModelView):
     form_columns = ['email', 'first_name', 'last_name', 'department', 'role']
 
+    form_overrides = dict(department=SelectField)
+    form_args = dict(department={
+        'choices': DEPARTMENT_CHOICES
+    })
+
+
 class RoleAdmin(SuperAdminMixin, sqla.ModelView):
     pass
 

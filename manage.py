@@ -84,8 +84,9 @@ def import_costars(user, secret, bucket, directory):
     '''
     from purchasing.data.importer.costars import main
     for file in os.listdir(directory):
-        print 'Importing data from {file}'.format(file=file)
-        main(os.path.join(directory, file), file, user, secret, bucket)
+        if file.endswith('.csv'):
+            print 'Importing data from {file}'.format(file=file)
+            main(os.path.join(directory, file), file, user, secret, bucket)
     print 'Import finished!'
     return
 
