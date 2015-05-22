@@ -104,17 +104,11 @@ footer a {
   color: @link-color;
 }
 
-.spacer-50 {
-  padding-bottom: 50px;
-}
+.spacer-10 { padding-bottom: 10px; }
+.spacer-20 { padding-bottom: 20px; }
+.spacer-30 { padding-bottom: 30px; }
+.spacer-50 { padding-bottom: 50px; }
 
-.spacer-20 {
-  padding-bottom: 20px;
-}
-
-.spacer-10 {
-  padding-bottom: 10px;
-}
 
 hr {
   color: @gray-darker;
@@ -128,14 +122,26 @@ hr.small {
   color: @body-bg;
 }
 
-.btn-dark {
-  color: #333;
-  background-color: darken(@body-bg, 10%);
+.form-required {
+  color: @brand-danger;
 }
 
-.btn-dark:hover,
-.btn-dark:focus,
-.btn-dark:active {
-  color: #333;
-  background-color: darken(@body-bg, 15%);
+.navbar-background {
+  background-color: @navbar-background-bg;
+}
+
+.nav-dropdown-btn {
+  color: @gray-light;
+  background-color: @navbar-background-bg;
+}
+
+.navbar-inverse button.nav-dropdown-btn:hover,
+.navbar-inverse button.nav-dropdown-btn:focus,
+.navbar-inverse button.nav-dropdown-btn:active {
+  background-color: darken(@navbar-background-bg, 5%);
+}
+
+.row-well-padding {
+  padding-left: 25px;
+  padding-right: 25px;
 }

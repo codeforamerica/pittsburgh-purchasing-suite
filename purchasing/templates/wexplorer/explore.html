@@ -2,39 +2,35 @@
 
 {% block content %}
 
-<div class="row text-center">
+<div class="row wexplorer-explore">
 
-  <a href="{{ url_for('wexplorer.explore') }}"><img class="big-logo" src="{{ url_for('static', filename='img/wexplorer-logo.png') }}"></a>
+  <div class="text-center spacer-10">
+    <a href="{{ url_for('wexplorer.explore') }}"><img class="big-logo" src="{{ url_for('static', filename='img/wexplorer-logo.png') }}"></a>
 
-  <h2>helps you find goods and services</h2>
-
-  <div class="spacer-10"></div>
-
-  <form id="search-box" method="GET" class="form form-inline" action="{{ url_for('wexplorer.search') }}">
-
-    <h4>
-      Search company names and contract descriptions,
-    </h4>
-    <div class="form-group">
-      {{ search_form.q(placeholder="I'm looking for...", class_="form-control input-lg") }}
-    </div>
-
-    <h4>
-      <div class="spacer-10"></div>
-      or see what contracts a department is using.
-    </h4>
+    <h2>Find out what's on contract.<br> Get updates when you need them.</h2>
 
     <div class="spacer-10"></div>
 
+  </div>
+
+  <div class="col-md-6 col-md-offset-3">
+  <form id="search-box" method="GET" class="form" action="{{ url_for('wexplorer.search') }}">
+
     <div class="form-group">
-      {{ search_form.department(class_="form-control") }}
+      <!-- <label for="q">Search company names and contract descriptions</label> -->
+      {{ search_form.q(placeholder="Search by company name, line item, and more!", class_="form-control input-lg") }}
     </div>
 
-    <div class="spacer-20"></div>
+    <div class="spacer-10"></div>
 
-    <input class="btn btn-default btn-success input-lg" type="submit" value="Search">
+    <input class="btn btn-default btn-success input-lg form-control" type="submit" value="Search">
   </form>
 
+  <div class="spacer-20"></div>
+
+  <h4><a href="{{ url_for('wexplorer.filter') }}">Or, list contracts by department.</a></h4>
+
+  </div>
 </div>
 
 

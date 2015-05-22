@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 '''Public section, including homepage and signup.'''
+import time
+
 from flask import (
-    Blueprint, render_template
+    Blueprint, render_template, jsonify
 )
 from purchasing.extensions import login_manager
 from purchasing.users.models import User
+from purchasing.public.models import AppStatus
 
 blueprint = Blueprint('public', __name__, static_folder="../static")
 
@@ -19,3 +22,19 @@ def home():
 @blueprint.route("/about/")
 def about():
     return render_template("public/about.html")
+
+@blueprint.route('/_status')
+def status():
+    response = {}
+    response['status'] = 'ok'
+
+    try:
+        status = AppStatus.query.first()
+        if status.status != 'ok':
+            response['status'] = status.status
+    except:
+        response['status'] = 'Database is unavailable'
+    response['updated'] = int(time.time())
+    response['dependencies'] = []
+    response['resources'] = []
+    return jsonify(response)

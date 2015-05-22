@@ -4,21 +4,21 @@
 
 
 <div class="row">
-  <div class="col-md-3">
-    {% include 'wexplorer/shared/side_search.html' %}
-  </div>
-  <div class="col-md-9">
+  <div class="col-md-12">
   {% if results %}
+
     <h3 class="text-muted">
       {{ pagination.total_count }} results found for "{{ request.args.get('q') }}"
       {% if pagination.pages > 1 %}({{ (results | length) }} shown) {% endif %}<br>
-      {% if last_updated %}<small>Last Updated: {% if last_updated %}{{ last_updated }}{% endif %}</small>{% endif %}
     </h3>
-    <table class="table table-condensed table-striped" id="js-explore-search-results">
+
+    <table class="table table-striped" id="js-explore-search-results">
       <thead>
         <tr>
           <th class="js-sortable-th">Company</th>
           <th class="js-sortable-th">Contract Discription</th>
+          <th class="js-sortable-th">Expiration Date</th>
+          <th class="js-sortable-th">Controller Number</th>
           {% if current_user.is_anonymous() == False %}
           <th>Subscribe to updates</th>
           {% endif %}
@@ -29,32 +29,51 @@
         <tr>
           <td>
             {% if result.company_id %}
-            <a href="{{ url_for('wexplorer.company', company_id=result.company_id) }}">{{ result.company_name }}</a>
+            <a href="{{ url_for('wexplorer.company', company_id=result.company_id) }}">
+              {{ result.company_name|title }}
+            </a>
             {% endif %}
           </td>
           <td>
             {% if result.contract_id %}
-            <a href="{{ url_for('wexplorer.contract', contract_id=result.contract_id) }}">{{ result.contract_description }}</a>
+            <a href="{{ url_for('wexplorer.contract', contract_id=result.contract_id) }}">
+              {{ result.contract_description|title }}
+            </a>
             {% endif %}
           </td>
+          <td>{{ result.expiration_date }}</td>
+          <td>{{ result.financial_id }}</td>
           {% if current_user.is_anonymous() %}
           {% elif current_user.email in result.users %}
-          <td><a href="{{ url_for('wexplorer.unsubscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-danger">Stop receiving updates</a></td>
+          <td>
+            <a href="{{ url_for('wexplorer.unsubscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-danger">
+              Stop receiving updates
+            </a>
+          </td>
           {% elif current_user.role.name %}
-          <td><a href="{{ url_for('wexplorer.subscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-primary">Subscribe for updates</a></td>
+          <td>
+            <a href="{{ url_for('wexplorer.subscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-primary">
+              Subscribe for updates
+            </a>
+          </td>
           {% endif %}
         </tr>
         {% endfor %}
       </tbody>
     </table>
+
     {% if pagination.pages > 1 %}
       {{ macros.render_pagination(pagination) }}
     {% endif %}
+
   </div>
+
   {% else %}
+
   <div class="row text-center">
     <h4>There are no results!</h4>
   </div>
+
   {% endif %}
 </div>
 

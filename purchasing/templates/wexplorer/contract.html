@@ -3,69 +3,128 @@
 {% block content %}
 
 <div class="row">
-  <div class="col-md-3">
-    {% include 'wexplorer/shared/side_search.html' %}
-  </div>
-  <div class="col-md-9">
-    <h3>
-      {{ contract.description }}
-      {% if current_user in contract.users %}
-        <a href="{{ url_for('wexplorer.unsubscribe', contract_id=contract.id, next=path) }}" class="btn btn-danger">Stop receiving updates</a>
-      {% elif current_user.role.name != 'anonymous' %}
-        <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}" class="btn btn-primary">Subscribe for updates</a>
+  <div class="col-md-12">
+
+    <div class="well wexplorer-well">
+      <div class="row">
+        {% if current_user.role.name == 'anonymous' %}
+        <div class="col-sm-12"><h3><strong>
+          {% if contract.contract_href %}
+          <a href="{{ contract.contract_href }}" target="_blank">
+            {{ contract.description|title }}
+          </a>
+          {% else %}
+          {{ contract.description|title }}
+          {% endif %}
+        </strong></h3></div>
+        {% else %}
+        <div class="col-sm-9"><h3><strong>{{ contract.description }}</strong></h3></div>
+        <div class="col-sm-3">
+          {% if current_user in contract.users %}
+            <a href="{{ url_for('wexplorer.unsubscribe', contract_id=contract.id, next=path) }}" class="btn btn-danger pull-right">Stop receiving updates</a>
+          {% elif current_user.role.name != 'anonymous' %}
+            <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}" class="btn btn-primary pull-right">Subscribe for updates</a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      {% if current_user.role.name in ['admin', 'superadmin'] %}
+      <p>
+        <a href="{{ url_for('contract.edit_view', id=contract.id) }}">Edit this contract</a>
+      </p>
       {% endif %}
-    </h3>
-    {% if current_user.role.name in ['admin', 'superadmin'] %}
-    <p>
-      <a href="{{ url_for('contract.edit_view', id=contract.id) }}">Edit this contract</a>
-    </p>
-    {% endif %}
+
     <hr>
-    <div class="row">
-      <div class="col-md-6">
-        <p class="lead">Basic Contract Information</p>
-        <ul>
-          {% if contract.contract_type %}
-          <li>Contract Type: {{ contract.contract_type }}</li>
-          {% endif %}
-          {% if contract.expiration_date %}
-          <li>Expiration Date: {{ contract.expiration_date }}</li>
-          {% endif %}
-          {% if contract.financial_id %}
-          <li>Controller Number: {{ contract.financial_id }}</li>
-          {% endif %}
-        </ul>
-        <p class="lead">More Details</p>
-        <ul>
-        {% for property in contract.properties %}
-          <li>{{ property.key }}: {{ property.value }}</li>
-        {% endfor %}
+
+    <div class="row spacer-10">
+      {% if contract.contract_type %}
+      <div class="col-sm-4 details-callout">
+        <span class="text-muted">Contract Type:</span> {{ contract.contract_type }}
+      </div>
+      {% endif %}
+      {% if contract.expiration_date %}
+      <div class="col-sm-4 details-callout">
+        <span class="text-muted">Expiration Date:</span> {{ contract.expiration_date }}
+      </div>
+      {% endif %}
+      {% if contract.financial_id %}
+      <div class="col-sm-4 details-callout">
+        <span class="text-muted">Controller Number:</span> {{ contract.financial_id }}
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+    <div class="row row-well-padding">
+      <div class="col-sm-4">
+        <p class="wexplorer-column-header">Contract Details</p>
+        <ul class="list-unstyled">
+          {% for property in contract.properties %}
+            <li>{{ property.key|title }}: {{ property.value|title }}</li>
+          {% endfor %}
         </ul>
       </div>
-      <div class="col-md-6">
-        <h4>Line Items
-        {% if pagination.pages > 1 %}
-          {{ macros.render_pagination(pagination) }}
-        {% endif %}
-        </h4>
-        <table class="table table-condensed table-striped">
-          <thead><th>Description</th></thead>
-          <tbody>
-          {% for _item in contract.line_items[lower_bound_result:upper_bound_result] %}
-            <tr>
-              <td>{{ _item.description }}</td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-        <p class="lead">Awarded Companies</p>
+
+      <div class="col-sm-4">
+
+        <p class="wexplorer-column-header">Awarded Companies</p>
         <ul>
         {% for company in contract.companies %}
           <li>
-            <a href="{{ url_for('wexplorer.company', company_id=company.id) }}">{{ company.company_name }}</a>
+            <a href="{{ url_for('wexplorer.company', company_id=company.id) }}">{{ company.company_name|title }}</a>
           </li>
         {% endfor %}
         </ul>
+
+      </div>
+
+      <div class="col-sm-4">
+        <p class="wexplorer-column-header">Departments Following<p>
+        {% if contract.users | length > 0 %}
+        <ul>
+        {% for department in departments %}
+          <li>
+            <a href="{{ url_for('wexplorer.filter', department=department) }}">
+              {{ department }}
+            </a>
+          </li>
+        {% endfor %}
+        </ul>
+        {% else %}
+        <p>No one is following this contract! <br>
+          {% if current_user.role.name != 'anonymous' %}
+          <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}">Subscribe for updates</a>
+          {% endif %}
+        {% endif %}
+      </div>
+
+    </div>
+
+    <div class="spacer-20"></div>
+
+    <div class="row">
+      <div class="col-md-12">
+      {% if contract.line_items.count() > 0 %}
+      <p class="wexplorer-column-header">Line Items</p>
+
+      <table class="table table-striped line-item-table">
+        <thead>
+          <th>Description</th>
+          <th>Unit Cost</th>
+        </thead>
+        <tbody>
+        {% for _item in contract.line_items %}
+          <tr>
+            <td class="col-md-10">{{ _item.description|title }}</td>
+            <!-- <td class="col-md-2">{% if _item.unit_cost %}{{ _item.unit_cost }}{% else %}-{% endif %}</td> -->
+            <td class="col-md-2">-</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
       </div>
     </div>
   </div>

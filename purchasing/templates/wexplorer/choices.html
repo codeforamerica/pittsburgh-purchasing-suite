@@ -1,0 +1,10 @@
+<div class="btn-group">
+  <a type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+    Choose a Department <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    {% for choice in choices %}
+    <li><a href="{{ url_for('wexplorer.filter', department=choice[0]) }}">{{ choice[1] }}</a></li>
+    {% endfor %}
+  </ul>
+</div>

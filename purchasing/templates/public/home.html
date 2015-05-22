@@ -7,8 +7,8 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-12 text-center">
-        <h1>Pittsburgh Purchasing Suite</h1>
-        <h4>The Pittsburgh Purchasing Suite is a collection of apps that help you procure things more quickly and easily.</h4>
+        <h1>Welcome!</h1>
+        <h5>The Pittsburgh Purchasing Suite is a collection of apps that help you procure things more quickly and easily.</h5>
       </div>
     </div>
     <!-- /.row -->
@@ -16,43 +16,41 @@
   <!-- /.container -->
 </section>
 
-<div class="spacer-50"></div>
+<div class="spacer-30"></div>
 
 <!-- /.row -->
 <section id="services" class="services">
-  <div class="spacer-10"></div>
   <div class="container">
     <div class="row text-center">
-      <div class="col-lg-10 col-lg-offset-1 spacer-50">
-        <h2>Purchasing Tools</h2>
-        <hr class="small">
+      <div class="col-lg-10 col-lg-offset-1">
+        <hr>
         <div class="row">
 
           <div class="col-md-6 col-sm-6">
             <div class="service-item">
-              <span class="fa-stack fa-4x">
-                <i class="fa fa-circle fa-stack-2x"></i>
-                <i class="fa fa-search fa-stack-1x fa-body-bg"></i>
-              </span>
-              <h4>
-                <strong><a href="{{ url_for('wexplorer.explore') }}">Wexplorer</a></strong>
-              </h4>
-              <p>Search for contracts, companies, and items.</p>
-              <a href="{{ url_for('wexplorer.explore') }}" class="btn btn-dark">Visit Wexplorer</a>
+              <a href="{{ url_for('wexplorer.explore') }}">
+                <span class="fa-stack fa-4x">
+                  <i class="fa fa-circle fa-stack-2x"></i>
+                  <i class="fa fa-search fa-stack-1x fa-body-bg"></i>
+                </span>
+                <h4>
+                  <strong>Wexplorer</strong>
+                </h4>
+              </a>
+              <p>Find out what's on contract.<br> Get updates when you need them.</p>
             </div>
           </div>
 
           <div class="col-md-6 col-sm-6">
             <div class="service-item">
-              <span class="fa-stack fa-4x">
-                <i class="fa fa-circle fa-stack-2x"></i>
-                <i class="fa fa-sitemap fa-stack-1x fa-body-bg"></i>
-              </span>
-              <h4>
-                <strong><a href="{{ url_for('sherpa.index') }}">Sherpa</a></strong>
-              </h4>
-              <p>Explore the procurement process and start new contracts.</p>
-              <a href="{{ url_for('sherpa.index') }}" class="btn btn-dark">Visit Sherpa</a>
+              <a href="{{ url_for('sherpa.index') }}">
+                <span class="fa-stack fa-4x">
+                  <i class="fa fa-circle fa-stack-2x"></i>
+                  <i class="fa fa-sitemap fa-stack-1x fa-body-bg"></i>
+                </span>
+                <h4><strong>Sherpa</strong></h4>
+              </a>
+              <p>Explore the procurement process.<br> Start professional service agreements.</p>
             </div>
           </div>
 

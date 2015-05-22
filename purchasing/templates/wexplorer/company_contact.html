@@ -1,0 +1,28 @@
+{% if contact.first_name or contact.last_name %}
+<li>
+  {% if contact.first_name %}{{ contact.first_name|title }}{% else %}''{% endif %}
+  {% if contact.last_name %}{{ contact.last_name|title }}{% else %}''{% endif %}
+</li>
+{% endif %}
+{% if contact.phone_number %}
+<li>
+  {{ contact.phone_number or '' }}
+</li>
+{% if contact.email %}
+  <li><a href="mailto:{{ contact.email }}">{{ contact.email or '' }}</a></li>
+{% endif %}
+{% endif %}
+{% if contact.addr1 or contact.addr2 %}
+<li>
+  {% if contact.addr1 %}{{ contact.addr1|title }}{% else %}''{% endif %}
+  {% if contact.addr2 %}{{ contact.addr2|title }}{% endif %}
+</li>
+{% endif %}
+{% if contact.city or contact.state or contact.zip %}
+<li>
+  {% if contact.city %}{{ contact.city|title }}{% else %}''{% endif %}
+  {% if contact.city and contact.state %},{% endif %}
+  {% if contact.state %}{{ contact.state|upper }}{% else %}''{% endif %}
+  {{ contact.zip or '' }}
+</li>
+{% endif %}

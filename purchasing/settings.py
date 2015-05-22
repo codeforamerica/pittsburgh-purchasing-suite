@@ -13,6 +13,7 @@ class Config(object):
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
     BROWSERID_URL = os_env.get('BROWSERID_URL')
     PER_PAGE = 50
+    CITY_DOMAIN = 'pittsburghpa.gov'
 
 class ProdConfig(Config):
     """Production configuration."""
@@ -20,6 +21,12 @@ class ProdConfig(Config):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing')  # TODO: Change me
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
+    FLASK_ASSETS_USE_S3 = True
+    S3_BUCKET_NAME = os_env.get('S3_BUCKET_NAME')
+    AWS_ACCESS_KEY_ID = os_env.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os_env.get('AWS_SECRET_ACCESS_KEY')
+    S3_USE_HTTPS = True
+    UGLIFYJS_EXTRA_ARGS = ['-m']
 
 class DevConfig(Config):
     """Development configuration."""
@@ -27,7 +34,6 @@ class DevConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing') # TODO: Change me
     DEBUG_TB_ENABLED = True
-    ASSETS_DEBUG = True  # Don't bundle/minify static assets
     BROWSERID_URL = os_env.get('BROWSERID_URL', 'http://127.0.0.1:9000')
 
 class TestConfig(Config):
@@ -37,3 +43,4 @@ class TestConfig(Config):
     WTF_CSRF_ENABLED = False  # Allows form testing
     BROWSERID_URL = 'test'
     ASSETS_DEBUG = True
+    CITY_DOMAIN = 'foo.com'

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+echo '-----> Installing bower'
+# install bower as normal
+npm install -g bower
+
+echo '-----> Installing uglify'
+# install uglify as normal
+npm install -g uglify-js
+
+echo '-----> Running bower install'
+# install bower dependencies
+bower install

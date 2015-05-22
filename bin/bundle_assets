@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+indent() {
+    RE="s/^/       /"
+    [ $(uname) == "Darwin" ] && sed -l "$RE" || sed -u "$RE"
+}
+
+MANAGE_FILE=$(find . -maxdepth 3 -type f -name 'manage.py' | head -1)
+MANAGE_FILE=${MANAGE_FILE:2}
+
+echo "-----> Compressing & uploading static files to S3"
+python $MANAGE_FILE upload_assets -u $AWS_ACCESS_KEY_ID -p $AWS_SECRET_ACCESS_KEY -b $S3_BUCKET_NAME 2>&1 | indent
+
+echo

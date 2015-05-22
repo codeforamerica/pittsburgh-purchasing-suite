@@ -23,6 +23,9 @@ cache = Cache()
 from flask_debugtoolbar import DebugToolbarExtension
 debug_toolbar = DebugToolbarExtension()
 
+from flask_s3 import FlaskS3
+s3 = FlaskS3()
+
 from flask_admin import Admin, AdminIndexView, expose
 class PermissionsBase(AuthMixin, AdminIndexView):
     @expose('/')

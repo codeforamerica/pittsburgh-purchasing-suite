@@ -5,27 +5,27 @@ less = Bundle(
     'less/main.less',
     filters='less',
     output='public/css/common.css',
-    depends=('less/*.less', 'less/**/*.less')
+    depends=('less/*.less', 'less/**/*.less', 'less/**/**/*.less')
 )
 
 wexplorer_less = Bundle(
     'less/wexplorer_main.less',
     filters='less',
     output='public/css/wexplorer.css',
-    depends=('less/*.less', 'less/**/*.less')
+    depends=('less/*.less', 'less/**/*.less', 'less/**/**/*.less')
 )
 
 sherpa_less = Bundle(
     'less/sherpa_main.less',
     filters='less',
     output='public/css/sherpa.css',
-    depends=('less/*.less', 'less/**/*.less')
+    depends=('less/*.less', 'less/**/*.less', 'less/**/**/*.less')
 )
 
 js = Bundle(
     'libs/jQuery/dist/jquery.js',
     'libs/bootstrap/dist/js/bootstrap.js',
-    filters='jsmin',
+    filters='uglifyjs',
     output='public/js/common.js'
 )
 

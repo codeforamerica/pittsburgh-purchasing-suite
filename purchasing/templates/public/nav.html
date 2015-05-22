@@ -1,0 +1,10 @@
+{% extends "nav.html" %}
+
+{% block brandhref %}{{ url_for('public.home') }}{% endblock %}
+
+{% block brand %}Pittsburgh Purchasing Suite{% endblock %}
+
+{% block applinks %}
+<li><a href="{{ url_for('wexplorer.explore') }}">Wexplorer</a></li>
+<li><a href="{{ url_for('sherpa.index') }}">Sherpa</a></li>
+{% endblock %}
