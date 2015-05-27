@@ -58,52 +58,53 @@
 
     </div>
 
-      <div class="row row-well-padding">
-        <div class="col-sm-4">
-          <p class="wexplorer-column-header">Contract Details</p>
-          <ul class="list-unstyled">
-            {% for property in contract.properties %}
-              <li>{{ property.key|title }}: {{ property.value|title }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-
-        <div class="col-sm-4">
-
-          <p class="wexplorer-column-header">Awarded Companies</p>
-          <ul>
-          {% for company in contract.companies %}
-            <li>
-              <a href="{{ url_for('wexplorer.company', company_id=company.id) }}">{{ company.company_name|title }}</a>
-            </li>
+    <div class="row row-well-padding">
+      <div class="col-sm-4">
+        <p class="wexplorer-column-header">Contract Details</p>
+        <ul class="list-unstyled">
+          {% for property in contract.properties %}
+            <li>{{ property.key|title }}: {{ property.value|title }}</li>
           {% endfor %}
-          </ul>
+        </ul>
+      </div>
 
-        </div>
+      <div class="col-sm-4">
 
-        <div class="col-sm-4">
-          <p class="wexplorer-column-header">Departments Following<p>
-          {% if contract.users | length > 0 %}
-          <ul>
-          {% for department in departments %}
-            <li>
-              <a href="{{ url_for('wexplorer.filter', department=department) }}">
-                {{ department }}
-              </a>
-            </li>
-          {% endfor %}
-          </ul>
-          {% else %}
-          <p>No one is following this contract! <br>
-            {% if current_user.role.name != 'anonymous' %}
-            <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}">Subscribe for updates</a>
-            {% endif %}
-          {% endif %}
-        </div>
+        <p class="wexplorer-column-header">Awarded Companies</p>
+        <ul>
+        {% for company in contract.companies %}
+          <li>
+            <a href="{{ url_for('wexplorer.company', company_id=company.id) }}">{{ company.company_name|title }}</a>
+          </li>
+        {% endfor %}
+        </ul>
 
       </div>
 
-      <div class="spacer-20"></div>
+      <div class="col-sm-4">
+        <p class="wexplorer-column-header">Departments Following</p>
+        {% if contract.users | length > 0 %}
+        <ul>
+        {% for department in departments %}
+          <li>
+            <a href="{{ url_for('wexplorer.filter', department=department) }}">
+              {{ department }}
+            </a>
+          </li>
+        {% endfor %}
+        </ul>
+        {% else %}
+        <p>No one is following this contract! <br>
+          {% if current_user.role.name != 'anonymous' %}
+          <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}">Subscribe for updates</a>
+          {% endif %}
+        </p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <div class="spacer-20"></div>
 
       <div class="row">
         <div class="col-md-12">
@@ -118,7 +119,7 @@
           <tbody>
           {% for _item in contract.line_items %}
             <tr>
-              <td class="col-md-10">{{ _item.description|title }}</td>
+              <td class="col-md-10">{{ _item.description }}</td>
               <!-- <td class="col-md-2">{% if _item.unit_cost %}{{ _item.unit_cost }}{% else %}-{% endif %}</td> -->
               <td class="col-md-2">-</td>
             </tr>
@@ -126,10 +127,9 @@
           </tbody>
         </table>
         {% endif %}
-        </div>
+
       </div>
     </div>
   </div>
-
 </div>
 {% endblock %}

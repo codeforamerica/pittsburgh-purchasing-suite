@@ -23,8 +23,9 @@ BASE_LINE_ITEM_URL = 'http://www.govbids.com/scripts/PAPG/public/OpenBids/Notice
     'BN={document_number}&TN={tn}&' + \
     'AN=Allegheny%20County%20-%20Division%20of%20Purchasing%20and%20Supplies&AID=1100'
 
-ITEM_NUMBER_REGEX = re.compile('Item #\d')
+ITEM_NUMBER_REGEX = re.compile('Item #\d+')
 CURRENCY_REGEX = re.compile('[^\d.]')
+PERCENT_REGEX = re.compile('([Pp][Ee][Rr][Cc][Ee][Nn][Tt]).*')
 
 def grab_line_items(soup):
     '''
@@ -47,6 +48,9 @@ def grab_line_items(soup):
     tables = tables[5:-1]
 
     for table in tables:
+        # flag to skip this item due to it not having an awardee
+        include = True
+
         if table.find(text=ITEM_NUMBER_REGEX):
             description = table.find_all('td')[1].contents[0]
 
@@ -57,18 +61,26 @@ def grab_line_items(soup):
             # tr elements.
             suppliers_table = table.find('tbody') if table.find('tbody') else table
 
+            quantity = None
             for supplier in suppliers_table.find_all('tr', recursive=False):
 
                 # for some reason, they don't use actual radio boxes but
                 # instead of _images_ of radio boxes. so look for those.
-                if supplier.find('td').find('img') and supplier.find('td').find('img').get('src') == '/images/system/RadioChkd-blgr.gif':
+                if supplier.find('td').find('img') and \
+                   supplier.find('td').find('img').get('src') == '/images/system/RadioChkd-blgr.gif':
 
                     if len(supplier.find_all('td')) <= 2:
+                        include = False
+                        continue
+
+                    if supplier.find_all('td')[-1].string.lower() == 'no award':
+                        include = False
                         continue
 
                     fields = supplier.find_all('td', recursive=False)
 
                     if len(fields) < 6:
+                        include = False
                         continue
 
                     quantity = fields[2].text.strip()
@@ -88,6 +100,7 @@ def grab_line_items(soup):
                 else:
                     continue
 
+            if include and quantity:
                 line_items.append({
                     'description': description, 'quantity': quantity,
                     'unit_of_measure': unit_of_measure,
@@ -153,14 +166,18 @@ def generate_line_item_links(item_table):
 
     return line_item_links
 
-def parse_currency(field):
+def parse_currency(description, field):
     '''
-    Takes currency and returns the float value
+    Takes descriptions, currency, returns if percentage
     '''
+    percent = re.search(PERCENT_REGEX, description)
     value = re.sub(CURRENCY_REGEX, '', field)
-    if value != '':
-        return Decimal(value)
-    return None
+
+    if value == '':
+        return None
+    elif percent and float(value) < 1:
+        return Decimal(value) * 100
+    return Decimal(value)
 
 def get_contract(description, ifb):
     return db.session.query(
@@ -184,8 +201,8 @@ def save_line_item(_line_items, contract):
             model_number=item.get('model_number'),
             quantity=item.get('quantity'),
             unit_of_measure=item.get('unit_of_measure'),
-            unit_cost=parse_currency(item.get('unit_cost')),
-            total_cost=parse_currency(item.get('total_cost'))
+            unit_cost=parse_currency(item.get('description'), item.get('unit_cost')),
+            total_cost=parse_currency(item.get('description'), item.get('total_cost'))
         )
 
         if new_line_item:
@@ -211,10 +228,11 @@ def main():
         try:
             contract = get_contract(description, ifb)
 
+            if ix % 50 == 0:
+                print 'processed {n} records'.format(n=ix)
+
             if not contract:
                 continue
-            if ix % 50 == 0:
-                print 'scraped {n} records'.format(n=ix)
 
             line_item_page = BeautifulSoup(s.get(line_item_link).content, from_encoding='windows-1252')
             _line_items = grab_line_items(line_item_page)
