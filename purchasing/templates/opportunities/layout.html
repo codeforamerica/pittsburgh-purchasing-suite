@@ -1,0 +1,9 @@
+{% extends 'layout.html' %}
+
+{% block assets %}
+  {% assets "bizburgh_less" %}
+    <link rel="stylesheet" href="{{ ASSET_URL }}">
+  {% endassets %}
+{% endblock %}
+
+{% block content_class %}container{% endblock content_class %}
