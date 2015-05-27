@@ -22,6 +22,13 @@ sherpa_less = Bundle(
     depends=('less/*.less', 'less/**/*.less', 'less/**/**/*.less')
 )
 
+opportunities_less = Bundle(
+    'less/opportunities_main.less',
+    filters='less',
+    output='public/css/opportunities.css',
+    depends=('less/*.less', 'less/**/*.less')
+)
+
 js = Bundle(
     'libs/jQuery/dist/jquery.js',
     'libs/bootstrap/dist/js/bootstrap.js',
@@ -36,3 +43,4 @@ assets.register('js_all', js)
 assets.register('css_all', less)
 assets.register('wexplorer_less', wexplorer_less)
 assets.register('sherpa_less', sherpa_less)
+assets.register('opportunities_less', opportunities_less)
