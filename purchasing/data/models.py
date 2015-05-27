@@ -83,9 +83,6 @@ class ContractBase(Model):
         secondary=contract_user_association_table,
         backref='contracts_following',
     )
-    opportunities = db.relationship(
-        'Opportunity', lazy='dynamic', backref='created_from_contract'
-    )
 
     def __unicode__(self):
         return self.description
@@ -160,29 +157,3 @@ class Flow(Model):
 
     def __unicode__(self):
         return self.flow_name
-
-class Category(Model):
-    __tablename__ = 'category'
-
-    id = Column(db.Integer, primary_key=True, index=True)
-    parent_category = Column(db.String(255))
-    category = Column(db.String(255))
-
-class Opportunity(Model):
-    __tablename__ = 'opportunity'
-
-    id = Column(db.Integer, primary_key=True)
-    contract_id = ReferenceCol('contract', ondelete='cascade')
-    created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
-
-    # Also the opportunity open date
-    title = Column(db.String(255))
-    department = Column(db.String(255))
-    # Autopopulated using title and department plus boilerplate copy?
-    description = Column(db.Text)
-
-    category_id = ReferenceCol('category', ondelete='SET NULL')
-    category = db.relationship('Category', lazy='subquery')
-
-    # Date department opens bids
-    bid_open = Column(db.DateTime)

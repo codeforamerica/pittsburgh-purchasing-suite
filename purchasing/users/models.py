@@ -14,7 +14,7 @@ from purchasing.database import (
 DEPARTMENT_CHOICES = [
     (None, '-----'),
     ('Bureau of Neighborhood Empowerment', 'Bureau of Neighborhood Empowerment'),
-    ('Citizen Police Review Boar', 'Citizen Police Review Boar'),
+    ('Citizen Police Review Board', 'Citizen Police Review Board'),
     ("City Clerk's Office", "City Clerk's Office"),
     ('City Controller', 'City Controller'),
     ('City Council', 'City Council'),
