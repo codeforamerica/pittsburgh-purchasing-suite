@@ -15,7 +15,7 @@ Core Pittsburgh Purchasing Suite features are in alpha, with other features in d
 |---------|--------|
 | Backend & Basic Admin | Alpha Deployed |
 | Wexplorer - a tool to look up contracts | Alpha Deployed |
-| Sherpa - | A tool to explore the procurement process | Alpha Deployed |
+| Sherpa - a tool to explore the procurement process | Alpha Deployed |
 | To Be Named opportunity outreach site | Designing initial prototype |
 | To be named contract management tool | Designing initial prototype |
 

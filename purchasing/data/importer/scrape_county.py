@@ -12,6 +12,7 @@ from urlparse import urlparse
 from sqlalchemy import or_
 from purchasing.database import db
 from purchasing.data.models import ContractBase, ContractProperty, LineItem
+from purchasing.public.models import AppStatus
 
 from purchasing.data.importer import get_or_create
 
@@ -126,10 +127,11 @@ def build_alert_links(link, document_number):
         document_number=document_number
     )
 
-def generate_line_item_links(item_table):
+def generate_line_item_links(item_table, max_deadline=None):
     '''
     Crawls through a table of information and pulls out
-    related IFB information.
+    related IFB information. Skips rows that are older than
+    the max_deadline
 
     Returns a list of 4-tuples that contain:
         + the link
@@ -151,33 +153,38 @@ def generate_line_item_links(item_table):
         link, document_td, deadline = tr.find_all('td')
 
         document_number = urllib.quote(document_td.text.strip())
+
         if not document_number.startswith('IFB'):
             continue
 
         if len(document_number.split('-')) != 2:
             continue
 
+        _deadline = datetime.datetime.strptime(deadline.text.strip(), '%m/%d/%Y')
+        if max_deadline and _deadline < max_deadline:
+            continue
+
         line_item_links.append((
             build_alert_links(link, document_number),
             link.text.strip(),
             document_number,
-            datetime.datetime.strptime(deadline.text.strip(), '%m/%d/%Y')
+            _deadline
         ))
 
     return line_item_links
 
 def parse_currency(description, field):
     '''
-    Takes descriptions, currency, returns if percentage
+    Takes descriptions, currency, returns currency, if percentage
     '''
     percent = re.search(PERCENT_REGEX, description)
     value = re.sub(CURRENCY_REGEX, '', field)
 
     if value == '':
-        return None
+        return None, False
     elif percent and float(value) < 1:
-        return Decimal(value) * 100
-    return Decimal(value)
+        return Decimal(value) * 100, True
+    return Decimal(value), False
 
 def get_contract(description, ifb):
     return db.session.query(
@@ -193,6 +200,9 @@ def save_line_item(_line_items, contract):
     Saves the line items to the db
     '''
     for item in _line_items:
+        unit_cost, percentage = parse_currency(item.get('description'), item.get('unit_cost'))
+        total_cost, _ = parse_currency(item.get('description'), item.get('total_cost'))
+
         line_item, new_line_item = get_or_create(
             db.session, LineItem,
             contract_id=contract.id,
@@ -201,8 +211,9 @@ def save_line_item(_line_items, contract):
             model_number=item.get('model_number'),
             quantity=item.get('quantity'),
             unit_of_measure=item.get('unit_of_measure'),
-            unit_cost=parse_currency(item.get('description'), item.get('unit_cost')),
-            total_cost=parse_currency(item.get('description'), item.get('total_cost'))
+            unit_cost=unit_cost,
+            total_cost=total_cost,
+            percentage=percentage
         )
 
         if new_line_item:
@@ -211,17 +222,29 @@ def save_line_item(_line_items, contract):
     db.session.commit()
     return
 
-def main():
+def main(_all=None):
     '''
-    Boots up and starts the scraping
+    Boots up and starts the scraping.
+
+    Takes an optional '_all' flag, which overrides
+    the default date filtering and will try to pull down
+    all records
     '''
     s = scrapelib.Scraper(requests_per_minute=120, retry_attempts=2, retry_wait_seconds=2)
     skipped, added = 0, 0
+    max_date = datetime.datetime(1, 1, 1)
+    status = AppStatus.query.first()
 
     main_page = BeautifulSoup(s.get(BASE_COUNTY_URL).content, from_encoding='windows-1252')
 
     item_table = main_page.find('table', recursive=False)
-    line_item_links = generate_line_item_links(item_table)
+
+    if _all:
+        line_item_links = generate_line_item_links(item_table)
+    else:
+        line_item_links = generate_line_item_links(item_table, status.county_max_deadline)
+
+    print 'Scraping {} line item links'.format(len(line_item_links))
 
     for ix, (line_item_link, description, ifb, deadline) in enumerate(line_item_links):
 
@@ -232,17 +255,25 @@ def main():
                 print 'processed {n} records'.format(n=ix)
 
             if not contract:
+                skipped += 1
                 continue
 
             line_item_page = BeautifulSoup(s.get(line_item_link).content, from_encoding='windows-1252')
             _line_items = grab_line_items(line_item_page)
 
             if _line_items:
+
+                if deadline > max_date:
+                    max_date = deadline
+
                 added += 1
                 save_line_item(_line_items, contract)
 
             else:
                 skipped += 1
+
+            status.county_max_deadline = max_date
+            db.session.commit()
 
         except scrapelib.HTTPError:
             print 'Could not open {url}, skipping'.format(url=line_item_link)
