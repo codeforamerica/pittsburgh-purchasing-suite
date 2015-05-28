@@ -43,3 +43,6 @@ Flask-Admin==1.1.0
 
 # Monitoring
 newrelic>=2.50
+
+# Email
+Flask-Mail==0.9.1

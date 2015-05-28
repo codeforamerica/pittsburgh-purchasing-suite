@@ -7,13 +7,22 @@ from purchasing.database import (
     db,
     ReferenceCol,
 )
+from sqlalchemy.schema import Table
+from sqlalchemy.orm import backref
+
+category_vendor_association_table = Table(
+    'category_vendor_association', Model.metadata,
+    Column('category_id', db.Integer, db.ForeignKey('category.id', ondelete='SET NULL'), index=True),
+    Column('vendor_id', db.Integer, db.ForeignKey('vendor.id', ondelete='SET NULL'), index=True)
+)
 
 class Category(Model):
     __tablename__ = 'category'
 
     id = Column(db.Integer, primary_key=True, index=True)
-    parent_category = Column(db.String(255))
+    nigp_code = Column(db.Integer)
     category = Column(db.String(255))
+    subcategory = Column(db.String(255))
 
 class Opportunity(Model):
     __tablename__ = 'opportunity'
@@ -35,22 +44,28 @@ class Opportunity(Model):
     bid_open = Column(db.DateTime)
 
     # Created from contract
-    created_from = db.relationship('ContractBase', lazy='dynamic', backref='opportunities')
+    created_from = db.relationship('ContractBase', lazy='subquery', backref='opportunities')
 
 class Vendor(Model):
-    ___tablename__ = 'vendor'
-    id = Column(db.Integer, nullable=False, unique=True, index=True)
+    __tablename__ = 'vendor'
+
+    id = Column(db.Integer, primary_key=True, index=True)
     business_name = Column(db.String(255), nullable=False)
     email = Column(db.String(80), unique=True, nullable=False)
     created_at = Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     first_name = Column(db.String(30), nullable=True)
     last_name = Column(db.String(30), nullable=True)
-    phone_number = Column(db.Integer)
-    fax_number = Column(db.Integer)
+    phone_number = Column(db.String(20))
+    fax_number = Column(db.String(20))
     minority_owned = Column(db.Boolean())
     veteran_owned = Column(db.Boolean())
-    women_owned = Column(db.Boolean())
+    woman_owned = Column(db.Boolean())
     disadvantaged_owned = Column(db.Boolean())
+    categories = db.relationship(
+        'Category',
+        secondary=category_vendor_association_table,
+        backref='vendors'
+    )
 
     def __unicode__(self):
         return self.email

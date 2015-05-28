@@ -90,6 +90,17 @@ def import_costars(user, secret, bucket, directory):
     print 'Import finished!'
     return
 
+@manager.option(
+    '-f', '--file', dest='filepath',
+    default='./purchasing/data/importer/files/2015-05-27-nigp-cleaned.csv'
+)
+def import_nigp(filepath):
+    from purchasing.data.importer.nigp import main
+    print 'Importing data from {filepath}\n'.format(filepath=filepath)
+    main(filepath)
+    print 'Import finished!'
+    return
+
 @manager.command
 def scrape():
     from purchasing.data.importer.scrape_county import main
@@ -153,8 +164,7 @@ def upload_assets(user, secret, bucket):
     return
 
 @manager.command
-def all_clear(prod=False):
-    app = create_app(ProdConfig) if prod else create_app(DevConfig)
+def all_clear():
     status = AppStatus.query.first()
     status.status = 'ok'
     status.last_updated = datetime.datetime.now()

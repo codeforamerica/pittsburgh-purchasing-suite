@@ -44,6 +44,11 @@ class Model(CRUDMixin, db.Model):
     """Base model class that includes CRUD convenience methods."""
     __abstract__ = True
 
+    def as_dict(self):
+        return {
+            c.name: getattr(self, c.name) for c in self.__table__.columns
+        }
+
 # From Mike Bayer's "Building the app" talk
 # https://speakerdeck.com/zzzeek/building-the-app
 class SurrogatePK(object):

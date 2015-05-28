@@ -10,7 +10,7 @@ from purchasing.settings import ProdConfig
 from purchasing.assets import assets, test_assets
 from purchasing.extensions import (
     bcrypt, cache, db, login_manager,
-    migrate, debug_toolbar, admin, s3
+    migrate, debug_toolbar, admin, s3, mail
 )
 from purchasing.users.models import AnonymousUser
 from purchasing.utils import url_for_other_page, thispage
@@ -86,6 +86,7 @@ def register_extensions(app):
     migrate.init_app(app, db)
     admin.init_app(app)
     s3.init_app(app)
+    mail.init_app(app)
     return None
 
 def register_blueprints(app):
