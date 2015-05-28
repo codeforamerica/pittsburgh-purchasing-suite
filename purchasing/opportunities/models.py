@@ -38,7 +38,6 @@ class Opportunity(Model):
     created_from = db.relationship('ContractBase', lazy='dynamic', backref='opportunities')
 
 class Vendor(Model):
-
     ___tablename__ = 'vendor'
     id = Column(db.Integer, nullable=False, unique=True, index=True)
     business_name = Column(db.String(255), nullable=False)
