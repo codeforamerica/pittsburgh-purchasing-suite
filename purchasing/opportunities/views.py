@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import json
+from collections import defaultdict
+
 from flask import (
     Blueprint, render_template, url_for,
     jsonify, redirect, flash
@@ -29,16 +32,15 @@ def signup():
     The signup page for vendors
     '''
     all_categories = Category.query.all()
-    categories, subcategories = set(), []
+    categories, subcategories = set(), defaultdict(list)
     for category in all_categories:
         categories.add(category.category)
-        if category.category == 'Apparel':
-            subcategories.append(category.subcategory)
+        subcategories[category.category].append(category.subcategory)
 
     form = SignupForm()
 
     form.categories.choices = sorted(zip(categories, categories))
-    form.subcategories.choices = sorted(zip(subcategories, subcategories))
+    form.subcategories.choices = sorted(zip(subcategories['Apparel'], subcategories['Apparel']))
 
     if form.validate_on_submit():
 
@@ -66,7 +68,7 @@ def signup():
         return redirect(url_for('opportunities.index'))
 
     return render_template(
-        'opportunities/signup.html', form=form
+        'opportunities/signup.html', form=form, subcategories=json.dumps(subcategories)
     )
 
 @blueprint.route('/_data/signup/subcategories/<category>')

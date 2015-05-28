@@ -9,3 +9,9 @@
 {% block nav %}
 {% include "opportunities/nav.html" %}
 {% endblock %}
+
+{% block js %}
+  {% assets "opportunitiesjs" %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+{% endblock %}

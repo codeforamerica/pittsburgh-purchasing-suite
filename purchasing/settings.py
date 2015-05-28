@@ -43,6 +43,7 @@ class DevConfig(Config):
     DEBUG_TB_ENABLED = True
     BROWSERID_URL = os_env.get('BROWSERID_URL', 'http://127.0.0.1:9000')
     MAIL_SERVER = 'smtp.gmail.com'  # Use gmail in dev: https://support.google.com/mail/answer/1173270?hl=en
+    ASSETS_DEBUG = True
 
 class TestConfig(Config):
     TESTING = True

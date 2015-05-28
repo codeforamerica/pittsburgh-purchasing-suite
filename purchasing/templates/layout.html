@@ -60,7 +60,9 @@
 {% include "footer.html" %}
 
 <!-- JavaScript at the bottom for fast page loading -->
-{% assets "js_all" %}
+{% block jsvars %}{% endblock %}
+
+{% assets "vendorjs" %}
     <script type="text/javascript" src="{{ ASSET_URL }}"></script>
 {% endassets %}
 <script src="https://login.persona.org/include.js"></script>

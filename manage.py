@@ -92,7 +92,7 @@ def import_costars(user, secret, bucket, directory):
 
 @manager.option(
     '-f', '--file', dest='filepath',
-    default='./purchasing/data/importer/files/2015-05-27-nigp-cleaned.csv'
+    default='./purchasing/data/importer/files/2015-05-28-nigp-cleaned.csv'
 )
 def import_nigp(filepath):
     from purchasing.data.importer.nigp import main

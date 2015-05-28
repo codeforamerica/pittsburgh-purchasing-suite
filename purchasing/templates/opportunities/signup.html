@@ -17,32 +17,36 @@
 
         {{ form.csrf_token() }}
 
-        <div class="form-group">
-          <div class="col-sm-12">
-            {{ form.categories(class_="form-control col-sm-12") }}
-          </div>
-        </div><!-- categories -->
+        <div id="js-categories-container">
 
-        <div class="form-group">
-          {% if 'subcategories' in form.errors.keys() %}
-          <div class="alert alert-danger alert-dismissable">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-            <span>You must choose at least one category to sign up!</span>
-          </div>
-          {% endif %}
-          {% for subcat in form.subcategories %}
-          <div class="col-sm-12">
-            <div class="checkbox">
-              {{ macros.with_errors(subcat) }}
-              <label for="{{ subcat.option }}">{{ subcat.data }}</label>
+          <div class="form-group">
+            <div class="col-sm-12">
+              {{ form.categories(class_="form-control col-sm-12 js-category-select", id="category-0") }}
             </div>
-          </div><!-- subcategories -->
-          {% endfor %}
-        </div>
+          </div><!-- categories -->
 
-        <button class="form-control btn btn-primary">Add another category</button>
+          <div class="form-group" id="js-subcategory-group-0">
+            {% if 'subcategories' in form.errors.keys() %}
+            <div class="alert alert-danger alert-dismissable">
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+              <span>You must choose at least one category to sign up!</span>
+            </div>
+            {% endif %}
+            {% for subcat in form.subcategories %}
+            <div class="col-sm-12">
+              <div class="checkbox">
+                {{ macros.with_errors(subcat) }}
+                <label for="{{ subcat.option }}">{{ subcat.data }}</label>
+              </div>
+            </div><!-- subcategories -->
+            {% endfor %}
+          </div>
+
+        </div><!-- /js-categories-container -->
+
+        <button type="button" class="form-control btn btn-primary" id="js-add-category">Add another category</button>
 
         <div class="spacer-20"></div>
 
@@ -118,4 +122,10 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block jsvars %}
+<script type="text/javascript">
+  var subcategories = {{ subcategories|safe }};
+</script>
 {% endblock %}
