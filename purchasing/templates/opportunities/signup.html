@@ -31,14 +31,14 @@
               <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
-              <span>You must choose at least one category to sign up!</span>
+              <span>{{ form.errors['subcategories'][0] }}</span>
             </div>
             {% endif %}
             {% for subcat in form.subcategories %}
             <div class="col-sm-12">
               <div class="checkbox">
                 {{ macros.with_errors(subcat) }}
-                <label for="{{ subcat.option }}">{{ subcat.data }}</label>
+                {{ subcat.label }}
               </div>
             </div><!-- subcategories -->
             {% endfor %}

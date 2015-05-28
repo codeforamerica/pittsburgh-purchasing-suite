@@ -16,8 +16,8 @@
     for (var i=0; i<newSubcats.length; i++) {
       newCheckboxes += '<div class="col-sm-12">' +
         '<div class="checkbox">' +
-          '<input id="subcategories-"' + i + ' name="subcategories" type="checkbox" value="' + newSubcats[i] + '">' +
-          '<label for="">' + newSubcats[i] + '</label>' +
+          '<input id="subcategories-"' + i + ' name="subcategories" type="checkbox" value="' + newSubcats[i][0] + '">' +
+          '<label for="">' + newSubcats[i][1] + '</label>' +
         '</div>' +
       '</div>';
     }

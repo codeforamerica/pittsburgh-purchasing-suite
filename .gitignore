@@ -52,6 +52,7 @@ libs/
 # Flask-assets output
 css
 common.js
+opportunities.js
 
 # App logs (from foreman)
 log

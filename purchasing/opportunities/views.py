@@ -35,17 +35,18 @@ def signup():
     categories, subcategories = set(), defaultdict(list)
     for category in all_categories:
         categories.add(category.category)
-        subcategories[category.category].append(category.subcategory)
+        subcategories[category.category].append((category.id, category.subcategory))
 
     form = SignupForm()
 
     form.categories.choices = sorted(zip(categories, categories))
-    form.subcategories.choices = sorted(zip(subcategories['Apparel'], subcategories['Apparel']))
+    form.subcategories.choices = sorted(subcategories['Apparel'])
 
     if form.validate_on_submit():
 
         vendor = Vendor.query.filter(Vendor.email == form.data.get('email')).first()
         form_data = {c.name: form.data.get(c.name, None) for c in Vendor.__table__.columns if c.name not in ['id', 'created_at']}
+        form_data['categories'] = [Category.query.get(i) for i in form.data.get('subcategories')]
 
         if vendor:
             vendor.update(
@@ -70,14 +71,3 @@ def signup():
     return render_template(
         'opportunities/signup.html', form=form, subcategories=json.dumps(subcategories)
     )
-
-@blueprint.route('/_data/signup/subcategories/<category>')
-def subcategory(category):
-    '''
-    Data view to show all subcategories for a particular parent category
-    '''
-    subcategories = Category.query.filter(Category.category == category).all()
-
-    return jsonify({
-        'results': [i.as_dict() for i in subcategories]
-    })

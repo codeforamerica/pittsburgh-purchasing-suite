@@ -1,1 +1,0 @@
-(function(){"use strict";var categorySelect=$("#categories");$(categorySelect).change(function(){debugger})})();
