@@ -106,9 +106,10 @@
 
     <div class="spacer-20"></div>
 
-      <div class="row">
-        <div class="col-md-12">
-        {% if contract.line_items.count() > 0 %}
+    <div class="row">
+      <div class="col-md-12">
+
+      {% if contract.line_items.count() > 0 %}
         <p class="wexplorer-column-header">Line Items</p>
 
         <table class="table table-striped line-item-table">
@@ -120,13 +121,21 @@
           {% for _item in contract.line_items %}
             <tr>
               <td class="col-md-10">{{ _item.description }}</td>
-              <!-- <td class="col-md-2">{% if _item.unit_cost %}{{ _item.unit_cost }}{% else %}-{% endif %}</td> -->
-              <td class="col-md-2">-</td>
+              <td class="col-md-2">
+                {% if _item.percentage %}
+                  {{ _item.unit_cost|int }} percent discount
+                {% elif _item.unit_cost %}
+                  {{ _item.unit_cost|currency }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <!-- <td class="col-md-2">-</td> -->
             </tr>
           {% endfor %}
           </tbody>
         </table>
-        {% endif %}
+      {% endif %}
 
       </div>
     </div>

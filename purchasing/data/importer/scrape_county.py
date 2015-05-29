@@ -184,6 +184,8 @@ def parse_currency(description, field):
         return None, False
     elif percent and float(value) < 1:
         return Decimal(value) * 100, True
+    elif percent:
+        return Decimal(value), True
     return Decimal(value), False
 
 def get_contract(description, ifb):

@@ -98,12 +98,20 @@ def search():
             x.company_id, x.contract_id,
             x.company_name, x.description,
             x.expiration_date, x.financial_id,
-            array_agg(u.email)
+            x.found_in, array_agg(u.email)
         FROM (
             SELECT
                 cp.id as company_id, ct.id as contract_id,
                 cp.company_name, ct.description,
-                ct.expiration_date, ct.financial_id
+                ct.expiration_date, ct.financial_id,
+                CASE
+                  WHEN cp.company_name ilike :search_for_wc then 'Company Name'
+                  WHEN ct.description ilike :search_for_wc then 'Contract Description'
+                  WHEN ctp.value ilike :search_for_wc then 'Contract Detail'
+                  WHEN li.description ilike :search_for_wc then 'Line Item'
+                  WHEN ct.financial_id::VARCHAR = :search_for then 'Financial ID (Controller Number)'
+                  ELSE NULL
+                END as found_in
             FROM company cp
             FULL OUTER JOIN company_contract_association cca
             ON cp.id = cca.company_id
@@ -126,7 +134,7 @@ def search():
         users u
         ON cca.user_id = u.id
         WHERE x.contract_id IS NOT NULL
-        group by 1,2,3,4,5,6
+        group by 1,2,3,4,5,6,7
         ''',
         {
             'search_for_wc': '%' + str(search_for) + '%',
@@ -142,7 +150,8 @@ def search():
             'contract_description': contract[3],
             'expiration_date': contract[4],
             'financial_id': contract[5],
-            'users': contract[6]
+            'found_in': contract[6],
+            'users': contract[7],
         })
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
