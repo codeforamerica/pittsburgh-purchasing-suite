@@ -6,12 +6,14 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-      <h3>Complete your sign-up and start receiving email updates about upcoming City opportunities.</h3>
+        <div class="spacer-20"></div>
+      <h4>Complete your sign-up</h4>
+      <h3>Tell us a little bit more about your business, in order to start receiving email updates about upcoming City opportunities.</h3>
+ <div class="spacer-20"></div>
+    
 
-      <div class="spacer-20"></div>
-
-      <p><strong>What opportunities would you like to be notified about?</strong></p>
-      <p class="text-muted">Not sure what to choose? Select all subcategories, or sign up for more than one category</p>
+      <label>What opportunities would you like to be notified about?</label>
+      <p class="text-muted">Not sure what to choose? You can sign up for more than one category, or all of them if you like.</p>
 
       <form class="form-horizontal" method="POST" action="{{ url_for('opportunities.signup') }}">
 
@@ -46,7 +48,11 @@
 
         </div><!-- /js-categories-container -->
 
-        <button type="button" class="form-control btn btn-primary another-category" id="js-add-category">Add another category</button>
+        <div class="form-group">
+         <div class="col-sm-6">
+            <button type="button" class="form-control btn btn-primary another-category" id="js-add-category">Add another category</button>
+         </div>
+        </div>
 
         <div class="spacer-20"></div>
 
@@ -65,28 +71,28 @@
         <div class="form-group">
           <div class="col-sm-12">
             <label for="business_name">What's the name of your business? <span class="form-required">*</span></label>
-            {{ macros.with_errors(form.business_name, class_="form-control") }}
+            {{ macros.with_errors(form.business_name, class_="form-control", placeholder="Business name") }}
           </div>
         </div><!-- /business name -->
 
         <div class="form-group">
           <div class="col-sm-12">
             <label for="email">What's your email address? <span class="form-required">*</span></label>
-            {{ macros.with_errors(form.email, class_="form-control") }}
+            {{ macros.with_errors(form.email, class_="form-control", placeholder="Email address") }}
           </div>
         </div><!-- /email -->
 
         <div class="form-group">
           <div class="col-sm-12">
             <label for="phone_number">What's your phone number?</label>
-            {{ macros.with_errors(form.phone_number, class_="form-control") }}
+            {{ macros.with_errors(form.phone_number, class_="form-control", placeholder="Phone number") }}
           </div>
         </div><!-- /phone number -->
 
         <div class="form-group">
           <div class="col-sm-12">
             <label for="fax_number">What's your fax number?</label>
-            {{ macros.with_errors(form.fax_number, class_="form-control") }}
+            {{ macros.with_errors(form.fax_number, class_="form-control", placeholder="Fax number") }}
           </div>
         </div><!-- /fax number -->
 
