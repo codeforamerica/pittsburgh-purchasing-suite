@@ -20,7 +20,7 @@
         <div id="js-categories-container">
 
           <div class="form-group">
-            <div class="col-sm-12">
+            <div class="col-sm-10">
               {{ form.categories(class_="form-control col-sm-12 js-category-select", id="category-0") }}
             </div>
           </div><!-- categories -->
@@ -37,11 +37,17 @@
             {% for subcat in form.subcategories %}
             <div class="col-sm-12">
               <div class="checkbox">
-                {{ macros.with_errors(subcat) }}
+                {{ macros.with_errors(subcat, checked=true, class_="js-subcategory") }}
                 {{ subcat.label }}
               </div>
             </div><!-- subcategories -->
             {% endfor %}
+            <div class="col-sm-12">
+              <div class="checkbox">
+                <input type="checkbox" class="js-uncheck-all" data-checked="true" checked="true">
+                <label>Check all</label>
+              </div>
+            </div>
           </div>
 
         </div><!-- /js-categories-container -->
@@ -92,7 +98,7 @@
 
         <div class="form-group">
           <div class="col-sm-12">
-            <label for="mwdbe-certifications">Are you certified in any of the following?</label>
+            <label for="mwdbe-certifications">Are you certified as any of the following?</label>
             <div class="checkbox">
               {{ macros.with_errors(form.minority_owned) }}
               <label for="minority_owned">Minority-owned business</label>

@@ -16,11 +16,18 @@
     for (var i=0; i<newSubcats.length; i++) {
       newCheckboxes += '<div class="col-sm-12">' +
         '<div class="checkbox">' +
-          '<input id="subcategories-"' + i + ' name="subcategories" type="checkbox" value="' + newSubcats[i][0] + '">' +
+          '<input id="subcategories-"' + i + ' name="subcategories" class="js-subcategory" type="checkbox" value="' + newSubcats[i][0] + '" checked=true>' +
           '<label for="">' + newSubcats[i][1] + '</label>' +
         '</div>' +
       '</div>';
     }
+
+    newCheckboxes += '<div class="col-sm-12">' +
+      '<div class="checkbox">' +
+        '<input type="checkbox" class="js-uncheck-all" data-checked="true" checked="true">' +
+        '<label>Check all</label>' +
+      '</div>' +
+    '</div>';
 
     subcatGroup.append(newCheckboxes);
 
@@ -31,6 +38,20 @@
     $('.js-category-select').change(function() {
       var subcatGroup = '#js-subcategory-group-' + this.id.split('-')[1];
       displayNewSubcats($(subcatGroup), this.value);
+    });
+
+    $('.js-uncheck-all').change(function() {
+      var subcatGroup = $(this).parents('.form-group');
+      var _this = $(this);
+
+      if (_this.attr('data-checked') === 'true') {
+        subcatGroup.find('input:checkbox').prop('checked', false);
+        _this.attr('data-checked', 'false');
+
+      } else {
+        subcatGroup.find('input:checkbox').prop('checked', true);
+        _this.attr('data-checked', 'true');
+      }
     });
   }
 

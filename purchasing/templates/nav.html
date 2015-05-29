@@ -39,7 +39,7 @@
 
     {% if current_user.email %}
     <ul class="nav navbar-nav navbar-right">
-      <li><a href="{{ url_for('admin.index') }}">Admin</a></li>
+      <li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('admin.index') }}">Admin</a></p></li>
       <li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('users.profile') }}">Profile</a></p></li>
       <li><a class="navbar-link js-signout" href="#"><i class="fa fa-sign-out"></i> Sign Out</a></li>
     </ul>
