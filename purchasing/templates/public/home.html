@@ -26,7 +26,7 @@
         <hr>
         <div class="row">
 
-          <div class="col-md-6 col-sm-6">
+          <div class="col-md-4 col-sm-4">
             <div class="service-item">
               <a href="{{ url_for('wexplorer.explore') }}">
                 <span class="fa-stack fa-4x">
@@ -41,7 +41,7 @@
             </div>
           </div>
 
-          <div class="col-md-6 col-sm-6">
+          <div class="col-md-4 col-sm-4">
             <div class="service-item">
               <a href="{{ url_for('sherpa.index') }}">
                 <span class="fa-stack fa-4x">
@@ -54,14 +54,23 @@
             </div>
           </div>
 
-        <!-- /.row (nested) -->
-      </div>
+          <div class="col-md-4 col-sm-4">
+            <div class="service-item">
+              <a href="{{ url_for('opportunities.index') }}">
+                <span class="fa-stack fa-4x">
+                  <i class="fa fa-circle fa-stack-2x"></i>
+                  <i class="fa fa-envelope fa-stack-1x fa-body-bg"></i>
+                </span>
+                <h4><strong>Opportunities</strong></h4>
+              </a>
+              <p>Find business opportunities.<br> Subscribe for updates.</p>
+            </div>
+          </div>
 
-      <!-- /.col-lg-10 -->
-    </div>
-    <!-- /.row -->
-  </div>
-  <!-- /.container -->
+        </div><!-- /.row (nested) -->
+      </div><!-- /.col-lg-10 -->
+    </div><!-- /.row -->
+  </div><!-- /.container -->
 </section>
 
 {% endblock %}
