@@ -21,7 +21,7 @@
 
           <div class="form-group">
             <div class="col-sm-12">
-              {{ form.categories(class_="form-control col-sm-12 js-category-select", id="category-0") }}
+              {{ macros.with_errors(form.categories, class_="form-control col-sm-12 js-category-select", id="category-0") }}
             </div>
           </div><!-- categories -->
 
@@ -42,12 +42,6 @@
               </div>
             </div><!-- subcategories -->
             {% endfor %}
-            <div class="col-sm-12">
-              <div class="checkbox">
-                <input type="checkbox" class="js-uncheck-all" data-checked="true" checked="true">
-                <label>Check all</label>
-              </div>
-            </div>
           </div>
 
         </div><!-- /js-categories-container -->

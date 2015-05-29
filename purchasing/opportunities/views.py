@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from flask import (
     Blueprint, render_template, url_for,
-    jsonify, redirect, flash
+    jsonify, redirect, flash, request, session
 )
 from purchasing.notifications import vendor_signup
 from purchasing.extensions import login_manager
@@ -39,8 +39,9 @@ def signup():
 
     form = SignupForm()
 
-    form.categories.choices = sorted(zip(categories, categories))
-    form.subcategories.choices = sorted(subcategories['Apparel'])
+    form.categories.choices = [(None, '---')] + list(sorted(zip(categories, categories)))
+    # form.subcategories.choices = sorted(subcategories['Apparel'])
+    form.subcategories.choices = []
 
     if form.validate_on_submit():
 
@@ -67,6 +68,17 @@ def signup():
                 flash('Uh oh, something went wrong. We are investigating.', 'alert-danger')
 
         return redirect(url_for('opportunities.index'))
+
+    page_email = request.args.get('email', None)
+
+    if page_email:
+        session['email'] = page_email
+        return redirect(url_for('opportunities.signup'))
+
+    if 'email' in session:
+        form.email.data = session['email']
+        form.email.validate(form)
+        session.pop('email')
 
     return render_template(
         'opportunities/signup.html', form=form, subcategories=json.dumps(subcategories)

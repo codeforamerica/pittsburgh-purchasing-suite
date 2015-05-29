@@ -10,9 +10,9 @@
         <div class="spacer-20"></div>
         <h3>Sign up to get notifications about opportunities for your business</h3>
         <div class="spacer-20"></div>
-        <form class="form-horizontal">
+        <form class="form-horizontal" action="{{ url_for('opportunities.signup') }}">
           <div class="col-sm-9 input-no-left-padding">
-            <input class="form-control input-lg" type="text" placeholder="What's your email address?">
+            <input class="form-control input-lg" type="text" name="email" placeholder="What's your email address?">
           </div>
           <div class="col-sm-3">
             <input type="submit" class="btn btn-primary btn-lg" value="Sign up">
@@ -53,9 +53,9 @@
       </div>
 
       <div class="faq-question row in-text-signup-form">
-        <form class="form-horizontal">
+        <form class="form-horizontal" action="{{ url_for('opportunities.signup') }}">
           <div class="col-sm-9 input-no-left-padding">
-            <input class="form-control input-lg" type="text" placeholder="What's your email address?">
+            <input class="form-control input-lg" type="text" name="email" placeholder="What's your email address?">
           </div>
           <div class="col-sm-3">
             <input type="submit" class="btn btn-primary btn-lg" value="Sign up">

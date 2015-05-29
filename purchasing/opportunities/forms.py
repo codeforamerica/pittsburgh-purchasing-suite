@@ -29,9 +29,10 @@ def validate_phone_number(form, field):
     '''
     Strips out non-integer characters, checks that it is 10-digits
     '''
-    value = re.sub(ALL_INTEGERS, '', field.data)
-    if len(value) != 10 and len(value) != 0:
-        raise ValidationError('Invalid 10-digit phone number!')
+    if field.data:
+        value = re.sub(ALL_INTEGERS, '', field.data)
+        if len(value) != 10 and len(value) != 0:
+            raise ValidationError('Invalid 10-digit phone number!')
 
 class SignupForm(Form):
     business_name = fields.TextField(validators=[DataRequired()])
@@ -48,9 +49,10 @@ class SignupForm(Form):
     subcategories = MultiCheckboxField(coerce=int)
 
     def validate_subcategories(form, field):
-        if len(field.data) == 0:
-            raise ValidationError('You must select at least one category!')
-        for val in field.data:
-            _cat = Category.query.get(val)
-            if _cat is None:
-                raise ValidationError('{} is not a valid choice!'.format(val))
+        if field.data:
+            if len(field.data) == 0:
+                raise ValidationError('You must select at least one category!')
+            for val in field.data:
+                _cat = Category.query.get(val)
+                if _cat is None:
+                    raise ValidationError('{} is not a valid choice!'.format(val))

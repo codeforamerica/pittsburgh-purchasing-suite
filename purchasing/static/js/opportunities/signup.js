@@ -34,12 +34,7 @@
     return true;
   }
 
-  function generateNewSubcats() {
-    $('.js-category-select').change(function() {
-      var subcatGroup = '#js-subcategory-group-' + this.id.split('-')[1];
-      displayNewSubcats($(subcatGroup), this.value);
-    });
-
+  function uncheckAll() {
     $('.js-uncheck-all').change(function() {
       var subcatGroup = $(this).parents('.form-group');
       var _this = $(this);
@@ -52,6 +47,14 @@
         subcatGroup.find('input:checkbox').prop('checked', true);
         _this.attr('data-checked', 'true');
       }
+    });
+  }
+
+  function generateNewSubcats() {
+    $('.js-category-select').change(function() {
+      var subcatGroup = '#js-subcategory-group-' + this.id.split('-')[1];
+      displayNewSubcats($(subcatGroup), this.value);
+      uncheckAll();
     });
   }
 
