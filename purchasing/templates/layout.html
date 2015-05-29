@@ -29,10 +29,9 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
 {% block body %}
-{% with form=form  %}
-{% block nav %}
 
-{% endblock %}
+{% with form=form %}
+{% block nav %}{% endblock %}
 {% endwith %}
 
 <header>{% block header %}{% endblock %}</header>
