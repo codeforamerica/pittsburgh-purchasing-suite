@@ -7,9 +7,10 @@ from flask import (
     Blueprint, render_template, url_for,
     jsonify, redirect, flash, request, session
 )
+from purchasing.database import db
 from purchasing.notifications import vendor_signup
 from purchasing.extensions import login_manager
-from purchasing.opportunities.forms import SignupForm
+from purchasing.opportunities.forms import SignupForm, UnsubscribeForm
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
 blueprint = Blueprint(
@@ -40,7 +41,6 @@ def signup():
     form = SignupForm()
 
     form.categories.choices = [(None, '---')] + list(sorted(zip(categories, categories)))
-    # form.subcategories.choices = sorted(subcategories['Apparel'])
     form.subcategories.choices = []
 
     if form.validate_on_submit():
@@ -83,3 +83,30 @@ def signup():
     return render_template(
         'opportunities/signup.html', form=form, subcategories=json.dumps(subcategories)
     )
+
+@blueprint.route('/manage', methods=['GET', 'POST'])
+def manage():
+    '''
+    Manage a vendor's signups
+    '''
+    form = UnsubscribeForm()
+    form_subscriptions = []
+
+    if form.validate_on_submit():
+        email = form.data.get('email')
+        vendor = Vendor.query.filter(Vendor.email == email).first()
+
+        if vendor is None:
+            form.email.errors = ['We could not find the email {}'.format(email)]
+
+        if request.form.get('button', '').lower() == 'unsubscribe from checked':
+            subscriptions = list(set([i.id for i in vendor.categories]).difference(form.subscriptions.data))
+            vendor.categories = [Category.query.get(i) for i in subscriptions]
+            db.session.commit()
+            flash('Preferences updated!', 'alert-success')
+
+        for subscription in vendor.categories:
+            form_subscriptions.append((subscription.id, subscription.subcategory))
+
+    form.subscriptions.choices = form_subscriptions
+    return render_template('opportunities/manage.html', form=form)

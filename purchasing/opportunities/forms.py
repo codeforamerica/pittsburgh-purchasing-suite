@@ -6,7 +6,7 @@ from flask_wtf import Form
 from wtforms import widgets, fields
 from wtforms.validators import DataRequired, InputRequired, Email, ValidationError
 
-from purchasing.opportunities.models import Category
+from purchasing.opportunities.models import Category, Vendor
 
 ALL_INTEGERS = re.compile('[^\d.]')
 
@@ -56,3 +56,16 @@ class SignupForm(Form):
                 _cat = Category.query.get(val)
                 if _cat is None:
                     raise ValidationError('{} is not a valid choice!'.format(val))
+
+def email_present(form, field):
+    '''
+    Checks that we have a vendor with that email address
+    '''
+    if field.data:
+        vendor = Vendor.query.filter(Vendor.email == field.data)
+        if vendor is None:
+            raise ValidationError("We can't find the email {}!".format(field.data))
+
+class UnsubscribeForm(Form):
+    email = fields.TextField(validators=[DataRequired(), Email(), email_present])
+    subscriptions = MultiCheckboxField(coerce=int)

@@ -84,6 +84,7 @@
     categoryId += 1;
 
     generateNewSubcats();
+    uncheckAll();
 
   });
 

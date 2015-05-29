@@ -102,3 +102,50 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(success_post.location, 'http://localhost/opportunities/')
             self.assertEquals(len(outbox), 2)
             self.assert_flashes("You are already signed up! Your profile was updated with this new information", 'alert-info')
+
+    def test_manage_subscriptions(self):
+        subscribe = self.client.post('/opportunities/signup', data=dict(
+            email='foo2@foo.com',
+            business_name='foo',
+            subcategories=[1, 2, 3],
+            categories='Apparel'
+        ))
+
+        manage = self.client.post('/opportunities/manage', data=dict(
+            email='foo2@foo.com'
+        ))
+
+        self.assert200(manage)
+        form = self.get_context_variable('form')
+        self.assertEquals(len(form.subscriptions.choices), 3)
+
+        # it shouldn't unsubscribe you if you click the wrong button
+        not_unsub_button = self.client.post('/opportunities/manage', data=dict(
+            email='foo2@foo.com',
+            subscriptions=[1, 2],
+        ))
+
+        self.assert200(not_unsub_button)
+        form = self.get_context_variable('form')
+        self.assertEquals(len(form.subscriptions.choices), 3)
+
+        unsubscribe = self.client.post('/opportunities/manage', data=dict(
+            email='foo2@foo.com',
+            subscriptions=[1, 2],
+            button='Unsubscribe from Checked'
+        ))
+
+        self.assert200(unsubscribe)
+        form = self.get_context_variable('form')
+        self.assertEquals(len(form.subscriptions.choices), 1)
+
+        # it shouldn't matter if you somehow unsubscribe from things
+        # you are accidentally subscribed to
+        unsubscribe_all = self.client.post('/opportunities/manage', data=dict(
+            email='foo2@foo.com',
+            subscriptions=[3, 5, 6],
+            button='Unsubscribe from Checked'
+        ))
+
+        self.assert200(unsubscribe_all)
+        self.assertTrue('You are not subscribed to anything!' in unsubscribe_all.data)

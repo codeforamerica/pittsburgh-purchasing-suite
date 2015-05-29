@@ -1,0 +1,64 @@
+{% extends "opportunities/layout.html" %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-8 col-sm-offset-2">
+      <h2>Manage your email subscriptions</h2>
+      <form class="form-horizontal" method="POST">
+
+        {{ form.csrf_token() }}
+
+        <div class="form-group">
+          <div class="col-sm-12">
+            <label for="email">What's your email address? <span class="form-required">*</span></label>
+            {{ macros.with_errors(form.email, class_="form-control", placeholder="Email address") }}
+          </div>
+        </div><!-- /email -->
+
+        <div class="form-group">
+          <div class="col-sm-6">
+            <input type="submit" class="btn btn-primary form-control" value="Look up" name="button">
+          </div>
+        </div><!-- /email lookup group -->
+
+        {% if form.subscriptions.choices|length > 0 %}
+          <div class="form-group" id="js-subcategory-group-0">
+            {% if 'subscriptions' in form.errors.keys() %}
+            <div class="alert alert-danger alert-dismissable">
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+              <span>{{ form.errors['subscriptions'][0] }}</span>
+            </div>
+            {% endif %}
+            {% for subscription in form.subscriptions %}
+            <div class="col-sm-12">
+              <div class="checkbox">
+                {{ macros.with_errors(subscription, checked=true, class_="js-subcategory") }}
+                {{ subscription.label }}
+              </div>
+            </div><!-- subscriptions -->
+            {% endfor %}
+          </div>
+
+          <div class="form-group">
+            <div class="col-sm-6">
+              <input type="submit" class="btn btn-primary form-control" value="Unsubscribe from Checked" name="button">
+            </div>
+          </div>
+
+          <div class="spacer-30"></div>
+
+        {% elif form.email.data and form.email.validate(form) %}
+          <p>You are not subscribed to anything! Visit the <a href="{{ url_for('opportunities.signup') }}">sign up</a> page to subscribe.</p>
+        {% endif %}
+
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
