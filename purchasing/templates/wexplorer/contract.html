@@ -35,6 +35,9 @@
           <a href="{{ url_for('contract.edit_view', id=contract.id) }}">Edit this contract</a>
         </p>
         {% endif %}
+        <p>
+          See something wrong? <a href="{{ url_for('wexplorer.feedback', contract_id=contract.id) }}" target="_blank">Send your feedback.</a> <br /><small>(Opens new tab)</small>
+        </p>
 
       <hr>
 

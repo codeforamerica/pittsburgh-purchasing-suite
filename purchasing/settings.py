@@ -14,6 +14,7 @@ class Config(object):
     BROWSERID_URL = os_env.get('BROWSERID_URL')
     PER_PAGE = 50
     CITY_DOMAIN = 'pittsburghpa.gov'
+    ADMIN_EMAIL = os_env.get('ADMIN_EMAIL', 'bsmithgall@codeforamerica.org')
     MAIL_DEFAULT_SENDER = 'noreply@pittsburghpurchasingsuite.com'
     MAIL_USERNAME = os_env.get('MAIL_USERNAME')
     MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')

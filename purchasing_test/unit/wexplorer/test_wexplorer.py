@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from flask import current_app
+from purchasing.extensions import mail
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
     insert_a_company, insert_a_contract,
@@ -7,9 +9,10 @@ from purchasing_test.unit.util import (
 )
 
 from purchasing.data.models import ContractBase, ContractProperty, LineItem
+from purchasing.data.contracts import get_one_contract
 
 class TestWexplorer(BaseTestCase):
-    render_templates = False
+    render_templates = True
 
     def setUp(self):
         super(TestWexplorer, self).setUp()
@@ -176,3 +179,51 @@ class TestWexplorer(BaseTestCase):
         request = self.client.get('/wexplorer/filter/FAKEFAKEFAKE')
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('You must choose a valid department!', 'alert-danger')
+
+    def test_feedback(self):
+        '''
+        Test wexplorer contract feedback mechanism
+        '''
+        self.assert200(self.client.get('/wexplorer/contracts/1/feedback'))
+        self.assert_template_used('wexplorer/feedback.html')
+
+        self.assert404(self.client.get('/wexplorer/contracts/1000/feedback'))
+
+        contract = get_one_contract(1)
+
+        # assert data validation
+        bad_post = self.client.post('/wexplorer/contracts/1/feedback', data=dict(
+            sender='JUNK'
+        ))
+
+        self.assert200(bad_post)
+        # correct template
+        self.assert_template_used('wexplorer/feedback.html')
+        # two alerts
+        self.assertTrue(bad_post.data.count('alert-danger'), 2)
+        # feedback is required
+        self.assertTrue(bad_post.data.count('field is required'), 1)
+        # email must be email
+        self.assertTrue(bad_post.data.count('Invalid'), 1)
+
+        # assert email works properly
+        self.login_user(self.admin_user)
+
+        with mail.record_messages() as outbox:
+            success_post = self.client.post('/wexplorer/contracts/1/feedback', data=dict(
+                body='test'
+            ))
+
+            # the mail sent
+            self.assertEquals(len(outbox), 1)
+            # it went to the right place
+            self.assertTrue(current_app.config['ADMIN_EMAIL'] in outbox[0].send_to)
+            # assert the subject is right
+            self.assertTrue(str(contract.id) in outbox[0].subject)
+            self.assertTrue(contract.description in outbox[0].subject)
+            # the message body contains the right email address
+            self.assertTrue(self.admin_user.email in outbox[0].html)
+            # it redirects and flashes correctly
+            self.assertEquals(success_post.status_code, 302)
+            self.assertEquals(success_post.location, 'http://localhost/wexplorer/contracts/1')
+            self.assert_flashes('Thank you for your feedback!', 'alert-success')

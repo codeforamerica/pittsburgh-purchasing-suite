@@ -9,7 +9,8 @@ from flask_login import current_user
 from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
-from purchasing.wexplorer.forms import SearchForm
+from purchasing.notifications import wexplorer_feedback
+from purchasing.wexplorer.forms import SearchForm, FeedbackForm
 from purchasing.data.models import ContractBase, contract_user_association_table
 from purchasing.users.models import DEPARTMENT_CHOICES
 from purchasing.data.companies import get_one_company
@@ -220,6 +221,41 @@ def subscribe(contract_id):
     elif contract is None:
         abort(404)
     abort(403)
+
+@blueprint.route('/contracts/<int:contract_id>/feedback', methods=['GET', 'POST'])
+def feedback(contract_id):
+    '''
+    Allow user to send feedback on the data present in a specific contract
+    '''
+    contract = get_one_contract(contract_id)
+    search_form = SearchForm()
+    if contract:
+        form = FeedbackForm()
+
+        if not current_user.is_anonymous():
+            form.sender.data = current_user.email
+
+        if form.validate_on_submit():
+
+            feedback_sent = wexplorer_feedback(
+                contract, form.data.get('sender'), form.data.get('body')
+            )
+
+            if feedback_sent:
+                flash('Thank you for your feedback!', 'alert-success')
+            else:
+                flash('Oh no! Something went wrong. We are looking into it.', 'alert-danger')
+
+            return redirect(url_for('wexplorer.contract', contract_id=contract.id))
+
+        return render_template(
+            'wexplorer/feedback.html',
+            search_form=search_form,
+            contract=contract,
+            choices=DEPARTMENT_CHOICES[1:],
+            feedback_form=form
+        )
+    abort(404)
 
 @blueprint.route('/contracts/<int:contract_id>/unsubscribe')
 @requires_roles('staff', 'admin', 'superadmin')
