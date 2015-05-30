@@ -62,6 +62,8 @@ def upgrade():
     sa.ForeignKeyConstraint(['contract_id'], ['contract.id'], ondelete='cascade'),
     sa.PrimaryKeyConstraint('id')
     )
+    op.add_column('app_status', sa.Column('county_max_deadline', sa.DateTime(), nullable=True))
+    op.add_column('line_item', sa.Column('percentage', sa.Boolean(), nullable=True))
     ### end Alembic commands ###
 
 
@@ -75,4 +77,6 @@ def downgrade():
     op.drop_table('vendor')
     op.drop_index(op.f('ix_category_id'), table_name='category')
     op.drop_table('category')
+    op.drop_column('line_item', 'percentage')
+    op.drop_column('app_status', 'county_max_deadline')
     ### end Alembic commands ###
