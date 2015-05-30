@@ -16,36 +16,28 @@
     <div class="collapse navbar-collapse navbar-ex1-collapse">
 
       <div class="navbar-header">
-        <div class="btn-group">
-          <a type="button" href="{% block brandhref %}{%endblock %}" class="btn nav-dropdown-btn navbar-brand">{% block brand %}{% endblock %}</a>
-          <button type="button" class="btn nav-dropdown-btn navbar-brand dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-            <span class="caret"></span>
-            <span class="sr-only">Toggle Dropdown</span>
-          </button>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="{{ url_for('public.home') }}">Home</a></li>
-            <li><a href="{{ url_for('wexplorer.explore') }}">Wexplorer</a></li>
-            <li><a href="{{ url_for('sherpa.index') }}">Sherpa</a></li>
-            <li><a href="{{ url_for('opportunities.index') }}">Opportunities</a></li>
-          </ul>
-        </div>
+        <ul class="nav navbar-nav">
+          <li class="dropdown">
+            <a type="button" href="{% block brandhref %}{%endblock %}" class="btn nav-dropdown-btn navbar-brand">{% block brand %}{% endblock %}</a>
+            <a class="btn nav-dropdown-btn navbar-brand dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+              <span class="caret"></span>
+              <span class="sr-only">Toggle Dropdown</span>
+            </a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="{{ url_for('public.home') }}">Home</a></li>
+              <li><a href="{{ url_for('wexplorer.explore') }}">Wexplorer</a></li>
+              <li><a href="{{ url_for('sherpa.index') }}">Sherpa</a></li>
+              <li><a href="{{ url_for('opportunities.index') }}">Opportunities</a></li>
+            </ul>
+          </li>
+        </ul>
       </div>
 
       <ul class="nav navbar-nav">
         {% block applinks %}{% endblock %}
       </ul>
 
-      {% if current_user.email %}
-      <ul class="nav navbar-nav navbar-right">
-        <li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('admin.index') }}">Admin</a></p></li>
-        <li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('users.profile') }}">Profile</a></p></li>
-        <li><a class="navbar-link js-signout" href="#"><i class="fa fa-sign-out"></i> Sign Out</a></li>
-      </ul>
-      {% else %}
-      <ul class="nav navbar-nav navbar-right">
-        <li><p class="navbar-text"><a href="#" class="navbar-link js-signin">Login</a></p></li>
-      </ul>
-      {% endif %}
+      {% block navlogin %}{% endblock %}
 
       <ul class="nav navbar-nav navbar-right">
         {% block applinks_right %}{% endblock %}

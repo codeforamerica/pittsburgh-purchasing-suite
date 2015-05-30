@@ -6,6 +6,7 @@ from flask import current_app
 from purchasing.extensions import mail
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing.data.importer.nigp import main
+from purchasing.opportunities.models import Vendor
 
 class TestOpportunities(BaseTestCase):
     render_templates = True
@@ -16,19 +17,25 @@ class TestOpportunities(BaseTestCase):
         main(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
 
     def test_index(self):
+        '''
+        Index page works as expected
+        '''
         response = self.client.get('/opportunities/')
         self.assert200(response)
         self.assert_template_used('opportunities/index.html')
 
     def test_signup(self):
+        '''
+        Signups work as expected including validation errors, signups, etc.
+        '''
         response = self.client.get('/opportunities/signup')
         self.assert200(response)
         subcats = json.loads(self.get_context_variable('subcategories'))
 
-        # assert two categories
-        self.assertEquals(len(subcats.keys()), 2)
-        # assert five total subcatgories
-        self.assertEquals(len([item for sublist in subcats.values() for item in sublist]), 5)
+        # assert two categories (plus the total category)
+        self.assertEquals(len(subcats.keys()), 3)
+        # assert five total subcatgories (plus 5 in the total field)
+        self.assertEquals(len([item for sublist in subcats.values() for item in sublist]), 10)
 
         # assert email, business, categories needed
         no_email_post = self.client.post('/opportunities/signup', data=dict(
@@ -75,6 +82,7 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(success_post.status_code, 302)
             self.assertEquals(success_post.location, 'http://localhost/opportunities/')
             self.assertEquals(len(outbox), 1)
+            self.assertEquals(Vendor.query.count(), 1)
             self.assert_flashes('Thank you for signing up! Check your email for more information', 'alert-success')
 
             # successful post with two sets of subcategories
@@ -88,11 +96,12 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(success_post.status_code, 302)
             self.assertEquals(success_post.location, 'http://localhost/opportunities/')
             self.assertEquals(len(outbox), 2)
+            self.assertEquals(Vendor.query.count(), 2)
             self.assert_flashes('Thank you for signing up! Check your email for more information', 'alert-success')
 
             # successful post with existing email should update the profile, not send message
             success_post_old_email = self.client.post('/opportunities/signup', data=dict(
-                email='foo@foo.com',
+                email='foo2@foo.com',
                 business_name='foo',
                 subcategories=[1, 2, 3],
                 categories='Apparel'
@@ -101,9 +110,14 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(success_post.status_code, 302)
             self.assertEquals(success_post.location, 'http://localhost/opportunities/')
             self.assertEquals(len(outbox), 2)
+            self.assertEquals(Vendor.query.count(), 2)
             self.assert_flashes("You are already signed up! Your profile was updated with this new information", 'alert-info')
 
     def test_manage_subscriptions(self):
+        '''
+        Test subscription and unsubscription management
+        '''
+
         subscribe = self.client.post('/opportunities/signup', data=dict(
             email='foo2@foo.com',
             business_name='foo',

@@ -36,11 +36,12 @@ def signup():
     categories, subcategories = set(), defaultdict(list)
     for category in all_categories:
         categories.add(category.category)
+        subcategories['Select All'].append((category.id, category.subcategory))
         subcategories[category.category].append((category.id, category.subcategory))
 
     form = SignupForm()
 
-    form.categories.choices = [(None, '---')] + list(sorted(zip(categories, categories)))
+    form.categories.choices = [(None, '---')] + list(sorted(zip(categories, categories))) + [('Select All', 'Select All')]
     form.subcategories.choices = []
 
     if form.validate_on_submit():
@@ -55,12 +56,13 @@ def signup():
             )
 
             flash("You are already signed up! Your profile was updated with this new information", 'alert-info')
+
         else:
             vendor = Vendor.create(
                 **form_data
             )
 
-            confirmation_sent = vendor_signup(vendor)
+            confirmation_sent = vendor_signup(vendor, categories=form_data['categories'])
 
             if confirmation_sent:
                 flash('Thank you for signing up! Check your email for more information', 'alert-success')
@@ -80,8 +82,15 @@ def signup():
         form.email.validate(form)
         session.pop('email')
 
+    display_categories = subcategories.keys()
+    display_categories.remove('Select All')
+
     return render_template(
-        'opportunities/signup.html', form=form, subcategories=json.dumps(subcategories)
+        'opportunities/signup.html', form=form,
+        subcategories=json.dumps(subcategories),
+        categories=json.dumps(
+            sorted(display_categories) + ['Select All']
+        )
     )
 
 @blueprint.route('/manage', methods=['GET', 'POST'])

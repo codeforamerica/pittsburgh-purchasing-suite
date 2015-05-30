@@ -10,7 +10,7 @@
       <h4>Complete your sign-up</h4>
       <h3>Tell us a little bit more about your business, in order to start receiving email updates about upcoming City opportunities.</h3>
  <div class="spacer-20"></div>
-    
+
 
       <label>What opportunities would you like to be notified about?</label>
       <p class="text-muted">Not sure what to choose? You can sign up for more than one category, or all of them if you like.</p>
@@ -133,5 +133,6 @@
 {% block jsvars %}
 <script type="text/javascript">
   var subcategories = {{ subcategories|safe }};
+  var categories = {{ categories|safe }};
 </script>
 {% endblock %}

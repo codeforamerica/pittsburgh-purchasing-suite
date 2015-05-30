@@ -26,15 +26,43 @@ label {
 #splash-header {
   height: 550px;
   background: url('../img/opp-splash.png');
+  background-size: cover;
+  background-position: center center;
   margin-left: -15px;
   margin-right: -15px;
   margin-top: -9px;
   padding-top: 120px;
+
+  @media @mobile {
+    padding-top: 0;
+  }
 }
 
+.splash-header-content,
+.faq-content-container {
+  @media @mobile {
+    margin-left: 15px;
+    margin-right: 15px;
+  }
+}
 
 .input-no-left-padding {
   padding-left: 0;
+}
+
+.input-no-left-padding-mobile {
+  @media @mobile {
+    padding-left: 0;
+  }
+}
+
+.btn-signup-form {
+  width: 100%;
+  display: block;
+
+  @media @mobile {
+    margin-top: 5px;
+  }
 }
 
 .faq-question {
