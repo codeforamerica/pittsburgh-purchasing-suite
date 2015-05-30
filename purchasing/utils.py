@@ -12,6 +12,9 @@ def flash_errors(form, category="warning"):
                 getattr(form, field).label.text, error), category
             )
 
+def format_currency(value):
+    return "${:,.2f}".format(value)
+
 def url_for_other_page(page):
     args = dict(request.view_args.items() + request.args.to_dict().items())
     args['page'] = page

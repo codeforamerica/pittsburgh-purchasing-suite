@@ -33,6 +33,8 @@
                 {{ result.company_name|title }}
               </a>
               {% endif %}
+              <br>
+              <span class="text-muted"><small>Matched: <strong>{{ result.found_in }}</strong></small></span>
             </td>
             <td>
               {% if result.contract_id %}

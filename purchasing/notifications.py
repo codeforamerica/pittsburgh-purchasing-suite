@@ -22,9 +22,43 @@ def vendor_signup(vendor, categories=[]):
     )
 
     try:
-        current_app.logger.debug('Attempting to send signup message to {}'.format(to_email))
+        current_app.logger.debug('SIGNUPTRY | Attempting to send signup message to {}'.format(
+            to_email)
+        )
         mail.send(msg)
         return True
     except Exception, e:
-        current_app.logger.error('Attempted signup message to {} failed due to {}'.format(to_email, e))
+        current_app.logger.error('SIGNUPFAIL | Attempted signup message to {} failed due to {}'.format(
+            to_email, e)
+        )
+        return False
+
+def wexplorer_feedback(contract, sender, body):
+    '''
+    Sends a notification to the configured ADMIN_EMAIL.
+    '''
+    msg_body = render_template('wexplorer/feedback_email.html', contract=contract, sender=sender, body=body)
+
+    msg = Message(
+        subject='Wexplorer contract feedback - ID: {id}, Description: {description}'.format(
+            id=contract.id,
+            description=contract.description
+        ),
+        html=msg_body,
+        sender=current_app.config['MAIL_DEFAULT_SENDER'],
+        recipients=[current_app.config['ADMIN_EMAIL']]
+    )
+
+    try:
+        current_app.logger.debug('WEXFEEDBACK | Attempting to send Wexplorer feedback about ID: {id}'.format(
+            id=contract.id)
+        )
+        mail.send(msg)
+        return True
+    except Exception, e:
+        current_app.logger.error(
+            'WEXFEEDBACKERROR | Attempted to send Wexplorer feedback about ID: {id} failed due to {e}'.format(
+                id=contract.id, e=e
+            )
+        )
         return False

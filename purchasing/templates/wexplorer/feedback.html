@@ -1,0 +1,38 @@
+{% extends 'wexplorer/layout.html' %}
+{% import "macros/with_errors.html" as macros %}
+{% block content %}
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12">
+      <form class="form form-horizontal" method="POST" action="{{ url_for('wexplorer.feedback', contract_id=contract.id) }}">
+        {{ feedback_form.csrf_token() }}
+        <div class="form-group">
+          <label class="col-md-3 control-label">Feedback about:</label>
+          <div class="col-md-6">
+            <div class="form-descriptive-text">
+              <a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">{{ contract.description }}</a>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-md-3 control-label">Email address</label>
+          <div class="col-md-6">
+            {{ macros.with_errors(feedback_form.sender, class_="form-control", placeholder="Your email address") }}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-md-3 control-label">Your feedback<span class="form-required">*</span></label>
+          <div class="col-md-6">
+            {{ macros.with_errors(feedback_form.body, class_="form-control", placeholder="Your feedback") }}
+          </div>
+        </div>
+        <div class="col-md-offset-3 col-md-5 horizontal-form-submit input-no-left-padding-tablet">
+          <button type="submit" class="btn btn-success">Send Feedback</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

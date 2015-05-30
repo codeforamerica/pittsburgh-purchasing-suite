@@ -101,11 +101,11 @@ def import_nigp(filepath):
     print 'Import finished!'
     return
 
-@manager.command
-def scrape():
+@manager.option('-a', '--all', dest='_all', default=None)
+def scrape(_all):
     from purchasing.data.importer.scrape_county import main
     print 'Scraping County'
-    main()
+    main(_all)
     print 'Scraping Finished'
     return
 

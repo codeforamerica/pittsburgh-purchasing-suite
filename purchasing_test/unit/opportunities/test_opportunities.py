@@ -24,6 +24,10 @@ class TestOpportunities(BaseTestCase):
         self.assert200(response)
         self.assert_template_used('opportunities/index.html')
 
+        # assert clicking signup works as expected
+        signup = self.client.post('/opportunities/signup?email=foo@foo.com', follow_redirects=True)
+        self.assertTrue('foo@foo.com' in signup.data)
+
     def test_signup(self):
         '''
         Signups work as expected including validation errors, signups, etc.

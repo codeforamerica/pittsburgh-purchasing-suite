@@ -108,12 +108,11 @@ def main(filetarget, filename, access_key, access_secret, bucket):
             if s3_files:
                 # all files start with 'costars-{number}-', which we should be
                 # able to get from our filename
+                max_ratio = (None, 0)
 
                 startswith = filename.strip('.csv').lower()
                 for _file in s3_files:
                     _filename = _file.name.encode('utf-8').strip('.pdf')
-
-                    max_ratio = (None, 0)
 
                     if _filename.startswith(startswith):
                         # because the file start patterns are consistent, strip

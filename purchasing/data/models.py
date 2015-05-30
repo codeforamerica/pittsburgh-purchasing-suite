@@ -116,6 +116,7 @@ class LineItem(Model):
     unit_of_measure = Column(db.String(255))
     unit_cost = Column(db.Float)
     total_cost = Column(db.Float)
+    percentage = Column(db.Boolean)
 
     def __unicode__(self):
         return self.description
