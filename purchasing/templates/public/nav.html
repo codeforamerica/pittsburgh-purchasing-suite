@@ -5,6 +5,11 @@
 {% block brand %}Pittsburgh Purchasing Suite{% endblock %}
 
 {% block applinks %}
-<li><a href="{{ url_for('wexplorer.explore') }}">Wexplorer</a></li>
-<li><a href="{{ url_for('sherpa.index') }}">Sherpa</a></li>
+<li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('wexplorer.explore') }}">Wexplorer</a></p></li>
+<li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('sherpa.index') }}">Sherpa</a></p></li>
+<li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('opportunities.index') }}">Opportunities</a></p></li>
+{% endblock %}
+
+{% block navlogin %}
+{% include "nav-login.html" %}
 {% endblock %}

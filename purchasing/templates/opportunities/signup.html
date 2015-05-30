@@ -1,0 +1,138 @@
+{% extends "opportunities/layout.html" %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="spacer-20"></div>
+      <h4>Complete your sign-up</h4>
+      <h3>Tell us a little bit more about your business, in order to start receiving email updates about upcoming City opportunities.</h3>
+ <div class="spacer-20"></div>
+
+
+      <label>What opportunities would you like to be notified about?</label>
+      <p class="text-muted">Not sure what to choose? You can sign up for more than one category, or all of them if you like.</p>
+
+      <form class="form-horizontal" method="POST" action="{{ url_for('opportunities.signup') }}">
+
+        {{ form.csrf_token() }}
+
+        <div id="js-categories-container">
+
+          <div class="form-group">
+            <div class="col-sm-12">
+              {{ macros.with_errors(form.categories, class_="form-control col-sm-12 js-category-select", id="category-0") }}
+            </div>
+          </div><!-- categories -->
+
+          <div class="form-group" id="js-subcategory-group-0">
+            {% if 'subcategories' in form.errors.keys() %}
+            <div class="alert alert-danger alert-dismissable">
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+              <span>{{ form.errors['subcategories'][0] }}</span>
+            </div>
+            {% endif %}
+            {% for subcat in form.subcategories %}
+            <div class="col-sm-12">
+              <div class="checkbox">
+                {{ macros.with_errors(subcat, checked=true, class_="js-subcategory") }}
+                {{ subcat.label }}
+              </div>
+            </div><!-- subcategories -->
+            {% endfor %}
+          </div>
+
+        </div><!-- /js-categories-container -->
+
+        <div class="form-group">
+         <div class="col-sm-6">
+            <button type="button" class="form-control btn btn-primary another-category" id="js-add-category">Add another category</button>
+         </div>
+        </div>
+
+        <div class="spacer-20"></div>
+
+        <label>What's your name?</label>
+        <div class="form-group">
+          <div class="col-sm-6">
+            <label for="firstname" class="sr-only"></label>
+            {{ macros.with_errors(form.first_name, class_="form-control", placeholder="First name") }}
+          </div>
+          <div class="col-sm-6">
+            <label for="lastname" class="sr-only"></label>
+            {{ macros.with_errors(form.last_name, class_="form-control", placeholder="Last name") }}
+          </div>
+        </div><!--/names-->
+
+        <div class="form-group">
+          <div class="col-sm-12">
+            <label for="business_name">What's the name of your business? <span class="form-required">*</span></label>
+            {{ macros.with_errors(form.business_name, class_="form-control", placeholder="Business name") }}
+          </div>
+        </div><!-- /business name -->
+
+        <div class="form-group">
+          <div class="col-sm-12">
+            <label for="email">What's your email address? <span class="form-required">*</span></label>
+            {{ macros.with_errors(form.email, class_="form-control", placeholder="Email address") }}
+          </div>
+        </div><!-- /email -->
+
+        <div class="form-group">
+          <div class="col-sm-12">
+            <label for="phone_number">What's your phone number?</label>
+            {{ macros.with_errors(form.phone_number, class_="form-control", placeholder="Phone number") }}
+          </div>
+        </div><!-- /phone number -->
+
+        <div class="form-group">
+          <div class="col-sm-12">
+            <label for="fax_number">What's your fax number?</label>
+            {{ macros.with_errors(form.fax_number, class_="form-control", placeholder="Fax number") }}
+          </div>
+        </div><!-- /fax number -->
+
+        <div class="form-group">
+          <div class="col-sm-12">
+            <label for="mwdbe-certifications">Are you certified as any of the following?</label>
+            <div class="checkbox">
+              {{ macros.with_errors(form.minority_owned) }}
+              <label for="minority_owned">Minority-owned business</label>
+            </div>
+            <div class="checkbox">
+              {{ macros.with_errors(form.woman_owned) }}
+              <label for="woman_owned">Woman-owned business</label>
+            </div>
+            <div class="checkbox">
+              {{ macros.with_errors(form.veteran_owned) }}
+              <label for="veteran_owned">Veteran-owned business</label>
+            </div>
+            <div class="checkbox">
+              {{ macros.with_errors(form.disadvantaged_owned) }}
+              <label for="disadvantaged_owned">Disadvantaged business enterprise</label>
+            </div>
+          </div>
+        </div><!-- /certifications -->
+
+        <input type="submit" class="btn btn-primary form-control" value="Sign up">
+
+      </form>
+
+      <div class="spacer-30"></div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block jsvars %}
+<script type="text/javascript">
+  var subcategories = {{ subcategories|safe }};
+  var categories = {{ categories|safe }};
+</script>
+{% endblock %}

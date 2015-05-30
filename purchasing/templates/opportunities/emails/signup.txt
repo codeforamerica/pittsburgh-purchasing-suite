@@ -1,0 +1,13 @@
+Thank you for subscribing for updates about Pittsburgh Opportunities!
+
+{% if categories|length > 20 %}
+You have signed up to receive notifications about {{ categories|length }} categories!
+{% else %}
+You have signed up to receive notifications about the following categories:
+
+{% for category in categories %}
+  {{ category.subcategory }}
+{% endfor %}
+{% endif %}
+
+Manage your notification settings: {{ url_for('opportunities.manage', _external=True) }}

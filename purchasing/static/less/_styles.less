@@ -61,35 +61,6 @@ footer {
   color: #999999;
 }
 
-footer a {
-  color: #999999;
-}
-
-footer p {
-  float: right;
-  margin-right: 25px;
-}
-
-footer ul {
-  list-style: none;
-}
-
-footer ul li {
-  float: left;
-  margin-left: 10px;
-}
-
-footer .company {
-  float: left;
-  margin-left: 25px;
-}
-
-footer .footer-nav {
-  float: right;
-  margin-right: 25px;
-  list-style: none;
-}
-
 .footer{
   position: absolute;
   bottom: 0;
@@ -108,7 +79,6 @@ footer a {
 .spacer-20 { padding-bottom: 20px; }
 .spacer-30 { padding-bottom: 30px; }
 .spacer-50 { padding-bottom: 50px; }
-
 
 hr {
   color: @gray-darker;
@@ -135,10 +105,24 @@ hr.small {
   background-color: @navbar-background-bg;
 }
 
-.navbar-inverse button.nav-dropdown-btn:hover,
-.navbar-inverse button.nav-dropdown-btn:focus,
-.navbar-inverse button.nav-dropdown-btn:active {
-  background-color: darken(@navbar-background-bg, 5%);
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+  color: darken(@navbar-default-color, 10%);
+  background-color: @navbar-background-bg;
+}
+
+.nav .open > a,
+.nav .open > a:hover,
+.nav .open > a:focus {
+  border-color: transparent;
+}
+
+.navbar-default button.nav-dropdown-btn:hover,
+.navbar-default button.nav-dropdown-btn:focus,
+.navbar-default button.nav-dropdown-btn:active {
+  background-color: @navbar-background-bg;
+  color: darken(@navbar-default-color, 10%);
 }
 
 .row-well-padding {

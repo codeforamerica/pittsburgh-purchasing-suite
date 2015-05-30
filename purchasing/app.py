@@ -10,7 +10,7 @@ from purchasing.settings import ProdConfig
 from purchasing.assets import assets, test_assets
 from purchasing.extensions import (
     bcrypt, cache, db, login_manager,
-    migrate, debug_toolbar, admin, s3
+    migrate, debug_toolbar, admin, s3, mail
 )
 from purchasing.users.models import AnonymousUser
 from purchasing.utils import url_for_other_page, thispage
@@ -18,6 +18,7 @@ from purchasing.public import views as public_views
 from purchasing.users import views as user_views
 from purchasing.wexplorer import views as wexplorer_views
 from purchasing.sherpa import views as sherpa_views
+from purchasing.opportunities import views as opportunities_views
 # import models so that flask-migrate can auto-detect
 from purchasing.public.models import AppStatus
 
@@ -85,6 +86,7 @@ def register_extensions(app):
     migrate.init_app(app, db)
     admin.init_app(app)
     s3.init_app(app)
+    mail.init_app(app)
     return None
 
 def register_blueprints(app):
@@ -92,6 +94,7 @@ def register_blueprints(app):
     app.register_blueprint(user_views.blueprint)
     app.register_blueprint(wexplorer_views.blueprint)
     app.register_blueprint(sherpa_views.blueprint)
+    app.register_blueprint(opportunities_views.blueprint)
     app.jinja_env.globals['url_for_other_page'] = url_for_other_page
     app.jinja_env.globals['thispage'] = thispage
     # import admin views

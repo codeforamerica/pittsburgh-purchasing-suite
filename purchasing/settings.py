@@ -14,6 +14,11 @@ class Config(object):
     BROWSERID_URL = os_env.get('BROWSERID_URL')
     PER_PAGE = 50
     CITY_DOMAIN = 'pittsburghpa.gov'
+    MAIL_DEFAULT_SENDER = 'noreply@pittsburghpurchasingsuite.com'
+    MAIL_USERNAME = os_env.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
 
 class ProdConfig(Config):
     """Production configuration."""
@@ -27,14 +32,18 @@ class ProdConfig(Config):
     AWS_SECRET_ACCESS_KEY = os_env.get('AWS_SECRET_ACCESS_KEY')
     S3_USE_HTTPS = True
     UGLIFYJS_EXTRA_ARGS = ['-m']
+    MAIL_SERVER = 'smtp.sendgrid.net'
+    MAIL_MAX_EMAILS = 100
 
 class DevConfig(Config):
     """Development configuration."""
     ENV = 'dev'
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing') # TODO: Change me
+    SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing')  # TODO: Change me
     DEBUG_TB_ENABLED = True
     BROWSERID_URL = os_env.get('BROWSERID_URL', 'http://127.0.0.1:9000')
+    MAIL_SERVER = 'smtp.gmail.com'  # Use gmail in dev: https://support.google.com/mail/answer/1173270?hl=en
+    ASSETS_DEBUG = True
 
 class TestConfig(Config):
     TESTING = True
@@ -44,3 +53,4 @@ class TestConfig(Config):
     BROWSERID_URL = 'test'
     ASSETS_DEBUG = True
     CITY_DOMAIN = 'foo.com'
+    MAIL_SUPPRESS_SEND = True

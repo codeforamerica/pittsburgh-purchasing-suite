@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+
+{% block assets %}
+  {% assets "opportunities_less" %}
+    <link rel="stylesheet" href="{{ ASSET_URL }}">
+  {% endassets %}
+{% endblock %}
+
+{% block nav %}
+{% include "opportunities/nav.html" %}
+{% endblock %}
+
+{% block js %}
+  {% assets "opportunitiesjs" %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+{% endblock %}
+
+{% block footerclass %}
+  text-center
+{% endblock %}
