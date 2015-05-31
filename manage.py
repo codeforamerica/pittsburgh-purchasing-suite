@@ -10,6 +10,7 @@ from flask.ext.assets import ManageAssets
 from purchasing.app import create_app
 from purchasing.settings import DevConfig, ProdConfig
 from purchasing.database import db
+from purchasing.utils import _get_aggressive_cache_headers
 
 from purchasing.public.models import AppStatus
 
@@ -150,17 +151,24 @@ def upload_assets(user, secret, bucket):
         key = path.split('public')[1]
         file = current_app.config['APP_DIR'] + '/static' + key
         print 'Uploading {}'.format(key)
-        _file = bucket.new_key('/static' + key)
-        _file.set_contents_from_filename(file)
+        _file = bucket.new_key(
+            '/static' + key
+        )
+        aggressive_headers = _get_aggressive_cache_headers(_file)
+        _file.set_contents_from_filename(file, headers=aggressive_headers)
         _file.set_acl('public-read')
 
     print 'Uploading images...'
     for root, _, files in os.walk(current_app.config['APP_DIR'] + '/static/img'):
         for file in files:
             print 'Uploading {}'.format(file)
-            _file = bucket.new_key('/static/img/' + file)
-            _file.set_contents_from_filename(os.path.join(root, file))
+            _file = bucket.new_key(
+                '/static/img/' + file
+            )
+            aggressive_headers = _get_aggressive_cache_headers(_file)
+            _file.set_contents_from_filename(os.path.join(root, file), headers=aggressive_headers)
             _file.set_acl('public-read')
+
     return
 
 @manager.command
