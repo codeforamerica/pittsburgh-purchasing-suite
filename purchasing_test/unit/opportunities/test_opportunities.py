@@ -76,45 +76,54 @@ class TestOpportunities(BaseTestCase):
         with mail.record_messages() as outbox:
 
             # successful post with only one set of subcategories
-            success_post = self.client.post('/opportunities/signup', data=dict(
-                email='foo@foo.com',
-                business_name='foo',
-                subcategories=[1],
-                categories='Apparel'
-            ))
+            success_post = self.client.post('/opportunities/signup', data={
+                'email': 'foo@foo.com',
+                'business_name': 'foo',
+                'subcategories-1': 'on',
+                'categories': 'Apparel'
+            })
 
             self.assertEquals(success_post.status_code, 302)
             self.assertEquals(success_post.location, 'http://localhost/opportunities/')
             self.assertEquals(len(outbox), 1)
             self.assertEquals(Vendor.query.count(), 1)
+            self.assertEquals(len(Vendor.query.first().categories), 1)
             self.assert_flashes('Thank you for signing up! Check your email for more information', 'alert-success')
 
             # successful post with two sets of subcategories
-            success_post_everything = self.client.post('/opportunities/signup', data=dict(
-                email='foo2@foo.com',
-                business_name='foo',
-                subcategories=[1, 2, 3, 4, 5],
-                categories='Apparel'
-            ))
+            success_post_everything = self.client.post('/opportunities/signup', data={
+                'email': 'foo2@foo.com',
+                'business_name': 'foo',
+                'subcategories-1': 'on',
+                'subcategories-2': 'on',
+                'subcategories-3': 'on',
+                'subcategories-4': 'on',
+                'subcategories-5': 'on',
+                'categories': 'Apparel'
+            })
 
             self.assertEquals(success_post.status_code, 302)
             self.assertEquals(success_post.location, 'http://localhost/opportunities/')
             self.assertEquals(len(outbox), 2)
             self.assertEquals(Vendor.query.count(), 2)
+            self.assertEquals(len(Vendor.query.all()[1].categories), 5)
             self.assert_flashes('Thank you for signing up! Check your email for more information', 'alert-success')
 
             # successful post with existing email should update the profile, not send message
-            success_post_old_email = self.client.post('/opportunities/signup', data=dict(
-                email='foo2@foo.com',
-                business_name='foo',
-                subcategories=[1, 2, 3],
-                categories='Apparel'
-            ))
+            success_post_old_email = self.client.post('/opportunities/signup', data={
+                'email': 'foo2@foo.com',
+                'business_name': 'foo',
+                'subcategories-1': 'on',
+                'subcategories-2': 'on',
+                'subcategories-3': 'on',
+                'categories': 'Apparel'
+            })
 
             self.assertEquals(success_post.status_code, 302)
             self.assertEquals(success_post.location, 'http://localhost/opportunities/')
             self.assertEquals(len(outbox), 2)
             self.assertEquals(Vendor.query.count(), 2)
+            self.assertEquals(len(Vendor.query.all()[1].categories), 3)
             self.assert_flashes("You are already signed up! Your profile was updated with this new information", 'alert-info')
 
     def test_manage_subscriptions(self):
@@ -122,12 +131,14 @@ class TestOpportunities(BaseTestCase):
         Test subscription and unsubscription management
         '''
 
-        subscribe = self.client.post('/opportunities/signup', data=dict(
-            email='foo2@foo.com',
-            business_name='foo',
-            subcategories=[1, 2, 3],
-            categories='Apparel'
-        ))
+        subscribe = self.client.post('/opportunities/signup', data={
+            'email': 'foo2@foo.com',
+            'business_name': 'foo',
+            'subcategories-1': 'on',
+            'subcategories-2': 'on',
+            'subcategories-3': 'on',
+            'categories': 'Apparel'
+        })
 
         manage = self.client.post('/opportunities/manage', data=dict(
             email='foo2@foo.com'

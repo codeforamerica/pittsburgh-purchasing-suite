@@ -1,8 +1,32 @@
 # -*- coding: utf-8 -*-
 '''Helper utilities and decorators.'''
 
-from flask import flash, request, url_for
+import time
+import email
 from math import ceil
+from datetime import datetime, timedelta
+
+from flask import flash, request, url_for
+
+def _get_aggressive_cache_headers(key):
+    '''
+    Utility for setting file expiry headers on S3
+    '''
+    metadata = key.metadata
+
+    metadata['Content-Type'] = key.content_type
+
+    # HTTP/1.0 (5 years)
+    metadata['Expires'] = '{} GMT'.format(
+        email.Utils.formatdate(
+            time.mktime((datetime.now() + timedelta(days=365 * 5)).timetuple())
+        )
+    )
+
+    # HTTP/1.1 (5 years)
+    metadata['Cache-Control'] = 'max-age=%d, public' % (3600 * 24 * 360 * 5)
+
+    return metadata
 
 def flash_errors(form, category="warning"):
     '''Flash all errors for a form.'''

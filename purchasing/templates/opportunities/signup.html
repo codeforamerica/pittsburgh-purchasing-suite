@@ -36,14 +36,6 @@
               <span>{{ form.errors['subcategories'][0] }}</span>
             </div>
             {% endif %}
-            {% for subcat in form.subcategories %}
-            <div class="col-sm-12">
-              <div class="checkbox">
-                {{ macros.with_errors(subcat, checked=true, class_="js-subcategory") }}
-                {{ subcat.label }}
-              </div>
-            </div><!-- subcategories -->
-            {% endfor %}
           </div>
 
         </div><!-- /js-categories-container -->

@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 '''Public section, including homepage and signup.'''
+
 import time
+import urllib2
+import json
 
 from flask import (
-    Blueprint, render_template, jsonify
+    Blueprint, render_template, jsonify, current_app
 )
 from purchasing.extensions import login_manager
 from purchasing.users.models import User
@@ -25,16 +28,38 @@ def about():
 
 @blueprint.route('/_status')
 def status():
-    response = {}
-    response['status'] = 'ok'
+    response = {
+        'status': 'ok',
+        'dependencies': ['Sendgrid', 'Postgres', 'S3'],
+        'resources': {}
+    }
 
     try:
         status = AppStatus.query.first()
         if status.status != 'ok':
             response['status'] = status.status
-    except:
-        response['status'] = 'Database is unavailable'
+    except Exception, e:
+        response['status'] = 'Database is unavailable: {}'.format(e)
+
+    try:
+        pass
+    except Exception, e:
+        response['status'] = 'S3 is unavailable: {}'.format(e)
+
+    try:
+        url = 'https://sendgrid.com/api/stats.get.json?api_user={user}&api_key={_pass}&days=30'.format(
+            user=current_app.config['MAIL_USERNAME'],
+            _pass=current_app.config['MAIL_PASSWORD']
+        )
+
+        sendgrid = json.loads(urllib2.urlopen(url).read())
+        sent = sum([m['delivered'] + m['repeat_bounces'] for m in sendgrid])
+        response['resources']['Sendgrid'] = '{}% used'.format((100 * float(sent)) / int(
+            current_app.config.get('SENDGRID_MONTHLY_LIMIT', 40000)
+        ))
+
+    except Exception, e:
+        response['status'] = 'Sendgrid is unavailable: {}'.format(e)
+
     response['updated'] = int(time.time())
-    response['dependencies'] = []
-    response['resources'] = []
     return jsonify(response)

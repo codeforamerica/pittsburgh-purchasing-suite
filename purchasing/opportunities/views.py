@@ -10,7 +10,7 @@ from flask import (
 from purchasing.database import db
 from purchasing.notifications import vendor_signup
 from purchasing.extensions import login_manager
-from purchasing.opportunities.forms import SignupForm, UnsubscribeForm
+from purchasing.opportunities.forms import SignupForm, UnsubscribeForm, ValidationError
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
 blueprint = Blueprint(
@@ -48,7 +48,23 @@ def signup():
 
         vendor = Vendor.query.filter(Vendor.email == form.data.get('email')).first()
         form_data = {c.name: form.data.get(c.name, None) for c in Vendor.__table__.columns if c.name not in ['id', 'created_at']}
-        form_data['categories'] = [Category.query.get(i) for i in form.data.get('subcategories')]
+        form_data['categories'] = []
+        subcats = set()
+
+        # manually iterate the form fields
+        for k, v in request.form.iteritems():
+            if not k.startswith('subcategories-'):
+                continue
+            else:
+                subcat_id = int(k.split('-')[1])
+                # make sure the field is checked (or 'on') and we don't have it already
+                if v == 'on' and subcat_id not in subcats:
+                    subcats.add(subcat_id)
+                    subcat = Category.query.get(subcat_id)
+                    # make sure it's a valid subcategory
+                    if subcat is None:
+                        raise ValidationError('{} is not a valid choice!'.format(subcat))
+                    form_data['categories'].append(subcat)
 
         if vendor:
             vendor.update(
