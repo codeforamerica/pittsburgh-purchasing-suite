@@ -19,7 +19,15 @@
             {% endif %}
           </strong></h3></div>
           {% else %}
-          <div class="col-sm-9"><h3><strong>{{ contract.description }}</strong></h3></div>
+          <div class="col-sm-9"><h3><strong>
+            {% if contract.contract_href %}
+            <a href="{{ contract.contract_href }}" target="_blank">
+              {{ contract.description|title }}
+            </a>
+            {% else %}
+            {{ contract.description|title }}
+            {% endif %}
+          </strong></h3></div>
           <div class="col-sm-3">
             {% if current_user in contract.users %}
               <a href="{{ url_for('wexplorer.unsubscribe', contract_id=contract.id, next=path) }}" class="btn btn-danger pull-right btn-header">Stop receiving updates</a>
@@ -66,7 +74,9 @@
         <p class="wexplorer-column-header">Contract Details</p>
         <ul class="list-unstyled">
           {% for property in contract.properties %}
+            {% if property.key and property.value %}
             <li>{{ property.key|title }}: {{ property.value|title }}</li>
+            {% endif %}
           {% endfor %}
         </ul>
       </div>

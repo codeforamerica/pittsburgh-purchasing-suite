@@ -160,15 +160,18 @@ def main(filetarget, filename, access_key, access_secret, bucket):
 
                 # insert a new property with the listed manufacturers
                 elif k == 'Manufacturers':
-                    manufacturer, new_manufacturer = get_or_create(
-                        db.session, ContractProperty, commit=False,
-                        contract_id=contract.id,
-                        key='List of manufacturers',
-                        value=convert_empty_to_none(row.get('Manufacturers'))
-                    )
 
-                    if new_manufacturer:
-                        db.session.add(manufacturer)
+                    if convert_empty_to_none(row.get('Manufacturers')):
+
+                        manufacturer, new_manufacturer = get_or_create(
+                            db.session, ContractProperty, commit=False,
+                            contract_id=contract.id,
+                            key='List of manufacturers',
+                            value=convert_empty_to_none(row.get('Manufacturers'))
+                        )
+
+                        if new_manufacturer:
+                            db.session.add(manufacturer)
 
                 # we are treating everything else like a line item,
                 # so upload all of those pieces

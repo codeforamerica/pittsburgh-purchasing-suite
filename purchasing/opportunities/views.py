@@ -130,8 +130,9 @@ def manage():
             db.session.commit()
             flash('Preferences updated!', 'alert-success')
 
-        for subscription in vendor.categories:
-            form_subscriptions.append((subscription.id, subscription.subcategory))
+        if vendor:
+            for subscription in vendor.categories:
+                form_subscriptions.append((subscription.id, subscription.subcategory))
 
     form.subscriptions.choices = form_subscriptions
     return render_template('opportunities/manage.html', form=form)

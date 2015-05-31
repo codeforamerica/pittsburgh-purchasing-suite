@@ -14,14 +14,17 @@ def _get_aggressive_cache_headers(key):
     '''
     metadata = key.metadata
 
-    metadata['Content-Type'] = key.content_type
-
     # HTTP/1.0 (5 years)
     metadata['Expires'] = '{} GMT'.format(
         email.Utils.formatdate(
             time.mktime((datetime.now() + timedelta(days=365 * 5)).timetuple())
         )
     )
+
+    if 'css' in key.name.lower():
+        metadata['Content-Type'] = 'text/css'
+    else:
+        metadata['Content-Type'] = key.content_type
 
     # HTTP/1.1 (5 years)
     metadata['Cache-Control'] = 'max-age=%d, public' % (3600 * 24 * 360 * 5)
