@@ -30,7 +30,7 @@ def about():
 def status():
     response = {
         'status': 'ok',
-        'dependencies': ['Sendgrid', 'Postgres'],
+        'dependencies': ['Sendgrid', 'Postgres', 'S3'],
         'resources': {}
     }
 
@@ -40,6 +40,11 @@ def status():
             response['status'] = status.status
     except Exception, e:
         response['status'] = 'Database is unavailable: {}'.format(e)
+
+    try:
+        pass
+    except Exception, e:
+        response['status'] = 'S3 is unavailable: {}'.format(e)
 
     try:
         url = 'https://sendgrid.com/api/stats.get.json?api_user={user}&api_key={_pass}&days=30'.format(
