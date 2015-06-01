@@ -46,3 +46,11 @@ newrelic>=2.50
 
 # Email
 Flask-Mail==0.9.1
+
+# Management script
+Flask-Script
+
+# Scraping
+scrapelib==1.0.0
+beautifulsoup4==4.3.2
+
