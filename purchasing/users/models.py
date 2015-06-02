@@ -25,7 +25,7 @@ DEPARTMENT_CHOICES = [
     ('Department of Parks and Recreation', 'Department of Parks and Recreation'),
     ('Department of Permits, Licenses, and Inspections', 'Department of Permits, Licenses, and Inspections'),
     ('Department of Public Safety', 'Department of Public Safety'),
-    ('Department of Public Work', 'Department of Public Work'),
+    ('Department of Public Works', 'Department of Public Works'),
     ('Ethics Board', 'Ethics Board'),
     ('Innovation and Performance', 'Innovation and Performance'),
     ('Office of Management and Budget', 'Office of Management and Budget'),
