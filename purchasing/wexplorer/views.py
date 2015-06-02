@@ -58,7 +58,7 @@ def filter(department=None):
 
     results = contracts[lower_bound_result:upper_bound_result]
 
-    current_app.logger.debug('WEXFILTER - {department}: Filter by {department}'.format(department=department))
+    current_app.logger.info('WEXFILTER - {department}: Filter by {department}'.format(department=department))
 
     return render_template(
         'wexplorer/filter.html',
@@ -157,7 +157,7 @@ def search():
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
-    current_app.logger.debug('WEXSEARCH - {search_for}: Searched for {search_for}'.format(search_for=search_for))
+    current_app.logger.info('WEXSEARCH - {search_for}: Searched for {search_for}'.format(search_for=search_for))
 
     return render_template(
         'wexplorer/search.html',
@@ -177,6 +177,7 @@ def company(company_id):
     company = get_one_company(company_id)
 
     if company:
+        current_app.logger.info('WEXCOMPANY - Viewed company page {}'.format(company.company_name))
         return dict(
             company=company,
             choices=DEPARTMENT_CHOICES[1:],
@@ -192,6 +193,8 @@ def contract(contract_id):
     contract = get_one_contract(contract_id)
 
     if contract:
+
+        current_app.logger.info('WEXCONTRACT - Viewed contract page {}'.format(contract.description))
 
         departments = set([i.department for i in contract.users])
 
@@ -236,6 +239,11 @@ def feedback(contract_id):
             form.sender.data = current_user.email
 
         if form.validate_on_submit():
+
+            current_app.logger.info('WEXFEEDBACK - Feedback from {email} about {contract}'.format(
+                email=form.sender.data,
+                contract=contract.description
+            ))
 
             feedback_sent = wexplorer_feedback(
                 contract, form.data.get('sender'), form.data.get('body')

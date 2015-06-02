@@ -34,18 +34,8 @@ def status():
         'resources': {}
     }
 
-    try:
-        status = AppStatus.query.first()
-        if status.status != 'ok':
-            response['status'] = status.status
-    except Exception, e:
-        response['status'] = 'Database is unavailable: {}'.format(e)
-
-    try:
-        pass
-    except Exception, e:
-        response['status'] = 'S3 is unavailable: {}'.format(e)
-
+    # order the try/except blocks in the reverse order of seriousness
+    # in terms of an outage
     try:
         url = 'https://sendgrid.com/api/stats.get.json?api_user={user}&api_key={_pass}&days=30'.format(
             user=current_app.config['MAIL_USERNAME'],
@@ -60,6 +50,22 @@ def status():
 
     except Exception, e:
         response['status'] = 'Sendgrid is unavailable: {}'.format(e)
+
+    try:
+        # TODO: figure out some way to figure out if s3 is down
+        pass
+    except Exception, e:
+        response['status'] = 'S3 is unavailable: {}'.format(e)
+
+    try:
+        status = AppStatus.query.first()
+        if status.status != 'ok':
+            if response['status'] != 'ok':
+                response['status'] += ' || {}: {}'.format(status.status, status.message)
+            else:
+                response['status'] = '{}: {}'.format(status.status, status.message)
+    except Exception, e:
+        response['status'] = 'Database is unavailable: {}'.format(e)
 
     response['updated'] = int(time.time())
     return jsonify(response)
