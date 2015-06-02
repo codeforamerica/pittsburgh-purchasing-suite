@@ -4,6 +4,8 @@
 {% block content %}
 <div class="container">
 
+  {{ super() }}
+
   {% if user.department == 'New User' %}
     Welcome to the Pittsbugh Purchasing Suite! Please update your information from the list below. You must select your department.
   {% endif %}

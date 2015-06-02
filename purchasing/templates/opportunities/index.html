@@ -5,21 +5,20 @@
 
   <div id="splash-header" class="header">
     <div class="splash-header-content">
-      <div class="row">
-        <div class="col-sm-6 col-sm-offset-3">
-          <h1><strong>The City of Pittsburgh could be your next client.</strong></h1>
+      <div class="col-sm-6 col-sm-offset-3">
+        {% include "includes/flashes.html" %}
+        <h1><strong>The City of Pittsburgh could be your next client.</strong></h1>
 
-          <h3>Sign up to get email notifications about opportunities for your business!</h3>
-          <div class="spacer-10"></div>
-          <form class="form-horizontal" action="{{ url_for('opportunities.signup') }}">
-            <div class="col-md-9 input-no-left-padding">
-              <input class="form-control input-lg" type="text" name="email" placeholder="What's your email address?">
-            </div>
-            <div class="col-md-3 input-no-left-padding-mobile">
-              <input type="submit" class="btn btn-primary btn-lg btn-signup-form" value="Sign up">
-            </div>
-          </form>
-        </div>
+        <h3>Sign up to get email notifications about opportunities for your business!</h3>
+        <div class="spacer-10"></div>
+        <form class="form-horizontal" action="{{ url_for('opportunities.signup') }}">
+          <div class="col-md-9 input-no-left-padding">
+            <input class="form-control input-lg" type="text" name="email" placeholder="What's your email address?">
+          </div>
+          <div class="col-md-3 input-no-left-padding-tablet">
+            <input type="submit" class="btn btn-primary btn-lg btn-signup-form" value="Sign up">
+          </div>
+        </form>
       </div>
     </div>
   </div><!-- /splash-header -->
@@ -59,7 +58,7 @@
             <div class="col-sm-9 input-no-left-padding">
               <input class="form-control input-lg" type="text" name="email" placeholder="What's your email address?">
             </div>
-            <div class="col-sm-3 input-no-left-padding-mobile">
+            <div class="col-sm-3 input-no-left-padding-tablet">
               <input type="submit" class="btn btn-primary btn-lg btn-signup-form" value="Sign up">
             </div>
           </form>
