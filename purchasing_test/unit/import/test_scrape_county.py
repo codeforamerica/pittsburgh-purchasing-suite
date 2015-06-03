@@ -39,9 +39,9 @@ class TestScrapeCounty(BaseTestCase):
         '''
         Test that award information is scraped properly.
         '''
-        create_new_company(dict(company_name='U.S. Municipal Supply, Inc.'))
-        create_new_company(dict(company_name='Chemung Supply Corporation'))
-        create_new_company(dict(company_name='Path Master, Inc.'))
+        muni = create_new_company(dict(company_name='U.S. Municipal Supply, Inc.'))
+        chemung = create_new_company(dict(company_name='Chemung Supply Corporation'))
+        pathmaster = create_new_company(dict(company_name='Path Master, Inc., Co.'))
 
         new_contract = create_new_contract(
             dict(properties=[dict(key='foo', value='6965')], description='foo')
@@ -70,4 +70,9 @@ class TestScrapeCounty(BaseTestCase):
             self.assertTrue(item.manufacturer is not None)
             self.assertTrue(item.model_number is not None)
             self.assertEquals(item.contract_id, contract.id)
-            self.assertTrue(item.company_id in [i.id for i in get_all_companies()])
+            if 'muni' in item.company_name.lower():
+                self.assertEquals(item.company_id, muni.id)
+            elif 'chem' in item.company_name.lower():
+                self.assertEquals(item.company_id, chemung.id)
+            else:
+                self.assertEquals(item.company_id, pathmaster.id)

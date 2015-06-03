@@ -124,6 +124,7 @@ def grab_line_items(soup):
         include = True
         # initialize all of our variables
         quantity = None
+        manufacturer_lt, model_number_lt, manufacturer_at, model_number_at = None, None, None, None
 
         if table.find(text=ITEM_NUMBER_REGEX):
             # this is an item table, so use the item table parser
@@ -139,10 +140,10 @@ def grab_line_items(soup):
                 quantity, unit_of_measure, unit_cost, total_cost, \
                     company, manufacturer_at, model_number_at = parse_award_table(table)
 
+        if description and quantity:
             manufacturer = manufacturer_lt or manufacturer_at
             model_number = model_number_lt or model_number_at
 
-        if description and quantity:
             line_items.append({
                 'description': description, 'quantity': quantity,
                 'unit_of_measure': unit_of_measure, 'company': company,
@@ -246,11 +247,17 @@ def save_line_item(_line_items, contract):
         unit_cost, percentage = parse_currency(item.get('description'), item.get('unit_cost'))
         total_cost, _ = parse_currency(item.get('description'), item.get('total_cost'))
 
-        linked_company = Company.query.filter(
-            Company.company_name.ilike('%' + item.get('company') + '%')
-        ).first()
+        linked_company = db.session.execute('''
+        SELECT id, company_name
+        FROM company
+        WHERE company_name ilike '%' || :name || '%'
+        OR :name ~* company_name
+        ''', {
+            'name': item.get('company')
+        }
+        ).fetchone()
 
-        company_id = linked_company.id if linked_company else None
+        company_id = linked_company[0] if linked_company else None
 
         line_item, new_line_item = get_or_create(
             db.session, LineItem,
