@@ -157,7 +157,10 @@ def search():
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
-    current_app.logger.info('WEXSEARCH - {search_for}: Searched for {search_for}'.format(search_for=search_for))
+    current_app.logger.info('WEXSEARCH - {search_for}: {user} searched for "{search_for}"'.format(
+        search_for=search_for,
+        user=current_user.email if not current_user.is_anonymous() else 'anonymous'
+    ))
 
     return render_template(
         'wexplorer/search.html',
