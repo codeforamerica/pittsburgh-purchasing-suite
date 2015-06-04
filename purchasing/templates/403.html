@@ -3,12 +3,14 @@
 {% block page_title %}Forbidden{% endblock %}
 
 {% block content %}
-<div class="jumbotron">
-  <div class="text-center">
-    <h1>403</h1>
-    <p>
-      You don't have permission to access this page. Try the <a href="{{ url_for('public.home') }}">homepage</a>!
-    </p>
+<div class="container">
+  <div class="jumbotron">
+    <div class="text-center">
+      <h1>403</h1>
+      <p>
+        You don't have permission to access this page. Try the <a href="{{ url_for('public.home') }}">homepage</a>!
+      </p>
+    </div>
   </div>
 </div>
 {% endblock %}

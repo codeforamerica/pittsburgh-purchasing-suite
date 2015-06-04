@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from flask import (
-    Blueprint, render_template, url_for
+    Blueprint, render_template, url_for, abort
 )
+
+from purchasing.decorators import logview
 
 blueprint = Blueprint(
     'sherpa', __name__, url_prefix='/sherpa',
@@ -10,6 +12,7 @@ blueprint = Blueprint(
 )
 
 @blueprint.route('/')
+@logview
 def index():
     '''
     Landing page for sherpa
@@ -38,6 +41,7 @@ def index():
     )
 
 @blueprint.route('/is-it-on-contract')
+@logview
 def buy_something():
     '''
     First question for the buy something flow
@@ -66,6 +70,7 @@ def buy_something():
     )
 
 @blueprint.route("/use-it")
+@logview
 def use_it():
     '''
     For those who don't really need to use this app
@@ -83,6 +88,7 @@ def use_it():
     )
 
 @blueprint.route("/what-are-you-sourcing")
+@logview
 def sourcing():
     '''
     Second question for the buy something flow
@@ -123,6 +129,7 @@ def sourcing():
     )
 
 @blueprint.route("/construction")
+@logview
 def construction():
     '''
     End of the construction flow
@@ -142,6 +149,7 @@ def construction():
     )
 
 @blueprint.route("/emergency-professional-services")
+@logview
 def emergency_prof_services():
     '''
     First question for professional services sub-flow
@@ -167,6 +175,7 @@ def emergency_prof_services():
     )
 
 @blueprint.route("/wallace-act-professional-service")
+@logview
 def wallace_prof():
     '''
     End of emergency professional services flow
@@ -193,6 +202,7 @@ def wallace_prof():
     )
 
 @blueprint.route('/is-it-sole-sourced')
+@logview
 def sole_source():
     '''
     First question for professional services sub-flow
@@ -218,6 +228,7 @@ def sole_source():
     )
 
 @blueprint.route('/sole-source-department-rfp')
+@logview
 def sole_rfp():
     '''
     End of sole source professional services flow
@@ -250,6 +261,7 @@ def sole_rfp():
     )
 
 @blueprint.route('/department-rfp')
+@logview
 def dept_rfp():
     '''
     End of competitive bid professional services flow
@@ -279,6 +291,7 @@ def dept_rfp():
     )
 
 @blueprint.route('/goods-services')
+@logview
 def goods_services():
     '''
     First question for goods/services flow
@@ -304,6 +317,7 @@ def goods_services():
     )
 
 @blueprint.route('/explanatory')
+@logview
 def explanatory():
     '''
     End of the explanatory process flow
@@ -329,6 +343,7 @@ def explanatory():
 
 
 @blueprint.route('/emergency-goods')
+@logview
 def emergency_goods():
     '''
     Followup for goods/services flow
@@ -354,6 +369,7 @@ def emergency_goods():
     )
 
 @blueprint.route("/wallace-act-goods")
+@logview
 def wallace_goods():
     '''
     End of emergency goods flow
@@ -378,6 +394,7 @@ def wallace_goods():
     )
 
 @blueprint.route("/over-30-thousand")
+@logview
 def thirty_thousand():
     '''
     Followup for non emergency purchases more than $2000
@@ -403,6 +420,7 @@ def thirty_thousand():
     )
 
 @blueprint.route("/county-rfp-process")
+@logview
 def county_rfp():
     '''
     End of the county RFP flow
@@ -427,6 +445,7 @@ def county_rfp():
     )
 
 @blueprint.route("/multiple-purchases")
+@logview
 def multiple_purchases():
     '''
     Followup for non emergency purchases less than $30000
@@ -452,6 +471,7 @@ def multiple_purchases():
     )
 
 @blueprint.route("/phone-quote-single-use")
+@logview
 def phone_single():
     '''
     End of the single-use less than $30000 flow
@@ -478,6 +498,7 @@ def phone_single():
     )
 
 @blueprint.route("/is-it-a-service")
+@logview
 def service():
     '''
     Followup for multiple purchases
@@ -503,6 +524,7 @@ def service():
     )
 
 @blueprint.route("/phone-quote-service")
+@logview
 def phone_service():
     '''
     End of the service less than $10000 flow
@@ -529,6 +551,7 @@ def phone_service():
     )
 
 @blueprint.route("/between-10-and-30-thousand")
+@logview
 def between_10_30():
     '''
     Followup for services
@@ -554,6 +577,7 @@ def between_10_30():
     )
 
 @blueprint.route("/phone-quote-not-b-bid")
+@logview
 def phone_not_b():
     '''
     End of the < $30000 services flow
@@ -578,6 +602,7 @@ def phone_not_b():
     )
 
 @blueprint.route("/b-bid")
+@logview
 def b_bid():
     '''
     End of the $30000+ services flow
@@ -599,6 +624,7 @@ def b_bid():
     )
 
 @blueprint.route('/start-a-professional-services-agreement')
+@logview
 def start_a_psa():
     '''
     Termination node for starting a new professional

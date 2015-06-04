@@ -37,7 +37,9 @@
         {% block applinks %}{% endblock %}
       </ul>
 
-      {% block navlogin %}{% endblock %}
+      {% block navlogin %}
+        {% include "includes/nav-login.html" %}
+      {% endblock %}
 
       <ul class="nav navbar-nav navbar-right">
         {% block applinks_right %}{% endblock %}

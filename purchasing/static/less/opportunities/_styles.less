@@ -31,7 +31,11 @@ label {
   margin-left: -15px;
   margin-right: -15px;
   margin-top: -9px;
-  padding-top: 120px;
+  padding-top: 90px;
+
+  @media @tablet {
+    padding-top: 60px;
+  }
 
   @media @mobile {
     padding-top: 0;
@@ -40,9 +44,26 @@ label {
 
 .splash-header-content,
 .faq-content-container {
+  @media @tablet {
+    margin-left: 15px;
+    margin-right: 15px;
+  }
+
   @media @mobile {
     margin-left: 15px;
     margin-right: 15px;
+  }
+}
+
+.messages-container {
+  margin-top: -10px;
+
+  @media @tablet {
+    margin-top: -40px;
+  }
+
+  @media @mobile {
+    margin-top: 0;
   }
 }
 

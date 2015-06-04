@@ -11,7 +11,7 @@ from urlparse import urlparse
 
 from sqlalchemy import or_
 from purchasing.database import db
-from purchasing.data.models import ContractBase, ContractProperty, LineItem
+from purchasing.data.models import ContractBase, ContractProperty, LineItem, Company
 from purchasing.public.models import AppStatus
 
 from purchasing.data.importer import get_or_create
@@ -27,6 +27,77 @@ BASE_LINE_ITEM_URL = 'http://www.govbids.com/scripts/PAPG/public/OpenBids/Notice
 ITEM_NUMBER_REGEX = re.compile('Item #\d+')
 CURRENCY_REGEX = re.compile('[^\d.]')
 PERCENT_REGEX = re.compile('([Pp][Ee][Rr][Cc][Ee][Nn][Tt]).*')
+
+def parse_item_table(item_table):
+    item_description_contents = item_table.find_all('td')[1]
+    manufacturer, model_number = None, None
+    description = item_description_contents.contents[0]
+
+    if 'Brand Name Only' in str(item_description_contents):
+            contents = str(item_description_contents).split('<br>')
+            try:
+                manufacturer = BeautifulSoup(contents[2]).text.split()[1]
+                model_number = BeautifulSoup(contents[3]).text.split()[1]
+            except IndexError:
+                pass
+
+    return description, manufacturer, model_number
+
+def parse_award_table(award_table):
+    # award table -- occasionally these will have tbody nodes.
+    # sometimes they don't. this is important because there are
+    # sometimes nested tables, so we can't recursively grab all
+    # tr elements.
+    suppliers_table = award_table.find('tbody') if award_table.find('tbody') else award_table
+
+    quantity = None
+    for supplier in suppliers_table.find_all('tr', recursive=False):
+
+        # for some reason, they don't use actual radio boxes but
+        # instead of _images_ of radio boxes. so look for those.
+        if supplier.find('td').find('img') and \
+           supplier.find('td').find('img').get('src') == '/images/system/RadioChkd-blgr.gif':
+
+            if len(supplier.find_all('td')) <= 2:
+                include = False
+                continue
+
+            if supplier.find_all('td')[-1].string.lower() == 'no award':
+                include = False
+                continue
+
+            fields = supplier.find_all('td', recursive=False)
+
+            if len(fields) < 6:
+                include = False
+                continue
+
+            quantity = fields[2].text.strip()
+            unit_of_measure = fields[3].text.strip()
+            unit_cost = fields[4].text.strip()
+            total_cost = fields[5].text.strip()
+
+            company = fields[1].contents[0].text
+
+            manufacturer_table = fields[1].find('table')
+
+            if manufacturer_table is None:
+                manufacturer, model_number = None, None
+            elif len(manufacturer_table.find_all('tr')) == 1:
+                # this manufacturer we can take from the item table because
+                # it is either a no bid, or it is using the quoting brand
+                manufacturer, model_number = None, None
+            else:
+                # if we have more than this, we need to parse here for the
+                # manufacturer.
+                manufacturer = manufacturer_table.find_all('tr')[1].text.strip().split(':')[1]
+                model_number = manufacturer_table.find_all('tr')[2].text.strip().split(':')[1]
+
+            return quantity, unit_of_measure, unit_cost, total_cost, company, manufacturer, model_number
+
+        # if we don't find either the image, or the proper image, continue
+        else:
+            continue
 
 def grab_line_items(soup):
     '''
@@ -51,63 +122,34 @@ def grab_line_items(soup):
     for table in tables:
         # flag to skip this item due to it not having an awardee
         include = True
+        # initialize all of our variables
+        quantity = None
+        manufacturer_lt, model_number_lt, manufacturer_at, model_number_at = None, None, None, None
 
         if table.find(text=ITEM_NUMBER_REGEX):
-            description = table.find_all('td')[1].contents[0]
-
+            # this is an item table, so use the item table parser
+            description, manufacturer_lt, model_number_lt = parse_item_table(table)
         else:
             # award table -- occasionally these will have tbody nodes.
             # sometimes they don't. this is important because there are
             # sometimes nested tables, so we can't recursively grab all
             # tr elements.
-            suppliers_table = table.find('tbody') if table.find('tbody') else table
+            parsed_award_table = parse_award_table(table)
 
-            quantity = None
-            for supplier in suppliers_table.find_all('tr', recursive=False):
+            if parsed_award_table:
+                quantity, unit_of_measure, unit_cost, total_cost, \
+                    company, manufacturer_at, model_number_at = parse_award_table(table)
 
-                # for some reason, they don't use actual radio boxes but
-                # instead of _images_ of radio boxes. so look for those.
-                if supplier.find('td').find('img') and \
-                   supplier.find('td').find('img').get('src') == '/images/system/RadioChkd-blgr.gif':
+        if description and quantity:
+            manufacturer = manufacturer_lt or manufacturer_at
+            model_number = model_number_lt or model_number_at
 
-                    if len(supplier.find_all('td')) <= 2:
-                        include = False
-                        continue
-
-                    if supplier.find_all('td')[-1].string.lower() == 'no award':
-                        include = False
-                        continue
-
-                    fields = supplier.find_all('td', recursive=False)
-
-                    if len(fields) < 6:
-                        include = False
-                        continue
-
-                    quantity = fields[2].text.strip()
-                    unit_of_measure = fields[3].text.strip()
-                    unit_cost = fields[4].text.strip()
-                    total_cost = fields[5].text.strip()
-
-                    manufacturer_fields = fields[1].find_all('td')
-                    # ocassionally, there aren't manufacturers.
-                    try:
-                        manufacturer = manufacturer_fields[2].text.strip()
-                        model_number = manufacturer_fields[4].text.strip()
-                    except IndexError:
-                        manufacturer, model_number = None, None
-
-                # if we don't find either the image, or the proper image, continue
-                else:
-                    continue
-
-            if include and quantity:
-                line_items.append({
-                    'description': description, 'quantity': quantity,
-                    'unit_of_measure': unit_of_measure,
-                    'unit_cost': unit_cost, 'total_cost': total_cost,
-                    'manufacturer': manufacturer, 'model_number': model_number
-                })
+            line_items.append({
+                'description': description, 'quantity': quantity,
+                'unit_of_measure': unit_of_measure, 'company': company,
+                'unit_cost': unit_cost, 'total_cost': total_cost,
+                'manufacturer': manufacturer, 'model_number': model_number
+            })
 
     return line_items
 
@@ -205,6 +247,18 @@ def save_line_item(_line_items, contract):
         unit_cost, percentage = parse_currency(item.get('description'), item.get('unit_cost'))
         total_cost, _ = parse_currency(item.get('description'), item.get('total_cost'))
 
+        linked_company = db.session.execute('''
+        SELECT id, company_name
+        FROM company
+        WHERE company_name ilike '%' || :name || '%'
+        OR :name ~* company_name
+        ''', {
+            'name': item.get('company')
+        }
+        ).fetchone()
+
+        company_id = linked_company[0] if linked_company else None
+
         line_item, new_line_item = get_or_create(
             db.session, LineItem,
             contract_id=contract.id,
@@ -215,7 +269,9 @@ def save_line_item(_line_items, contract):
             unit_of_measure=item.get('unit_of_measure'),
             unit_cost=unit_cost,
             total_cost=total_cost,
-            percentage=percentage
+            percentage=percentage,
+            company_name=item.get('company'),
+            company_id=company_id
         )
 
         if new_line_item:

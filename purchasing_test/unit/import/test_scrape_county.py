@@ -11,6 +11,7 @@ from purchasing.data.importer.scrape_county import (
 )
 
 from purchasing.data.contracts import create_new_contract
+from purchasing.data.companies import create_new_company, get_all_companies
 from purchasing.data.models import LineItem
 
 from purchasing_test.unit.test_base import BaseTestCase
@@ -38,8 +39,12 @@ class TestScrapeCounty(BaseTestCase):
         '''
         Test that award information is scraped properly.
         '''
+        muni = create_new_company(dict(company_name='U.S. Municipal Supply, Inc.'))
+        chemung = create_new_company(dict(company_name='Chemung Supply Corporation'))
+        pathmaster = create_new_company(dict(company_name='Path Master, Inc., Co.'))
+
         new_contract = create_new_contract(
-            dict(properties=[dict(key='foo', value='7421')], description='foo')
+            dict(properties=[dict(key='foo', value='6965')], description='foo')
         )
 
         with open(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/award.html', 'r') as f:
@@ -48,11 +53,11 @@ class TestScrapeCounty(BaseTestCase):
             )
 
         _line_items = grab_line_items(line_item_page)
-        self.assertEquals(len(_line_items), 43)
+        self.assertEquals(len(_line_items), 14)
 
         contract = get_contract(
-            'PAVERLAID HOT MIX PAVING, ETC. (CD AREAS INCLUDED) II',
-            'IFB-7421'
+            'Sign Post, Square Tubes, Brackets, Etc.',
+            'IFB-6965'
         )
         self.assertTrue(contract is not None)
         self.assertEquals(contract.id, new_contract.id)
@@ -60,3 +65,14 @@ class TestScrapeCounty(BaseTestCase):
         save_line_item(_line_items, contract)
 
         self.assertEquals(LineItem.query.count(), len(_line_items))
+        # assert that our ids made it in property
+        for item in LineItem.query.all():
+            self.assertTrue(item.manufacturer is not None)
+            self.assertTrue(item.model_number is not None)
+            self.assertEquals(item.contract_id, contract.id)
+            if 'muni' in item.company_name.lower():
+                self.assertEquals(item.company_id, muni.id)
+            elif 'chem' in item.company_name.lower():
+                self.assertEquals(item.company_id, chemung.id)
+            else:
+                self.assertEquals(item.company_id, pathmaster.id)

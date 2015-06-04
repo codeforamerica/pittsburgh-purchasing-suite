@@ -4,10 +4,12 @@
 {% block page_title %}Unauthorized{% endblock %}
 
 {% block content %}
-<div class="jumbotron">
-  <div class="text-center">
-    <h1>401</h1>
-    <p>You are not authorized to see this page. Please <a href="{{ url_for('users.login')}}">log in</a></p>
+<div class="container">
+  <div class="jumbotron">
+    <div class="text-center">
+      <h1>401</h1>
+      <p>You are not authorized to see this page. Please <a href="{{ url_for('users.login')}}">log in</a></p>
+    </div>
   </div>
 </div>
 {% endblock %}

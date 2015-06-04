@@ -1,9 +1,13 @@
-{% extends "nav.html" %}
+{% extends "includes/nav.html" %}
 
 {% block brandhref %}{{ url_for('opportunities.index') }}{% endblock %}
 
 {% block brand %}Pittsburgh Opportunities Site{% endblock %}
 
+{% block navlogin %}
+{% endblock %}
+
 {% block applinks_right %}
 <li><p class="navbar-text"><a href="{{ url_for('opportunities.signup') }}" class="navbar-link">Signup</a></p></li>
 {% endblock %}
+

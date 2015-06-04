@@ -1,4 +1,4 @@
-{% extends "nav.html" %}
+{% extends "includes/nav.html" %}
 
 {% block brandhref %}{{ url_for('wexplorer.explore') }}{% endblock %}
 
@@ -21,8 +21,4 @@
   </ul>
 </li>
 
-{% endblock %}
-
-{% block navlogin %}
-{% include "nav-login.html" %}
 {% endblock %}

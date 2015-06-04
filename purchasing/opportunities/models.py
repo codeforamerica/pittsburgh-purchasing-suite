@@ -24,6 +24,9 @@ class Category(Model):
     category = Column(db.String(255))
     subcategory = Column(db.String(255))
 
+    def __unicode__(self):
+        return '{sub} (in {main})'.format(sub=self.subcategory, main=self.category)
+
 class Opportunity(Model):
     __tablename__ = 'opportunity'
 

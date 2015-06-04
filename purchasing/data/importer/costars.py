@@ -112,26 +112,26 @@ def main(filetarget, filename, access_key, access_secret, bucket):
 
                 startswith = filename.strip('.csv').lower()
                 for _file in s3_files:
-                    _filename = _file.name.encode('utf-8').strip('.pdf')
+                    _filename = _file.name.encode('utf-8').strip('.pdf').rstrip('.')
+                    costars_awardee = costars_awardee.rstrip('.')
 
-                    if _filename.startswith(startswith):
-                        # because the file start patterns are consistent, strip
-                        # out the costars-{number}-
-                        _file_awardee = _filename.split('-')[2]
+                    # because the file start patterns are consistent, strip
+                    # out the costars-{number}-
+                    _file_awardee = _filename.split('-')[2]
 
-                        # check for absolute matches
-                        match_ratio = SM(None, costars_awardee, _file_awardee).ratio()
-                        if match_ratio == 1:
-                            # this is an absolute match, insert it into the db and break
-                            max_ratio = (_file.generate_url(expires_in=0, query_auth=False), match_ratio)
+                    # check for absolute matches
+                    match_ratio = SM(None, costars_awardee, _file_awardee).ratio()
+                    if match_ratio == 1:
+                        # this is an absolute match, insert it into the db and break
+                        max_ratio = (_file.generate_url(expires_in=0, query_auth=False), match_ratio)
+                        if _filename.startswith(startswith):
                             break
-                        elif match_ratio > max_ratio[1]:
-                            # this is the best match we have so far
-                            max_ratio = (_file.generate_url(expires_in=0, query_auth=False), match_ratio)
+                        else:
                             continue
 
-                    else:
-                        # pass if it's not the right costars contract
+                    elif match_ratio > max_ratio[1]:
+                        # this is the best match we have so far
+                        max_ratio = (_file.generate_url(expires_in=0, query_auth=False), match_ratio)
                         continue
 
                 # use the best match that we have

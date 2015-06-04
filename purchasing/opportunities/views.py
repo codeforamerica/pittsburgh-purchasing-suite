@@ -4,7 +4,7 @@ import json
 from collections import defaultdict
 
 from flask import (
-    Blueprint, render_template, url_for,
+    Blueprint, render_template, url_for, current_app,
     jsonify, redirect, flash, request, session
 )
 from purchasing.database import db
@@ -67,6 +67,15 @@ def signup():
                     form_data['categories'].append(subcat)
 
         if vendor:
+            current_app.logger.info('OPPPUPDATEVENDOR - Vendor updated: EMAIL: {old_email} -> {email} at BUSINESS: {old_bis} -> {bis_name} signed up for:\n CATEGORIES: {old_cats} ->\n {categories}'.format(
+                old_email=vendor.email,
+                email=form_data['email'],
+                old_bis=vendor.business_name,
+                bis_name=form_data['business_name'],
+                old_cats=[i.__unicode__() for i in vendor.categories],
+                categories=[i.__unicode__() for i in form_data['categories']]
+            ))
+
             vendor.update(
                 **form_data
             )
@@ -74,6 +83,13 @@ def signup():
             flash("You are already signed up! Your profile was updated with this new information", 'alert-info')
 
         else:
+            current_app.logger.info(
+                'OPPNEWVENDOR - New vendor signed up: EMAIL: {email} at BUSINESS: {bis_name} signed up for:\n CATEGORIES: {categories}'.format(
+                    email=form_data['email'],
+                    bis_name=form_data['business_name'],
+                    categories=[i.__unicode__() for i in form_data['categories']]
+                )
+            )
             vendor = Vendor.create(
                 **form_data
             )
@@ -90,6 +106,7 @@ def signup():
     page_email = request.args.get('email', None)
 
     if page_email:
+        current_app.logger.info('OPPSIGNUPVIEW - User clicked through to signup with email {}'.format(page_email))
         session['email'] = page_email
         return redirect(url_for('opportunities.signup'))
 

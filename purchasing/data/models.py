@@ -117,6 +117,8 @@ class LineItem(Model):
     unit_cost = Column(db.Float)
     total_cost = Column(db.Float)
     percentage = Column(db.Boolean)
+    company_name = Column(db.String(255), nullable=True)
+    company_id = ReferenceCol('company', nullable=True)
 
     def __unicode__(self):
         return self.description
