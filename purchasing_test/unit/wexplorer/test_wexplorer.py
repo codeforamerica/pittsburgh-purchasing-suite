@@ -148,6 +148,58 @@ class TestWexplorer(BaseTestCase):
         # test you can't unsubscribe from a nonexistant contract
         self.assert404(self.client.get('/wexplorer/contracts/999/unsubscribe'))
 
+    def test_star(self):
+        '''
+        Test starring contracts works as expected
+        '''
+        request = self.client.get('/wexplorer/contracts/1/star')
+        self.assertEquals(request.status_code, 302)
+        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+
+        self.login_user(self.admin_user)
+        request = self.client.get('/wexplorer/contracts/1/star')
+        self.assertEquals(len(ContractBase.query.get(1).starred), 1)
+
+        self.login_user(self.superadmin_user)
+        self.client.get('/wexplorer/contracts/1/star')
+        self.assertEquals(len(ContractBase.query.get(1).starred), 2)
+
+        # test you can't star more than once
+        self.client.get('/wexplorer/contracts/1/star')
+        self.assertEquals(len(ContractBase.query.get(1).starred), 2)
+
+        # test you can't star to a nonexistant contract
+        self.assert404(self.client.get('/wexplorer/contracts/999/star'))
+
+    def test_unstar(self):
+        '''
+        Test unstarring contracts works as expected
+        '''
+        # test that you can't unstar to a contract unless you are signed in
+        request = self.client.get('/wexplorer/contracts/1/unstar')
+        self.assertEquals(request.status_code, 302)
+        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+
+        # two followers
+        self.login_user(self.admin_user)
+        self.client.get('/wexplorer/contracts/1/star')
+        self.login_user(self.superadmin_user)
+        self.client.get('/wexplorer/contracts/1/star')
+
+        self.assertEquals(len(ContractBase.query.get(1).starred), 2)
+        self.client.get('/wexplorer/contracts/1/unstar')
+        self.assertEquals(len(ContractBase.query.get(1).starred), 1)
+        # test you can't unstar more than once
+        self.client.get('/wexplorer/contracts/1/unstar')
+        self.assertEquals(len(ContractBase.query.get(1).starred), 1)
+
+        self.login_user(self.admin_user)
+        self.client.get('/wexplorer/contracts/1/unstar')
+        self.assertEquals(len(ContractBase.query.get(1).starred), 0)
+
+        # test you can't unstar from a nonexistant contract
+        self.assert404(self.client.get('/wexplorer/contracts/999/unstar'))
+
     def test_filter(self):
         '''
         Test that the filter page works properly and shows the error where appropriate

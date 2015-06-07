@@ -23,6 +23,12 @@ contract_user_association_table = Table(
     Column('contract_id', db.Integer, db.ForeignKey('contract.id'), index=True),
 )
 
+contract_starred_association_table = Table(
+    'contract_starred_association', Model.metadata,
+    Column('user_id', db.Integer, db.ForeignKey('users.id'), index=True),
+    Column('contract_id', db.Integer, db.ForeignKey('contract.id'), index=True),
+)
+
 class Company(Model):
     __tablename__ = 'company'
 
@@ -82,6 +88,11 @@ class ContractBase(Model):
         'User',
         secondary=contract_user_association_table,
         backref='contracts_following',
+    )
+    starred = db.relationship(
+        'User',
+        secondary=contract_starred_association_table,
+        backref='contracts_starred',
     )
 
     def __unicode__(self):

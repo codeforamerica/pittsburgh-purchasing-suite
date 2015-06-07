@@ -162,8 +162,12 @@ def search():
         user=current_user.email if not current_user.is_anonymous() else 'anonymous'
     ))
 
+    user_starred = [] if current_user.is_anonymous() else current_user.get_starred()
+
     return render_template(
         'wexplorer/search.html',
+        current_user=current_user,
+        user_starred=user_starred,
         search_for=search_for,
         results=results,
         pagination=pagination,
@@ -211,23 +215,6 @@ def contract(contract_id):
         )
     abort(404)
 
-@blueprint.route('/contracts/<int:contract_id>/subscribe')
-@requires_roles('staff', 'admin', 'superadmin')
-def subscribe(contract_id):
-    '''
-    Subscribes a user to receive updates about a particular contract
-    '''
-    message, contract = follow_a_contract(contract_id, current_user)
-    next_url = request.args.get('next', '/wexplorer')
-    if contract:
-        flash(message[0], message[1])
-
-        'SUBSCRIBE: {user} subscribed to {contract}'.format(user=current_user.email, contract=contract_id)
-        return redirect(next_url)
-    elif contract is None:
-        abort(404)
-    abort(403)
-
 @blueprint.route('/contracts/<int:contract_id>/feedback', methods=['GET', 'POST'])
 def feedback(contract_id):
     '''
@@ -268,13 +255,64 @@ def feedback(contract_id):
         )
     abort(404)
 
+@blueprint.route('/contracts/<int:contract_id>/star')
+@requires_roles('staff', 'admin', 'superadmin')
+def star(contract_id):
+    '''
+
+    '''
+    message, contract = follow_a_contract(contract_id, current_user, 'star')
+    next_url = request.args.get('next', '/wexplorer')
+    if contract:
+        flash(message[0], message[1])
+
+        'STAR: {user} starred {contract}'.format(user=current_user.email, contract=contract_id)
+        return redirect(next_url)
+    elif contract is None:
+        abort(404)
+    abort(403)
+
+@blueprint.route('/contracts/<int:contract_id>/unstar')
+@requires_roles('staff', 'admin', 'superadmin')
+def unstar(contract_id):
+    '''
+
+    '''
+    message, contract = unfollow_a_contract(contract_id, current_user, 'star')
+    next_url = request.args.get('next', '/wexplorer')
+    if contract:
+        flash(message[0], message[1])
+
+        'STAR: {user} starred {contract}'.format(user=current_user.email, contract=contract_id)
+        return redirect(next_url)
+    elif contract is None:
+        abort(404)
+    abort(403)
+
+@blueprint.route('/contracts/<int:contract_id>/subscribe')
+@requires_roles('staff', 'admin', 'superadmin')
+def subscribe(contract_id):
+    '''
+    Subscribes a user to receive updates about a particular contract
+    '''
+    message, contract = follow_a_contract(contract_id, current_user, 'follow')
+    next_url = request.args.get('next', '/wexplorer')
+    if contract:
+        flash(message[0], message[1])
+
+        'SUBSCRIBE: {user} subscribed to {contract}'.format(user=current_user.email, contract=contract_id)
+        return redirect(next_url)
+    elif contract is None:
+        abort(404)
+    abort(403)
+
 @blueprint.route('/contracts/<int:contract_id>/unsubscribe')
 @requires_roles('staff', 'admin', 'superadmin')
 def unsubscribe(contract_id):
     '''
     Unsubscribes a user from receiving updates about a particular contract
     '''
-    message, contract = unfollow_a_contract(contract_id, current_user)
+    message, contract = unfollow_a_contract(contract_id, current_user, 'follow')
     next_url = request.args.get('next', '/wexplorer')
     if contract:
         flash(message[0], message[1])

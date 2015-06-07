@@ -67,5 +67,8 @@ class User(UserMixin, SurrogatePK, Model):
     def __unicode__(self):
         return self.email
 
+    def get_starred(self):
+        return [i.id for i in self.contracts_starred]
+
 class AnonymousUser(AnonymousUserMixin):
     role = {'name': 'anonymous'}

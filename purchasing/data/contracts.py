@@ -59,7 +59,7 @@ def get_all_contracts():
     '''
     return ContractBase.query.all()
 
-def follow_a_contract(contract_id, user):
+def follow_a_contract(contract_id, user, field):
     '''
     Takes in a contract_id and a user model, and
     associates the user model with the relevant
@@ -71,23 +71,37 @@ def follow_a_contract(contract_id, user):
     '''
     contract = get_one_contract(contract_id)
     if contract:
-        if user not in contract.users:
-            contract.users.append(user)
-            contract.update()
-            return ('Successfully subscribed!', 'alert-success'), contract
-        return ('Already subscribed!', 'alert-info'), contract
+        if field == 'follow':
+            if user not in contract.users:
+                contract.users.append(user)
+                contract.update()
+                return ('Successfully subscribed!', 'alert-success'), contract
+            return ('Already subscribed!', 'alert-info'), contract
+        elif field == 'star':
+            if user not in contract.starred:
+                contract.starred.append(user)
+                contract.update()
+                return ('Successfully starred!', 'alert-success'), contract
+            return ('Already starred', 'alert-info'), contract
     return None, None
 
-def unfollow_a_contract(contract_id, user):
+def unfollow_a_contract(contract_id, user, field):
     '''
     Takes in a contract_id and a user model, and pops the
     user out of the list of users.
     '''
     contract = get_one_contract(contract_id)
     if contract:
-        if user in contract.users:
-            contract.users.remove(user)
-            contract.update()
-            return ('Successfully unsubscribed', 'alert-success'), contract
-        return ('You haven\'t subscribed to this contract!', 'alert-warning'), contract
+        if field == 'follow':
+            if user in contract.users:
+                contract.users.remove(user)
+                contract.update()
+                return ('Successfully unsubscribed', 'alert-success'), contract
+            return ('You haven\'t subscribed to this contract!', 'alert-warning'), contract
+        elif field == 'star':
+            if user in contract.starred:
+                contract.starred.remove(user)
+                contract.update()
+                return ('Successfully unstarred', 'alert-success'), contract
+            return ('You haven\'t starred this contract!', 'alert-warning'), contract
     return None, None
