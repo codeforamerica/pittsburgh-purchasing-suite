@@ -10,9 +10,35 @@
     {% if results %}
 
       <h3 class="text-muted">
-        {{ pagination.total_count }} results found for "{{ request.args.get('q') }}"
+
+        {{ pagination.total_count }} results found {% if request.args.get('q') %} for "{{ request.args.get('q') }}" {% endif %}
         {% if pagination.pages > 1 %}({{ (results | length) }} shown) {% endif %}<br>
       </h3>
+
+      <form class="form-inline" method="GET" action="{{ url_for('wexplorer.search', q=search_for) }}">
+        <label>Filter Results:</label>
+        <div class="filter">
+          <div class="checkbox">
+            <label>{{ filter_form.company_name }} Contract Description</label>
+          </div>
+          <div class="checkbox">
+            <label>{{ filter_form.contract_description }} Contract Description</label>
+          </div>
+          <div class="checkbox">
+            <label>{{ filter_form.contract_detail }} Contract Detail</label>
+          </div>
+          <div class="checkbox">
+            <label>{{ filter_form.line_item }} Line Item</label>
+          </div>
+          <div class="checkbox">
+            <label>{{ filter_form.financial_id }} Controller Number</label>
+          </div>
+          {{ search_form.q(placeholder="I'm looking for...", class_="hidden", value=search_for) }}
+          <div class="form-group">
+            <button type="submit" class="btn btn-success">Filter</button>
+          </div>
+        </div>
+      </form>
 
       <table class="table table-striped" id="js-explore-search-results">
         <thead>

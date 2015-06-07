@@ -26,7 +26,7 @@ class TestWexplorer(BaseTestCase):
         company_1 = insert_a_company(name='BBB', insert_contract=False)
         company_2 = insert_a_company(name='ccc', insert_contract=False)
         insert_a_company(name='CCC')
-        insert_a_contract(description='AAA', companies=[company_2])
+        insert_a_contract(description='AAA', companies=[company_2], line_items=[LineItem(description='eee')])
         insert_a_contract(description='ddd', companies=[company_1], line_items=[LineItem(description='fff')])
         insert_a_contract(description='DDD', financial_id=123, properties=[ContractProperty(key='foo', value='EEE')])
 
@@ -60,6 +60,10 @@ class TestWexplorer(BaseTestCase):
         self.assertEquals(len(self.get_context_variable('results')), 0)
 
         self.assert200(self.client.get('/wexplorer/search?q=EEE'))
+        self.assertEquals(len(self.get_context_variable('results')), 2)
+
+        # make sure you can filter with the check boxes
+        self.assert200(self.client.get('/wexplorer/search?q=EEE&line_item=y'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
         self.assert200(self.client.get('/wexplorer/search?q=ff'))
@@ -200,7 +204,7 @@ class TestWexplorer(BaseTestCase):
         # test you can't unstar from a nonexistant contract
         self.assert404(self.client.get('/wexplorer/contracts/999/unstar'))
 
-    def test_filter(self):
+    def test_department_filter(self):
         '''
         Test that the filter page works properly and shows the error where appropriate
         '''

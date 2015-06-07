@@ -10,7 +10,7 @@ from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import wexplorer_feedback
-from purchasing.wexplorer.forms import SearchForm, FeedbackForm
+from purchasing.wexplorer.forms import SearchForm, FeedbackForm, FilterForm
 from purchasing.data.models import ContractBase, contract_user_association_table
 from purchasing.users.models import DEPARTMENT_CHOICES
 from purchasing.data.companies import get_one_company
@@ -72,6 +72,16 @@ def filter(department=None):
         )
     )
 
+def build_filter(req_args, fields, filter_form, _all):
+    '''Build the where clause filter
+    '''
+    clauses = []
+    for arg_name, filter_field, _filter in fields:
+        if _all or req_args.get(arg_name) == 'y':
+            filter_form[arg_name].checked = True
+            clauses.append('{} {} :search_for'.format(filter_field, _filter))
+    return 'WHERE ' + ' OR '.join(clauses)
+
 @blueprint.route('/search', methods=['GET'])
 def search():
     '''
@@ -91,6 +101,21 @@ def search():
     lower_bound_result = (page - 1) * pagination_per_page
     upper_bound_result = lower_bound_result + pagination_per_page
 
+    # build filter and filter form
+    filter_form = FilterForm()
+    fields = [
+        ('company_name', 'cp.company_name', '~*'),
+        ('contract_description', 'ct.description', '~*'),
+        ('contract_detail', 'ctp.value', '~*'),
+        ('line_item', 'li.description', '~*'),
+        ('financial_id', 'ct.financial_id::VARCHAR', '=')
+    ]
+
+    filter_where = build_filter(
+        request.args, fields, filter_form,
+        not any([request.args.get(name) for name, search_clause, _filter in fields])
+    )
+
     # TODO: Make this more efficient. Maybe break it into multiple
     # queries and them join those together in the python?
     contracts = db.session.execute(
@@ -106,10 +131,10 @@ def search():
                 cp.company_name, ct.description,
                 ct.expiration_date, ct.financial_id,
                 CASE
-                  WHEN cp.company_name ilike :search_for_wc then 'Company Name'
-                  WHEN ct.description ilike :search_for_wc then 'Contract Description'
-                  WHEN ctp.value ilike :search_for_wc then 'Contract Detail'
-                  WHEN li.description ilike :search_for_wc then 'Line Item'
+                  WHEN cp.company_name ~* :search_for then 'Company Name'
+                  WHEN ct.description ~* :search_for then 'Contract Description'
+                  WHEN ctp.value ~* :search_for then 'Contract Detail'
+                  WHEN li.description ~* :search_for then 'Line Item'
                   WHEN ct.financial_id::VARCHAR = :search_for then 'Financial ID (Controller Number)'
                   ELSE NULL
                 END as found_in
@@ -122,11 +147,7 @@ def search():
             ON ct.id = ctp.contract_id
             LEFT JOIN line_item li
             ON ct.id = li.contract_id
-            WHERE cp.company_name ilike :search_for_wc
-            OR ct.description ilike :search_for_wc
-            OR ctp.value ilike :search_for_wc
-            OR li.description ilike :search_for_wc
-            OR ct.financial_id::VARCHAR = :search_for
+            {filter_where}
         ) x
         FULL OUTER JOIN
         contract_user_association cca
@@ -136,9 +157,10 @@ def search():
         ON cca.user_id = u.id
         WHERE x.contract_id IS NOT NULL
         group by 1,2,3,4,5,6,7
-        ''',
+        '''.format(
+            filter_where=filter_where
+        ),
         {
-            'search_for_wc': '%' + str(search_for) + '%',
             'search_for': str(search_for)
         }
     ).fetchall()
@@ -167,6 +189,7 @@ def search():
     return render_template(
         'wexplorer/search.html',
         current_user=current_user,
+        filter_form=filter_form,
         user_starred=user_starred,
         search_for=search_for,
         results=results,
