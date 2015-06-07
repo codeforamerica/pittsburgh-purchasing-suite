@@ -9,3 +9,11 @@
 {% block nav %}
 {% include "wexplorer/nav.html" %}
 {% endblock %}
+
+{% block js %}
+  {{ super() }}
+  {% assets "wexplorerjs" %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+{% endblock %}
+

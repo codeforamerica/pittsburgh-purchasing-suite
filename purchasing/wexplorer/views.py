@@ -78,7 +78,8 @@ def build_filter(req_args, fields, filter_form, _all):
     clauses = []
     for arg_name, filter_field, _filter in fields:
         if _all or req_args.get(arg_name) == 'y':
-            filter_form[arg_name].checked = True
+            if not _all:
+                filter_form[arg_name].checked = True
             clauses.append('{} {} :search_for'.format(filter_field, _filter))
     return 'WHERE ' + ' OR '.join(clauses)
 
