@@ -19,19 +19,19 @@
         <label>Filter Results:</label>
         <div class="filter">
           <div class="checkbox">
-            <label>{{ filter_form.company_name }} Company Name</label>
+            <label>{{ filter_form.company_name }} <span class="filter-checkbox">Company Name</span></label>
           </div>
           <div class="checkbox">
-            <label>{{ filter_form.contract_description }} Contract Description</label>
+            <label>{{ filter_form.contract_description }} <span class="filter-checkbox">Contract Description</span></label>
           </div>
           <div class="checkbox">
-            <label>{{ filter_form.contract_detail }} Contract Detail</label>
+            <label>{{ filter_form.contract_detail }} <span class="filter-checkbox">Contract Detail</span></label>
           </div>
           <div class="checkbox">
-            <label>{{ filter_form.line_item }} Line Item</label>
+            <label>{{ filter_form.line_item }} <span class="filter-checkbox">Line Item</span></label>
           </div>
           <div class="checkbox">
-            <label>{{ filter_form.financial_id }} Controller Number</label>
+            <label>{{ filter_form.financial_id }} <span class="filter-checkbox">Controller Number</span></label>
           </div>
           {{ search_form.q(placeholder="I'm looking for...", class_="hidden", value=search_for) }}
           <div class="form-group">
@@ -40,7 +40,7 @@
         </div>
       </form>
 
-      <table class="table table-striped" id="js-explore-search-results">
+      <table class="table table-striped" id="js-sort-results">
         <thead>
           <tr>
             {% if current_user.is_anonymous() == False %}

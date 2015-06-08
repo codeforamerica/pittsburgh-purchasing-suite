@@ -11,7 +11,9 @@ from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import wexplorer_feedback
 from purchasing.wexplorer.forms import SearchForm, FeedbackForm, FilterForm
-from purchasing.data.models import ContractBase, contract_user_association_table
+from purchasing.data.models import (
+    ContractBase, contract_user_association_table, contract_starred_association_table
+)
 from purchasing.users.models import DEPARTMENT_CHOICES
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
@@ -49,10 +51,17 @@ def filter(department=None):
 
     contracts = db.session.query(
         ContractBase.id, ContractBase.description,
-        db.func.count(contract_user_association_table.c.user_id).label('cnt')
-    ).join(contract_user_association_table).filter(
-        ContractBase.users.any(department=department)
-    ).group_by(ContractBase).order_by('cnt DESC').all()
+        db.func.count(contract_user_association_table.c.user_id).label('cnt'),
+        db.func.count(contract_starred_association_table.c.user_id).label('cnt2')
+    ).outerjoin(contract_user_association_table).outerjoin(
+        contract_starred_association_table
+    ).filter(db.or_(
+        ContractBase.users.any(department=department),
+        ContractBase.starred.any(department=department)
+    )).group_by(ContractBase).having(db.or_(
+        db.func.count(contract_user_association_table.c.user_id) > 0,
+        db.func.count(contract_starred_association_table.c.user_id) > 0
+    )).order_by('cnt DESC').all()
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
 

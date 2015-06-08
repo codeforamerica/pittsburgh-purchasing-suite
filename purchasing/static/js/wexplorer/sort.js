@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  var searchResults = $('#js-explore-search-results');
+  var searchResults = $('#js-sort-results');
   if (searchResults.length > 0) {
     searchResults.find('th').click(function() {
       var _table = $(this).parents('table').eq(0);
