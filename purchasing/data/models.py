@@ -5,9 +5,10 @@ from purchasing.database import (
     Column,
     Model,
     db,
-    ReferenceCol,
+    ReferenceCol
 )
 from sqlalchemy.dialects.postgres import ARRAY
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref
 
@@ -28,6 +29,26 @@ contract_starred_association_table = Table(
     Column('user_id', db.Integer, db.ForeignKey('users.id'), index=True),
     Column('contract_id', db.Integer, db.ForeignKey('contract.id'), index=True),
 )
+
+class SearchView(Model):
+    '''search_view is a materialized view with all of our text columns
+    '''
+    __tablename__ = 'search_view'
+
+    id = Column(db.Text, primary_key=True, index=True)
+    contract_id = Column(db.Integer)
+    company_id = Column(db.Integer)
+    financial_id = Column(db.Integer)
+    expiration_date = Column(db.Date)
+    contract_description = Column(db.Text)
+    tsv_contract_description = Column(TSVECTOR)
+    company_name = Column(db.Text)
+    tsv_company_name = Column(TSVECTOR)
+    detail_key = Column(db.Text)
+    detail_value = Column(db.Text)
+    tsv_detail_value = Column(TSVECTOR)
+    line_item_description = Column(db.Text)
+    tsv_line_item_description = Column(TSVECTOR)
 
 class Company(Model):
     __tablename__ = 'company'

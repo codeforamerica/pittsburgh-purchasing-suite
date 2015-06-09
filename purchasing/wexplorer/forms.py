@@ -10,10 +10,10 @@ class SearchForm(Form):
         super(SearchForm, self).__init__(*args, **kwargs)
 
 class FilterForm(Form):
-    company_name = BooleanField()
-    contract_description = BooleanField()
-    contract_detail = BooleanField()
-    line_item = BooleanField()
+    tsv_company_name = BooleanField()
+    tsv_contract_description = BooleanField()
+    tsv_contract_detail = BooleanField()
+    tsv_line_item = BooleanField()
     financial_id = BooleanField()
 
 class FeedbackForm(Form):
