@@ -48,10 +48,10 @@ def upgrade():
                 line_item.description AS line_item_description,
                 to_tsvector(line_item.description) AS tsv_line_item_description
             FROM contract c
-            JOIN contract_property ON c.id = contract_property.contract_id
-            JOIN line_item ON c.id = line_item.contract_id
-            JOIN company_contract_association ON c.id = company_contract_association.contract_id
-            JOIN company ON company.id = company_contract_association.company_id
+            LEFT OUTER JOIN contract_property ON c.id = contract_property.contract_id
+            LEFT OUTER JOIN line_item ON c.id = line_item.contract_id
+            LEFT OUTER JOIN company_contract_association ON c.id = company_contract_association.contract_id
+            LEFT OUTER JOIN company ON company.id = company_contract_association.company_id
         )
     '''))
     # create unique index on ids

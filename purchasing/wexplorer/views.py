@@ -93,12 +93,15 @@ def build_filter(req_args, fields, search_for, filter_form, _all):
             clauses.append(filter_column.match(search_for, postgresql_regconfig='english'))
     return clauses
 
-def build_cases(fields, search_for):
+def build_cases(req_args, fields, search_for, _all):
+    '''Build the case when statements
+    '''
     clauses = []
-    for _, arg_description, filter_column in fields:
-        clauses.append(
-            (filter_column.match(search_for, postgresql_regconfig='english') == True, arg_description)
-        )
+    for arg_name, arg_description, filter_column in fields:
+        if _all or req_args.get(arg_name) == 'y':
+            clauses.append(
+                (filter_column.match(search_for, postgresql_regconfig='english') == True, arg_description)
+            )
     return clauses
 
 @blueprint.route('/search', methods=['GET'])
@@ -123,10 +126,10 @@ def search():
     # build filter and filter form
     filter_form = FilterForm()
     fields = [
-        ('tsv_company_name', 'Contract Description', SearchView.tsv_company_name),
-        ('tsv_contract_description', 'Company Name', SearchView.tsv_contract_description),
-        ('tsv_contract_detail', 'Contract Detail', SearchView.tsv_detail_value),
-        ('tsv_line_item', 'Line Item', SearchView.tsv_line_item_description),
+        ('contract_description', 'Company Name', SearchView.tsv_contract_description),
+        ('company_name', 'Contract Description', SearchView.tsv_company_name),
+        ('line_item', 'Line Item', SearchView.tsv_line_item_description),
+        ('contract_detail', 'Contract Detail', SearchView.tsv_detail_value),
     ]
 
     filter_where = build_filter(
@@ -134,31 +137,48 @@ def search():
         not any([request.args.get(name) for name, _, _ in fields])
     )
 
-    found_in_case = build_cases(fields, search_for)
-
-    contracts = db.session.query(
-        db.distinct(SearchView.contract_id).label('contract_id'),
-        SearchView.company_id,
-        SearchView.contract_description,
-        SearchView.financial_id,
-        SearchView.expiration_date,
-        SearchView.company_name,
-        db.case(found_in_case).label('found_in'),
-        db.func.full_text.ts_rank(
-            db.func.to_tsvector(db.func.concat(
-                db.func.setweight(SearchView.tsv_company_name, 'A'),
-                db.func.setweight(SearchView.tsv_contract_description, 'D'),
-                db.func.setweight(SearchView.tsv_detail_value, 'D'),
-                db.func.setweight(SearchView.tsv_line_item_description, 'D')
-            )), db.func.to_tsquery(search_for, postgresql_regconfig='english')
-        ).label('rank')
-    ).filter(db.or_(*filter_where)).order_by(
-        'rank DESC'
+    found_in_case = build_cases(
+        request.args, fields, search_for,
+        not any([request.args.get(name) for name, _, _ in fields])
     )
 
-    import pdb; pdb.set_trace()
-
-    contracts.all()
+    if search_for != '':
+        contracts = db.session.query(
+            db.distinct(SearchView.contract_id).label('contract_id'),
+            SearchView.company_id,
+            SearchView.contract_description,
+            SearchView.financial_id,
+            SearchView.expiration_date,
+            SearchView.company_name,
+            db.case(found_in_case).label('found_in'),
+            db.func.max(db.func.full_text.ts_rank(
+                db.func.to_tsvector(db.func.concat(
+                    db.func.setweight(SearchView.tsv_company_name, 'A'),
+                    db.func.setweight(SearchView.tsv_contract_description, 'C'),
+                    db.func.setweight(SearchView.tsv_detail_value, 'D'),
+                    db.func.setweight(SearchView.tsv_line_item_description, 'B')
+                )), db.func.to_tsquery(search_for, postgresql_regconfig='english')
+            )).label('rank')
+        ).filter(db.or_(
+            db.cast(SearchView.financial_id, db.String) == search_for,
+            *filter_where
+        )).group_by(
+            SearchView.contract_id,
+            SearchView.company_id,
+            SearchView.contract_description,
+            SearchView.financial_id,
+            SearchView.expiration_date,
+            SearchView.company_name,
+            db.case(found_in_case)
+        ).order_by(
+            'rank DESC'
+        ).all()
+    else:
+        contracts = db.session.query(
+            db.distinct(SearchView.contract_id).label('contract_id'), SearchView.company_id,
+            SearchView.contract_description, SearchView.financial_id,
+            SearchView.expiration_date, SearchView.company_name
+        ).all()
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
