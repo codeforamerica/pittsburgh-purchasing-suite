@@ -11,6 +11,7 @@
 {% endblock %}
 
 {% block js %}
+  {{ super() }}
   {% assets "opportunitiesjs" %}
     <script type="text/javascript" src="{{ ASSET_URL }}"></script>
   {% endassets %}

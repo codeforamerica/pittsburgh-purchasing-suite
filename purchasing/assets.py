@@ -42,12 +42,19 @@ opportunitiesjs = Bundle(
     output='public/js/opportunities.js'
 )
 
+wexplorerjs = Bundle(
+    'js/wexplorer/*.js',
+    filters='uglifyjs',
+    output='public/js/wexplorer.js'
+)
+
 assets = Environment()
 test_assets = Environment()
 
 # register our javascript bundles
 assets.register('vendorjs', vendorjs)
 assets.register('opportunitiesjs', opportunitiesjs)
+assets.register('wexplorerjs', wexplorerjs)
 
 # register our css bundles
 assets.register('css_all', less)

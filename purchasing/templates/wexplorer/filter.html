@@ -11,9 +11,13 @@
     {% if results %}
       <div class="col-md-9"><h4>{{ department }} subscribes to:</h4></div>
       <div class="col-md-3">{% include "wexplorer/choices.html" %}</div>
-      <table class="table wexplorer-table table-striped">
+      <table class="table wexplorer-table table-striped table-condensed" id="js-sort-results">
         <thead>
-          <tr><th>Contract</th><th>Number of Subscribers</th></tr>
+          <tr>
+            <th>Contract</th>
+            <th class="js-sortable-th">Number of Subscribers</th>
+            <th class="js-sortable-th">Number Starred</th>
+          </tr>
         </thead>
         <tbody>
         {% for result in results %}
@@ -22,6 +26,7 @@
               {{ result.description|title }}
             </a></td>
             <td>{{ result.cnt }}</td>
+            <td>{{ result.cnt2 }}</td>
           </tr>
         {% endfor %}
         </tbody>

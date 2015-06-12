@@ -10,13 +10,42 @@
     {% if results %}
 
       <h3 class="text-muted">
-        {{ pagination.total_count }} results found for "{{ request.args.get('q') }}"
+
+        {{ pagination.total_count }} results found {% if request.args.get('q') %} for "{{ request.args.get('q') }}" {% endif %}
         {% if pagination.pages > 1 %}({{ (results | length) }} shown) {% endif %}<br>
       </h3>
 
-      <table class="table table-striped" id="js-explore-search-results">
+      <form class="form-inline" method="GET" action="{{ url_for('wexplorer.search', q=search_for) }}">
+        <label>Filter Results:</label>
+        <div class="filter">
+          <div class="checkbox">
+            <label>{{ filter_form.company_name }} <span class="filter-checkbox">Company Name</span></label>
+          </div>
+          <div class="checkbox">
+            <label>{{ filter_form.contract_description }} <span class="filter-checkbox">Contract Description</span></label>
+          </div>
+          <div class="checkbox">
+            <label>{{ filter_form.contract_detail }} <span class="filter-checkbox">Contract Detail</span></label>
+          </div>
+          <div class="checkbox">
+            <label>{{ filter_form.line_item }} <span class="filter-checkbox">Line Item</span></label>
+          </div>
+          <div class="checkbox">
+            <label>{{ filter_form.financial_id }} <span class="filter-checkbox">Controller Number</span></label>
+          </div>
+          {{ search_form.q(placeholder="I'm looking for...", class_="hidden", value=search_for) }}
+          <div class="form-group">
+            <button type="submit" class="btn btn-success">Filter</button>
+          </div>
+        </div>
+      </form>
+
+      <table class="table table-striped" id="js-sort-results">
         <thead>
           <tr>
+            {% if current_user.is_anonymous() == False %}
+            <th>Star</th>
+            {% endif %}
             <th class="js-sortable-th">Company</th>
             <th class="js-sortable-th">Contract Discription</th>
             <th class="js-sortable-th">Expiration Date</th>
@@ -29,6 +58,24 @@
         <tbody>
           {% for result in results %}
           <tr>
+            {% if current_user.is_anonymous() %}
+            {% elif result.contract_id in user_starred %}
+            <td>
+              <a href="{{ url_for('wexplorer.unstar', contract_id=result.contract_id, next=path) }}">
+                <span class="fa-stack text-center fa-1x">
+                  <i class="fa fa-star"></i>
+                </span>
+              </a>
+            </td>
+            {% else %}
+            <td>
+              <a href="{{ url_for('wexplorer.star', contract_id=result.contract_id, next=path) }}">
+                <span class="fa-stack text-center fa-1x">
+                  <i class="fa fa-star-o"></i>
+                </span>
+              </a>
+            </td>
+            {% endif %}
             <td>
               {% if result.company_id %}
               <a href="{{ url_for('wexplorer.company', company_id=result.company_id) }}">

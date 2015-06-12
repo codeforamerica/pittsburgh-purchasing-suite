@@ -52,9 +52,11 @@
 <!-- JavaScript at the bottom for fast page loading -->
 {% block jsvars %}{% endblock %}
 
-{% assets "vendorjs" %}
-    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
-{% endassets %}
+{% block js %}
+  {% assets "vendorjs" %}
+  <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+{% endblock %}
 <script src="https://login.persona.org/include.js"></script>
 <script>
 {% if current_user.is_anonymous() or not current_user %}
@@ -118,7 +120,6 @@ ga('create', 'UA-60542627-3', 'auto');
 ga('send', 'pageview');
 
 </script>
-{% block js %}{% endblock %}
 <!-- end scripts -->
 {% endblock %}
 </body>
