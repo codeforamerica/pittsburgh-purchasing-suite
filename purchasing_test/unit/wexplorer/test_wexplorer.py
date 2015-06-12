@@ -69,7 +69,6 @@ class TestWexplorer(BaseTestCase):
         self.assert200(self.client.get('/wexplorer/search?q=sunfish'))
         self.assertEquals(len(self.get_context_variable('results')), 2)
 
-        import pdb; pdb.set_trace()
         # make sure you can filter with the check boxes
         self.assert200(self.client.get('/wexplorer/search?q=sunfish&line_item=y'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
