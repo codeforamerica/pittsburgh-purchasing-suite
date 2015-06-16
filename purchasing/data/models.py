@@ -9,7 +9,7 @@ from purchasing.database import (
 )
 from sqlalchemy.dialects.postgres import ARRAY
 from sqlalchemy.dialects.postgresql import TSVECTOR
-from sqlalchemy.schema import Table
+from sqlalchemy.schema import Table, Sequence
 from sqlalchemy.orm import backref
 
 company_contract_association_table = Table(
@@ -96,15 +96,15 @@ class ContractBase(Model):
     id = Column(db.Integer, primary_key=True)
     financial_id = Column(db.Integer)
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
-    updated_at = Column(db.DateTime, default=datetime.datetime.utcnow())
+    updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
     contract_type = Column(db.String(255))
     expiration_date = Column(db.Date)
     description = Column(db.Text, index=True)
     contract_href = Column(db.Text)
-    current_stage = db.relationship('Stage', lazy='subquery')
-    current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
     current_flow = db.relationship('Flow', lazy='subquery')
     flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
+    current_stage = db.relationship('Stage', lazy='subquery')
+    current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
     users = db.relationship(
         'User',
         secondary=contract_user_association_table,
@@ -115,6 +115,10 @@ class ContractBase(Model):
         secondary=contract_starred_association_table,
         backref='contracts_starred',
     )
+    assigned_to = ReferenceCol('users', ondelete='SET NULL', nullable=True)
+    assigned = db.relationship('User', backref=backref(
+        'assignments', lazy='dynamic', cascade='none'
+    ))
 
     def __unicode__(self):
         return self.description
@@ -132,6 +136,21 @@ class ContractProperty(Model):
 
     def __unicode__(self):
         return '{key}: {value}'.format(key=self.key, value=self.value)
+
+class ContractNote(Model):
+    __tablename__ = 'contract_note'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    contract = db.relationship('ContractBase', backref=backref(
+        'notes', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+    contract_id = ReferenceCol('contract', ondelete='CASCADE')
+    note = Column(db.Text)
+    created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
+    updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
+
+    def __unicode__(self):
+        return self.note
 
 class LineItem(Model):
     __tablename__ = 'line_item'
@@ -162,7 +181,6 @@ class Stage(Model):
     __tablename__ = 'stage'
 
     id = Column(db.Integer, primary_key=True, index=True)
-    contract = db.relationship('ContractBase', backref='stage_id', lazy='subquery')
     name = Column(db.String(255))
 
     def __unicode__(self):
@@ -181,6 +199,52 @@ class StageProperty(Model):
 
     def __unicode__(self):
         return '{key}: {value}'.format(key=self.key, value=self.value)
+
+class ContractStage(Model):
+    __tablename__ = 'contract_stage'
+
+    id = Column(
+        db.Integer, Sequence('autoincr_contract_stage_id', start=1, increment=1),
+        index=True, unique=True
+    )
+    contract_id = ReferenceCol('contract', ondelete='CASCADE', index=True, primary_key=True)
+    contract = db.relationship('ContractBase', backref=backref(
+        'stages', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+    stage_id = ReferenceCol('stage', ondelete='CASCADE', index=True, primary_key=True)
+    stage = db.relationship('Stage', backref=backref(
+        'contracts', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+    created_at = Column(db.DateTime, default=datetime.datetime.now())
+    # updated_at = Column(db.DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
+    entered = Column(db.DateTime)
+    exited = Column(db.DateTime)
+    notes = Column(db.Text)
+
+    def enter(self):
+        '''Enter the stage at this point
+        '''
+        ContractBase.query.get(self.contract_id).current_stage_id = self.stage_id
+        self.entered = datetime.datetime.now()
+
+    def exit(self):
+        '''Exit the stage
+        '''
+        self.exited = datetime.datetime.now()
+
+class ContractStageActionItem(Model):
+    __tablename__ = 'contract_stage_action_item'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    contract_stage_id = ReferenceCol('contract_stage', ondelete='CASCADE', index=True)
+    contract_stage = db.relationship('ContractStage', backref=backref(
+        'contract_stage_actions', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+    action = Column(db.Text)
+    taken_at = Column(db.DateTime, default=datetime.datetime.now())
+
+    def __unicode__(self):
+        return self.action
 
 class Flow(Model):
     __tablename__ = 'flow'

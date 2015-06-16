@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # TODO: Remove this when we start actually using
 # these methods
 

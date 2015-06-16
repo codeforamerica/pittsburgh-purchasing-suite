@@ -1,0 +1,51 @@
+{% extends 'conductor/layout.html' %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+
+  <div class="row">
+    <div class="col-sm-4">
+      {# Check if there is an entered and exited
+          value. This means that we've already been
+          through this stage entirely. Otherwise,
+          check for an entered value only. This means that it's the
+          current stage. If we have neither of those, gray it out
+          because we aren't there yet.
+       #}
+      {% for stage in stages %}
+        {% if stage.entered and stage.exited %}
+          <div class="event event-complete">
+            <p>{{ stage.name }}</p>
+            <p class="event-date">
+              {{ stage.exited.strftime('%Y-%m-%d') }}
+            </p>
+          </div>
+        {% elif stage.entered %}
+          <div class="event event-current">
+            <p>
+              {{ stage.name }}
+              <button id="stage-{{ stage.id }}" data-current="true" class="btn btn-sm btn-success js-transition">Mark complete!</button>
+            </p>
+            <p class="event-date">
+              {{ stage.entered.strftime('%Y-%m-%d') }}
+            </p>
+          </div>
+        {% else %}
+          <div class="event">
+            <p class="text-muted">{{ stage.name }}</p>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block jsvars %}
+<script type="text/javascript">
+var contractId = {{ contract_id }};
+</script>
+{% endblock %}

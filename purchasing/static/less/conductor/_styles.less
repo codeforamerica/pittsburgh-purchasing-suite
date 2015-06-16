@@ -1,0 +1,40 @@
+.event {
+  min-height: 65px;
+  position: relative;
+  border-left: 5px solid @conductor-timeline-dot-default;
+  &:before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: -(@conductor-timeline-dot-radius + @conductor-timeline-border-size)/2;
+    width: @conductor-timeline-dot-radius;
+    height: @conductor-timeline-dot-radius;
+    border-radius: 50%;
+    border: @conductor-timeline-border-size solid white;
+    background: @conductor-timeline-dot-default;
+  }
+
+  &.event-current {
+    border-left:5px solid @conductor-timeline-dot-current;
+    &:before {
+      background: @conductor-timeline-dot-current;
+    }
+  }
+
+  &.event-complete {
+    border-left:5px solid @conductor-timeline-dot-complete;
+    &:before {
+      background: @conductor-timeline-dot-complete;
+    }
+  }
+
+  p {
+    margin-left: 20px;
+  }
+
+  p.event-date {
+    font-size: @font-size-large;
+    font-weight: bold;
+  }
+}
+

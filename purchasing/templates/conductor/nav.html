@@ -1,0 +1,9 @@
+{% extends "includes/nav.html" %}
+
+{% block brandhref %}{{ url_for('conductor.index') }}{% endblock %}
+
+{% block brand %}Conductor{% endblock %}
+
+{% block navlogin %}
+{{ super() }}
+{% endblock %}

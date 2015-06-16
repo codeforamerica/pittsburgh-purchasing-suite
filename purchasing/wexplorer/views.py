@@ -11,6 +11,7 @@ from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import wexplorer_feedback
 from purchasing.wexplorer.forms import SearchForm, FeedbackForm, FilterForm
+from purchasing.data.util import find_contract_metadata, return_all_contracts
 from purchasing.data.models import (
     ContractBase, contract_user_association_table,
     contract_starred_association_table, SearchView
@@ -142,43 +143,9 @@ def search():
     )
 
     if search_for != '':
-        contracts = db.session.query(
-            db.distinct(SearchView.contract_id).label('contract_id'),
-            SearchView.company_id,
-            SearchView.contract_description,
-            SearchView.financial_id,
-            SearchView.expiration_date,
-            SearchView.company_name,
-            db.case(found_in_case).label('found_in'),
-            db.func.max(db.func.full_text.ts_rank(
-                db.func.setweight(db.func.coalesce(SearchView.tsv_company_name, ''), 'A').concat(
-                    db.func.setweight(db.func.coalesce(SearchView.tsv_contract_description, ''), 'D')
-                ).concat(
-                    db.func.setweight(db.func.coalesce(SearchView.tsv_detail_value, ''), 'D')
-                ).concat(
-                    db.func.setweight(db.func.coalesce(SearchView.tsv_line_item_description, ''), 'B')
-                ), db.func.to_tsquery(search_for, postgresql_regconfig='english')
-            )).label('rank')
-        ).filter(db.or_(
-            db.cast(SearchView.financial_id, db.String) == search_for,
-            *filter_where
-        )).group_by(
-            SearchView.contract_id,
-            SearchView.company_id,
-            SearchView.contract_description,
-            SearchView.financial_id,
-            SearchView.expiration_date,
-            SearchView.company_name,
-            db.case(found_in_case)
-        ).order_by(
-            db.text('rank DESC')
-        ).all()
+        contracts = find_contract_metadata(search_for, found_in_case, filter_where)
     else:
-        contracts = db.session.query(
-            db.distinct(SearchView.contract_id).label('contract_id'), SearchView.company_id,
-            SearchView.contract_description, SearchView.financial_id,
-            SearchView.expiration_date, SearchView.company_name
-        ).all()
+        contracts = return_all_contracts()
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
 

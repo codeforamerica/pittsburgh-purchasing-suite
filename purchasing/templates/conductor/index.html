@@ -1,0 +1,80 @@
+{% extends 'conductor/layout.html' %}
+
+{% block content %}
+{{ super() }}
+<div class="container">
+  <table class="table table-striped table-condensed">
+    <thead>
+      <th>Star</th>
+      <th>Name</th>
+      <th>Spec Number</th>
+      <th>Controller Number</th>
+      <th>Expires</th>
+      <th>Current Step</th>
+      <th>Last Updated</th>
+      <th>Assigned To</th>
+    </thead>
+    <tbody>
+      {% for contract in contracts %}
+        <tr>
+          {% if current_user.is_anonymous() %}
+          {% elif contract.id in user_starred %}
+          <td>
+            <a href="{{ url_for('wexplorer.unstar', contract_id=contract.id, next=path) }}">
+              <span class="fa-stack text-center fa-1x">
+                <i class="fa fa-star"></i>
+              </span>
+            </a>
+          </td>
+          {% else %}
+          <td>
+            <a href="{{ url_for('wexplorer.star', contract_id=contract.id, next=path) }}">
+              <span class="fa-stack text-center fa-1x">
+                <i class="fa fa-star-o"></i>
+              </span>
+            </a>
+          </td><!-- star -->
+          {% endif %}
+          <td>
+            {% if contract.current_stage or contract.assigned %}
+            <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
+              {{ contract.description|title }}
+            </a>
+            {% else %}
+            {{ contract.description|title }}
+            {% endif %}
+          </td><!-- name -->
+          <td>
+            {% for prop in contract.properties %}
+            {% if prop.key.lower() == 'spec number' %}
+              {{ prop.value }}
+            {% endif %}
+            {% endfor %}
+          </td><!-- spec number -->
+          <td>{{ contract.financial_id }}</td><!-- controller number -->
+          <td>{{ contract.expiration_date }}</td><!-- expiration date -->
+          <td>{{ contract.current_stage }}</td><!-- current stage -->
+          <td>{{ contract.updated_at.strftime('%Y-%m-%d') }}</td><!-- last updated -->
+          <td>
+            <div class="dropdown">
+              <button id="dLabel" class="btn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {% if contract.assigned %}
+                  {{ contract.assigned }}
+                {% else %}
+                  Not assigned
+                {% endif %}
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                {% for conductor in conductors %}
+                  <li><a href="{{ url_for('conductor.assign', contract_id=contract.id, user_id=conductor.id, flow_id=1) }}">{{ conductor.email }}</a></li>
+                {% endfor %}
+              </ul>
+            </div>
+          </td><!-- assigned to -->
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
