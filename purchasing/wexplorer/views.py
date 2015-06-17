@@ -6,7 +6,7 @@ from flask import (
 )
 from flask_login import current_user
 
-from purchasing.database import db, TSRank
+from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import wexplorer_feedback
@@ -18,7 +18,7 @@ from purchasing.data.models import (
 from purchasing.users.models import DEPARTMENT_CHOICES
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
-    get_one_contract, follow_a_contract, unfollow_a_contract, get_all_contracts
+    get_one_contract, follow_a_contract, unfollow_a_contract
 )
 
 blueprint = Blueprint(
@@ -62,7 +62,7 @@ def filter(department=None):
     )).group_by(ContractBase).having(db.or_(
         db.func.count(contract_user_association_table.c.user_id) > 0,
         db.func.count(contract_starred_association_table.c.user_id) > 0
-    )).order_by('cnt DESC').all()
+    )).order_by(db.text('cnt DESC')).all()
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
@@ -116,7 +116,6 @@ def search():
 
     search_form = SearchForm(request.form)
     search_for = request.args.get('q', '')
-    results = []
 
     pagination_per_page = current_app.config.get('PER_PAGE', 50)
     page = int(request.args.get('page', 1))
@@ -126,9 +125,9 @@ def search():
     # build filter and filter form
     filter_form = FilterForm()
     fields = [
-        ('contract_description', 'Company Name', SearchView.tsv_contract_description),
-        ('company_name', 'Contract Description', SearchView.tsv_company_name),
+        ('company_name', 'Company Name', SearchView.tsv_company_name),
         ('line_item', 'Line Item', SearchView.tsv_line_item_description),
+        ('contract_description', 'Contract Description', SearchView.tsv_contract_description),
         ('contract_detail', 'Contract Detail', SearchView.tsv_detail_value),
     ]
 
@@ -152,12 +151,13 @@ def search():
             SearchView.company_name,
             db.case(found_in_case).label('found_in'),
             db.func.max(db.func.full_text.ts_rank(
-                db.func.to_tsvector(db.func.concat(
-                    db.func.setweight(SearchView.tsv_company_name, 'A'),
-                    db.func.setweight(SearchView.tsv_contract_description, 'C'),
-                    db.func.setweight(SearchView.tsv_detail_value, 'D'),
+                db.func.setweight(SearchView.tsv_company_name, 'A').concat(
+                    db.func.setweight(SearchView.tsv_contract_description, 'C')
+                ).concat(
+                    db.func.setweight(SearchView.tsv_detail_value, 'D')
+                ).concat(
                     db.func.setweight(SearchView.tsv_line_item_description, 'B')
-                )), db.func.to_tsquery(search_for, postgresql_regconfig='english')
+                ), db.func.to_tsquery(search_for, postgresql_regconfig='english')
             )).label('rank')
         ).filter(db.or_(
             db.cast(SearchView.financial_id, db.String) == search_for,
@@ -171,7 +171,7 @@ def search():
             SearchView.company_name,
             db.case(found_in_case)
         ).order_by(
-            'rank DESC'
+            db.text('rank DESC')
         ).all()
     else:
         contracts = db.session.query(
