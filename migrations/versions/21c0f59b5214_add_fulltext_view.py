@@ -79,7 +79,7 @@ def upgrade():
             DROP TRIGGER IF EXISTS tsv_{table}_{column}_trigger ON {table}
         '''.format(table=table, column=column)))
         conn.execute(sa.sql.text('''
-            CREATE TRIGGER tsv_{table}_{column}_trigger AFTER TRUNCATE OR INSERT OR UPDATE OR DELETE
+            CREATE TRIGGER tsv_{table}_{column}_trigger AFTER TRUNCATE OR INSERT OR DELETE OR UPDATE OF {column}
             ON {table} FOR EACH STATEMENT
             EXECUTE PROCEDURE trig_refresh_search_view()
         '''.format(table=table, column=column)))

@@ -151,12 +151,12 @@ def search():
             SearchView.company_name,
             db.case(found_in_case).label('found_in'),
             db.func.max(db.func.full_text.ts_rank(
-                db.func.setweight(SearchView.tsv_company_name, 'A').concat(
-                    db.func.setweight(SearchView.tsv_contract_description, 'C')
+                db.func.setweight(db.func.coalesce(SearchView.tsv_company_name, ''), 'A').concat(
+                    db.func.setweight(db.func.coalesce(SearchView.tsv_contract_description, ''), 'D')
                 ).concat(
-                    db.func.setweight(SearchView.tsv_detail_value, 'D')
+                    db.func.setweight(db.func.coalesce(SearchView.tsv_detail_value, ''), 'D')
                 ).concat(
-                    db.func.setweight(SearchView.tsv_line_item_description, 'B')
+                    db.func.setweight(db.func.coalesce(SearchView.tsv_line_item_description, ''), 'B')
                 ), db.func.to_tsquery(search_for, postgresql_regconfig='english')
             )).label('rank')
         ).filter(db.or_(
