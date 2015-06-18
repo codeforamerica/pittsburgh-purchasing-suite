@@ -78,7 +78,6 @@ def transition(contract_id):
         clicked = request.json.get('clicked')
 
     stage, _ = transition_stage(contract_id, destination=clicked)
-    db.session.commit()
 
     return jsonify({
         'stage': stage.as_dict()

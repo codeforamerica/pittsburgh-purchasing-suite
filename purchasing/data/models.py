@@ -224,7 +224,10 @@ class ContractStage(Model):
     def enter(self):
         '''Enter the stage at this point
         '''
-        ContractBase.query.get(self.contract_id).current_stage_id = self.stage_id
+        db.session.flush()
+        import pdb; pdb.set_trace()
+        # ContractBase.query.get(self.contract_id).current_stage_id = self.stage_id
+        import pdb; pdb.set_trace()
         self.entered = datetime.datetime.now()
 
     def exit(self):

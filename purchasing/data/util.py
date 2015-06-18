@@ -9,6 +9,7 @@ def find_contract_metadata(search_term, case_statements, filter_clauses):
     returns out a list of result objects including contract id,
     company id, financial id, expiration date, awarded name
     '''
+
     contracts = db.session.query(
         db.distinct(SearchView.contract_id).label('contract_id'),
         SearchView.company_id,

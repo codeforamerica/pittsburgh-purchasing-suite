@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from purchasing.database import db
 from purchasing.data.models import Stage, StageProperty, ContractStage
 from purchasing.data.contracts import get_one_contract
 
@@ -108,12 +109,16 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None):
             ])
         ).order_by(ContractStage.id).all()
 
-        import pdb; pdb.set_trace()
-
-        # exit the current stage
-        stages_to_transition[0].exit()
-        # enter the new stage
-        stages_to_transition[1].enter()
+        try:
+            # exit the current stage
+            stages_to_transition[0].exit()
+            # enter the new stage
+            stages_to_transition[1].enter()
+            # update the contract's current stage
+            contract.current_stage_id = current_stage_idx + 1
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
 
         return stages_to_transition[1], contract
-
