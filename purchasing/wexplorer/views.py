@@ -12,12 +12,13 @@ from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import wexplorer_feedback
 from purchasing.wexplorer.forms import SearchForm, FeedbackForm, FilterForm
 from purchasing.data.models import (
-    ContractBase, contract_user_association_table, contract_starred_association_table
+    ContractBase, contract_user_association_table,
+    contract_starred_association_table, SearchView
 )
 from purchasing.users.models import DEPARTMENT_CHOICES
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
-    get_one_contract, follow_a_contract, unfollow_a_contract, get_all_contracts
+    get_one_contract, follow_a_contract, unfollow_a_contract
 )
 
 blueprint = Blueprint(
@@ -61,7 +62,7 @@ def filter(department=None):
     )).group_by(ContractBase).having(db.or_(
         db.func.count(contract_user_association_table.c.user_id) > 0,
         db.func.count(contract_starred_association_table.c.user_id) > 0
-    )).order_by('cnt DESC').all()
+    )).order_by(db.text('cnt DESC')).all()
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
@@ -81,16 +82,27 @@ def filter(department=None):
         )
     )
 
-def build_filter(req_args, fields, filter_form, _all):
+def build_filter(req_args, fields, search_for, filter_form, _all):
     '''Build the where clause filter
     '''
     clauses = []
-    for arg_name, filter_field, _filter in fields:
+    for arg_name, _, filter_column in fields:
         if _all or req_args.get(arg_name) == 'y':
             if not _all:
                 filter_form[arg_name].checked = True
-            clauses.append('{} {} :search_for'.format(filter_field, _filter))
-    return 'WHERE ' + ' OR '.join(clauses)
+            clauses.append(filter_column.match(search_for, postgresql_regconfig='english'))
+    return clauses
+
+def build_cases(req_args, fields, search_for, _all):
+    '''Build the case when statements
+    '''
+    clauses = []
+    for arg_name, arg_description, filter_column in fields:
+        if _all or req_args.get(arg_name) == 'y':
+            clauses.append(
+                (filter_column.match(search_for, postgresql_regconfig='english') == True, arg_description)
+            )
+    return clauses
 
 @blueprint.route('/search', methods=['GET'])
 def search():
@@ -104,7 +116,6 @@ def search():
 
     search_form = SearchForm(request.form)
     search_for = request.args.get('q', '')
-    results = []
 
     pagination_per_page = current_app.config.get('PER_PAGE', 50)
     page = int(request.args.get('page', 1))
@@ -114,78 +125,60 @@ def search():
     # build filter and filter form
     filter_form = FilterForm()
     fields = [
-        ('company_name', 'cp.company_name', '~*'),
-        ('contract_description', 'ct.description', '~*'),
-        ('contract_detail', 'ctp.value', '~*'),
-        ('line_item', 'li.description', '~*'),
-        ('financial_id', 'ct.financial_id::VARCHAR', '=')
+        ('company_name', 'Company Name', SearchView.tsv_company_name),
+        ('line_item', 'Line Item', SearchView.tsv_line_item_description),
+        ('contract_description', 'Contract Description', SearchView.tsv_contract_description),
+        ('contract_detail', 'Contract Detail', SearchView.tsv_detail_value),
     ]
 
     filter_where = build_filter(
-        request.args, fields, filter_form,
-        not any([request.args.get(name) for name, search_clause, _filter in fields])
+        request.args, fields, search_for, filter_form,
+        not any([request.args.get(name) for name, _, _ in fields])
     )
 
-    # TODO: Make this more efficient. Maybe break it into multiple
-    # queries and them join those together in the python?
-    contracts = db.session.execute(
-        '''
-        SELECT
-            x.company_id, x.contract_id,
-            x.company_name, x.description,
-            x.expiration_date, x.financial_id,
-            x.found_in, array_agg(u.email)
-        FROM (
-            SELECT
-                cp.id as company_id, ct.id as contract_id,
-                cp.company_name, ct.description,
-                ct.expiration_date, ct.financial_id,
-                CASE
-                  WHEN cp.company_name ~* :search_for then 'Company Name'
-                  WHEN ct.description ~* :search_for then 'Contract Description'
-                  WHEN ctp.value ~* :search_for then 'Contract Detail'
-                  WHEN li.description ~* :search_for then 'Line Item'
-                  WHEN ct.financial_id::VARCHAR = :search_for then 'Financial ID (Controller Number)'
-                  ELSE NULL
-                END as found_in
-            FROM company cp
-            FULL OUTER JOIN company_contract_association cca
-            ON cp.id = cca.company_id
-            FULL OUTER JOIN contract ct
-            ON ct.id = cca.contract_id
-            LEFT JOIN contract_property ctp
-            ON ct.id = ctp.contract_id
-            LEFT JOIN line_item li
-            ON ct.id = li.contract_id
-            {filter_where}
-        ) x
-        FULL OUTER JOIN
-        contract_user_association cca
-        ON x.contract_id = cca.contract_id
-        LEFT OUTER JOIN
-        users u
-        ON cca.user_id = u.id
-        WHERE x.contract_id IS NOT NULL
-        group by 1,2,3,4,5,6,7
-        '''.format(
-            filter_where=filter_where
-        ),
-        {
-            'search_for': str(search_for)
-        }
-    ).fetchall()
+    found_in_case = build_cases(
+        request.args, fields, search_for,
+        not any([request.args.get(name) for name, _, _ in fields])
+    )
 
-    for contract in contracts[lower_bound_result:upper_bound_result]:
-        results.append({
-            'company_id': contract[0],
-            'contract_id': contract[1],
-            'company_name': contract[2],
-            'contract_description': contract[3],
-            'expiration_date': contract[4],
-            'financial_id': contract[5],
-            'found_in': contract[6],
-            'users': contract[7],
-        })
+    if search_for != '':
+        contracts = db.session.query(
+            db.distinct(SearchView.contract_id).label('contract_id'),
+            SearchView.company_id,
+            SearchView.contract_description,
+            SearchView.financial_id,
+            SearchView.expiration_date,
+            SearchView.company_name,
+            db.case(found_in_case).label('found_in'),
+            db.func.max(db.func.full_text.ts_rank(
+                db.func.setweight(SearchView.tsv_company_name, 'A').concat(
+                    db.func.setweight(SearchView.tsv_contract_description, 'C')
+                ).concat(
+                    db.func.setweight(SearchView.tsv_detail_value, 'D')
+                ).concat(
+                    db.func.setweight(SearchView.tsv_line_item_description, 'B')
+                ), db.func.to_tsquery(search_for, postgresql_regconfig='english')
+            )).label('rank')
+        ).filter(db.or_(
+            db.cast(SearchView.financial_id, db.String) == search_for,
+            *filter_where
+        )).group_by(
+            SearchView.contract_id,
+            SearchView.company_id,
+            SearchView.contract_description,
+            SearchView.financial_id,
+            SearchView.expiration_date,
+            SearchView.company_name,
+            db.case(found_in_case)
+        ).order_by(
+            db.text('rank DESC')
+        ).all()
+    else:
+        contracts = db.session.query(
+            db.distinct(SearchView.contract_id).label('contract_id'), SearchView.company_id,
+            SearchView.contract_description, SearchView.financial_id,
+            SearchView.expiration_date, SearchView.company_name
+        ).all()
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
@@ -202,7 +195,7 @@ def search():
         filter_form=filter_form,
         user_starred=user_starred,
         search_for=search_for,
-        results=results,
+        results=contracts[lower_bound_result:upper_bound_result],
         pagination=pagination,
         search_form=search_form,
         choices=DEPARTMENT_CHOICES[1:],

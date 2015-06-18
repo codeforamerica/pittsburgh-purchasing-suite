@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from flask import current_app
+from purchasing.app import db
 from purchasing.extensions import mail
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
     insert_a_company, insert_a_contract,
-    insert_a_user, insert_a_role
+    insert_a_user, get_a_role
 )
 
 from purchasing.data.models import ContractBase, ContractProperty, LineItem
@@ -15,20 +16,29 @@ class TestWexplorer(BaseTestCase):
     render_templates = True
 
     def setUp(self):
-        super(TestWexplorer, self).setUp()
+        from flask_migrate import upgrade
+        upgrade()
+
         # insert the users/roles
-        self.admin_role = insert_a_role('admin')
-        self.superadmin_role = insert_a_role('superadmin')
-        self.admin_user = insert_a_user(email='foo@foo.com', role=self.admin_role)
-        self.superadmin_user = insert_a_user(email='bar@foo.com', role=self.superadmin_role)
+        self.admin_role = get_a_role('admin')
+        self.superadmin_role = get_a_role('superadmin')
+        self.admin_user = insert_a_user(email='foo@foo.com', role=self.admin_role.id)
+        self.superadmin_user = insert_a_user(email='bar@foo.com', role=self.superadmin_role.id)
 
         # insert the companies/contracts
-        company_1 = insert_a_company(name='BBB', insert_contract=False)
-        company_2 = insert_a_company(name='ccc', insert_contract=False)
-        insert_a_company(name='CCC')
-        insert_a_contract(description='AAA', companies=[company_2], line_items=[LineItem(description='eee')])
-        insert_a_contract(description='ddd', companies=[company_1], line_items=[LineItem(description='fff')])
-        insert_a_contract(description='DDD', financial_id=123, properties=[ContractProperty(key='foo', value='EEE')])
+        company_1 = insert_a_company(name='ship', insert_contract=False)
+        company_2 = insert_a_company(name='boat', insert_contract=False)
+        insert_a_contract(description='vessel', companies=[company_2], line_items=[LineItem(description='NAVY')])
+        insert_a_contract(description='sail', financial_id=123, companies=[company_1], line_items=[LineItem(description='sunfish')])
+        insert_a_contract(description='sunfish', financial_id=456, properties=[ContractProperty(key='foo', value='engine')])
+
+    def tearDown(self):
+        db.session.execute('''DROP SCHEMA IF EXISTS public cascade;''')
+        db.session.execute('''CREATE SCHEMA public;''')
+        db.session.commit()
+        db.session.remove()
+        db.drop_all()
+        db.get_engine(self.app).dispose()
 
     def test_explore(self):
         '''
@@ -44,29 +54,26 @@ class TestWexplorer(BaseTestCase):
         '''
         Check all possible searches return properly: descriptions, names, properties, line items, financial ids
         '''
-        self.assert200(self.client.get('/wexplorer/search?q=aaa'))
+        self.assert200(self.client.get('/wexplorer/search?q=ship'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.assert200(self.client.get('/wexplorer/search?q=BB'))
+        self.assert200(self.client.get('/wexplorer/search?q=boat'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.assert200(self.client.get('/wexplorer/search?q=CC'))
-        self.assertEquals(len(self.get_context_variable('results')), 2)
-
-        self.assert200(self.client.get('/wexplorer/search?q=dd'))
-        self.assertEquals(len(self.get_context_variable('results')), 2)
+        self.assert200(self.client.get('/wexplorer/search?q=vessel'))
+        self.assertEquals(len(self.get_context_variable('results')), 1)
 
         self.assert200(self.client.get('/wexplorer/search?q=FAKEFAKEFAKE'))
         self.assertEquals(len(self.get_context_variable('results')), 0)
 
-        self.assert200(self.client.get('/wexplorer/search?q=EEE'))
+        self.assert200(self.client.get('/wexplorer/search?q=sunfish'))
         self.assertEquals(len(self.get_context_variable('results')), 2)
 
         # make sure you can filter with the check boxes
-        self.assert200(self.client.get('/wexplorer/search?q=EEE&line_item=y'))
+        self.assert200(self.client.get('/wexplorer/search?q=sunfish&line_item=y'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.assert200(self.client.get('/wexplorer/search?q=ff'))
+        self.assert200(self.client.get('/wexplorer/search?q=engine'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
         self.assert200(self.client.get('/wexplorer/search?q=123'))

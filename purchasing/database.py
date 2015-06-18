@@ -2,6 +2,7 @@
 """Database module, including the SQLAlchemy database object and DB-related
 utilities.
 """
+from sqlalchemy.sql.functions import GenericFunction
 from sqlalchemy.orm import relationship
 
 from .extensions import db
@@ -80,3 +81,7 @@ def ReferenceCol(tablename, nullable=False, ondelete=None, pk_name='id', **kwarg
     return db.Column(
         db.ForeignKey("{0}.{1}".format(tablename, pk_name), ondelete=ondelete),
         nullable=nullable, **kwargs)
+
+class TSRank(GenericFunction):
+    package = 'full_text'
+    name = 'ts_rank'

@@ -46,8 +46,8 @@
             {% if current_user.is_anonymous() == False %}
             <th>Star</th>
             {% endif %}
-            <th class="js-sortable-th">Company</th>
             <th class="js-sortable-th">Contract Discription</th>
+            <th class="js-sortable-th">Company</th>
             <th class="js-sortable-th">Expiration Date</th>
             <th class="js-sortable-th">Controller Number</th>
             {% if current_user.is_anonymous() == False %}
@@ -77,18 +77,20 @@
             </td>
             {% endif %}
             <td>
-              {% if result.company_id %}
-              <a href="{{ url_for('wexplorer.company', company_id=result.company_id) }}">
-                {{ result.company_name|title }}
-              </a>
-              {% endif %}
-              <br>
-              <span class="text-muted"><small>Matched: <strong>{{ result.found_in }}</strong></small></span>
-            </td>
-            <td>
               {% if result.contract_id %}
               <a href="{{ url_for('wexplorer.contract', contract_id=result.contract_id) }}">
                 {{ result.contract_description|title }}
+              </a>
+              {% endif %}
+              {% if result.found_in %}
+              <br>
+              <span class="text-muted"><small>Matched: <strong>{{ result.found_in }}</strong></small></span>
+              {% endif %}
+            </td>
+            <td>
+              {% if result.company_id %}
+              <a href="{{ url_for('wexplorer.company', company_id=result.company_id) }}">
+                {{ result.company_name|title }}
               </a>
               {% endif %}
             </td>

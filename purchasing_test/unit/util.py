@@ -83,3 +83,6 @@ def insert_a_role(name):
     role = Role(name=name)
     role.save()
     return role.id
+
+def get_a_role(name):
+    return Role.query.filter(Role.name == name).first()
