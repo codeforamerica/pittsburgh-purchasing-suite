@@ -1,23 +1,14 @@
 (function() {
   'use strict';
 
-  // grab all of the transition buttons
-  var transitionBtns = $('.js-transition');
+  // format a date to YYYY-MM-DD
+  function formatDate(datestr) {
+    var _date = new Date(datestr);
+    var day = _date.getDate();
+    var monthIndex = _date.getMonth().toString().length === 1 ? '0' + (_date.getMonth() + 1) : _date.getMonth() + 1;
+    var year = _date.getFullYear();
 
-  transitionBtns.on('click', function() {
-    var clickedStage = this.id.split('-')[1];
-    var currentStage = this.attributes.getNamedItem('data-current').value;
-    $.ajax({
-      type: 'POST',
-      url: '/conductor/' + contractId + '/transition',
-      data: JSON.stringify({clicked: clickedStage, current: currentStage}),
-      contentType: 'application/json;charset=UTF-8',
-      success: function(data, status, xhr) {
-        debugger;
-      }, error: function(data, status, xhr) {
-        debugger;
-      }
-    });
+    return year + '-' + monthIndex + '-' + day;
+  }
 
-  });
 })();

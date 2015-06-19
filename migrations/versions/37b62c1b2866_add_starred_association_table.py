@@ -19,8 +19,8 @@ def upgrade():
     op.create_table('contract_starred_association',
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('contract_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['contract_id'], ['contract.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], )
+    sa.ForeignKeyConstraint(['contract_id'], ['contract.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='SET NULL')
     )
     op.create_index(op.f('ix_contract_starred_association_contract_id'), 'contract_starred_association', ['contract_id'], unique=False)
     op.create_index(op.f('ix_contract_starred_association_user_id'), 'contract_starred_association', ['user_id'], unique=False)

@@ -2,7 +2,7 @@
 
 from purchasing.database import db
 from purchasing.data.models import Stage, StageProperty, ContractStage
-from purchasing.data.contracts import get_one_contract
+from purchasing.data.contracts import get_one_contract, clone_a_contract
 
 def create_new_stage(stage_data):
     '''Create a new stage.
@@ -55,6 +55,28 @@ def get_all_stages():
     '''
     return Stage.query.all()
 
+def _perform_transition(contract, stages=[], single_enter=True):
+    '''Looks up and performs the appropriate exit/enter on two stages
+
+    Stages is a list of integers.
+    '''
+    stages_to_transition = ContractStage.query.filter(
+        ContractStage.contract_id == contract.id,
+        ContractStage.stage_id.in_(stages)
+    ).order_by(ContractStage.id).all()
+
+    # exit the current stage
+    # enter the new stage
+    if len(stages_to_transition) > 1:
+        stages_to_transition[0].exit()
+        stages_to_transition[1].enter()
+        contract.current_stage_id = stages_to_transition[1].stage_id
+    else:
+        stages_to_transition[0].enter() if single_enter else stages_to_transition[0].exit()
+        contract.current_stage_id = stages_to_transition[0].stage_id
+    # update the contract's current stage
+    return stages_to_transition
+
 def transition_stage(contract_id, destination=None, contract=None, stages=None):
     '''Transitions a contract from one stage to another
 
@@ -85,40 +107,48 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None):
         pass
 
     # implement first case -- current stage is none
-    elif contract.current_stage is None:
-        stage_to_update = ContractStage.query.filter(
-            ContractStage.contract_id == contract_id,
-            ContractStage.stage_id == stages[0]
-        ).first()
-        stage_to_update.enter()
-        return stage_to_update, contract
+    elif contract.current_stage_id is None:
+        try:
+            transition = _perform_transition(
+                contract, stages=[stages[0]], single_enter=True
+            )
+            db.session.commit()
+            return transition[0], contract
+        except Exception:
+            db.session.rollback()
+            raise
 
     # implement the second case -- current stage is last stage
     elif contract.current_stage_id == contract.flow.stage_order[-1]:
-        import pdb; pdb.set_trace()
+        # complete the contract
+        current_stage_idx = stages.index(contract.current_stage_id)
+
+        try:
+            transition = _perform_transition(
+                contract, stages=[stages[current_stage_idx]],
+                single_enter=False
+            )
+
+            clone_a_contract(contract)
+
+            return transition[0], contract
+        except Exception:
+            raise
+            db.session.rollback()
 
     # implement final case -- transitioning to new stage
     else:
         current_stage_idx = stages.index(contract.current_stage_id)
 
-        stages_to_transition = ContractStage.query.filter(
-            ContractStage.contract_id == contract_id,
-            ContractStage.stage_id.in_([
-                stages[current_stage_idx],
-                stages[current_stage_idx + 1]
-            ])
-        ).order_by(ContractStage.id).all()
-
         try:
-            # exit the current stage
-            stages_to_transition[0].exit()
-            # enter the new stage
-            stages_to_transition[1].enter()
-            # update the contract's current stage
-            contract.current_stage_id = current_stage_idx + 1
+            transition = _perform_transition(
+                contract, stages=[
+                    stages[current_stage_idx], stages[current_stage_idx + 1]
+                ]
+            )
             db.session.commit()
+
+            return transition[1], contract
         except Exception:
             db.session.rollback()
             raise
-
-        return stages_to_transition[1], contract

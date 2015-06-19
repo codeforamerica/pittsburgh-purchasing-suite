@@ -4,6 +4,10 @@
 
 {% block brand %}Conductor{% endblock %}
 
+{% block applinks %}
+<li><a href="{{ url_for('conductor.index') }}">Contract List</a></li>
+{% endblock %}
+
 {% block navlogin %}
 {{ super() }}
 {% endblock %}

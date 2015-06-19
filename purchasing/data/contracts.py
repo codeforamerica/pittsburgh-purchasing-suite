@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from purchasing.database import db
 from purchasing.data.models import ContractBase, ContractProperty
+
+from sqlalchemy.orm.session import make_transient
 
 def create_new_contract(contract_data):
     '''
@@ -74,13 +77,11 @@ def follow_a_contract(contract_id, user, field):
         if field == 'follow':
             if user not in contract.users:
                 contract.users.append(user)
-                contract.update()
                 return ('Successfully subscribed!', 'alert-success'), contract
             return ('Already subscribed!', 'alert-info'), contract
         elif field == 'star':
             if user not in contract.starred:
                 contract.starred.append(user)
-                contract.update()
                 return ('Successfully starred!', 'alert-success'), contract
             return ('Already starred', 'alert-info'), contract
     return None, None
@@ -95,13 +96,62 @@ def unfollow_a_contract(contract_id, user, field):
         if field == 'follow':
             if user in contract.users:
                 contract.users.remove(user)
-                contract.update()
                 return ('Successfully unsubscribed', 'alert-success'), contract
             return ('You haven\'t subscribed to this contract!', 'alert-warning'), contract
         elif field == 'star':
             if user in contract.starred:
                 contract.starred.remove(user)
-                contract.update()
                 return ('Successfully unstarred', 'alert-success'), contract
             return ('You haven\'t starred this contract!', 'alert-warning'), contract
     return None, None
+
+def clone_a_contract(contract):
+    '''Takes a contract object and clones it
+
+    The clone strips the following properties:
+        + Financial ID
+        + Expiration Date
+        + Assigned To
+        + Current Stage
+        + Contract HREF
+
+    Relationships are handled as follows:
+        + Stars, Follows - moved to new contract (dropped from old)
+        + Stage, Flow - Duplicated
+        + Properties, Notes, Line Items, Companies kept on old
+    '''
+    old_contract_id = int(contract.id)
+
+    subscribers = [
+        ('follow', list(contract.users)),
+        ('star', list(contract.starred))
+    ]
+
+    db.session.expunge(contract)
+    make_transient(contract)
+
+    contract.id = None
+    contract.financial_id = None
+    contract.expiration_date = None
+    contract.assigned_to = None
+    contract.current_stage = None
+    contract.contract_href = None
+
+    old_contract = get_one_contract(old_contract_id)
+    # group everything that will rebuild the trigger
+    # into one flush
+    db.session.add(contract)
+    old_contract.is_archived = True
+    old_contract.description = old_contract.description + ' [Archived]'
+
+    # we have to commit here in order to manage the relationships
+    db.session.commit()
+
+    for interaction, users in subscribers:
+        for i in users:
+            unfollow_a_contract(old_contract_id, i, interaction)
+            follow_a_contract(contract.id, i, interaction)
+            db.session.flush()
+
+    db.session.commit()
+    return contract

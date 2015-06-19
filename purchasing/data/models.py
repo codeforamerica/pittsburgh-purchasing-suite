@@ -26,8 +26,8 @@ contract_user_association_table = Table(
 
 contract_starred_association_table = Table(
     'contract_starred_association', Model.metadata,
-    Column('user_id', db.Integer, db.ForeignKey('users.id'), index=True),
-    Column('contract_id', db.Integer, db.ForeignKey('contract.id'), index=True),
+    Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True),
+    Column('contract_id', db.Integer, db.ForeignKey('contract.id', ondelete='SET NULL'), index=True),
 )
 
 class SearchView(Model):
@@ -119,6 +119,7 @@ class ContractBase(Model):
     assigned = db.relationship('User', backref=backref(
         'assignments', lazy='dynamic', cascade='none'
     ))
+    is_archived = Column(db.Boolean, default=False)
 
     def __unicode__(self):
         return self.description
@@ -225,14 +226,12 @@ class ContractStage(Model):
         '''Enter the stage at this point
         '''
         db.session.flush()
-        import pdb; pdb.set_trace()
-        # ContractBase.query.get(self.contract_id).current_stage_id = self.stage_id
-        import pdb; pdb.set_trace()
         self.entered = datetime.datetime.now()
 
     def exit(self):
         '''Exit the stage
         '''
+        db.session.flush()
         self.exited = datetime.datetime.now()
 
 class ContractStageActionItem(Model):

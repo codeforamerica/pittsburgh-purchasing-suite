@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask_wtf import Form
-from wtforms.fields import TextField, TextAreaField, SelectMultipleField, BooleanField
+from wtforms.fields import TextField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired, Email
 
 class SearchForm(Form):
@@ -15,7 +15,11 @@ class FilterForm(Form):
     contract_detail = BooleanField()
     line_item = BooleanField()
     financial_id = BooleanField()
+    archived = BooleanField()
 
 class FeedbackForm(Form):
     sender = TextField(validators=[Email()], default='No email provided')
     body = TextAreaField(validators=[DataRequired()])
+
+class NoteForm(Form):
+    note = TextAreaField(validators=[DataRequired()])

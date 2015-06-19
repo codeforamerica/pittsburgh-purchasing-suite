@@ -2,7 +2,7 @@
 
 {% block content %}
 {{ super() }}
-<div class="container">
+<div class="container less-padding-container">
   <table class="table table-striped table-condensed">
     <thead>
       <th>Star</th>
@@ -36,28 +36,23 @@
           </td><!-- star -->
           {% endif %}
           <td>
+            {{ contract.description|title }}<br/>
             {% if contract.current_stage or contract.assigned %}
-            <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
-              {{ contract.description|title }}
-            </a>
-            {% else %}
-            {{ contract.description|title }}
+              <a class="btn btn-default btn-sm" href="{{ url_for('conductor.detail', contract_id=contract.id) }}">View Progress</a>
             {% endif %}
+            {% if contract.contract_href %}
+              <a class="btn btn-default btn-sm" href="{{ contract_href }}">View Contract</a>
+            {% endif %}
+              <a class="btn btn-default btn-sm" href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">View on Scout</a>
           </td><!-- name -->
-          <td>
-            {% for prop in contract.properties %}
-            {% if prop.key.lower() == 'spec number' %}
-              {{ prop.value }}
-            {% endif %}
-            {% endfor %}
-          </td><!-- spec number -->
+          <td>{{ contract.spec_number}}</td><!-- spec number -->
           <td>{{ contract.financial_id }}</td><!-- controller number -->
           <td>{{ contract.expiration_date }}</td><!-- expiration date -->
-          <td>{{ contract.current_stage }}</td><!-- current stage -->
+          <td>{{ contract.stage_name }}</td><!-- current stage -->
           <td>{{ contract.updated_at.strftime('%Y-%m-%d') }}</td><!-- last updated -->
           <td>
             <div class="dropdown">
-              <button id="dLabel" class="btn" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <button id="dLabel" class="btn btn-sm" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 {% if contract.assigned %}
                   {{ contract.assigned }}
                 {% else %}

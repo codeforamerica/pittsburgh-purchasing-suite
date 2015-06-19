@@ -33,6 +33,9 @@
           <div class="checkbox">
             <label>{{ filter_form.financial_id }} <span class="filter-checkbox">Controller Number</span></label>
           </div>
+          <div class="checkbox">
+            <label>{{ filter_form.archived }} <span class="filter-checkbox">Include Archived</span></label>
+          </div>
           {{ search_form.q(placeholder="I'm looking for...", class_="hidden", value=search_for) }}
           <div class="form-group">
             <button type="submit" class="btn btn-success">Filter</button>
