@@ -30,7 +30,7 @@ class ContractAdmin(AuthMixin, sqla.ModelView):
     form_columns = [
         'contract_type', 'description', 'properties', 'financial_id',
         'expiration_date', 'current_stage', 'current_flow', 'companies',
-        'users', 'starred', 'is_archived'
+        'followers', 'starred', 'is_archived'
     ]
 
 class CompanyAdmin(AuthMixin, sqla.ModelView):

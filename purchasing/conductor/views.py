@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import urllib2
+
 from flask import (
     Blueprint, render_template, flash, redirect,
-    url_for, abort, request
+    url_for, abort, request, jsonify
 )
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
@@ -17,6 +19,7 @@ from purchasing.data.models import (
 )
 from purchasing.users.models import User, Role
 from purchasing.wexplorer.forms import NoteForm
+from purchasing.conductor.forms import EditContractForm
 
 blueprint = Blueprint(
     'conductor', __name__, url_prefix='/conductor',
@@ -66,7 +69,10 @@ def detail(contract_id, stage_id=-1):
         # if request.json.get('current') != 'true':
         #     clicked = int(request.json.get('clicked'))
 
-        stage, _ = transition_stage(contract_id, destination=clicked)
+        stage, mod_contract, complete = transition_stage(contract_id, destination=clicked)
+        if complete:
+            return redirect(url_for('conductor.edit', contract_id=mod_contract.id))
+
         return redirect(url_for(
             'conductor.detail', contract_id=contract_id, stage_id=stage_id
         ))
@@ -89,19 +95,62 @@ def detail(contract_id, stage_id=-1):
     if len(stages) > 0:
         return render_template(
             'conductor/detail.html',
-            stages=stages,
-            actions=actions,
-            notes=notes,
-            note_form=NoteForm(),
-            contract_id=contract_id,
-            current_user=current_user
+            stages=stages, actions=actions,
+            notes=notes, note_form=NoteForm(),
+            contract_id=contract_id, current_user=current_user
         )
     abort(404)
 
-@blueprint.route('/<int:contract_id>/assign/<int:user_id>/<int:flow_id>')
+@blueprint.route('/contract/<int:contract_id>/edit', methods=['GET', 'POST'])
+@requires_roles('conductor', 'admin', 'superadmin')
+def edit(contract_id):
+    '''Update information about a contract
+    '''
+    contract = ContractBase.query.get(contract_id)
+
+    if contract:
+        spec_number = contract.get_spec_number()
+        form = EditContractForm(obj=contract)
+        form.spec_number.data = spec_number.value
+
+        if form.validate_on_submit():
+            data = form.data
+            new_spec = data.pop('spec_number', None)
+
+            if new_spec:
+                spec_number.value = new_spec
+
+            contract.update(**data)
+            flash('Contract Successfully Updated!', 'alert-success')
+
+            return redirect(url_for('conductor.edit', contract_id=contract.id))
+
+        return render_template('conductor/edit.html', form=form, contract=contract)
+    abort(404)
+
+@blueprint.route('/contract/<int:contract_id>/edit/url-exists', methods=['POST'])
+@requires_roles('conductor', 'admin', 'superadmin')
+def url_exists(contract_id):
+    '''Check to see if a url returns an actual page
+    '''
+    url = request.json.get('url', '')
+    if url == '':
+        return jsonify({'status': 404})
+
+    req = urllib2.Request(url)
+    request.get_method = lambda: 'HEAD'
+
+    try:
+        response = urllib2.urlopen(req)
+        return jsonify({'status': response.getcode()})
+    except urllib2.HTTPError, e:
+        return jsonify({'status': e.getcode()})
+
+@blueprint.route('/contract/<int:contract_id>/assign/<int:user_id>/flow/<int:flow_id>')
 @requires_roles('conductor', 'admin', 'superadmin')
 def assign(contract_id, flow_id, user_id):
-
+    '''Assign a contract to an admin or a conductor
+    '''
     try:
         stages = create_contract_stages(flow_id, contract_id)
         _, contract = transition_stage(contract_id, stages=stages)

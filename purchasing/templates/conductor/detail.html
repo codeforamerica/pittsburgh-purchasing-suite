@@ -45,9 +45,9 @@
       {% endfor %}
     </div><!-- timeline view -->
 
-    <div class="col-sm-8">
+    <div class="col-sm-5">
       <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-12">
           <h4>Action Log</h4>
           <div class="action-log">
             {% if actions|length == 0 %}
@@ -60,7 +60,15 @@
           </div>
 
         </div>
-        <div class="col-md-4">
+        <div class="col-md-12">
+          <h4>Send Reminder</h4>
+
+        </div>
+      </div><!-- Top Row -->
+    </div>
+    <div class="col-md-3">
+      <div class="row">
+        <div class="col-sm-12">
           <h4>Notes</h4>
           {% if notes|length == 0 %}
             Add a note below.
@@ -70,14 +78,8 @@
             {% endfor %}
           {% endif %}
           {{ note_form.note(class_='form-control') }}
-          <button class="btn btn-primary form-control">Add Note</button>
+          <button class="form-control btn btn-gray">Add Note</button>
         </div><!-- Notes -->
-      </div><!-- Top Row -->
-      <div class="row">
-        <div class="col-sm-12">
-          <h4>Send Reminder</h4>
-
-        </div>
       </div><!-- Reminders Row -->
 
     </div><!-- action/content container -->

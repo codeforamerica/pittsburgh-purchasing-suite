@@ -60,7 +60,7 @@ def filter(department=None):
     ).outerjoin(contract_user_association_table).outerjoin(
         contract_starred_association_table
     ).filter(db.or_(
-        ContractBase.users.any(department=department),
+        ContractBase.followers.any(department=department),
         ContractBase.starred.any(department=department)
     )).group_by(ContractBase).having(db.or_(
         db.func.count(contract_user_association_table.c.user_id) > 0,
@@ -212,7 +212,7 @@ def contract(contract_id):
 
         current_app.logger.info('WEXCONTRACT - Viewed contract page {}'.format(contract.description))
 
-        departments = set([i.department for i in contract.users])
+        departments = set([i.department for i in contract.followers])
 
         return dict(
             contract=contract,

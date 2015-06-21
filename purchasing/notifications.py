@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from flask import render_template, current_app, request
+from flask import render_template, current_app
 from flask_mail import Message
 from purchasing.extensions import mail
 
 def vendor_signup(vendor, categories=[]):
-    '''
-    Sends a signup notification to the email associated with a vendor object
+    '''Sends a signup notification to the email associated with a vendor object
     '''
     to_email = vendor.email
 
@@ -34,8 +33,7 @@ def vendor_signup(vendor, categories=[]):
         return False
 
 def wexplorer_feedback(contract, sender, body):
-    '''
-    Sends a notification to the configured ADMIN_EMAIL.
+    '''Sends a notification to the configured ADMIN_EMAIL.
     '''
     msg_body = render_template('wexplorer/feedback_email.html', contract=contract, sender=sender, body=body)
 
@@ -62,3 +60,19 @@ def wexplorer_feedback(contract, sender, body):
             )
         )
         return False
+
+def new_contract_autoupdate(contract, sender):
+    '''Bulk mails all users following a contract with information about their new contract
+    '''
+    msg_body = render_template('conductor/emails/new_contract.html', contract=contract)
+
+    with mail.connect() as conn:
+        for user in contract.followers:
+            msg = Message(
+                subject='[Pittsburgh Procurement] A contract you follow has been updated!',
+                html=msg_body,
+                sender=sender,
+                recipients=[user.email]
+            )
+
+            conn.send(msg)

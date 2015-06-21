@@ -117,15 +117,15 @@ class TestWexplorer(BaseTestCase):
 
         self.login_user(self.admin_user)
         request = self.client.get('/wexplorer/contracts/1/subscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 1)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 1)
 
         self.login_user(self.superadmin_user)
         self.client.get('/wexplorer/contracts/1/subscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 2)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 2)
 
         # test you can't subscribe more than once
         self.client.get('/wexplorer/contracts/1/subscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 2)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 2)
 
         # test you can't subscribe to a nonexistant contract
         self.assert404(self.client.get('/wexplorer/contracts/999/subscribe'))
@@ -145,16 +145,16 @@ class TestWexplorer(BaseTestCase):
         self.login_user(self.superadmin_user)
         self.client.get('/wexplorer/contracts/1/subscribe')
 
-        self.assertEquals(len(ContractBase.query.get(1).users), 2)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 2)
         self.client.get('/wexplorer/contracts/1/unsubscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 1)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 1)
         # test you can't unsubscribe more than once
         self.client.get('/wexplorer/contracts/1/unsubscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 1)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 1)
 
         self.login_user(self.admin_user)
         self.client.get('/wexplorer/contracts/1/unsubscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 0)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 0)
 
         # test you can't unsubscribe from a nonexistant contract
         self.assert404(self.client.get('/wexplorer/contracts/999/unsubscribe'))

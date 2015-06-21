@@ -11,4 +11,33 @@
     return year + '-' + monthIndex + '-' + day;
   }
 
+
+  var checkUrlBtn = $('#checkUrl');
+  var urlIcon = $('#checkUrlIcon');
+  var currentHref = $('#contract_href');
+
+  currentHref.on('change', function() {
+    urlIcon.removeClass('fa-minus fa-ban ban-error fa-check check-success').addClass('fa-minus');
+  });
+
+  checkUrlBtn.on('click', function() {
+    var currentHrefVal = currentHref.val();
+    $.ajax({
+      url: '/conductor/contract/' + contractId + '/edit/url-exists',
+      type: 'POST',
+      data: JSON.stringify({url: currentHrefVal}),
+      contentType: 'application/json;charset=UTF-8',
+      success: function(data, status, xhr) {
+        if (data.status === 200) {
+          urlIcon.removeClass('fa-minus fa-ban ban-error').addClass('fa-check check-success');
+        } else {
+          urlIcon.removeClass('fa-minus fa-check check-success').addClass('fa-ban ban-error');
+        }
+      },
+      error: function(data, status, xhr) {
+        urlIcon.removeClass('fa-minus fa-check check-success').addClass('fa-ban ban-error');
+      }
+    });
+  });
+
 })();

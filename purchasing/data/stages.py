@@ -113,7 +113,7 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None):
                 contract, stages=[stages[0]], single_enter=True
             )
             db.session.commit()
-            return transition[0], contract
+            return transition[0], contract, False
         except Exception:
             db.session.rollback()
             raise
@@ -129,9 +129,9 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None):
                 single_enter=False
             )
 
-            clone_a_contract(contract)
+            new_contract = clone_a_contract(contract)
 
-            return transition[0], contract
+            return transition[0], new_contract, True
         except Exception:
             raise
             db.session.rollback()
@@ -148,7 +148,7 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None):
             )
             db.session.commit()
 
-            return transition[1], contract
+            return transition[1], contract, False
         except Exception:
             db.session.rollback()
             raise

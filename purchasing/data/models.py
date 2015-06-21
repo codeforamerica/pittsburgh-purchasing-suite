@@ -105,7 +105,7 @@ class ContractBase(Model):
     flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
     current_stage = db.relationship('Stage', lazy='subquery')
     current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
-    users = db.relationship(
+    followers = db.relationship(
         'User',
         secondary=contract_user_association_table,
         backref='contracts_following',
@@ -119,10 +119,22 @@ class ContractBase(Model):
     assigned = db.relationship('User', backref=backref(
         'assignments', lazy='dynamic', cascade='none'
     ))
-    is_archived = Column(db.Boolean, default=False)
+    is_archived = Column(db.Boolean, default=False, nullable=False)
+    parent_id = Column(db.Integer, db.ForeignKey('contract.id'))
+    children = db.relationship('ContractBase', backref=backref(
+        'parent', remote_side=[id]
+    ))
 
     def __unicode__(self):
         return self.description
+
+    def get_spec_number(self):
+        '''Returns the spec number for a given contract
+        '''
+        try:
+            return [i for i in self.properties if i.key.lower() == 'spec number'][0]
+        except IndexError:
+            return ContractProperty()
 
 class ContractProperty(Model):
     __tablename__ = 'contract_property'
@@ -208,16 +220,20 @@ class ContractStage(Model):
         db.Integer, Sequence('autoincr_contract_stage_id', start=1, increment=1),
         index=True, unique=True
     )
+
     contract_id = ReferenceCol('contract', ondelete='CASCADE', index=True, primary_key=True)
     contract = db.relationship('ContractBase', backref=backref(
         'stages', lazy='dynamic', cascade='all, delete-orphan'
     ))
+
     stage_id = ReferenceCol('stage', ondelete='CASCADE', index=True, primary_key=True)
+
     stage = db.relationship('Stage', backref=backref(
         'contracts', lazy='dynamic', cascade='all, delete-orphan'
     ))
+
     created_at = Column(db.DateTime, default=datetime.datetime.now())
-    # updated_at = Column(db.DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
+    updated_at = Column(db.DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
     entered = Column(db.DateTime)
     exited = Column(db.DateTime)
     notes = Column(db.Text)

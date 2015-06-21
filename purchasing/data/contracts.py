@@ -75,8 +75,8 @@ def follow_a_contract(contract_id, user, field):
     contract = get_one_contract(contract_id)
     if contract:
         if field == 'follow':
-            if user not in contract.users:
-                contract.users.append(user)
+            if user not in contract.followers:
+                contract.followers.append(user)
                 return ('Successfully subscribed!', 'alert-success'), contract
             return ('Already subscribed!', 'alert-info'), contract
         elif field == 'star':
@@ -94,8 +94,8 @@ def unfollow_a_contract(contract_id, user, field):
     contract = get_one_contract(contract_id)
     if contract:
         if field == 'follow':
-            if user in contract.users:
-                contract.users.remove(user)
+            if user in contract.followers:
+                contract.followers.remove(user)
                 return ('Successfully unsubscribed', 'alert-success'), contract
             return ('You haven\'t subscribed to this contract!', 'alert-warning'), contract
         elif field == 'star':
@@ -123,7 +123,7 @@ def clone_a_contract(contract):
     old_contract_id = int(contract.id)
 
     subscribers = [
-        ('follow', list(contract.users)),
+        ('follow', list(contract.followers)),
         ('star', list(contract.starred))
     ]
 
@@ -152,6 +152,9 @@ def clone_a_contract(contract):
             unfollow_a_contract(old_contract_id, i, interaction)
             follow_a_contract(contract.id, i, interaction)
             db.session.flush()
+
+    # set the parent
+    contract.parent_id = old_contract_id
 
     db.session.commit()
     return contract
