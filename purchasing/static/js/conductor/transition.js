@@ -40,4 +40,8 @@
     });
   });
 
+  if (activeTab) {
+    $('#tablist a[href="' + activeTab + '"]').tab('show');
+  }
+
 })();

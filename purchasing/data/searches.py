@@ -12,12 +12,9 @@ def find_contract_metadata(search_term, case_statements, filter_clauses, archive
 
     contracts = db.session.query(
         db.distinct(SearchView.contract_id).label('contract_id'),
-        SearchView.company_id,
-        SearchView.contract_description,
-        SearchView.financial_id,
-        SearchView.expiration_date,
-        SearchView.company_name,
-        db.case(case_statements).label('found_in'),
+        SearchView.company_id, SearchView.contract_description,
+        SearchView.financial_id, SearchView.expiration_date,
+        SearchView.company_name, db.case(case_statements).label('found_in'),
         db.func.max(db.func.full_text.ts_rank(
             db.func.setweight(db.func.coalesce(SearchView.tsv_company_name, ''), 'A').concat(
                 db.func.setweight(db.func.coalesce(SearchView.tsv_contract_description, ''), 'D')
@@ -29,10 +26,14 @@ def find_contract_metadata(search_term, case_statements, filter_clauses, archive
         )).label('rank')
     ).join(
         ContractBase, ContractBase.id == SearchView.contract_id
-    ).filter(db.or_(
-        db.cast(SearchView.financial_id, db.String) == search_term,
-        *filter_clauses
-    )).group_by(
+    ).filter(
+        db.or_(
+            db.cast(SearchView.financial_id, db.String) == search_term,
+            *filter_clauses
+        ),
+        ContractBase.financial_id is not None,
+        ContractBase.expiration_date is not None
+    ).group_by(
         SearchView.contract_id,
         SearchView.company_id,
         SearchView.contract_description,

@@ -13,7 +13,7 @@ from purchasing.notifications import wexplorer_feedback
 from purchasing.wexplorer.forms import (
     SearchForm, FeedbackForm, FilterForm, NoteForm
 )
-from purchasing.data.util import find_contract_metadata, return_all_contracts
+from purchasing.data.searches import find_contract_metadata, return_all_contracts
 from purchasing.data.models import (
     ContractBase, contract_user_association_table,
     contract_starred_association_table, SearchView

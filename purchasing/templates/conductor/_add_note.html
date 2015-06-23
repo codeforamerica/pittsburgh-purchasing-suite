@@ -1,0 +1,17 @@
+{% import "macros/with_errors.html" as macros %}
+<form class="form form-horizontal" method="POST" action="{{ url_for('conductor.detail', contract_id=contract_id, stage_id=active_stage.id, form='activity') }}">
+  {{ note_form.csrf_token() }}
+  <div class="form-group">
+    <label for="description" class="control-label col-sm-2">Add Note</label>
+    <div class="col-sm-10">
+      {{ macros.with_errors(note_form.note, class='form-control') }}
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-gray col-sm-4">Add</button>
+    </div>
+  </div>
+
+</form>

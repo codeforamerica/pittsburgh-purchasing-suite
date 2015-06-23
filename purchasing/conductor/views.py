@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import urllib2
+import datetime
 
 from flask import (
     Blueprint, render_template, flash, redirect,
@@ -11,15 +12,18 @@ from sqlalchemy.exc import IntegrityError
 
 from purchasing.decorators import requires_roles
 from purchasing.database import db
+from purchasing.notifications import new_contract_autoupdate, send_conductor_alert
 from purchasing.data.stages import transition_stage
 from purchasing.data.flows import create_contract_stages
 from purchasing.data.models import (
     ContractBase, ContractProperty, ContractStage, Stage,
-    ContractStageActionItem, ContractNote
+    ContractStageActionItem
 )
 from purchasing.users.models import User, Role
-from purchasing.wexplorer.forms import NoteForm
-from purchasing.conductor.forms import EditContractForm
+from purchasing.conductor.forms import (
+    EditContractForm, PostOpportunityForm,
+    SendUpdateForm, NoteForm
+)
 
 blueprint = Blueprint(
     'conductor', __name__, url_prefix='/conductor',
@@ -74,32 +78,121 @@ def detail(contract_id, stage_id=-1):
             return redirect(url_for('conductor.edit', contract_id=mod_contract.id))
 
         return redirect(url_for(
-            'conductor.detail', contract_id=contract_id, stage_id=stage_id
+            'conductor.detail', contract_id=contract_id, stage_id=stage.id
+        ))
+
+    if stage_id == -1:
+        # redirect to the current stage page
+        contract_stage = ContractStage.query.join(
+            ContractBase, ContractBase.id == ContractStage.contract_id
+        ).filter(
+            ContractStage.contract_id == contract_id,
+            ContractStage.stage_id == ContractBase.current_stage_id
+        ).first()
+
+        return redirect(url_for(
+            'conductor.detail', contract_id=contract_id, stage_id=contract_stage.id
         ))
 
     stages = db.session.query(
         ContractStage.contract_id, ContractStage.id,
         ContractStage.entered, ContractStage.exited, Stage.name,
-    ).join(Stage, Stage.id == ContractStage.stage_id).filter(
+        Stage.send_notifs, Stage.post_opportunities, ContractBase.description
+    ).join(Stage, Stage.id == ContractStage.stage_id).join(
+        ContractBase, ContractBase.id == ContractStage.contract_id
+    ).filter(
         ContractStage.contract_id == contract_id
     ).order_by(ContractStage.id).all()
 
-    notes = ContractNote.query.filter(
-        ContractNote.contract_id == contract_id
-    ).all()
+    try:
+        active_stage = [i for i in stages if i.id == stage_id][0]
+        current_stage = [i for i in stages if i.entered and not i.exited][0]
+        if not current_stage.entered:
+            abort(404)
+    except IndexError:
+        abort(404)
+
+    note_form = NoteForm()
+    update_form = SendUpdateForm()
+    opportunity_form = PostOpportunityForm()
+
+    forms = {
+        'activity': note_form, 'update': update_form, 'post': opportunity_form
+    }
+
+    active_tab = '#activity'
+    submitted_form = request.args.get('form', None)
+    if submitted_form:
+        if handle_form(forms[submitted_form], submitted_form, stage_id, current_user):
+            return redirect(url_for(
+                'conductor.detail', contract_id=contract_id, stage_id=stage_id
+            ))
+        else:
+            active_tab = '#' + submitted_form
 
     actions = ContractStageActionItem.query.filter(
         ContractStageActionItem.contract_stage_id == stage_id
-    ).all()
+    ).order_by(db.text('taken_at asc')).all()
+
+    actions.extend([
+        ContractStageActionItem(action_type='entered', action_detail=active_stage.entered, taken_at=active_stage.entered),
+        ContractStageActionItem(action_type='exited', action_detail=active_stage.exited, taken_at=active_stage.exited)
+    ])
+    actions = sorted(actions, key=lambda stage: stage.taken_at if stage.taken_at else datetime.datetime.now())
 
     if len(stages) > 0:
         return render_template(
             'conductor/detail.html',
-            stages=stages, actions=actions,
-            notes=notes, note_form=NoteForm(),
-            contract_id=contract_id, current_user=current_user
+            stages=stages, actions=actions, active_tab=active_tab,
+            note_form=note_form, update_form=update_form,
+            opportunity_form=opportunity_form, contract_id=contract_id,
+            current_user=current_user, active_stage=active_stage,
+            current_stage=current_stage
         )
     abort(404)
+
+def handle_form(form, form_name, stage_id, user):
+    if form.validate_on_submit():
+        action = ContractStageActionItem(
+            contract_stage_id=stage_id, action_type=form_name,
+            taken_by=user.id, taken_at=datetime.datetime.now()
+        )
+        if form_name == 'activity':
+            action.action_detail = {'note': form.data.get('note', '')}
+
+        elif form_name == 'update':
+            action.action_detail = {
+                'sent_to': form.data.get('send_to', ''),
+                'body': form.data.get('body'),
+                'subject': form.data.get('subject')
+            }
+            send_conductor_alert(
+                form.data.get('send_to'), form.data.get('subject'),
+                form.data.get('body'), current_user.email
+            )
+
+        elif form_name == 'opportunity':
+            pass
+
+        else:
+            return
+
+        db.session.add(action)
+        db.session.commit()
+        return True
+
+    return False
+
+@blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/note/<int:note_id>/delete', methods=['GET', 'POST'])
+@requires_roles('conductor', 'admin', 'superadmin')
+def delete_note(contract_id, stage_id, note_id):
+    try:
+        note = ContractStageActionItem.query.get(note_id)
+        note.delete()
+        flash('Note deleted successfully!', 'alert-success')
+    except Exception, e:
+        flash('Something went wrong: {}'.format(e.message), 'alert-danger')
+    return redirect(url_for('conductor.detail', contract_id=contract_id, stage_id=stage_id))
 
 @blueprint.route('/contract/<int:contract_id>/edit', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
@@ -122,6 +215,7 @@ def edit(contract_id):
 
             contract.update(**data)
             flash('Contract Successfully Updated!', 'alert-success')
+            new_contract_autoupdate(contract, current_user.email)
 
             return redirect(url_for('conductor.edit', contract_id=contract.id))
 
@@ -151,14 +245,15 @@ def url_exists(contract_id):
 def assign(contract_id, flow_id, user_id):
     '''Assign a contract to an admin or a conductor
     '''
+    contract = ContractBase.query.get(contract_id)
     try:
-        stages = create_contract_stages(flow_id, contract_id)
-        _, contract = transition_stage(contract_id, stages=stages)
+        stages = create_contract_stages(flow_id, contract_id, contract=contract)
+        _, contract, _ = transition_stage(contract_id, contract=contract, stages=stages)
     except IntegrityError, e:
         # we already have the sequence for this, so just
         # rollback and pass
         db.session.rollback()
-        contract = ContractBase.query.get(contract_id)
+        pass
     except Exception, e:
         flash('Something went wrong! {}'.format(e.message), 'alert-danger')
         abort(403)

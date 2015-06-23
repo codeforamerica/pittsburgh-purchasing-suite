@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 import datetime
 from purchasing.database import (
     Column,
@@ -8,7 +9,7 @@ from purchasing.database import (
     ReferenceCol
 )
 from sqlalchemy.dialects.postgres import ARRAY
-from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy.dialects.postgresql import TSVECTOR, JSON
 from sqlalchemy.schema import Table, Sequence
 from sqlalchemy.orm import backref
 
@@ -195,6 +196,8 @@ class Stage(Model):
 
     id = Column(db.Integer, primary_key=True, index=True)
     name = Column(db.String(255))
+    send_notifs = Column(db.Boolean, default=False, nullable=False)
+    post_opportunities = Column(db.Boolean, default=False, nullable=False)
 
     def __unicode__(self):
         return self.name
@@ -250,6 +253,11 @@ class ContractStage(Model):
         db.session.flush()
         self.exited = datetime.datetime.now()
 
+    def is_current_stage(self):
+        '''Checks to see if this is the current stage
+        '''
+        return True if self.entered and not self.exited else False
+
 class ContractStageActionItem(Model):
     __tablename__ = 'contract_stage_action_item'
 
@@ -258,8 +266,10 @@ class ContractStageActionItem(Model):
     contract_stage = db.relationship('ContractStage', backref=backref(
         'contract_stage_actions', lazy='dynamic', cascade='all, delete-orphan'
     ))
-    action = Column(db.Text)
+    action_type = Column(db.String(255))
+    action_detail = Column(JSON)
     taken_at = Column(db.DateTime, default=datetime.datetime.now())
+    taken_by = ReferenceCol('users', ondelete='SET NULL', nullable=True)
 
     def __unicode__(self):
         return self.action

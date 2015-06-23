@@ -76,3 +76,18 @@ def new_contract_autoupdate(contract, sender):
             )
 
             conn.send(msg)
+
+def send_conductor_alert(send_to, subject, body, sender):
+    '''Trigger email sent from the conductor workflow
+    '''
+    msg_body = render_template('conductor/emails/email_update.html', body=body)
+
+    msg = Message(
+        subject='[Pittsburgh Procurement] {}'.format(subject),
+        html=msg_body,
+        sender=sender,
+        recipients=[send_to]
+    )
+
+    mail.send(msg)
+    return True
