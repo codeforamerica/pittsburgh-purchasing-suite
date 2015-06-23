@@ -9,7 +9,7 @@ from purchasing_test.unit.util import (
     insert_a_user, get_a_role
 )
 
-from purchasing.data.models import ContractBase, ContractProperty, LineItem
+from purchasing.data.models import ContractBase, LineItem
 from purchasing.data.contracts import get_one_contract
 
 class TestWexplorer(BaseTestCase):
@@ -30,7 +30,7 @@ class TestWexplorer(BaseTestCase):
         company_2 = insert_a_company(name='boat', insert_contract=False)
         insert_a_contract(description='vessel', companies=[company_2], line_items=[LineItem(description='NAVY')])
         insert_a_contract(description='sail', financial_id=123, companies=[company_1], line_items=[LineItem(description='sunfish')])
-        insert_a_contract(description='sunfish', financial_id=456, properties=[ContractProperty(key='foo', value='engine')])
+        insert_a_contract(description='sunfish', financial_id=456, properties=[dict(key='foo', value='engine')])
 
     def tearDown(self):
         db.session.execute('''DROP SCHEMA IF EXISTS public cascade;''')
@@ -78,6 +78,10 @@ class TestWexplorer(BaseTestCase):
 
         self.assert200(self.client.get('/wexplorer/search?q=123'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
+
+        # check searching for everything gives you everything
+        self.assert200(self.client.get('/wexplorer/search?q='))
+        self.assertEquals(len(self.get_context_variable('results')), 3)
 
     def test_companies(self):
         '''

@@ -44,7 +44,6 @@ def index():
         db.func.lower(ContractBase.contract_type) == 'county',
         ContractBase.expiration_date is not None,
         db.func.lower(ContractProperty.key) == 'spec number',
-        ContractBase.id.in_([541, 548])
     ).order_by(ContractBase.expiration_date).all()
 
     conductors = User.query.join(Role).filter(
@@ -107,7 +106,7 @@ def detail(contract_id, stage_id=-1):
     try:
         active_stage = [i for i in stages if i.id == stage_id][0]
         current_stage = [i for i in stages if i.entered and not i.exited][0]
-        if not current_stage.entered:
+        if active_stage.entered is None:
             abort(404)
     except IndexError:
         abort(404)
@@ -175,7 +174,7 @@ def handle_form(form, form_name, stage_id, user):
             pass
 
         else:
-            return
+            return False
 
         db.session.add(action)
         db.session.commit()
@@ -188,8 +187,11 @@ def handle_form(form, form_name, stage_id, user):
 def delete_note(contract_id, stage_id, note_id):
     try:
         note = ContractStageActionItem.query.get(note_id)
-        note.delete()
-        flash('Note deleted successfully!', 'alert-success')
+        if note:
+            note.delete()
+            flash('Note deleted successfully!', 'alert-success')
+        else:
+            flash("That note doesn't exist!", 'alert-warning')
     except Exception, e:
         flash('Something went wrong: {}'.format(e.message), 'alert-danger')
     return redirect(url_for('conductor.detail', contract_id=contract_id, stage_id=stage_id))

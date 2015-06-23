@@ -2,7 +2,7 @@
 
 from flask_wtf import Form
 from wtforms.fields import TextField, IntegerField, DateField, TextAreaField
-from wtforms.validators import DataRequired, URL, Email
+from wtforms.validators import DataRequired, URL, Email, Optional
 
 class EditContractForm(Form):
     '''Form to control details needed for new contract
@@ -12,7 +12,7 @@ class EditContractForm(Form):
     financial_id = IntegerField(validators=[DataRequired(message="A number is required.")])
     expiration_date = DateField(validators=[DataRequired()])
     spec_number = TextField(validators=[DataRequired()])
-    contract_href = TextField(validators=[DataRequired(), URL()])
+    contract_href = TextField(validators=[Optional(), URL(message="That URL doesn't work!")])
 
 class SendUpdateForm(Form):
     '''Form to update

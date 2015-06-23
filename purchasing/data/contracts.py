@@ -151,7 +151,7 @@ def clone_a_contract(contract):
         for i in users:
             unfollow_a_contract(old_contract_id, i, interaction)
             follow_a_contract(contract.id, i, interaction)
-            db.session.flush()
+            db.session.commit()
 
     # set the parent
     contract.parent_id = old_contract_id
