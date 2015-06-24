@@ -44,4 +44,16 @@
     $('#tablist a[href="' + activeTab + '"]').tab('show');
   }
 
+  var detailBtns = $('.btn-detail');
+  detailBtns.on('click', function() {
+    var btn = $(this);
+    btn.addClass('disabled');
+    btn.append('<span style="padding-left:5px;"><i class="fa fa-refresh fa-spin"></i></span>');
+  });
+
+  var currentEvent = $('.event-current');
+  if (currentEvent.length === 1) {
+    currentEvent.get(0).scrollIntoView(false);
+  }
+
 })();
