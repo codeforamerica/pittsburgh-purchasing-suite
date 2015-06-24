@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import time
+import datetime
+
 from purchasing.database import db
-from purchasing.data.models import Stage, StageProperty, ContractStage
+from purchasing.data.models import (
+    Stage, StageProperty, ContractStage, ContractStageActionItem
+)
 from purchasing.data.contracts import get_one_contract, clone_a_contract
 
 def create_new_stage(stage_data):
@@ -55,10 +60,82 @@ def get_all_stages():
     '''
     return Stage.query.all()
 
+def log_entered(contract_stage, user):
+    return ContractStageActionItem(
+        contract_stage_id=contract_stage.id, action_type='reversion',
+        taken_by=user.id, taken_at=datetime.datetime.now(),
+        action_detail={
+            'timestamp': contract_stage.entered.strftime('%Y-%m-%dT%H:%M:%S'),
+            'date': contract_stage.entered.strftime('%Y-%m-%d'),
+            'type': 'entered', 'label': 'Started work'
+        }
+    )
+
+def log_exited(contract_stage, user):
+    return ContractStageActionItem(
+        contract_stage_id=contract_stage.id, action_type='reversion',
+        taken_by=user.id, taken_at=datetime.datetime.now(),
+        action_detail={
+            'timestamp': contract_stage.exited.strftime('%Y-%m-%dT%H:%M:%S'),
+            'date': contract_stage.exited.strftime('%Y-%m-%d'),
+            'type': 'exited', 'label': 'Completed work'
+        }
+    )
+
+def log_reopened(contract_stage, user):
+    return ContractStageActionItem(
+        contract_stage_id=contract_stage.id, action_type='reversion',
+        taken_by=user.id, taken_at=datetime.datetime.now(),
+        action_detail={
+            'timestamp': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+            'date': datetime.datetime.now().strftime('%Y-%m-%d'),
+            'type': 'reopened', 'label': 'Restarted work'
+        }
+    )
+
+def _perform_revert(contract, stages, start_idx, end_idx, user):
+    '''Bulk removes entry/exit times, and adds events to the action log to signal.
+
+    It should not be possible to have multiple stages with
+    entered but not exit. However, we do want to log these events
+    appropriately. So, for each stage up the chain until the target
+    stage, we strip the enter/exit timestamps, move them into the
+    action log, and add a new action for the reversion.
+    '''
+    stages_to_revert = ContractStage.query.filter(
+        ContractStage.contract_id == contract.id,
+        ContractStage.stage_id.in_(stages[end_idx:start_idx + 1])
+    ).order_by(ContractStage.id).all()
+
+    for stage_idx, contract_stage in enumerate(stages_to_revert):
+        db.session.flush()
+        db.session.add(log_reopened(contract_stage, user))
+
+        if stage_idx == 0:
+            # this is the destination stage. keep the entered open
+            db.session.add(log_exited(contract_stage, user))
+            db.session.add(log_entered(contract_stage, user))
+            contract_stage.entered = datetime.datetime.now()
+            contract_stage.exited = None
+
+        elif stage_idx + 1 == len(stages_to_revert):
+            contract_stage.entered = None
+
+        else:
+            # log everything, fully revert each stage
+            db.session.add(log_exited(contract_stage, user))
+            db.session.add(log_entered(contract_stage, user))
+            contract_stage.full_revert()
+
+    contract.current_stage_id = stages_to_revert[0].stage_id
+    return stages_to_revert[0]
+
 def _perform_transition(contract, stages=[], single_enter=True):
     '''Looks up and performs the appropriate exit/enter on two stages
 
     Stages is a list of integers.
+    Single enter is a boolean flag -- true if we are starting
+    the process, false if we are completing it.
     '''
     stages_to_transition = ContractStage.query.filter(
         ContractStage.contract_id == contract.id,
@@ -77,7 +154,7 @@ def _perform_transition(contract, stages=[], single_enter=True):
     # update the contract's current stage
     return stages_to_transition
 
-def transition_stage(contract_id, destination=None, contract=None, stages=None):
+def transition_stage(contract_id, destination=None, contract=None, stages=None, user=None):
     '''Transitions a contract from one stage to another
 
     Stages are organized a bit like a finite state machine. The "flow"
@@ -103,8 +180,22 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None):
 
     # implement the case where we have a final destination in mind
     if destination:
-        # TODO: handle going backwards (delete exit times)
-        pass
+        current_stage_idx = stages.index(contract.current_stage_id)
+        destination_idx = stages.index(destination)
+
+        # if its next, just transition as if it were normal
+        if destination_idx == current_stage_idx + 1:
+            return transition_stage(contract_id, contract=contract, stages=stages)
+        # if it is greater, raise an error. you can't skip stages.
+        elif destination_idx > current_stage_idx:
+            raise Exception('You cannot skip multiple stages')
+        # if it is less, we have to revert stages
+        else:
+            reversion = _perform_revert(
+                contract, stages, current_stage_idx, destination_idx, user
+            )
+            db.session.commit()
+            return reversion, contract, False
 
     # implement first case -- current stage is none
     elif contract.current_stage_id is None:

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import json
 import datetime
 from purchasing.database import (
     Column,
@@ -244,14 +243,18 @@ class ContractStage(Model):
     def enter(self):
         '''Enter the stage at this point
         '''
-        db.session.flush()
         self.entered = datetime.datetime.now()
 
     def exit(self):
         '''Exit the stage
         '''
-        db.session.flush()
         self.exited = datetime.datetime.now()
+
+    def full_revert(self):
+        '''Clear timestamps for both enter and exit
+        '''
+        self.entered = None
+        self.exited = None
 
     def is_current_stage(self):
         '''Checks to see if this is the current stage
@@ -273,6 +276,17 @@ class ContractStageActionItem(Model):
 
     def __unicode__(self):
         return self.action
+
+    def get_sort_key(self):
+        # if we are reversion, we need to get the timestamps from there
+        if self.action_type == 'reversion':
+            return datetime.datetime.strptime(
+                self.action_detail['timestamp'],
+                '%Y-%m-%dT%H:%M:%S'
+            )
+        # otherwise, return the taken_at time
+        else:
+            return self.taken_at if self.taken_at else datetime.datetime(1970, 1, 1)
 
 class Flow(Model):
     __tablename__ = 'flow'

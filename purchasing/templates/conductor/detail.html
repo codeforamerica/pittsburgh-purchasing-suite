@@ -47,7 +47,16 @@
 
     <div class="col-sm-8">
 
-      <h3>{{ active_stage.name }} ({{ active_stage.description|title }})</h3>
+      <h3>
+        {{ active_stage.name }} ({{ active_stage.description|title }})
+        <span class="pull-right">
+        {% if active_stage.id != current_stage.id %}
+          <a href="{{ url_for('conductor.detail', contract_id=contract_id, stage_id=active_stage.id, transition='true', destination=active_stage.stage_id) }}" class="btn btn-gray">Revert to this stage</a>
+        {% else %}
+          <a href="{{ url_for('conductor.detail', contract_id=contract_id, stage_id=active_stage.id, transition='true') }}" class="btn btn-success">Mark Complete</a>
+        {% endif %}
+        </span>
+      </h3>
       {% if active_stage.id != current_stage.id %}
       <p class="text-muted">
         <small>You are viewing an already-completed stage. To jump to the current stage ({{ current_stage.name }}), click <a href="{{ url_for('conductor.detail', contract_id=contract_id, stage_id=current_stage.id) }}">here.</a></small>

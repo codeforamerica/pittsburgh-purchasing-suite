@@ -67,12 +67,13 @@ def detail(contract_id, stage_id=-1):
     '''View to control an individual stage update process
     '''
     if request.args.get('transition'):
-        clicked = None
 
-        # if request.json.get('current') != 'true':
-        #     clicked = int(request.json.get('clicked'))
+        clicked = int(request.args.get('destination')) if \
+            request.args.get('destination') else None
 
-        stage, mod_contract, complete = transition_stage(contract_id, destination=clicked)
+        stage, mod_contract, complete = transition_stage(
+            contract_id, destination=clicked, user=current_user
+        )
         if complete:
             return redirect(url_for('conductor.edit', contract_id=mod_contract.id))
 
@@ -94,7 +95,7 @@ def detail(contract_id, stage_id=-1):
         ))
 
     stages = db.session.query(
-        ContractStage.contract_id, ContractStage.id,
+        ContractStage.contract_id, ContractStage.stage_id, ContractStage.id,
         ContractStage.entered, ContractStage.exited, Stage.name,
         Stage.send_notifs, Stage.post_opportunities, ContractBase.description
     ).join(Stage, Stage.id == ContractStage.stage_id).join(
@@ -137,7 +138,7 @@ def detail(contract_id, stage_id=-1):
         ContractStageActionItem(action_type='entered', action_detail=active_stage.entered, taken_at=active_stage.entered),
         ContractStageActionItem(action_type='exited', action_detail=active_stage.exited, taken_at=active_stage.exited)
     ])
-    actions = sorted(actions, key=lambda stage: stage.taken_at if stage.taken_at else datetime.datetime.now())
+    actions = sorted(actions, key=lambda stage: stage.get_sort_key())
 
     if len(stages) > 0:
         return render_template(
