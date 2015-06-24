@@ -160,11 +160,45 @@ class TestConductor(BaseTestCase):
             elif stage.id == self.stage3.id:
                 self.assertTrue(stage.entered is None and stage.exited is None)
 
-    @unittest.skip('Directed transitions not supported yet')
     def test_conductor_directed_transition(self):
         '''Test conductor stage transition backwards/to specific point
         '''
-        pass
+        self.assign_contract()
+        self.assertEquals(ContractStageActionItem.query.count(), 0)
+
+        # transition to the third stage
+        transition_url = self.detail_view + '?transition=true'
+        self.client.get(transition_url.format(self.contract1.id, self.stage1.id))
+        self.client.get(transition_url.format(self.contract1.id, self.stage2.id))
+
+        self.assertEquals(ContractBase.query.get(1).current_stage_id, self.stage3.id)
+
+        revert_url = self.detail_view + '?transition=true&destination={}'
+        # revert to the original stage
+        self.client.get(revert_url.format(self.contract1.id, self.stage1.id, self.stage1.id))
+
+        self.assertEquals(ContractStageActionItem.query.count(), 7)
+        # there should be 3 for stage 1 & 2 (enter, exit, reopen)
+        self.assertEquals(ContractStageActionItem.query.filter(
+            ContractStageActionItem.contract_stage_id == self.stage1.id
+        ).count(), 3)
+
+        self.assertEquals(ContractStageActionItem.query.filter(
+            ContractStageActionItem.contract_stage_id == self.stage2.id
+        ).count(), 3)
+
+        self.assertEquals(ContractStageActionItem.query.filter(
+            ContractStageActionItem.contract_stage_id == self.stage3.id
+        ).count(), 1)
+
+        self.assertEquals(ContractBase.query.get(1).current_stage_id, self.stage1.id)
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 1).first().entered is not None)
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 2).first().entered is None)
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 3).first().entered is None)
+
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 1).first().exited is None)
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 2).first().exited is None)
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 3).first().exited is None)
 
     def test_conductor_link_directions(self):
         '''Test that we can access completed stages but not non-stared ones
