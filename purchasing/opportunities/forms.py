@@ -4,7 +4,7 @@ import re
 
 from flask_wtf import Form
 from wtforms import widgets, fields
-from wtforms.validators import DataRequired, InputRequired, Email, ValidationError
+from wtforms.validators import DataRequired, Email, ValidationError
 
 from purchasing.opportunities.models import Category, Vendor
 
@@ -69,3 +69,6 @@ def email_present(form, field):
 class UnsubscribeForm(Form):
     email = fields.TextField(validators=[DataRequired(), Email(), email_present])
     subscriptions = MultiCheckboxField(coerce=int)
+
+class OpportunityForm(Form):
+    pass

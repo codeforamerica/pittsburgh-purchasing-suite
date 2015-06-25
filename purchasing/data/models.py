@@ -217,6 +217,7 @@ class StageProperty(Model):
 
 class ContractStage(Model):
     __tablename__ = 'contract_stage'
+    __table_args__ = (db.Index('ix_contrage_stage_combined_id', 'contract_id', 'stage_id'), )
 
     id = Column(
         db.Integer, Sequence('autoincr_contract_stage_id', start=1, increment=1),

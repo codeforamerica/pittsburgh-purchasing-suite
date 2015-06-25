@@ -16,6 +16,12 @@ category_vendor_association_table = Table(
     Column('vendor_id', db.Integer, db.ForeignKey('vendor.id', ondelete='SET NULL'), index=True)
 )
 
+category_opportunity_association_table = Table(
+    'category_opportunity_association', Model.metadata,
+    Column('category_id', db.Integer, db.ForeignKey('category.id', ondelete='SET NULL'), index=True),
+    Column('opportunity_id', db.Integer, db.ForeignKey('opportunity.id', ondelete='SET NULL'), index=True)
+)
+
 class Category(Model):
     __tablename__ = 'category'
 
@@ -31,23 +37,27 @@ class Opportunity(Model):
     __tablename__ = 'opportunity'
 
     id = Column(db.Integer, primary_key=True)
-    contract_id = ReferenceCol('contract', ondelete='cascade')
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
-
-    # Also the opportunity open date
-    title = Column(db.String(255))
     department = Column(db.String(255))
-    # Autopopulated using title and department plus boilerplate copy?
+    contact_id = ReferenceCol('users', ondelete='SET NULL')
+    contact = db.relationship('User', backref=backref('opportunities', lazy='dynamic'))
+    title = Column(db.String(255))
     description = Column(db.Text)
-
-    category_id = ReferenceCol('category', ondelete='SET NULL')
-    category = db.relationship('Category', lazy='subquery')
-
+    competitive_process_used = Column(db.String(255))
+    categories = db.relationship(
+        'Category',
+        secondary=category_opportunity_association_table,
+        backref='opportunities'
+    )
+    # Date department advertised bid
+    planned_publish = Column(db.DateTime)
     # Date department opens bids
-    bid_open = Column(db.DateTime)
-
+    planned_deadline = Column(db.DateTime)
     # Created from contract
-    created_from = db.relationship('ContractBase', lazy='subquery', backref='opportunities')
+    contract_id = ReferenceCol('contract', ondelete='cascade')
+    created_from = db.relationship('ContractBase', backref=backref(
+        'opportunities', lazy='dynamic'
+    ))
 
 class Vendor(Model):
     __tablename__ = 'vendor'
