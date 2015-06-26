@@ -4,29 +4,77 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-    {% for opportunity in opportunities %}
-      {% if not current_user.is_anonymous() or opportunity.is_published() %}
-      <div class="opportunity-card">
-        <pre>{{ opportunity.__dict__ }}</pre>
-        <div class="row">
-          <div class="col-sm-10">
-            <h3>{{ opportunity.title }}</h3>
-          </div>
-          <div class="col-sm-2">
-            {% if not opportunity.is_published() %}
-            XXXX
+
+      <h2 class="opportunity-title">All Opportunities</h2>
+
+      <h3>Opportunities Open for Bid Now</h3>
+      {% if active|length > 0 %}
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Select</th>
+            <th>Opportunity Details</th>
+            <th>Department</th>
+            <th>Deadline</th>
+            {% if not current_user.is_anonymous() %}
+            <th>Edit this contract</th>
             {% endif %}
-          </div>
-        </div><!-- Title -->
-        <p>{{ opportunity.description }}</p>
-        <p>{{ opportunity.department }}</p>
-        <a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">More Details</a>
-        {% if opportunity.can_edit(current_user) %}
-        <a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit this opportunity</a>
-        {% endif %}
-      </div>
+          </tr>
+        </thead>
+        <tbody>
+          {% for opportunity in active %}
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
+            <td>{{ opportunity.department }}</td>
+            <td>{{ opportunity.planned_deadline.strftime('%Y-%m-%d') }}</td>
+            {% if opportunity.can_edit(current_user) %}
+            <td><a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
+            {% elif not current_user.is_anonymous() %}
+            <i class="fa fa-minus"></i>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>There are currently no opportunities open for bid.</p>
       {% endif %}
-    {% endfor %}
+
+      <h3>Upcoming Opportunities</h3>
+      {% if upcoming|length > 0 %}
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Select</th>
+            <th>Opportunity</th>
+            <th>Department</th>
+            <th>Estimated Open Date</th>
+            {% if not current_user.is_anonymous() %}
+            <th>Edit this contract</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for opportunity in upcoming %}
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
+            <td>{{ opportunity.department }}</td>
+            <td>{{ opportunity.planned_deadline.strftime('%Y-%m-%d') }}</td>
+            {% if opportunity.can_edit(current_user) %}
+            <td><a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
+            {% elif not current_user.is_anonymous() %}
+            <i class="fa fa-minus"></i>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>There are currently no upcoming open for bid.</p>
+      {% endif %}
+
     </div>
   </div>
 </div>

@@ -1,14 +1,21 @@
 # -*- coding: utf-8 -*-
 
+import os
 import json
+import datetime
 from collections import defaultdict
 
 from flask import (
     Blueprint, render_template, url_for, current_app,
     redirect, flash, request, session, abort
 )
+from werkzeug import secure_filename
 from flask_login import current_user
+
 from purchasing.database import db
+from purchasing.utils import (
+    connect_to_s3, _get_aggressive_cache_headers, random_id
+)
 from purchasing.notifications import vendor_signup
 from purchasing.extensions import login_manager
 from purchasing.decorators import requires_roles
@@ -72,7 +79,13 @@ def signup():
                     form_data['categories'].append(subcat)
 
         if vendor:
-            current_app.logger.info('OPPPUPDATEVENDOR - Vendor updated: EMAIL: {old_email} -> {email} at BUSINESS: {old_bis} -> {bis_name} signed up for:\n CATEGORIES: {old_cats} ->\n {categories}'.format(
+            current_app.logger.info('''
+                OPPPUPDATEVENDOR - Vendor updated:
+                EMAIL: {old_email} -> {email} at
+                BUSINESS: {old_bis} -> {bis_name} signed up for:
+                CATEGORIES:
+                    {old_cats} ->
+                    {categories}'''.format(
                 old_email=vendor.email,
                 email=form_data['email'],
                 old_bis=vendor.business_name,
@@ -162,9 +175,23 @@ def manage():
 def browse():
     '''Browse available opportunities
     '''
-    opportunities = Opportunity.query.all()
+    active, upcoming = [], []
+    opportunities = Opportunity.query.filter(
+        Opportunity.planned_deadline >= datetime.date.today()
+    ).all()
+
+    for opportunity in opportunities:
+        if opportunity.is_public:
+            if opportunity.is_published():
+                active.append(opportunity)
+            else:
+                upcoming.append(opportunity)
+
     return render_template(
-        'opportunities/browse.html', opportunities=opportunities,
+        'opportunities/browse.html',
+        opportunities=opportunities,
+        active=active,
+        upcoming=upcoming,
         current_user=current_user
     )
 
@@ -172,7 +199,38 @@ def browse():
 def detail(opportunity_id):
     '''View one opportunity in detail
     '''
-    pass
+    opportunity = Opportunity.query.get(opportunity_id)
+    if opportunity:
+        return render_template(
+            'opportunities/detail.html', opportunity=opportunity,
+            current_user=current_user
+        )
+    abort(404)
+
+def upload_document(document, _id=None):
+    filename = secure_filename(document.filename)
+    _id = _id if _id else random_id(6)
+
+    if document is None or filename == '':
+        return None, None
+
+    elif current_app.config.get('UPLOAD_S3'):
+        # upload file to s3
+        conn, bucket = connect_to_s3(
+            current_app.config['AWS_ACCESS_KEY_ID'],
+            current_app.config['AWS_SECRET_ACCESS_KEY'],
+            current_app.config['UPLOAD_DESTINATION']
+        )
+        _document = bucket.new_key('opportunity-{}.pdf'.format(_id))
+        aggressive_headers = _get_aggressive_cache_headers(_document)
+        _document.set_contents_from_file(document, headers=aggressive_headers, replace=True)
+        _document.set_acl('public-read')
+        return _document.name, _document.generate_url(expires_in=0, query_auth=False)
+
+    else:
+        filepath = os.path.join(current_app.config['UPLOAD_DESTINATION'], filename)
+        document.save(filepath)
+        return filename, filepath
 
 def build_opportunity(data, opportunity=None):
     contact_email = data.pop('contact_email')
@@ -183,7 +241,14 @@ def build_opportunity(data, opportunity=None):
             email=contact_email, role_id=2, department=data.get('department')
         )
 
-    data.update(dict(contact_id=contact.id, created_by=current_user.id))
+    _id = opportunity.id if opportunity else None
+
+    filename, filepath = upload_document(data.get('document', None), _id)
+
+    data.update(dict(
+        contact_id=contact.id, created_by=current_user.id,
+        document=filename, document_href=filepath
+    ))
 
     if opportunity:
         opportunity = opportunity.update(**data)
@@ -191,8 +256,8 @@ def build_opportunity(data, opportunity=None):
         opportunity = Opportunity.create(**data)
     return opportunity
 
-@blueprint.route('/admin/opportunities/new', methods=['GET', 'POST'])
-# @requires_roles('staff', 'admin', 'superadmin', 'conductor')
+@blueprint.route('/opportunities/admin/new', methods=['GET', 'POST'])
+@requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def new():
     '''Create a new opportunity
     '''
@@ -203,8 +268,8 @@ def new():
         return redirect(url_for('opportunities.edit', opportunity_id=opportunity.id))
     return render_template('opportunities/opportunity.html', form=form, opportunity=None)
 
-@blueprint.route('/admin/opportunities/<int:opportunity_id>/edit', methods=['GET', 'POST'])
-# @requires_roles('staff', 'admin', 'superadmin', 'conductor')
+@blueprint.route('/opportunities/<int:opportunity_id>/admin/edit', methods=['GET', 'POST'])
+@requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def edit(opportunity_id):
     '''Edit an opportunity
     '''

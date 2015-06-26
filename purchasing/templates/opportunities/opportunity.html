@@ -5,7 +5,7 @@
 <div class="container">
   <div class="row">
     <div class="col-md-6 col-md-offset-3">
-      <form method="POST" action="{% if opportunity.id %}{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities.new') }}{% endif %}">
+      <form method="POST" enctype="multipart/form-data" action="{% if opportunity.id %}{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities.new') }}{% endif %}">
 
         {{ form.csrf_token() }}
         {% include "includes/flashes.html" %}
@@ -68,8 +68,20 @@
           <p class="help-block">
             If you don't have it on hand right now, don't worry. We'll email you two weeks before the publication date to remind you to upload it.
           </p>
+          {% if form.document.data %}
+          <p><strong>Uploaded file:</strong> <a href="{{ opportunity.get_href() }}" target="_blank">{{ form.document.data }}</a> <br/></p>
+          <p><strong>Choose different file:</strong> {{ macros.with_errors(form.document)}}</p>
+          {% else %}
           {{ macros.with_errors(form.document)}}
+          {% endif %}
         </div><!-- document upload -->
+
+        <div class="form-group">
+          <label>
+            {{ macros.with_errors(form.is_public) }} Make visible
+          </label>
+          <p class="help-block">Checking this box will make this opportunity visible to everyone (including the general public) on the <a href="{{ url_for('opportunities.browse') }}">browse page</a>.
+        </div>
 
         <button type="submit" class="btn btn-primary col-sm-6">Save</button>
 

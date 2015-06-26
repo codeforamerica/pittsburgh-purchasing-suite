@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import re
+import datetime
 
 from flask import current_app
 from flask_wtf import Form
+from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import widgets, fields
 from wtforms.validators import DataRequired, Email, ValidationError
 
@@ -86,16 +88,33 @@ def city_domain_email(form, field):
             if domain != current_app.config.get('CITY_DOMAIN'):
                 raise ValidationError("That's not a valid contact!")
 
+def max_words(max=500):
+    message = 'Text cannot be more than {} words! You had {} words.'
+
+    def _max_words(form, field):
+        l = field.data and len(field.data.split()) or 0
+        if l > max:
+            raise ValidationError(message.format(max, l))
+
+    return _max_words
+
+def after_today(form, field):
+    if field.data <= datetime.date.today():
+        raise ValidationError('The deadline has to be after today!')
+
 class UnsubscribeForm(Form):
     email = fields.TextField(validators=[DataRequired(), Email(), email_present])
     subscriptions = MultiCheckboxField(coerce=int)
 
 class OpportunityForm(Form):
     department = fields.SelectField(choices=DEPARTMENT_CHOICES, validators=[DataRequired()])
-    contact_email = fields.TextField(validators=[DataRequired(), Email(), city_domain_email])
+    contact_email = fields.TextField(validators=[Email(), city_domain_email, DataRequired()])
     title = fields.TextField(validators=[DataRequired()])
-    description = fields.TextAreaField(validators=[DataRequired()])
+    description = fields.TextAreaField(validators=[max_words(), DataRequired()])
     planned_publish = fields.DateField(validators=[DataRequired()])
-    planned_deadline = fields.DateField(validators=[DataRequired()])
+    planned_deadline = fields.DateField(validators=[DataRequired(), after_today])
     documents_needed = fields.SelectMultipleField(choices=DOCUMENT_CHOICES)
-    document = fields.FileField()
+    is_public = fields.BooleanField()
+    document = FileField(
+        validators=[FileAllowed(['pdf'], '.pdf documents only!')]
+    )

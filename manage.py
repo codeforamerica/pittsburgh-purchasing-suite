@@ -10,7 +10,7 @@ from flask.ext.assets import ManageAssets
 from purchasing.app import create_app
 from purchasing.settings import DevConfig, ProdConfig
 from purchasing.database import db
-from purchasing.utils import _get_aggressive_cache_headers
+from purchasing.utils import _get_aggressive_cache_headers, connect_to_s3
 
 from purchasing.public.models import AppStatus
 
@@ -152,14 +152,9 @@ def upload_assets(user, secret, bucket, _retries=5):
     proc.wait()
 
     print 'Connecting to S3...'
-    from boto.s3.connection import S3Connection
-    conn = S3Connection(
-        aws_access_key_id=access_key,
-        aws_secret_access_key=access_secret
-    )
-    bucket = conn.get_bucket(bucket)
-
+    conn, bucket = connect_to_s3(access_key, access_secret, bucket)
     print 'Uploading files...'
+
     for path in proc.communicate()[0].split('\n')[:-1]:
         key = path.split('public')[1]
         print 'Uploading {}'.format(key)

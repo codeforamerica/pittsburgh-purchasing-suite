@@ -20,6 +20,9 @@ class Config(object):
     MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
     MAIL_PORT = 587
     MAIL_USE_TLS = True
+    UPLOAD_S3 = True
+    UPLOAD_DESTINATION = 'pittsburgh-purchasing-opportunities'
+    MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # max file size
 
 class ProdConfig(Config):
     """Production configuration."""
@@ -46,7 +49,8 @@ class DevConfig(Config):
     BROWSERID_URL = os_env.get('BROWSERID_URL', 'http://127.0.0.1:9000')
     MAIL_SERVER = 'smtp.gmail.com'  # Use gmail in dev: https://support.google.com/mail/answer/1173270?hl=en
     ASSETS_DEBUG = True
-    MAIL_SUPPRESS_SEND = True
+    UPLOAD_S3 = False
+    UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'uploads'))
 
 class TestConfig(Config):
     TESTING = True
@@ -57,3 +61,4 @@ class TestConfig(Config):
     ASSETS_DEBUG = True
     CITY_DOMAIN = 'foo.com'
     MAIL_SUPPRESS_SEND = True
+    UPLOAD_S3 = False

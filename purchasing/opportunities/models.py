@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from flask import current_app
 import datetime
 from purchasing.database import (
     Column,
@@ -61,10 +62,11 @@ class Opportunity(Model):
     created_from = db.relationship('ContractBase', backref=backref(
         'opportunities', lazy='dynamic'
     ))
-    documents_needed = ARRAY(db.String(50))
+    documents_needed = Column(ARRAY(db.String(50)))
     document = Column(db.String(255))
     document_href = Column(db.String(255))
     created_by = ReferenceCol('users', ondelete='SET NULL')
+    is_public = Column(db.Boolean(), default=True)
 
     def is_published(self):
         return self.planned_publish.date() >= datetime.date.today()
@@ -79,6 +81,16 @@ class Opportunity(Model):
             user.role.name not in ('conductor', 'admin', 'superadmin') and
             (user.id not in (self.created_by, self.contact_id))
         ) else True
+
+    def get_href(self):
+        '''Returns a proper link to a file
+        '''
+        if current_app.config['UPLOAD_S3']:
+            return self.document_href
+        else:
+            if self.document_href.startswith('http'):
+                return self.document_href
+            return 'file://{}'.format(self.document_href)
 
 class Vendor(Model):
     __tablename__ = 'vendor'
