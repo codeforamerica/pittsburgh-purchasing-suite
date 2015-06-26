@@ -5,23 +5,29 @@ from collections import defaultdict
 
 from flask import (
     Blueprint, render_template, url_for, current_app,
-    jsonify, redirect, flash, request, session
+    redirect, flash, request, session, abort
 )
+from flask_login import current_user
 from purchasing.database import db
 from purchasing.notifications import vendor_signup
 from purchasing.extensions import login_manager
-from purchasing.opportunities.forms import SignupForm, UnsubscribeForm, ValidationError
+from purchasing.decorators import requires_roles
+from purchasing.opportunities.forms import SignupForm, UnsubscribeForm, ValidationError, OpportunityForm
 from purchasing.opportunities.models import Category, Opportunity, Vendor
+from purchasing.users.models import User
 
 blueprint = Blueprint(
     'opportunities', __name__, url_prefix='/opportunities',
     static_folder='../static', template_folder='../templates'
 )
 
+@login_manager.user_loader
+def load_user(userid):
+    return User.get_by_id(int(userid))
+
 @blueprint.route('/')
 def index():
-    '''
-    Landing page for opportunities site
+    '''Landing page for opportunities site
     '''
     return render_template(
         'opportunities/index.html'
@@ -29,8 +35,7 @@ def index():
 
 @blueprint.route('/signup', methods=['GET', 'POST'])
 def signup():
-    '''
-    The signup page for vendors
+    '''The signup page for vendors
     '''
     all_categories = Category.query.all()
     categories, subcategories = set(), defaultdict(list)
@@ -128,8 +133,7 @@ def signup():
 
 @blueprint.route('/manage', methods=['GET', 'POST'])
 def manage():
-    '''
-    Manage a vendor's signups
+    '''Manage a vendor's signups
     '''
     form = UnsubscribeForm()
     form_subscriptions = []
@@ -153,3 +157,66 @@ def manage():
 
     form.subscriptions.choices = form_subscriptions
     return render_template('opportunities/manage.html', form=form)
+
+@blueprint.route('/opportunities', methods=['GET'])
+def browse():
+    '''Browse available opportunities
+    '''
+    opportunities = Opportunity.query.all()
+    return render_template(
+        'opportunities/browse.html', opportunities=opportunities,
+        current_user=current_user
+    )
+
+@blueprint.route('/opportunities/<int:opportunity_id>')
+def detail(opportunity_id):
+    '''View one opportunity in detail
+    '''
+    pass
+
+def build_opportunity(data, opportunity=None):
+    contact_email = data.pop('contact_email')
+    contact = User.query.filter(User.email == contact_email).first()
+
+    if contact is None:
+        contact = User().create(
+            email=contact_email, role_id=2, department=data.get('department')
+        )
+
+    data.update(dict(contact_id=contact.id, created_by=current_user.id))
+
+    if opportunity:
+        opportunity = opportunity.update(**data)
+    else:
+        opportunity = Opportunity.create(**data)
+    return opportunity
+
+@blueprint.route('/admin/opportunities/new', methods=['GET', 'POST'])
+# @requires_roles('staff', 'admin', 'superadmin', 'conductor')
+def new():
+    '''Create a new opportunity
+    '''
+    form = OpportunityForm()
+    if form.validate_on_submit():
+        opportunity = build_opportunity(form.data)
+        flash('Opportunity Successfully Created!', 'alert-success')
+        return redirect(url_for('opportunities.edit', opportunity_id=opportunity.id))
+    return render_template('opportunities/opportunity.html', form=form, opportunity=None)
+
+@blueprint.route('/admin/opportunities/<int:opportunity_id>/edit', methods=['GET', 'POST'])
+# @requires_roles('staff', 'admin', 'superadmin', 'conductor')
+def edit(opportunity_id):
+    '''Edit an opportunity
+    '''
+    opportunity = Opportunity.query.get(opportunity_id)
+    if opportunity:
+        form = OpportunityForm(obj=opportunity)
+        form.contact_email.data = opportunity.contact.email
+        if form.validate_on_submit():
+            build_opportunity(form.data, opportunity=opportunity)
+            flash('Opportunity Successfully Updated!', 'alert-success')
+            return redirect(url_for('opportunities.edit', opportunity_id=opportunity.id))
+        return render_template(
+            'opportunities/opportunity.html', form=form, opportunity=opportunity
+        )
+    abort(404)

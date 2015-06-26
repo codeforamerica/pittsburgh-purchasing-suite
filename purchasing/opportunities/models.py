@@ -9,6 +9,7 @@ from purchasing.database import (
 )
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref
+from sqlalchemy.dialects.postgres import ARRAY
 
 category_vendor_association_table = Table(
     'category_vendor_association', Model.metadata,
@@ -40,10 +41,12 @@ class Opportunity(Model):
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     department = Column(db.String(255))
     contact_id = ReferenceCol('users', ondelete='SET NULL')
-    contact = db.relationship('User', backref=backref('opportunities', lazy='dynamic'))
+    contact = db.relationship(
+        'User', backref=backref('opportunities', lazy='dynamic'),
+        foreign_keys='Opportunity.contact_id'
+    )
     title = Column(db.String(255))
     description = Column(db.Text)
-    competitive_process_used = Column(db.String(255))
     categories = db.relationship(
         'Category',
         secondary=category_opportunity_association_table,
@@ -54,10 +57,28 @@ class Opportunity(Model):
     # Date department opens bids
     planned_deadline = Column(db.DateTime)
     # Created from contract
-    contract_id = ReferenceCol('contract', ondelete='cascade')
+    created_from_id = ReferenceCol('contract', ondelete='cascade', nullable=True)
     created_from = db.relationship('ContractBase', backref=backref(
         'opportunities', lazy='dynamic'
     ))
+    documents_needed = ARRAY(db.String(50))
+    document = Column(db.String(255))
+    document_href = Column(db.String(255))
+    created_by = ReferenceCol('users', ondelete='SET NULL')
+
+    def is_published(self):
+        return self.planned_publish.date() >= datetime.date.today()
+
+    def is_expired(self):
+        return self.planned_deadline.date() >= datetime.date.today()
+
+    def can_edit(self, user):
+        '''Check if a user can edit the contract
+        '''
+        return False if user.is_anonymous() or (
+            user.role.name not in ('conductor', 'admin', 'superadmin') and
+            (user.id not in (self.created_by, self.contact_id))
+        ) else True
 
 class Vendor(Model):
     __tablename__ = 'vendor'

@@ -2,17 +2,29 @@
 
 import re
 
+from flask import current_app
 from flask_wtf import Form
 from wtforms import widgets, fields
 from wtforms.validators import DataRequired, Email, ValidationError
 
 from purchasing.opportunities.models import Category, Vendor
 
+from purchasing.users.models import DEPARTMENT_CHOICES, User
+
 ALL_INTEGERS = re.compile('[^\d.]')
+DOMAINS = re.compile('@[\w.]+')
+DOCUMENT_CHOICES = [
+    ('bid_bond', 'Bid Bond'),
+    ('insurance_certificate', 'Insurance Certificate'),
+    ('project_plan', 'Project Plan & Budget'),
+    ('proposal', 'Proposal'),
+    ('portfolio', 'Portfolio of Past Work'),
+    ('not_sure', 'Not Sure'),
+    ('other', 'Other')
+]
 
 class MultiCheckboxField(fields.SelectMultipleField):
-    '''
-    Custom multiple select that displays a list of checkboxes
+    '''Custom multiple select that displays a list of checkboxes
 
     We have a custom pre_validate to handle cases where a
     user has choices from multiple categories. This will insert
@@ -26,8 +38,7 @@ class MultiCheckboxField(fields.SelectMultipleField):
         pass
 
 def validate_phone_number(form, field):
-    '''
-    Strips out non-integer characters, checks that it is 10-digits
+    '''Strips out non-integer characters, checks that it is 10-digits
     '''
     if field.data:
         value = re.sub(ALL_INTEGERS, '', field.data)
@@ -58,17 +69,33 @@ class SignupForm(Form):
                     raise ValidationError('{} is not a valid choice!'.format(val))
 
 def email_present(form, field):
-    '''
-    Checks that we have a vendor with that email address
+    '''Checks that we have a vendor with that email address
     '''
     if field.data:
-        vendor = Vendor.query.filter(Vendor.email == field.data)
+        vendor = Vendor.query.filter(Vendor.email == field.data).first()
         if vendor is None:
             raise ValidationError("We can't find the email {}!".format(field.data))
+
+def city_domain_email(form, field):
+    '''Checks that the email is a current user or a city domain
+    '''
+    if field.data:
+        user = User.query.filter(User.email == field.data).first()
+        if user is None:
+            domain = re.search(DOMAINS, field.data)
+            if domain != current_app.config.get('CITY_DOMAIN'):
+                raise ValidationError("That's not a valid contact!")
 
 class UnsubscribeForm(Form):
     email = fields.TextField(validators=[DataRequired(), Email(), email_present])
     subscriptions = MultiCheckboxField(coerce=int)
 
 class OpportunityForm(Form):
-    pass
+    department = fields.SelectField(choices=DEPARTMENT_CHOICES, validators=[DataRequired()])
+    contact_email = fields.TextField(validators=[DataRequired(), Email(), city_domain_email])
+    title = fields.TextField(validators=[DataRequired()])
+    description = fields.TextAreaField(validators=[DataRequired()])
+    planned_publish = fields.DateField(validators=[DataRequired()])
+    planned_deadline = fields.DateField(validators=[DataRequired()])
+    documents_needed = fields.SelectMultipleField(choices=DOCUMENT_CHOICES)
+    document = fields.FileField()

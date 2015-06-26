@@ -1,0 +1,34 @@
+{% extends "opportunities/layout.html" %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+    {% for opportunity in opportunities %}
+      {% if not current_user.is_anonymous() or opportunity.is_published() %}
+      <div class="opportunity-card">
+        <pre>{{ opportunity.__dict__ }}</pre>
+        <div class="row">
+          <div class="col-sm-10">
+            <h3>{{ opportunity.title }}</h3>
+          </div>
+          <div class="col-sm-2">
+            {% if not opportunity.is_published() %}
+            XXXX
+            {% endif %}
+          </div>
+        </div><!-- Title -->
+        <p>{{ opportunity.description }}</p>
+        <p>{{ opportunity.department }}</p>
+        <a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">More Details</a>
+        {% if opportunity.can_edit(current_user) %}
+        <a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit this opportunity</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
