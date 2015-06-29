@@ -90,7 +90,15 @@ def max_words(max=500):
     return _max_words
 
 def after_today(form, field):
-    if field.data <= datetime.date.today():
+
+    if isinstance(field.data, datetime.datetime):
+        to_test = field.data.date()
+    elif isinstance(field.data, datetime.date):
+        to_test = field.data
+    else:
+        raise ValidationError('This must be a date')
+
+    if to_test <= datetime.date.today():
         raise ValidationError('The deadline has to be after today!')
 
 class UnsubscribeForm(Form):

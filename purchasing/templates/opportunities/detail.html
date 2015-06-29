@@ -24,7 +24,7 @@
           </div>
         </div>
 
-        {% if opportunity.documents_needed|length > 0 %}
+        {% if opportunity.documents_needed and opportunity.documents_needed|length > 0 %}
         <div class="row detail-requirements">
           <h4>What do I need?</h4>
           <p>You will need the following documents to bid on this opportunity:</p>

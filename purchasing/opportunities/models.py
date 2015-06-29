@@ -69,7 +69,7 @@ class Opportunity(Model):
     is_public = Column(db.Boolean(), default=True)
 
     def is_published(self):
-        return self.planned_open.date() >= datetime.date.today()
+        return self.planned_open.date() <= datetime.date.today()
 
     def is_expired(self):
         return self.planned_deadline.date() >= datetime.date.today()
