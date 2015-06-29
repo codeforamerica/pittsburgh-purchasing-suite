@@ -2,12 +2,16 @@
 
 {% block brandhref %}{{ url_for('opportunities.index') }}{% endblock %}
 
-{% block brand %}Pittsburgh Opportunities Site{% endblock %}
+{% block brand %}Beacon{% endblock %}
 
 {% block navlogin %}
 {% endblock %}
 
 {% block applinks_right %}
-<li><p class="navbar-text"><a href="{{ url_for('opportunities.signup') }}" class="navbar-link">Signup</a></p></li>
+{% if not current_user.is_anonymous() %}
+<li><p class="navbar-text"><a href="{{ url_for('opportunities.new') }}" class="navbar-link">Add Opportunity</a></p></li>
+{% endif %}
+<li><p class="navbar-text"><a href="{{ url_for('opportunities.browse') }}" class="navbar-link">Browse Opportunities</a></p></li>
+<li><p class="navbar-text"><a href="{{ url_for('opportunities.signup') }}" class="navbar-link">Sign Up</a></p></li>
 {% endblock %}
 

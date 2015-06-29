@@ -10,6 +10,7 @@ from purchasing.data.models import (
     Stage, StageProperty, Flow, ContractBase, ContractProperty,
     Company, CompanyContact, LineItem
 )
+from purchasing.opportunities.models import RequiredBidDocument
 from purchasing.extensions import login_manager
 from purchasing.users.models import User, Role, DEPARTMENT_CHOICES
 
@@ -67,8 +68,10 @@ class UserRoleAdmin(SuperAdminMixin, sqla.ModelView):
         'choices': DEPARTMENT_CHOICES
     })
 
-
 class RoleAdmin(SuperAdminMixin, sqla.ModelView):
+    pass
+
+class DocumentAdmin(AuthMixin, sqla.ModelView):
     pass
 
 admin.add_view(ContractAdmin(ContractBase, db.session, endpoint='contract'))
@@ -78,3 +81,4 @@ admin.add_view(FlowAdmin(Flow, db.session, endpoint='flow'))
 admin.add_view(UserAdmin(User, db.session, name='User', endpoint='user'))
 admin.add_view(UserRoleAdmin(User, db.session, name='User w/Roles', endpoint='user-roles'))
 admin.add_view(RoleAdmin(Role, db.session, endpoint='role'))
+admin.add_view(DocumentAdmin(RequiredBidDocument, db.session, name='Bid Document', endpoint='bid_document'))

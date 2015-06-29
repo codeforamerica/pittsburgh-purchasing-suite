@@ -18,13 +18,13 @@ from purchasing.utils import (
 )
 from purchasing.notifications import vendor_signup
 from purchasing.extensions import login_manager
-from purchasing.decorators import requires_roles
+# from purchasing.decorators import requires_roles
 from purchasing.opportunities.forms import SignupForm, UnsubscribeForm, ValidationError, OpportunityForm
-from purchasing.opportunities.models import Category, Opportunity, Vendor
+from purchasing.opportunities.models import Category, Opportunity, Vendor, RequiredBidDocument
 from purchasing.users.models import User
 
 blueprint = Blueprint(
-    'opportunities', __name__, url_prefix='/opportunities',
+    'opportunities', __name__, url_prefix='/beacon',
     static_folder='../static', template_folder='../templates'
 )
 
@@ -200,7 +200,7 @@ def detail(opportunity_id):
     '''View one opportunity in detail
     '''
     opportunity = Opportunity.query.get(opportunity_id)
-    if opportunity:
+    if opportunity and opportunity.is_public:
         return render_template(
             'opportunities/detail.html', opportunity=opportunity,
             current_user=current_user
@@ -246,7 +246,7 @@ def build_opportunity(data, opportunity=None):
     filename, filepath = upload_document(data.get('document', None), _id)
 
     data.update(dict(
-        contact_id=contact.id, created_by=current_user.id,
+        contact_id=contact.id, created_by=1,
         document=filename, document_href=filepath
     ))
 
@@ -257,11 +257,12 @@ def build_opportunity(data, opportunity=None):
     return opportunity
 
 @blueprint.route('/opportunities/admin/new', methods=['GET', 'POST'])
-@requires_roles('staff', 'admin', 'superadmin', 'conductor')
+# @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def new():
     '''Create a new opportunity
     '''
     form = OpportunityForm()
+    form.documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
     if form.validate_on_submit():
         opportunity = build_opportunity(form.data)
         flash('Opportunity Successfully Created!', 'alert-success')
@@ -269,7 +270,7 @@ def new():
     return render_template('opportunities/opportunity.html', form=form, opportunity=None)
 
 @blueprint.route('/opportunities/<int:opportunity_id>/admin/edit', methods=['GET', 'POST'])
-@requires_roles('staff', 'admin', 'superadmin', 'conductor')
+# @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def edit(opportunity_id):
     '''Edit an opportunity
     '''
@@ -277,6 +278,7 @@ def edit(opportunity_id):
     if opportunity:
         form = OpportunityForm(obj=opportunity)
         form.contact_email.data = opportunity.contact.email
+        form.documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
         if form.validate_on_submit():
             build_opportunity(form.data, opportunity=opportunity)
             flash('Opportunity Successfully Updated!', 'alert-success')

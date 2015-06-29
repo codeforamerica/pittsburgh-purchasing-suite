@@ -5,7 +5,7 @@ import datetime
 
 from flask import current_app
 from flask_wtf import Form
-from flask_wtf.file import FileField, FileRequired, FileAllowed
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import widgets, fields
 from wtforms.validators import DataRequired, Email, ValidationError
 
@@ -15,15 +15,6 @@ from purchasing.users.models import DEPARTMENT_CHOICES, User
 
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
-DOCUMENT_CHOICES = [
-    ('bid_bond', 'Bid Bond'),
-    ('insurance_certificate', 'Insurance Certificate'),
-    ('project_plan', 'Project Plan & Budget'),
-    ('proposal', 'Proposal'),
-    ('portfolio', 'Portfolio of Past Work'),
-    ('not_sure', 'Not Sure'),
-    ('other', 'Other')
-]
 
 class MultiCheckboxField(fields.SelectMultipleField):
     '''Custom multiple select that displays a list of checkboxes
@@ -111,9 +102,9 @@ class OpportunityForm(Form):
     contact_email = fields.TextField(validators=[Email(), city_domain_email, DataRequired()])
     title = fields.TextField(validators=[DataRequired()])
     description = fields.TextAreaField(validators=[max_words(), DataRequired()])
-    planned_publish = fields.DateField(validators=[DataRequired()])
+    planned_open = fields.DateField(validators=[DataRequired()])
     planned_deadline = fields.DateField(validators=[DataRequired(), after_today])
-    documents_needed = fields.SelectMultipleField(choices=DOCUMENT_CHOICES)
+    documents_needed = fields.SelectMultipleField(coerce=int)
     is_public = fields.BooleanField()
     document = FileField(
         validators=[FileAllowed(['pdf'], '.pdf documents only!')]

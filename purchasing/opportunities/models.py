@@ -54,7 +54,7 @@ class Opportunity(Model):
         backref='opportunities'
     )
     # Date department advertised bid
-    planned_publish = Column(db.DateTime)
+    planned_open = Column(db.DateTime)
     # Date department opens bids
     planned_deadline = Column(db.DateTime)
     # Created from contract
@@ -62,14 +62,14 @@ class Opportunity(Model):
     created_from = db.relationship('ContractBase', backref=backref(
         'opportunities', lazy='dynamic'
     ))
-    documents_needed = Column(ARRAY(db.String(50)))
+    documents_needed = Column(ARRAY(db.Integer()))
     document = Column(db.String(255))
     document_href = Column(db.String(255))
     created_by = ReferenceCol('users', ondelete='SET NULL')
     is_public = Column(db.Boolean(), default=True)
 
     def is_published(self):
-        return self.planned_publish.date() >= datetime.date.today()
+        return self.planned_open.date() >= datetime.date.today()
 
     def is_expired(self):
         return self.planned_deadline.date() >= datetime.date.today()
@@ -91,6 +91,52 @@ class Opportunity(Model):
             if self.document_href.startswith('http'):
                 return self.document_href
             return 'file://{}'.format(self.document_href)
+
+    def estimate_open(self):
+        '''Returns the month/year based on planned_open
+        '''
+        if self.is_published():
+            return self.planned_open.strftime('%Y-%m-%d')
+        return self.planned_open.strftime('%B %Y')
+
+    def estimate_deadline(self):
+        '''
+        '''
+        if self.is_expired():
+            return self.planned_deadline.strftime('%Y-%m-%d')
+        return self.planned_deadline.strftime('%B %Y')
+
+    def get_needed_documents(self):
+        return RequiredBidDocument.query.filter(
+            RequiredBidDocument.id.in_(self.documents_needed)
+        ).all()
+
+    def get_events(self):
+        '''Returns the dates out as a nice ordered list for rendering
+        '''
+        return [
+            {
+                'event': 'bid_open', 'classes': 'event event-open',
+                'date': self.estimate_open(),
+                'description': 'Opportunity opens for submissions.'
+            },
+            {
+                'event': 'deadline', 'classes': 'event event-deadline',
+                'date': self.estimate_deadline(),
+                'description': 'Deadline to submit proposals.'
+            }
+        ]
+
+class RequiredBidDocument(Model):
+    __tablename__ = 'document'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    display_name = Column(db.String(255), nullable=False)
+    description = Column(db.Text, nullable=False)
+    form_href = Column(db.String(255))
+
+    def get_choices(self):
+        return (self.id, self.display_name)
 
 class Vendor(Model):
     __tablename__ = 'vendor'
