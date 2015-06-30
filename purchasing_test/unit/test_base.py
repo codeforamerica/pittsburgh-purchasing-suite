@@ -68,3 +68,6 @@ class BaseTestCase(TestCase):
         self.client.post('/users/auth', data=dict(
             assertion='test'
         ))
+
+    def logout_user(self):
+        self.client.post('/users/logout')

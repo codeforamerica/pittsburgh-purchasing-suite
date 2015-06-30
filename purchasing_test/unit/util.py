@@ -6,7 +6,7 @@ from purchasing.data.models import (
 )
 from purchasing.users.models import User, Role
 
-def insert_a_contract(**kwargs):
+def insert_a_contract(properties=None, **kwargs):
     contract_data = dict(
         contract_type='test',
         description='test2',
@@ -14,10 +14,13 @@ def insert_a_contract(**kwargs):
 
     contract = ContractBase.create(**contract_data)
 
-    properties = [
-        dict(contract_id=contract.id, key='foo', value='bar'),
-        dict(contract_id=contract.id, key='baz', value='qux')
-    ]
+    if properties:
+        [i.update({'contract_id': contract.id}) for i in properties]
+    else:
+        properties = [
+            dict(contract_id=contract.id, key='foo', value='bar'),
+            dict(contract_id=contract.id, key='baz', value='qux')
+        ]
 
     for property in properties:
         ContractProperty.create(**property)
@@ -30,9 +33,10 @@ def get_a_property():
 
     return contract.properties.first()
 
-def insert_a_stage():
+def insert_a_stage(name='foo', send_notifs=False, post_opportunities=False):
     stage = Stage.create(**{
-        'name': 'foo'
+        'name': name, 'send_notifs': send_notifs,
+        'post_opportunities': post_opportunities
     })
 
     properties = [

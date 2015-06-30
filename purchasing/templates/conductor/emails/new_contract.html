@@ -1,0 +1,30 @@
+<p>This is an automated email about a contract that you are following. The contract about {{ contract.description|title }} has updated information:</p>
+
+<ul>
+  {%- if contract.description -%}
+  <li><strong>Contract Name:</strong> {{ contract.description|title }}</li>
+  {%- endif -%}
+  {%- if contract.expiration_date -%}
+  <li><strong>Expiration Date:</strong> {{ contract.expiration_date.strftime('%Y-%m-%d') }}</li>
+  {%- endif -%}
+  {%- if contract.financial_id -%}
+  <li><strong>Controller Number:</strong> {{contract.financial_id }}</li>
+  {%- endif -%}
+  {%- if contract.get_spec_number() -%}
+  <li><strong>Spec Number:</strong> {{ contract.get_spec_number() }}</li>
+  {%- endif -%}
+  {%- if contract.contract_href -%}
+  <li><strong>Link to Contract:</strong> <a href="{{ contract.contract_href }}">Link</a>
+  {%- endif -%}
+</ul>
+
+<p>You can view the full contract on <a href="{{- url_for('wexplorer.contract', contract_id=contract.id) -}}">Scout</a></p>
+
+{%- if contract.parent -%}
+<p>This contract has been renewed. You can view old contract on <a href="{{- url_for('wexplorer.contract', contract_id=contract.parent.id) -}}">Scout</a>.
+{% endif %}
+
+<p>Thanks,</p>
+<p>Pittsburgh Procurement Team</p>
+
+<p>If you no longer want to receive these notifications, you can manage your settings in your <a href="{{- url_for('users.profile') -}}">profile</a>.

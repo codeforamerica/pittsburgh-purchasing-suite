@@ -1,0 +1,91 @@
+{% extends 'conductor/layout.html' %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <h3>Editing Contract for {{ contract.description|title }}</h3>
+
+      {# invalid contract notice (needs all values) #}
+      {% if not contract.description or not contract.expiration_date or not contract.financial_id %}
+      <div class="alert alert-warning alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Warning!</strong> This contract needs to have a valid Spec Number, Controller Number, and Expiration Date before it will show up in Scout.
+      </div>
+      {% endif %}
+
+      {# archived contract notice #}
+      {% if contract.is_archived %}
+      <div class="alert alert-warning alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Notice!</strong> This contract is <strong>archived</strong>, which means it won't show up in the search by default.
+      </div>
+      {% endif %}
+
+      {% if contract.parent %}
+      <p class="text-muted">
+        <small>This is a renewed contract. View the old contract on <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}">Wexplorer</a>, or edit it in <a href="{{ url_for('conductor.edit', contract_id=contract.parent.id) }}">Conductor</a>.</small>
+      </p>
+      {% endif %}
+
+
+      <form class="form" method="POST" action="{{ url_for('conductor.edit', contract_id=contract.id) }}">
+        {{ form.csrf_token() }}
+
+        <div class="form-group">
+          <label for="description">Contract Description</label>
+          {{ macros.with_errors(form.description, class_='form-control') }}
+        </div>
+
+        <div class="row">
+          <div class="col-sm-10">
+          <div class="form-group">
+            <label for="contract_href">Link to Contract</label>
+            {{ macros.with_errors(form.contract_href, class_='form-control', placeholder='Ex: http://apps.county.allegheny.pa.us/BidsSearch/pdf/i3180.pdf') }}
+          </div>
+          </div>
+          <div class="col-sm-2">
+            <div class="form-group">
+              <label>Check Link</label>
+              <button type="button" class="btn btn-gray btn-sm form-addon-btn form-control" id="checkUrl">Check URL <i id="checkUrlIcon" class="fa fa-minus"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-4">
+            <div class="form-group">
+              <label for="spec_number">Spec Number <span class="form-required">*</span></label>
+              {{ macros.with_errors(form.spec_number, class_='form-control', placeholder='Ex: 1234') }}
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label for="financial_id">Controller Number <span class="form-required">*</span></label>
+              {{ macros.with_errors(form.financial_id, class_='form-control', placeholder='Ex: 1234') }}
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label for="Expiration Date">Expiration Date <span class="form-required">*</span></label>
+              {{ macros.with_errors(form.expiration_date, class_='form-control', placeholder='Ex: 2015-12-31') }}
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-success">Submit</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block jsvars %}
+<script type="text/javascript">
+var contractId = {{ contract.id }};
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{%- for action in actions -%}
+  {%- if action.action_type in ['activity', 'note'] -%}
+  <div class="action-event">
+  {# note #}
+    {%- if action.taken_by == current_user.id %}
+      You
+    {%- else %}
+      {{ action.taken_by }}
+    {%- endif %}
+    wrote "<strong>{{ action.action_detail.note }}</strong>" on {{ action.taken_at.strftime('%Y-%m-%d') }}.
+
+    <span class="pull-right">
+      <a href="{{ url_for('conductor.delete_note', contract_id=contract_id, stage_id=active_stage.id, note_id=action.id) }}"<i class="fa fa-trash-o"></i></a>
+    </span>
+  {# update #}
+  </div>
+  {%- elif action.action_type == 'update' -%}
+  <div class="action-event">
+    {%- if action.taken_by == current_user.id %}
+      You
+    {%- else %}
+      {{ action.taken_by }}
+    {%- endif %}
+    sent <strong>{{ action.action_detail.sent_to }}</strong> an update on {{ action.taken_at.strftime('%Y-%m-%d') }} with the subject "<strong>{{ action.action_detail.subject }}</strong>".
+  </div>
+
+  {# opportunity #}
+  {%- elif action.action_type == 'opportunity' -%}
+  <div class="action-event">
+    An opportunity!
+  </div>
+
+  {# date handling #}
+  {%- elif action.action_type == 'entered' -%}
+  <div class="action-event action-event-date">
+    Started work on "{{ active_stage.name }}" on {{ active_stage.entered.strftime('%Y-%m-%d') }}.
+  </div>
+
+  {%- elif action.action_type == 'exited' and action.action_detail -%}
+  <div class="action-event action-event-date">
+    Completed work on "{{ active_stage.name }}" on {{ active_stage.exited.strftime('%Y-%m-%d') }}.
+  </div>
+
+  {%- elif action.action_type == 'reversion' -%}
+  <div class="action-event action-event-reversion">
+    {{ action.action_detail.label }} on "{{ active_stage.name }}" on {{ action.action_detail.date }}.
+  </div>
+  {%- endif -%}
+{%- endfor -%}

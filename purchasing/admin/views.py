@@ -20,7 +20,7 @@ def load_user(userid):
 class StageAdmin(AuthMixin, sqla.ModelView):
     inline_models = (StageProperty, )
 
-    form_columns = ['name']
+    form_columns = ['name', 'send_notifs', 'post_opportunities']
 
 class ContractAdmin(AuthMixin, sqla.ModelView):
     inline_models = (ContractProperty, LineItem,)
@@ -30,7 +30,7 @@ class ContractAdmin(AuthMixin, sqla.ModelView):
     form_columns = [
         'contract_type', 'description', 'properties', 'financial_id',
         'expiration_date', 'current_stage', 'current_flow', 'companies',
-        'users'
+        'followers', 'starred', 'is_archived'
     ]
 
 class CompanyAdmin(AuthMixin, sqla.ModelView):

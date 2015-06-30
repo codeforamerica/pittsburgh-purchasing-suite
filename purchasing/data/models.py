@@ -8,8 +8,8 @@ from purchasing.database import (
     ReferenceCol
 )
 from sqlalchemy.dialects.postgres import ARRAY
-from sqlalchemy.dialects.postgresql import TSVECTOR
-from sqlalchemy.schema import Table
+from sqlalchemy.dialects.postgresql import TSVECTOR, JSON
+from sqlalchemy.schema import Table, Sequence
 from sqlalchemy.orm import backref
 
 company_contract_association_table = Table(
@@ -26,8 +26,8 @@ contract_user_association_table = Table(
 
 contract_starred_association_table = Table(
     'contract_starred_association', Model.metadata,
-    Column('user_id', db.Integer, db.ForeignKey('users.id'), index=True),
-    Column('contract_id', db.Integer, db.ForeignKey('contract.id'), index=True),
+    Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True),
+    Column('contract_id', db.Integer, db.ForeignKey('contract.id', ondelete='SET NULL'), index=True),
 )
 
 class SearchView(Model):
@@ -96,16 +96,16 @@ class ContractBase(Model):
     id = Column(db.Integer, primary_key=True)
     financial_id = Column(db.Integer)
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
-    updated_at = Column(db.DateTime, default=datetime.datetime.utcnow())
+    updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
     contract_type = Column(db.String(255))
     expiration_date = Column(db.Date)
     description = Column(db.Text, index=True)
     contract_href = Column(db.Text)
-    current_stage = db.relationship('Stage', lazy='subquery')
-    current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
     current_flow = db.relationship('Flow', lazy='subquery')
     flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
-    users = db.relationship(
+    current_stage = db.relationship('Stage', lazy='subquery')
+    current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
+    followers = db.relationship(
         'User',
         secondary=contract_user_association_table,
         backref='contracts_following',
@@ -115,9 +115,26 @@ class ContractBase(Model):
         secondary=contract_starred_association_table,
         backref='contracts_starred',
     )
+    assigned_to = ReferenceCol('users', ondelete='SET NULL', nullable=True)
+    assigned = db.relationship('User', backref=backref(
+        'assignments', lazy='dynamic', cascade='none'
+    ))
+    is_archived = Column(db.Boolean, default=False, nullable=False)
+    parent_id = Column(db.Integer, db.ForeignKey('contract.id'))
+    children = db.relationship('ContractBase', backref=backref(
+        'parent', remote_side=[id]
+    ))
 
     def __unicode__(self):
         return self.description
+
+    def get_spec_number(self):
+        '''Returns the spec number for a given contract
+        '''
+        try:
+            return [i for i in self.properties if i.key.lower() == 'spec number'][0]
+        except IndexError:
+            return ContractProperty()
 
 class ContractProperty(Model):
     __tablename__ = 'contract_property'
@@ -132,6 +149,21 @@ class ContractProperty(Model):
 
     def __unicode__(self):
         return '{key}: {value}'.format(key=self.key, value=self.value)
+
+class ContractNote(Model):
+    __tablename__ = 'contract_note'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    contract = db.relationship('ContractBase', backref=backref(
+        'notes', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+    contract_id = ReferenceCol('contract', ondelete='CASCADE')
+    note = Column(db.Text)
+    created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
+    updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
+
+    def __unicode__(self):
+        return self.note
 
 class LineItem(Model):
     __tablename__ = 'line_item'
@@ -162,8 +194,9 @@ class Stage(Model):
     __tablename__ = 'stage'
 
     id = Column(db.Integer, primary_key=True, index=True)
-    contract = db.relationship('ContractBase', backref='stage_id', lazy='subquery')
     name = Column(db.String(255))
+    send_notifs = Column(db.Boolean, default=False, nullable=False)
+    post_opportunities = Column(db.Boolean, default=False, nullable=False)
 
     def __unicode__(self):
         return self.name
@@ -181,6 +214,79 @@ class StageProperty(Model):
 
     def __unicode__(self):
         return '{key}: {value}'.format(key=self.key, value=self.value)
+
+class ContractStage(Model):
+    __tablename__ = 'contract_stage'
+
+    id = Column(
+        db.Integer, Sequence('autoincr_contract_stage_id', start=1, increment=1),
+        index=True, unique=True
+    )
+
+    contract_id = ReferenceCol('contract', ondelete='CASCADE', index=True, primary_key=True)
+    contract = db.relationship('ContractBase', backref=backref(
+        'stages', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+
+    stage_id = ReferenceCol('stage', ondelete='CASCADE', index=True, primary_key=True)
+
+    stage = db.relationship('Stage', backref=backref(
+        'contracts', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+
+    created_at = Column(db.DateTime, default=datetime.datetime.now())
+    updated_at = Column(db.DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
+    entered = Column(db.DateTime)
+    exited = Column(db.DateTime)
+    notes = Column(db.Text)
+
+    def enter(self):
+        '''Enter the stage at this point
+        '''
+        self.entered = datetime.datetime.now()
+
+    def exit(self):
+        '''Exit the stage
+        '''
+        self.exited = datetime.datetime.now()
+
+    def full_revert(self):
+        '''Clear timestamps for both enter and exit
+        '''
+        self.entered = None
+        self.exited = None
+
+    def is_current_stage(self):
+        '''Checks to see if this is the current stage
+        '''
+        return True if self.entered and not self.exited else False
+
+class ContractStageActionItem(Model):
+    __tablename__ = 'contract_stage_action_item'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    contract_stage_id = ReferenceCol('contract_stage', ondelete='CASCADE', index=True)
+    contract_stage = db.relationship('ContractStage', backref=backref(
+        'contract_stage_actions', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+    action_type = Column(db.String(255))
+    action_detail = Column(JSON)
+    taken_at = Column(db.DateTime, default=datetime.datetime.now())
+    taken_by = ReferenceCol('users', ondelete='SET NULL', nullable=True)
+
+    def __unicode__(self):
+        return self.action
+
+    def get_sort_key(self):
+        # if we are reversion, we need to get the timestamps from there
+        if self.action_type == 'reversion':
+            return datetime.datetime.strptime(
+                self.action_detail['timestamp'],
+                '%Y-%m-%dT%H:%M:%S'
+            )
+        # otherwise, return the taken_at time
+        else:
+            return self.taken_at if self.taken_at else datetime.datetime(1970, 1, 1)
 
 class Flow(Model):
     __tablename__ = 'flow'

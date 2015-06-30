@@ -9,7 +9,7 @@ from purchasing_test.unit.util import (
     insert_a_user, get_a_role
 )
 
-from purchasing.data.models import ContractBase, ContractProperty, LineItem
+from purchasing.data.models import ContractBase, LineItem
 from purchasing.data.contracts import get_one_contract
 
 class TestWexplorer(BaseTestCase):
@@ -30,7 +30,7 @@ class TestWexplorer(BaseTestCase):
         company_2 = insert_a_company(name='boat', insert_contract=False)
         insert_a_contract(description='vessel', companies=[company_2], line_items=[LineItem(description='NAVY')])
         insert_a_contract(description='sail', financial_id=123, companies=[company_1], line_items=[LineItem(description='sunfish')])
-        insert_a_contract(description='sunfish', financial_id=456, properties=[ContractProperty(key='foo', value='engine')])
+        insert_a_contract(description='sunfish', financial_id=456, properties=[dict(key='foo', value='engine')])
 
     def tearDown(self):
         db.session.execute('''DROP SCHEMA IF EXISTS public cascade;''')
@@ -79,6 +79,10 @@ class TestWexplorer(BaseTestCase):
         self.assert200(self.client.get('/wexplorer/search?q=123'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
+        # check searching for everything gives you everything
+        self.assert200(self.client.get('/wexplorer/search?q='))
+        self.assertEquals(len(self.get_context_variable('results')), 3)
+
     def test_companies(self):
         '''
         Test that the companies page works as expected, including throwing 404s where appropriate
@@ -117,15 +121,15 @@ class TestWexplorer(BaseTestCase):
 
         self.login_user(self.admin_user)
         request = self.client.get('/wexplorer/contracts/1/subscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 1)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 1)
 
         self.login_user(self.superadmin_user)
         self.client.get('/wexplorer/contracts/1/subscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 2)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 2)
 
         # test you can't subscribe more than once
         self.client.get('/wexplorer/contracts/1/subscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 2)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 2)
 
         # test you can't subscribe to a nonexistant contract
         self.assert404(self.client.get('/wexplorer/contracts/999/subscribe'))
@@ -145,16 +149,16 @@ class TestWexplorer(BaseTestCase):
         self.login_user(self.superadmin_user)
         self.client.get('/wexplorer/contracts/1/subscribe')
 
-        self.assertEquals(len(ContractBase.query.get(1).users), 2)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 2)
         self.client.get('/wexplorer/contracts/1/unsubscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 1)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 1)
         # test you can't unsubscribe more than once
         self.client.get('/wexplorer/contracts/1/unsubscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 1)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 1)
 
         self.login_user(self.admin_user)
         self.client.get('/wexplorer/contracts/1/unsubscribe')
-        self.assertEquals(len(ContractBase.query.get(1).users), 0)
+        self.assertEquals(len(ContractBase.query.get(1).followers), 0)
 
         # test you can't unsubscribe from a nonexistant contract
         self.assert404(self.client.get('/wexplorer/contracts/999/unsubscribe'))

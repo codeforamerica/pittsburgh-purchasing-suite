@@ -29,6 +29,13 @@ opportunities_less = Bundle(
     depends=('less/*.less', 'less/**/*.less')
 )
 
+conductor_less = Bundle(
+    'less/conductor_main.less',
+    filters='less',
+    output='public/css/conductor.css',
+    depends=('less/*.less', 'less/**/*.less')
+)
+
 vendorjs = Bundle(
     'libs/jQuery/dist/jquery.js',
     'libs/bootstrap/dist/js/bootstrap.js',
@@ -48,6 +55,12 @@ wexplorerjs = Bundle(
     output='public/js/wexplorer.js'
 )
 
+conductorjs = Bundle(
+    'js/conductor/*.js',
+    filters='uglifyjs',
+    output='public/js/conductor.js'
+)
+
 assets = Environment()
 test_assets = Environment()
 
@@ -55,9 +68,11 @@ test_assets = Environment()
 assets.register('vendorjs', vendorjs)
 assets.register('opportunitiesjs', opportunitiesjs)
 assets.register('wexplorerjs', wexplorerjs)
+assets.register('conductorjs', conductorjs)
 
 # register our css bundles
 assets.register('css_all', less)
 assets.register('wexplorer_less', wexplorer_less)
 assets.register('sherpa_less', sherpa_less)
 assets.register('opportunities_less', opportunities_less)
+assets.register('conductor_less', conductor_less)
