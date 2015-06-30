@@ -32,7 +32,7 @@ def upload_document(document, _id=None):
     if filename == '':
         return None, None
 
-    elif current_app.config.get('UPLOAD_S3'):
+    elif current_app.config.get('UPLOAD_S3') is True:
         # upload file to s3
         conn, bucket = connect_to_s3(
             current_app.config['AWS_ACCESS_KEY_ID'],

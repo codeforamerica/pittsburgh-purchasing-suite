@@ -53,3 +53,6 @@ Flask-Script
 # Scraping
 scrapelib==1.0.0
 beautifulsoup4==4.3.2
+
+# AWS
+boto==2.38.0

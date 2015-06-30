@@ -9,6 +9,7 @@ from math import ceil
 from datetime import datetime, timedelta
 
 from flask import flash, request, url_for
+from flask_login import current_user
 from boto.s3.connection import S3Connection
 
 def random_id(n):
@@ -77,6 +78,11 @@ def thispage():
     # pass for favicon
     except AttributeError:
         pass
+
+def _current_user():
+    args = dict(request.view_args.items() + request.args.to_dict().items())
+    args['_current_user'] = current_user
+    return url_for(request.endpoint, **args)
 
 class SimplePagination(object):
     '''

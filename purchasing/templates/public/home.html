@@ -71,6 +71,24 @@
 
         </div><!-- /.row (nested) -->
       </div><!-- /.col-lg-10 -->
+      <div class="row">
+        <div class="col-lg-10 col-lg-offset-1">
+          {% if not _current_user.is_anonymous() and _current_user.role.name in ['conductor', 'admin', 'superadmin'] %}
+          <div class="col-md-4 col-sm-4 col-md-offset-4">
+            <div class="service-item">
+              <a href="{{ url_for('conductor.index') }}">
+                <span class="fa-stack fa-4x">
+                  <i class="fa fa-circle fa-stack-2x"></i>
+                  <i class="fa fa-train fa-stack-1x fa-body-bg"></i>
+                </span>
+                <h4><strong>Conductor</strong></h4>
+              </a>
+              <p>Manage contracts.<br> Send notifications.</p>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
     </div><!-- /.row -->
   </div><!-- /.container -->
 </section>

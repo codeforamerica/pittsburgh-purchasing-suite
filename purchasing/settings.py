@@ -62,3 +62,4 @@ class TestConfig(Config):
     CITY_DOMAIN = 'foo.com'
     MAIL_SUPPRESS_SEND = True
     UPLOAD_S3 = False
+    UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'test_uploads'))

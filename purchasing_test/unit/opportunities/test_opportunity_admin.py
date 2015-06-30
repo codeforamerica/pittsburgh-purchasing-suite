@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 
+from os import mkdir, listdir, rmdir
 import datetime
 from flask import current_app
+from cStringIO import StringIO
+from werkzeug.datastructures import FileStorage
+from shutil import rmtree
 
-from purchasing.opportunities.models import Opportunity, Vendor, RequiredBidDocument
+from purchasing.opportunities.models import Opportunity
+from purchasing.users.models import User
 from purchasing.data.importer.nigp import main
+from purchasing.opportunities.views.admin import build_opportunity, upload_document
 
-from unittest import skip
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
     insert_a_role, insert_a_user, insert_a_document,
@@ -18,6 +23,7 @@ class TestOpportunities(BaseTestCase):
 
     def setUp(self):
         super(TestOpportunities, self).setUp()
+        mkdir(current_app.config.get('UPLOAD_DESTINATION'))
         main(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
 
         self.admin_role = insert_a_role('admin')
@@ -41,13 +47,41 @@ class TestOpportunities(BaseTestCase):
             planned_deadline=datetime.date.today() - datetime.timedelta(1)
         )
 
-    @skip('TODO: write test for document upload')
-    def test_document_upload(self):
-        pass
+    def tearDown(self):
+        super(TestOpportunities, self).tearDown()
+        # clear out the uploads folder
+        rmtree(current_app.config.get('UPLOAD_DESTINATION'))
+        try:
+            rmdir(current_app.config.get('UPLOAD_DESTINATION'))
+        except OSError:
+            pass
 
-    @skip('TODO: write test for opportunity building')
-    def test_build_opportunity(self):
-        pass
+    def test_document_upload(self):
+        '''Tests document uploads properly
+        '''
+        # assert that we return none without a document
+        no_document = FileStorage(StringIO(''), filename='')
+        self.assertEquals((None, None), upload_document(no_document))
+
+        document = FileStorage(StringIO('hello world!'), filename='test.txt')
+        upload_document(document)
+
+        self.assertTrue('test.txt' in listdir(current_app.config.get('UPLOAD_DESTINATION')))
+
+    def test_build_opportunity_new_user(self):
+        '''Tests that build_opportunity creates new users appropriately
+        '''
+        data = {
+            'department': 'Other', 'contact_email': 'new_email@foo.com',
+            'title': 'test', 'description': 'test', 'planned_open': datetime.date.today(),
+            'planned_deadline': datetime.date.today() + datetime.timedelta(1),
+            'is_public': False
+        }
+
+        # assert that we create a new user when we build with a new email
+        self.assertEquals(User.query.count(), 2)
+        build_opportunity(data, None)
+        self.assertEquals(User.query.count(), 3)
 
     def test_create_a_contract(self):
         '''Tests create contract page

@@ -28,6 +28,9 @@
               <li><a href="{{ url_for('wexplorer.explore') }}">Wexplorer</a></li>
               <li><a href="{{ url_for('sherpa.index') }}">Sherpa</a></li>
               <li><a href="{{ url_for('opportunities.index') }}">Opportunities</a></li>
+              {% if not _current_user.is_anonymous() and _current_user.role.name in ['conductor', 'admin', 'superadmin'] %}
+              <li><a href="{{ url_for('conductor.index') }}">Conductor</a></li>
+              {% endif %}
             </ul>
           </li>
         </ul>
