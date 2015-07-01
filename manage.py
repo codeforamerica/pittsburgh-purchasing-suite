@@ -181,6 +181,22 @@ def all_clear():
     print 'All clear!'
     return
 
+@manager.option('-u', '--user_id', dest='user', default=os.environ.get('AWS_ACCESS_KEY_ID'))
+@manager.option('-p', '--secret', dest='secret', default=os.environ.get('AWS_SECRET_ACCESS_KEY'))
+@manager.option('-b', '--bucket', dest='bucket', default=os.environ.get('S3_BUCKET_NAME'))
+@manager.command
+def seed(user, secret, bucket):
+    '''Seeds a test/dev instance with new data
+    '''
+    # import seed contracts
+    import_old_contracts('./purchasing/data/importer/seed/2015-07-01-seed-contracts.csv')
+    # scrape line items
+    scrape(True)
+    # import seed costars
+    import_costars(user, secret, bucket, './purchasing/data/importer/seed/costars')
+    # import seed nigp
+    import_nigp('./purchasing/data/importer/seed/2015-07-01-seed-nigp-cleaned.csv')
+
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))
 manager.add_command('shell', Shell(make_context=_make_context))
 manager.add_command('db', MigrateCommand)

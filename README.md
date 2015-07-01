@@ -76,13 +76,6 @@ npm install -g uglifyjs
 bower install
 ```
 
-Now, you are ready to roll!
-
-```bash
-# run the server
-python manage.py server
-```
-
 **login and user accounts**
 
 The Pittsburgh Purchasing Suite uses [persona](https://login.persona.org/about) to handle authentication. The app uses its own user database to manage roles and object-based authorization. You will need to sign in through persona and then enter yourself into the database in order to have access to admin and other pages.
@@ -94,6 +87,22 @@ python manage.py seed_user -e <your-email-here> -r <your-desired-role>
 ```
 
 Now, logging in through persona should also give you access to the app.
+
+**up and running**
+
+If you boot up the app right now, it will have no data. If you want to add some data, a small manage task has been added to allow for quick data importation.
+
+```bash
+# run the data importers
+python manage.py seed
+```
+
+Now you should be ready to roll with some seed data to get you stared!
+
+```bash
+# run the server
+python manage.py server
+```
 
 #### Testing
 
