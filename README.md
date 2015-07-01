@@ -39,15 +39,22 @@ git clone https://github.com/codeforamerica/pittsburgh-purchasing-suite
 # change into the repo directory
 cd pittsburgh-purchasing-suite
 # install python dependencies
+# NOTE: if you are using postgres.app, you will need to make sure to
+# set your PATH to include the bin directory. For example:
+# export PATH=$PATH:/Applications/Postgres.app/Contents/Versions/9.4/bin/
 pip install -r requirements/dev.txt
 # note, if you are looking to deploy, you won't need dev dependencies.
 # uncomment & run this command instead:
 # pip install -r requirements.txt
 ```
 
+NOTE: The app's configuration lives in [`settings.py`](https://github.com/codeforamerica/pittsburgh-purchasing-suite/blob/master/purchasing/settings.py). When different configurations are referenced in the next sections, they are contained in that file.
+
 **email**:
 
-The app uses [Flask-Mail](https://pythonhosted.org/Flask-Mail/) to handle sending emails. This includes emails about subscriptions to various contracts, notifications about contracts being followed, and others. In production, the app relies on [Sendgrid](https://sendgrid.com/), but in development, it uses the [Gmail SMTP server](https://support.google.com/a/answer/176600?hl=en). If you don't need to send emails, you can disable emails by setting `MAIL_SUPPRESS_SEND = True` in the `DevConfig`. If you would like to send email over the Gmail SMTP server, you will need to add two environmental variables: `MAIL_USERNAME` and `MAIL_PASSWORD`. You can use Google's [app passwords](https://support.google.com/accounts/answer/185833?hl=en) to create a unique password only for the app.
+The app uses [Flask-Mail](https://pythonhosted.org/Flask-Mail/) to handle sending emails. This includes emails about subscriptions to various contracts, notifications about contracts being followed, and others. In production, the app relies on [Sendgrid](https://sendgrid.com/), but in development, it uses the [Gmail SMTP server](https://support.google.com/a/answer/176600?hl=en). If you don't need to send emails, you can disable emails by setting `MAIL_SUPPRESS_SEND = True` in the `DevConfig` configuration object.
+
+If you would like to send email over the Gmail SMTP server, you will need to add two environmental variables: `MAIL_USERNAME` and `MAIL_PASSWORD`. You can use Google's [app passwords](https://support.google.com/accounts/answer/185833?hl=en) to create a unique password only for the app.
 
 **database**:
 
@@ -59,7 +66,7 @@ psql
 create database purchasing;
 ```
 
-Once you've created your database, you'll need to open `purchasing/settings.py` and edit the `DevConfig` to use the proper SQLAlchemy database configuration string. Then:
+Once you've created your database, you'll need to open `purchasing/settings.py` and edit the `DevConfig` object to use the proper [SQLAlchemy database configuration string](http://docs.sqlalchemy.org/en/rel_1_0/core/engines.html#postgresql). If you named your database `purchasing`, you probably won't have to change anything. Then:
 
 ```bash
 # upgrade your database to the latest version
@@ -68,19 +75,25 @@ python manage.py db upgrade
 
 **front-end**:
 
+If you haven't installed [npm](https://www.npmjs.com/), please consult this [howto](https://github.com/codeforamerica/howto/blob/master/Node.js.md#install) for the best way to do so. On Mac, you can also use [homebrew](http://brew.sh/).
+
+Once you install node, run the following:
+
 ```bash
-# install bower & uglifyjs
+# install bower, less, and uglifyjs
+# you may need to use sudo
 npm install -g bower
 npm install -g uglifyjs
+npm install -g less
 # use bower to install the dependencies
 bower install
 ```
 
 **login and user accounts**
 
-The Pittsburgh Purchasing Suite uses [persona](https://login.persona.org/about) to handle authentication. The app uses its own user database to manage roles and object-based authorization. You will need to sign in through persona and then enter yourself into the database in order to have access to admin and other pages.
+Right now, the Pittsburgh Purchasing Suite uses [persona](https://login.persona.org/about) to handle authentication. The app uses its own user database to manage roles and object-based authorization. You will need to sign in through persona and then enter yourself into the database in order to have access to admin and other pages.
 
-A manage task has been created to allow you to quickly create a user to access the admin and other staff-only tasks. To add an email, run the following command (NOTE: if you updated your database as per above, you will probably want to give youself a role of 1, which will give you superadmin privledges):
+A manage task has been created to allow you to quickly create a user to access the admin and other staff-only tasks. To add an email, run the following command (NOTE: if you updated your database as per above, you will probably want to give youself a role of 1, which will give you superadmin privledges), putting your email/desired role in the appropriate places:
 
 ```bash
 python manage.py seed_user -e <your-email-here> -r <your-desired-role>
@@ -97,7 +110,7 @@ If you boot up the app right now, it will have no data. If you want to add some 
 python manage.py seed
 ```
 
-Now you should be ready to roll with some seed data to get you stared!
+Now you should be ready to roll with some seed data to get you started!
 
 ```bash
 # run the server

@@ -78,7 +78,7 @@ def import_old_contracts(filepath):
     '-d', '--directory', dest='directory',
     default='./purchasing/data/importer/files/costars/'
 )
-def import_costars(user, secret, bucket, directory):
+def import_costars(user=None, secret=None, bucket=None, directory=None):
     '''
     Takes a directory which contains a number of csv files with the
     costars data, and then important them into the DB
@@ -181,11 +181,11 @@ def all_clear():
     print 'All clear!'
     return
 
-@manager.option('-u', '--user_id', dest='user')
-@manager.option('-p', '--secret', dest='secret')
-@manager.option('-b', '--bucket', dest='bucket')
+@manager.option('-r', '--s3user', dest='user')
+@manager.option('-p', '--s3secret', dest='secret')
+@manager.option('-t', '--s3bucket', dest='bucket')
 @manager.command
-def seed(user, secret, bucket):
+def seed(user=None, secret=None, bucket=None):
     '''Seeds a test/dev instance with new data
     '''
     user = user if user else os.environ.get('AWS_ACCESS_KEY_ID')
