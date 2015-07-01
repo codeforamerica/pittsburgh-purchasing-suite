@@ -48,7 +48,7 @@ pip install -r requirements/dev.txt
 # pip install -r requirements.txt
 ```
 
-NOTE: The app's configuration lives in [`settings.py`](https://github.com/codeforamerica/pittsburgh-purchasing-suite/blob/master/purchasing/settings.py). When different configurations are referenced in the next sections, they are contained in that file.
+**NOTE**: The app's configuration lives in [`settings.py`](https://github.com/codeforamerica/pittsburgh-purchasing-suite/blob/master/purchasing/settings.py). When different configurations (such as `DevConfig`) are referenced in the next sections, they are contained in that file.
 
 **email**:
 
@@ -72,6 +72,8 @@ Once you've created your database, you'll need to open `purchasing/settings.py` 
 # upgrade your database to the latest version
 python manage.py db upgrade
 ```
+
+By default, SQLAlchemy logging is turned off. If you want to enable it, you'll need to add a `SQLALCHEMY_ECHO` flag to your environment.
 
 **front-end**:
 
