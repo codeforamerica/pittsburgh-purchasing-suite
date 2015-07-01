@@ -181,13 +181,16 @@ def all_clear():
     print 'All clear!'
     return
 
-@manager.option('-u', '--user_id', dest='user', default=os.environ.get('AWS_ACCESS_KEY_ID'))
-@manager.option('-p', '--secret', dest='secret', default=os.environ.get('AWS_SECRET_ACCESS_KEY'))
-@manager.option('-b', '--bucket', dest='bucket', default=os.environ.get('S3_BUCKET_NAME'))
+@manager.option('-u', '--user_id', dest='user')
+@manager.option('-p', '--secret', dest='secret')
+@manager.option('-b', '--bucket', dest='bucket')
 @manager.command
 def seed(user, secret, bucket):
     '''Seeds a test/dev instance with new data
     '''
+    user = user if user else os.environ.get('AWS_ACCESS_KEY_ID')
+    secret = secret if secret else os.environ.get('AWS_SECRET_ACCESS_KEY')
+    bucket = bucket if bucket else os.environ.get('S3_BUCKET_NAME')
     # import seed contracts
     import_old_contracts('./purchasing/data/importer/seed/2015-07-01-seed-contracts.csv')
     # scrape line items
