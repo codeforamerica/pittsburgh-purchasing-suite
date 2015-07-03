@@ -2,6 +2,7 @@
 {% import "macros/with_errors.html" as macros %}
 
 {% block content %}
+<<<<<<< HEAD
 {{ super() }}
 <div class="container">
 
@@ -20,11 +21,13 @@
     <h2>Upload successful</h2>
     <p><a href="{{ url_for('conductor.index') }}">Go Home</a></p>
   </div>
+
 </div>
 
 {% endblock %}
 
 {% block js %}
+
 {{ super() }}
 
 <script>
@@ -38,7 +41,9 @@ if (!filepath) {
 $.ajax({
   url: "{{ url_for('conductor.process_upload') }}",
   method: 'POST',
+
   data: { filepath: filepath, filename: filename },
+
   success: function(data, status, xhr) {
     $('.upload-processing').hide()
     $('.upload-success').show()

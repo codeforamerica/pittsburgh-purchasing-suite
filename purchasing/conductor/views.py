@@ -303,6 +303,7 @@ def upload():
         filepath = os.path.join(current_app.config.get('UPLOAD_FOLDER'), filename)
         _file.save(filepath)
         return render_template('conductor/upload_success.html', filepath=filepath, filename=filename)
+
     else:
         return render_template('conductor/upload_new.html', form=form)
 
