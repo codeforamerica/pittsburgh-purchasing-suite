@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from flask_wtf import Form
-from wtforms.fields import TextField, IntegerField, DateField, TextAreaField
+from flask_wtf.file import FileField, FileAllowed, FileRequired
+from wtforms.fields import TextField, IntegerField, DateField, TextAreaField, PasswordField
 from wtforms.validators import DataRequired, URL, Email, Optional
 
 class EditContractForm(Form):
@@ -30,3 +31,9 @@ class NoteForm(Form):
     '''Adds a note to the contract stage view
     '''
     note = TextAreaField(validators=[DataRequired(message='Note cannot be blank.')])
+
+class FileUpload(Form):
+    upload = FileField('datafile', validators=[
+        FileRequired(),
+        FileAllowed(['csv'], '.csv files only')
+    ])
