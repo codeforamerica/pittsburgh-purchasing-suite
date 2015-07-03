@@ -2,10 +2,13 @@
 
 import urllib2
 import datetime
+import os
+
+from werkzeug import secure_filename
 
 from flask import (
     Blueprint, render_template, flash, redirect,
-    url_for, abort, request, jsonify
+    url_for, abort, request, jsonify, current_app
 )
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
@@ -19,10 +22,11 @@ from purchasing.data.models import (
     ContractBase, ContractProperty, ContractStage, Stage,
     ContractStageActionItem, Flow
 )
+from purchasing.data.importer.costars import main
 from purchasing.users.models import User, Role
 from purchasing.conductor.forms import (
     EditContractForm, PostOpportunityForm,
-    SendUpdateForm, NoteForm
+    SendUpdateForm, NoteForm, FileUpload
 )
 
 blueprint = Blueprint(
@@ -288,3 +292,32 @@ def assign(contract_id, flow_id, user_id):
     db.session.commit()
     flash('Successfully assigned to {}!'.format(user.email), 'alert-success')
     return redirect(url_for('conductor.index'))
+
+@blueprint.route('/upload_new', methods=['GET', 'POST'])
+def upload():
+    form = FileUpload()
+    if form.validate_on_submit():
+        _file = request.files.get('upload')
+        filename = secure_filename(_file.filename)
+        filepath = os.path.join(current_app.config.get('UPLOAD_FOLDER'), filename)
+        _file.save(filepath)
+        main(filepath, filename, None, None, None)
+        return render_template('conductor/upload_success.html', filepath=filepath)
+    else:
+        return render_template('conductor/upload_new.html', form=form)
+
+@blueprint.route('/_process_file', methods=['POST'])
+def process_upload():
+    filepath = request.form.get('filepath')
+    result = update(filepath)
+    if result.get('status') == 'success':
+        last_updated = LastUpdated.query.first()
+        if not last_updated:
+            last_updated = LastUpdated(datetime.datetime.utcnow())
+            db.session.add(last_updated)
+        else:
+            last_updated.last_updated = datetime.datetime.utcnow()
+        db.session.commit()
+        return jsonify(result), 200
+    else:
+        return jsonify(result), 403

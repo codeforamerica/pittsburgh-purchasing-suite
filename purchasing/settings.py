@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
+HERE = os.path.abspath(os.path.dirname(__file__))
 os_env = os.environ
 
 class Config(object):
@@ -23,6 +24,7 @@ class Config(object):
     UPLOAD_S3 = True
     UPLOAD_DESTINATION = 'pittsburgh-purchasing-opportunities'
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # max file size
+    UPLOAD_FOLDER = os.path.join(HERE, os_env.get('UPLOAD_FOLDER', 'uploads/'))
 
 class ProdConfig(Config):
     """Production configuration."""

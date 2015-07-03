@@ -1,0 +1,19 @@
+{% extends "conductor/layout.html" %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+{{ super() }}
+
+<h2>Upload new data</h2>
+<form method="POST" action="{{ url_for('conductor.upload') }}" enctype="multipart/form-data">
+
+{{ form.csrf_token }}
+<div class="form-group">
+<label for="upload">Upload a file (must be .xls or .xlsx format)</label>
+{{ macros.with_errors(form.upload) }}
+</div>
+
+<input type="submit" class="btn btn-success" value="Upload">
+</form>
+
+{% endblock %}

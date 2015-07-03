@@ -1,0 +1,48 @@
+{% extends "conductor/layout.html" %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+
+<div class="upload-error" hidden>
+  <div class="alert alert-danger alert-dismissable">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <span class="error-message">Something went wrong processing your file. The server says: </span>
+  </div>
+</div>
+
+<div class="upload-processing">
+  Upload processing...
+</div>
+
+<div class="upload-success" hidden>
+  <h2>Upload successful</h2>
+  <p><a href="{{ url_for('conductor.index') }}">Go Home</a></p>
+</div>
+
+{% endblock %}
+
+{% block js %}
+
+<script>
+var filepath = '{{ filepath }}'
+
+if (!filepath) {
+  window.location.reload();
+}
+
+$.ajax({
+  url: "{{ url_for('conductor.process_upload') }}",
+  method: 'POST',
+  data: { filepath: filepath },
+  success: function(data, status, xhr) {
+    $('.upload-processing').hide()
+    $('.upload-success').show()
+  }, error: function(xhr, status, error) {
+    $('.upload-error').show()
+    $('.error-message').append(error + ': ' + JSON.parse(xhr.responseText).message);
+  }
+})
+
+</script>
+
+{% endblock %}
