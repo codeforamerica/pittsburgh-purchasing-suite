@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
+HERE = os.path.abspath(os.path.dirname(__file__))
 os_env = os.environ
 
 class Config(object):
@@ -20,6 +21,7 @@ class Config(object):
     MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
     MAIL_PORT = 587
     MAIL_USE_TLS = True
+    UPLOAD_FOLDER = os.path.join(HERE, os_env.get('UPLOAD_FOLDER', 'uploads/'))
 
 class ProdConfig(Config):
     """Production configuration."""
