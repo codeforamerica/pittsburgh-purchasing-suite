@@ -28,8 +28,8 @@ The purchasing suite is a [Flask](http://flask.pocoo.org/) app. It uses [Postgre
 
 It is highly recommended that you use use [virtualenv](https://readthedocs.org/projects/virtualenv/) (and [virtualenvwrapper](https://virtualenvwrapper.readthedocs.org/en/latest/) for convenience). For a how-to on getting set up, please consult this [howto](https://github.com/codeforamerica/howto/blob/master/Python-Virtualenv.md). Additionally, you'll need node to install bower (see this [howto](https://github.com/codeforamerica/howto/blob/master/Node.js.md) for more on Node), and it is recommended that you use [postgres.app](http://postgresapp.com/) to handle your Postgres (assuming you are developing on OSX).
 
-#### Install (for development)
-Use the following commands to bootstrap your environment:
+#### Developing the Pittsburgh Purchasing Suite
+Use the following commands to bootstrap your development environment:
 
 **python app**:
 
