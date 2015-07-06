@@ -78,7 +78,7 @@ def import_old_contracts(filepath):
     '-d', '--directory', dest='directory',
     default='./purchasing/data/importer/files/costars/'
 )
-def import_costars(user, secret, bucket, directory):
+def import_costars(user=None, secret=None, bucket=None, directory=None):
     '''
     Takes a directory which contains a number of csv files with the
     costars data, and then important them into the DB
@@ -180,6 +180,25 @@ def all_clear():
     db.session.commit()
     print 'All clear!'
     return
+
+@manager.option('-r', '--s3user', dest='user')
+@manager.option('-p', '--s3secret', dest='secret')
+@manager.option('-t', '--s3bucket', dest='bucket')
+@manager.command
+def seed(user=None, secret=None, bucket=None):
+    '''Seeds a test/dev instance with new data
+    '''
+    user = user if user else os.environ.get('AWS_ACCESS_KEY_ID')
+    secret = secret if secret else os.environ.get('AWS_SECRET_ACCESS_KEY')
+    bucket = bucket if bucket else os.environ.get('S3_BUCKET_NAME')
+    # import seed contracts
+    import_old_contracts('./purchasing/data/importer/seed/2015-07-01-seed-contracts.csv')
+    # scrape line items
+    scrape(True)
+    # import seed costars
+    import_costars(user, secret, bucket, './purchasing/data/importer/seed/costars')
+    # import seed nigp
+    import_nigp('./purchasing/data/importer/seed/2015-07-01-seed-nigp-cleaned.csv')
 
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))
 manager.add_command('shell', Shell(make_context=_make_context))
