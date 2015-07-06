@@ -214,7 +214,7 @@ def seed(user=None, secret=None, bucket=None):
     # scrape line items
     scrape(True)
     # import seed costars
-    import_costars(user, secret, bucket, './purchasing/data/importer/seed/costars')
+    import_costars(user, secret, 'costars', './purchasing/data/importer/seed/costars')
     # import seed nigp
     import_nigp('./purchasing/data/importer/seed/2015-07-01-seed-nigp-cleaned.csv')
 
