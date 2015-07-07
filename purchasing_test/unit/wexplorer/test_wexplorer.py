@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import current_app
+from flask_login import current_user
 from purchasing.app import db
 from purchasing.extensions import mail
 from purchasing_test.unit.test_base import BaseTestCase
@@ -9,7 +10,7 @@ from purchasing_test.unit.util import (
     insert_a_user, get_a_role
 )
 
-from purchasing.data.models import ContractBase, LineItem
+from purchasing.data.models import ContractBase, LineItem, ContractNote
 from purchasing.data.contracts import get_one_contract
 
 class TestWexplorer(BaseTestCase):
@@ -28,9 +29,16 @@ class TestWexplorer(BaseTestCase):
         # insert the companies/contracts
         company_1 = insert_a_company(name='ship', insert_contract=False)
         company_2 = insert_a_company(name='boat', insert_contract=False)
-        insert_a_contract(description='vessel', companies=[company_2], line_items=[LineItem(description='NAVY')])
-        insert_a_contract(description='sail', financial_id=123, companies=[company_1], line_items=[LineItem(description='sunfish')])
-        insert_a_contract(description='sunfish', financial_id=456, properties=[dict(key='foo', value='engine')])
+        insert_a_contract(
+            description='vessel', companies=[company_2], line_items=[LineItem(description='NAVY')]
+        )
+        insert_a_contract(
+            description='sail', financial_id=123, companies=[company_1],
+            line_items=[LineItem(description='sunfish')]
+        )
+        insert_a_contract(
+            description='sunfish', financial_id=456, properties=[dict(key='foo', value='engine')]
+        )
 
     def tearDown(self):
         db.session.execute('''DROP SCHEMA IF EXISTS public cascade;''')
@@ -41,8 +49,7 @@ class TestWexplorer(BaseTestCase):
         db.get_engine(self.app).dispose()
 
     def test_explore(self):
-        '''
-        Ensure explore endpoint works as expected
+        '''Ensure explore endpoint works as expected
         '''
         request = self.client.get('/scout/')
         # test the request processes correctly
@@ -51,8 +58,7 @@ class TestWexplorer(BaseTestCase):
         self.assertTrue(self.get_context_variable('search_form') is not None)
 
     def test_search(self):
-        '''
-        Check all possible searches return properly: descriptions, names, properties, line items, financial ids
+        '''Check searches return properly: descriptions, names, properties, line items, financial ids
         '''
         self.assert200(self.client.get('/scout/search?q=ship'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
@@ -84,8 +90,7 @@ class TestWexplorer(BaseTestCase):
         self.assertEquals(len(self.get_context_variable('results')), 3)
 
     def test_companies(self):
-        '''
-        Test that the companies page works as expected, including throwing 404s where appropriate
+        '''Test that the companies page works as expected, including throwing 404s where appropriate
         '''
         request = self.client.get('/scout/companies/1')
         # test that this works
@@ -98,8 +103,7 @@ class TestWexplorer(BaseTestCase):
         self.assert404(self.client.get('/scout/companies/999'))
 
     def test_contracts(self):
-        '''
-        Test that the contracts page works as expected, including throwing 404s where appropriate
+        '''Test that the contracts page works as expected, including throwing 404s where appropriate
         '''
         request = self.client.get('/scout/contracts/1')
         self.assert200(request)
@@ -111,8 +115,7 @@ class TestWexplorer(BaseTestCase):
         self.assert404(self.client.get('/scout/contracts/999'))
 
     def test_subscribe(self):
-        '''
-        Tests all possible combinations of subscribing to a contract
+        '''Test all possible combinations of subscribing to a contract
         '''
         # test that you can't subscribe to a contract unless you are signed in
         request = self.client.get('/scout/contracts/1/subscribe')
@@ -135,8 +138,7 @@ class TestWexplorer(BaseTestCase):
         self.assert404(self.client.get('/scout/contracts/999/subscribe'))
 
     def test_unsubscribe(self):
-        '''
-        Tests ability to unsubscribe from a contract
+        '''Test ability to unsubscribe from a contract
         '''
         # test that you can't subscribe to a contract unless you are signed in
         request = self.client.get('/scout/contracts/1/unsubscribe')
@@ -164,8 +166,7 @@ class TestWexplorer(BaseTestCase):
         self.assert404(self.client.get('/scout/contracts/999/unsubscribe'))
 
     def test_star(self):
-        '''
-        Test starring contracts works as expected
+        '''Test starring contracts works as expected
         '''
         request = self.client.get('/scout/contracts/1/star')
         self.assertEquals(request.status_code, 302)
@@ -187,8 +188,7 @@ class TestWexplorer(BaseTestCase):
         self.assert404(self.client.get('/scout/contracts/999/star'))
 
     def test_unstar(self):
-        '''
-        Test unstarring contracts works as expected
+        '''Test unstarring contracts works as expected
         '''
         # test that you can't unstar to a contract unless you are signed in
         request = self.client.get('/scout/contracts/1/unstar')
@@ -216,8 +216,7 @@ class TestWexplorer(BaseTestCase):
         self.assert404(self.client.get('/scout/contracts/999/unstar'))
 
     def test_department_filter(self):
-        '''
-        Test that the filter page works properly and shows the error where appropriate
+        '''Test that filter page works properly and shows the error where appropriate
         '''
         # login as admin user and subscribe to two contracts
         self.login_user(self.admin_user)
@@ -247,9 +246,34 @@ class TestWexplorer(BaseTestCase):
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('You must choose a valid department!', 'alert-danger')
 
-    def test_feedback(self):
+    def test_notes(self):
+        '''Test taking notes on scout
         '''
-        Test wexplorer contract feedback mechanism
+        # assert you can't take a note on a contract
+        self.assertEquals(ContractNote.query.count(), 0)
+        self.client.post('/scout/contracts/1', data=dict(note='test', user=current_user.id))
+        self.assertEquals(ContractNote.query.count(), 0)
+
+        self.login_user(self.admin_user)
+        self.client.post('/scout/contracts/1', data={
+            'note': 'NOTENOTENOTE', 'user': self.admin_user.id
+        })
+        self.assertEquals(ContractNote.query.count(), 1)
+
+        has_note = self.client.get('/scout/contracts/1')
+        self.assertTrue('NOTENOTENOTE' in has_note.data)
+
+        # make sure the note doesn't show up for other people
+        self.login_user(self.superadmin_user)
+        no_note = self.client.get('/scout/contracts/1')
+        self.assertTrue('NOTENOTENOTE' not in no_note.data)
+
+        self.logout_user()
+        no_note_two = self.client.get('/scout/contracts/1')
+        self.assertTrue('NOTENOTENOTE' not in no_note_two.data)
+
+    def test_feedback(self):
+        '''Test scout contract feedback mechanism
         '''
         self.assert200(self.client.get('/scout/contracts/1/feedback'))
         self.assert_template_used('wexplorer/feedback.html')
