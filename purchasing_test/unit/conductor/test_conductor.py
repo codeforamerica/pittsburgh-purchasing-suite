@@ -223,8 +223,8 @@ class TestConductor(BaseTestCase):
         self.assertEquals(ContractBase.query.count(), 2)
 
         # star and follow the contracts
-        self.client.get('/wexplorer/contracts/{}/subscribe'.format(self.contract1.id))
-        self.client.get('/wexplorer/contracts/{}/star'.format(self.contract1.id))
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
+        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
 
         # transition through the stages
         self.assign_contract()
@@ -261,7 +261,7 @@ class TestConductor(BaseTestCase):
         '''
         # subscribe to this contract
         self.login_user(self.conductor)
-        self.client.get('/wexplorer/contracts/1/subscribe')
+        self.client.get('/scout/contracts/1/subscribe')
 
         edit_contract_url = '/conductor/contract/{}/edit'.format(self.contract1.id)
         self.assert200(self.client.get(edit_contract_url))
@@ -411,8 +411,8 @@ class TestConductor(BaseTestCase):
             self.assertTrue('test' in outbox[0].subject)
             self.assertTrue('with the subject' in good_post.data)
 
-    @unittest.skip('Beacon posting not supported yet')
-    def test_conductor_post_to_beacon(self):
-        '''Test posting to Beacon from Conductor
+    @unittest.skip('scout posting not supported yet')
+    def test_conductor_post_to_scout(self):
+        '''Test posting to scout from Conductor
         '''
         pass

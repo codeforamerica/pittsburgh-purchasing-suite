@@ -44,7 +44,7 @@ class TestWexplorer(BaseTestCase):
         '''
         Ensure explore endpoint works as expected
         '''
-        request = self.client.get('/wexplorer/')
+        request = self.client.get('/scout/')
         # test the request processes correctly
         self.assert200(request)
         # test that we have the wrapped form
@@ -54,166 +54,166 @@ class TestWexplorer(BaseTestCase):
         '''
         Check all possible searches return properly: descriptions, names, properties, line items, financial ids
         '''
-        self.assert200(self.client.get('/wexplorer/search?q=ship'))
+        self.assert200(self.client.get('/scout/search?q=ship'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.assert200(self.client.get('/wexplorer/search?q=boat'))
+        self.assert200(self.client.get('/scout/search?q=boat'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.assert200(self.client.get('/wexplorer/search?q=vessel'))
+        self.assert200(self.client.get('/scout/search?q=vessel'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.assert200(self.client.get('/wexplorer/search?q=FAKEFAKEFAKE'))
+        self.assert200(self.client.get('/scout/search?q=FAKEFAKEFAKE'))
         self.assertEquals(len(self.get_context_variable('results')), 0)
 
-        self.assert200(self.client.get('/wexplorer/search?q=sunfish'))
+        self.assert200(self.client.get('/scout/search?q=sunfish'))
         self.assertEquals(len(self.get_context_variable('results')), 2)
 
         # make sure you can filter with the check boxes
-        self.assert200(self.client.get('/wexplorer/search?q=sunfish&line_item=y'))
+        self.assert200(self.client.get('/scout/search?q=sunfish&line_item=y'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.assert200(self.client.get('/wexplorer/search?q=engine'))
+        self.assert200(self.client.get('/scout/search?q=engine'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
-        self.assert200(self.client.get('/wexplorer/search?q=123'))
+        self.assert200(self.client.get('/scout/search?q=123'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
         # check searching for everything gives you everything
-        self.assert200(self.client.get('/wexplorer/search?q='))
+        self.assert200(self.client.get('/scout/search?q='))
         self.assertEquals(len(self.get_context_variable('results')), 3)
 
     def test_companies(self):
         '''
         Test that the companies page works as expected, including throwing 404s where appropriate
         '''
-        request = self.client.get('/wexplorer/companies/1')
+        request = self.client.get('/scout/companies/1')
         # test that this works
         self.assert200(request)
         # test that we have the wrapped form and the company object
         self.assertTrue(self.get_context_variable('search_form') is not None)
         self.assertTrue(self.get_context_variable('company') is not None)
         # test that invalid company ids 404
-        self.assert404(self.client.get('/wexplorer/companies/abcd'))
-        self.assert404(self.client.get('/wexplorer/companies/999'))
+        self.assert404(self.client.get('/scout/companies/abcd'))
+        self.assert404(self.client.get('/scout/companies/999'))
 
     def test_contracts(self):
         '''
         Test that the contracts page works as expected, including throwing 404s where appropriate
         '''
-        request = self.client.get('/wexplorer/contracts/1')
+        request = self.client.get('/scout/contracts/1')
         self.assert200(request)
         # test that we have the wrapped form and the company object
         self.assertTrue(self.get_context_variable('search_form') is not None)
         self.assertTrue(self.get_context_variable('contract') is not None)
         # test that invalid company ids 404
-        self.assert404(self.client.get('/wexplorer/contracts/abcd'))
-        self.assert404(self.client.get('/wexplorer/contracts/999'))
+        self.assert404(self.client.get('/scout/contracts/abcd'))
+        self.assert404(self.client.get('/scout/contracts/999'))
 
     def test_subscribe(self):
         '''
         Tests all possible combinations of subscribing to a contract
         '''
         # test that you can't subscribe to a contract unless you are signed in
-        request = self.client.get('/wexplorer/contracts/1/subscribe')
+        request = self.client.get('/scout/contracts/1/subscribe')
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
         self.login_user(self.admin_user)
-        request = self.client.get('/wexplorer/contracts/1/subscribe')
+        request = self.client.get('/scout/contracts/1/subscribe')
         self.assertEquals(len(ContractBase.query.get(1).followers), 1)
 
         self.login_user(self.superadmin_user)
-        self.client.get('/wexplorer/contracts/1/subscribe')
+        self.client.get('/scout/contracts/1/subscribe')
         self.assertEquals(len(ContractBase.query.get(1).followers), 2)
 
         # test you can't subscribe more than once
-        self.client.get('/wexplorer/contracts/1/subscribe')
+        self.client.get('/scout/contracts/1/subscribe')
         self.assertEquals(len(ContractBase.query.get(1).followers), 2)
 
         # test you can't subscribe to a nonexistant contract
-        self.assert404(self.client.get('/wexplorer/contracts/999/subscribe'))
+        self.assert404(self.client.get('/scout/contracts/999/subscribe'))
 
     def test_unsubscribe(self):
         '''
         Tests ability to unsubscribe from a contract
         '''
         # test that you can't subscribe to a contract unless you are signed in
-        request = self.client.get('/wexplorer/contracts/1/unsubscribe')
+        request = self.client.get('/scout/contracts/1/unsubscribe')
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
         # two followers
         self.login_user(self.admin_user)
-        self.client.get('/wexplorer/contracts/1/subscribe')
+        self.client.get('/scout/contracts/1/subscribe')
         self.login_user(self.superadmin_user)
-        self.client.get('/wexplorer/contracts/1/subscribe')
+        self.client.get('/scout/contracts/1/subscribe')
 
         self.assertEquals(len(ContractBase.query.get(1).followers), 2)
-        self.client.get('/wexplorer/contracts/1/unsubscribe')
+        self.client.get('/scout/contracts/1/unsubscribe')
         self.assertEquals(len(ContractBase.query.get(1).followers), 1)
         # test you can't unsubscribe more than once
-        self.client.get('/wexplorer/contracts/1/unsubscribe')
+        self.client.get('/scout/contracts/1/unsubscribe')
         self.assertEquals(len(ContractBase.query.get(1).followers), 1)
 
         self.login_user(self.admin_user)
-        self.client.get('/wexplorer/contracts/1/unsubscribe')
+        self.client.get('/scout/contracts/1/unsubscribe')
         self.assertEquals(len(ContractBase.query.get(1).followers), 0)
 
         # test you can't unsubscribe from a nonexistant contract
-        self.assert404(self.client.get('/wexplorer/contracts/999/unsubscribe'))
+        self.assert404(self.client.get('/scout/contracts/999/unsubscribe'))
 
     def test_star(self):
         '''
         Test starring contracts works as expected
         '''
-        request = self.client.get('/wexplorer/contracts/1/star')
+        request = self.client.get('/scout/contracts/1/star')
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
         self.login_user(self.admin_user)
-        request = self.client.get('/wexplorer/contracts/1/star')
+        request = self.client.get('/scout/contracts/1/star')
         self.assertEquals(len(ContractBase.query.get(1).starred), 1)
 
         self.login_user(self.superadmin_user)
-        self.client.get('/wexplorer/contracts/1/star')
+        self.client.get('/scout/contracts/1/star')
         self.assertEquals(len(ContractBase.query.get(1).starred), 2)
 
         # test you can't star more than once
-        self.client.get('/wexplorer/contracts/1/star')
+        self.client.get('/scout/contracts/1/star')
         self.assertEquals(len(ContractBase.query.get(1).starred), 2)
 
         # test you can't star to a nonexistant contract
-        self.assert404(self.client.get('/wexplorer/contracts/999/star'))
+        self.assert404(self.client.get('/scout/contracts/999/star'))
 
     def test_unstar(self):
         '''
         Test unstarring contracts works as expected
         '''
         # test that you can't unstar to a contract unless you are signed in
-        request = self.client.get('/wexplorer/contracts/1/unstar')
+        request = self.client.get('/scout/contracts/1/unstar')
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
         # two followers
         self.login_user(self.admin_user)
-        self.client.get('/wexplorer/contracts/1/star')
+        self.client.get('/scout/contracts/1/star')
         self.login_user(self.superadmin_user)
-        self.client.get('/wexplorer/contracts/1/star')
+        self.client.get('/scout/contracts/1/star')
 
         self.assertEquals(len(ContractBase.query.get(1).starred), 2)
-        self.client.get('/wexplorer/contracts/1/unstar')
+        self.client.get('/scout/contracts/1/unstar')
         self.assertEquals(len(ContractBase.query.get(1).starred), 1)
         # test you can't unstar more than once
-        self.client.get('/wexplorer/contracts/1/unstar')
+        self.client.get('/scout/contracts/1/unstar')
         self.assertEquals(len(ContractBase.query.get(1).starred), 1)
 
         self.login_user(self.admin_user)
-        self.client.get('/wexplorer/contracts/1/unstar')
+        self.client.get('/scout/contracts/1/unstar')
         self.assertEquals(len(ContractBase.query.get(1).starred), 0)
 
         # test you can't unstar from a nonexistant contract
-        self.assert404(self.client.get('/wexplorer/contracts/999/unstar'))
+        self.assert404(self.client.get('/scout/contracts/999/unstar'))
 
     def test_department_filter(self):
         '''
@@ -221,29 +221,29 @@ class TestWexplorer(BaseTestCase):
         '''
         # login as admin user and subscribe to two contracts
         self.login_user(self.admin_user)
-        self.client.get('/wexplorer/contracts/1/subscribe')
-        self.client.get('/wexplorer/contracts/2/subscribe')
+        self.client.get('/scout/contracts/1/subscribe')
+        self.client.get('/scout/contracts/2/subscribe')
 
         # login as superadmin user and subscribe to one contract
         self.login_user(self.superadmin_user)
-        self.client.get('/wexplorer/contracts/1/subscribe')
+        self.client.get('/scout/contracts/1/subscribe')
 
         # filter base page successfully returns
-        self.assert200(self.client.get('/wexplorer/filter'))
+        self.assert200(self.client.get('/scout/filter'))
 
         # filter by contracts associated with Other department
-        self.client.get('/wexplorer/filter/Other')
+        self.client.get('/scout/filter/Other')
         self.assertEquals(len(self.get_context_variable('results')), 2)
         # assert that contract 1 is first
         self.assertEquals(self.get_context_variable('results')[0].id, 1)
         self.assertEquals(self.get_context_variable('results')[0].cnt, 2)
 
         # assert innovation and performance has no results
-        self.client.get('/wexplorer/filter/Innovation and Performance')
+        self.client.get('/scout/filter/Innovation and Performance')
         self.assertEquals(len(self.get_context_variable('results')), 0)
 
         # assert that the department must be a real department
-        request = self.client.get('/wexplorer/filter/FAKEFAKEFAKE')
+        request = self.client.get('/scout/filter/FAKEFAKEFAKE')
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('You must choose a valid department!', 'alert-danger')
 
@@ -251,15 +251,15 @@ class TestWexplorer(BaseTestCase):
         '''
         Test wexplorer contract feedback mechanism
         '''
-        self.assert200(self.client.get('/wexplorer/contracts/1/feedback'))
+        self.assert200(self.client.get('/scout/contracts/1/feedback'))
         self.assert_template_used('wexplorer/feedback.html')
 
-        self.assert404(self.client.get('/wexplorer/contracts/1000/feedback'))
+        self.assert404(self.client.get('/scout/contracts/1000/feedback'))
 
         contract = get_one_contract(1)
 
         # assert data validation
-        bad_post = self.client.post('/wexplorer/contracts/1/feedback', data=dict(
+        bad_post = self.client.post('/scout/contracts/1/feedback', data=dict(
             sender='JUNK'
         ))
 
@@ -277,7 +277,7 @@ class TestWexplorer(BaseTestCase):
         self.login_user(self.admin_user)
 
         with mail.record_messages() as outbox:
-            success_post = self.client.post('/wexplorer/contracts/1/feedback', data=dict(
+            success_post = self.client.post('/scout/contracts/1/feedback', data=dict(
                 body='test'
             ))
 
@@ -292,5 +292,5 @@ class TestWexplorer(BaseTestCase):
             self.assertTrue(self.admin_user.email in outbox[0].html)
             # it redirects and flashes correctly
             self.assertEquals(success_post.status_code, 302)
-            self.assertEquals(success_post.location, 'http://localhost/wexplorer/contracts/1')
+            self.assertEquals(success_post.location, 'http://localhost/scout/contracts/1')
             self.assert_flashes('Thank you for your feedback!', 'alert-success')
