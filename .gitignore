@@ -53,6 +53,8 @@ libs/
 css
 common.js
 opportunities.js
+wexplorer.js
+conductor.js
 
 # App logs (from foreman)
 log

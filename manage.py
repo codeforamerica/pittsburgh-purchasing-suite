@@ -78,7 +78,7 @@ def import_old_contracts(filepath):
     '-d', '--directory', dest='directory',
     default='./purchasing/data/importer/files/costars/'
 )
-def import_costars(user, secret, bucket, directory):
+def import_costars(user=None, secret=None, bucket=None, directory=None):
     '''
     Takes a directory which contains a number of csv files with the
     costars data, and then important them into the DB
@@ -120,13 +120,26 @@ def delete_contracts():
         db.session.commit()
     return
 
+def upload_file(filename, bucket, root=None, prefix='/static'):
+    filepath = os.path.join(root, filename.lstrip('/')) if root else filename
+    _file = bucket.new_key(
+        '{}/{}'.format(prefix, filename)
+    )
+    aggressive_headers = _get_aggressive_cache_headers(_file)
+    _file.set_contents_from_filename(filepath, headers=aggressive_headers)
+    _file.set_acl('public-read')
+    return True
+
 @manager.option('-u', '--user_id', dest='user')
 @manager.option('-p', '--secret', dest='secret')
 @manager.option('-b', '--bucket', dest='bucket')
-def upload_assets(user, secret, bucket):
-    access_key = user if user else app.config['AWS_ACCESS_KEY_ID']
-    access_secret = secret if secret else app.config['AWS_SECRET_ACCESS_KEY']
-    bucket = bucket if bucket else app.config['S3_BUCKET_NAME']
+@manager.option('-r', '--retries', dest='_retries', default=5)
+def upload_assets(user, secret, bucket, _retries=5):
+    access_key = user if user else os.environ['AWS_ACCESS_KEY_ID']
+    access_secret = secret if secret else os.environ['AWS_SECRET_ACCESS_KEY']
+    bucket = bucket if bucket else os.environ['S3_BUCKET_NAME']
+
+    retries = 0
 
     import subprocess
     # build assets and capture the output
@@ -149,25 +162,30 @@ def upload_assets(user, secret, bucket):
     print 'Uploading files...'
     for path in proc.communicate()[0].split('\n')[:-1]:
         key = path.split('public')[1]
-        file = current_app.config['APP_DIR'] + '/static' + key
         print 'Uploading {}'.format(key)
-        _file = bucket.new_key(
-            '/static' + key
-        )
-        aggressive_headers = _get_aggressive_cache_headers(_file)
-        _file.set_contents_from_filename(file, headers=aggressive_headers)
-        _file.set_acl('public-read')
+        while retries <= _retries:
+            try:
+                upload_file(key, bucket, root=current_app.config['APP_DIR'] + '/static')
+                break
+            except Exception, e:
+                print 'Error: {}'.format(e), 'Retrying...'
+                retries += 1
+        if retries > _retries:
+            print 'File {} did not upload'.format(key)
+        retries = 0
 
     print 'Uploading images...'
     for root, _, files in os.walk(current_app.config['APP_DIR'] + '/static/img'):
-        for file in files:
-            print 'Uploading {}'.format(file)
-            _file = bucket.new_key(
-                '/static/img/' + file
-            )
-            aggressive_headers = _get_aggressive_cache_headers(_file)
-            _file.set_contents_from_filename(os.path.join(root, file), headers=aggressive_headers)
-            _file.set_acl('public-read')
+        for filepath in files:
+            print 'Uploading {}'.format(filepath)
+            while retries <= _retries:
+                try:
+                    upload_file(filepath, bucket, root=root, prefix='/static/img/')
+                    break
+                except Exception, e:
+                    print 'Error: {}'.format(e), 'Retrying...'
+                    retries += 1
+            retries = 0
 
     return
 
@@ -180,6 +198,25 @@ def all_clear():
     db.session.commit()
     print 'All clear!'
     return
+
+@manager.option('-r', '--s3user', dest='user')
+@manager.option('-p', '--s3secret', dest='secret')
+@manager.option('-t', '--s3bucket', dest='bucket')
+@manager.command
+def seed(user=None, secret=None, bucket=None):
+    '''Seeds a test/dev instance with new data
+    '''
+    user = user if user else os.environ.get('AWS_ACCESS_KEY_ID')
+    secret = secret if secret else os.environ.get('AWS_SECRET_ACCESS_KEY')
+    bucket = bucket if bucket else os.environ.get('S3_BUCKET_NAME')
+    # import seed contracts
+    import_old_contracts('./purchasing/data/importer/seed/2015-07-01-seed-contracts.csv')
+    # scrape line items
+    scrape(True)
+    # import seed costars
+    import_costars(user, secret, 'costars', './purchasing/data/importer/seed/costars')
+    # import seed nigp
+    import_nigp('./purchasing/data/importer/seed/2015-07-01-seed-nigp-cleaned.csv')
 
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))
 manager.add_command('shell', Shell(make_context=_make_context))
