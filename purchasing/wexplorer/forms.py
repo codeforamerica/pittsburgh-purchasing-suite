@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask_wtf import Form
-from wtforms.fields import TextField, TextAreaField, BooleanField
-from wtforms.validators import DataRequired, Email
+from wtforms.fields import TextField, TextAreaField, BooleanField, IntegerField
+from wtforms.validators import DataRequired, Email, NumberRange
 
 class SearchForm(Form):
     q = TextField('Search', validators=[DataRequired()])
@@ -23,3 +23,4 @@ class FeedbackForm(Form):
 
 class NoteForm(Form):
     note = TextAreaField(validators=[DataRequired()])
+    user = IntegerField(validators=[DataRequired(), NumberRange(min=0)])

@@ -16,7 +16,7 @@ from purchasing.wexplorer.forms import (
 from purchasing.data.searches import find_contract_metadata, return_all_contracts
 from purchasing.data.models import (
     ContractBase, contract_user_association_table,
-    contract_starred_association_table, SearchView
+    contract_starred_association_table, SearchView, ContractNote
 )
 from purchasing.users.models import DEPARTMENT_CHOICES
 from purchasing.data.companies import get_one_company
@@ -25,7 +25,7 @@ from purchasing.data.contracts import (
 )
 
 blueprint = Blueprint(
-    'wexplorer', __name__, url_prefix='/wexplorer',
+    'wexplorer', __name__, url_prefix='/scout',
     template_folder='../templates'
 )
 
@@ -203,24 +203,41 @@ def company(company_id):
         )
     abort(404)
 
-@blueprint.route('/contracts/<int:contract_id>')
+@blueprint.route('/contracts/<int:contract_id>', methods=['GET', 'POST'])
 @wrap_form(SearchForm, 'search_form', 'wexplorer/contract.html')
 def contract(contract_id):
+    '''Contract profile page
+    '''
+
     contract = get_one_contract(contract_id)
 
     if contract:
+        note_form = NoteForm()
 
-        current_app.logger.info('WEXCONTRACT - Viewed contract page {}'.format(contract.description))
+        if note_form.validate_on_submit():
+            new_note = ContractNote(
+                note=note_form.data['note'],
+                contract_id=contract_id, taken_by_id=current_user.id
+            )
+            db.session.add(new_note)
+            db.session.commit()
+            return redirect(url_for('wexplorer.contract', contract_id=contract_id))
+
+        notes = ContractNote.query.filter(
+            ContractNote.contract_id == contract_id,
+            ContractNote.taken_by_id == current_user.id
+        ).all()
 
         departments = set([i.department for i in contract.followers])
 
+        current_app.logger.info('WEXCONTRACT - Viewed contract page {}'.format(contract.description))
+
         return dict(
-            contract=contract,
-            departments=departments,
+            contract=contract, departments=departments,
             choices=DEPARTMENT_CHOICES[1:],
             path='{path}?{query}'.format(
                 path=request.path, query=request.query_string
-            )
+            ), notes=notes, note_form=note_form
         )
     abort(404)
 
@@ -345,8 +362,3 @@ def unsubscribe(contract_id):
         abort(404)
 
     abort(403)
-
-@blueprint.route('/contracts/<int:contract_id>/add-note')
-@requires_roles('staff', 'admin', 'superadmin', 'conductor')
-def add_note(contract_id):
-    pass

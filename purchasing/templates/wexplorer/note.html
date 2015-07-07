@@ -1,0 +1,41 @@
+{% import 'macros/with_errors.html' as macros %}
+
+{% if notes|length > 0 %}
+<p class="wexplorer-column-header">Notes about this Contract</p>
+
+<div>
+  <ul>
+    {% for note in notes %}
+    <li>
+      {{ note.note }}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if not current_user.is_anonymous() %}
+<form method="POST" action="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
+  {{ note_form.csrf_token() }}
+
+  {% if 'user' in note_form.errors %}
+  <div class="alert alert-danger alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    You don't have permission to add a note!
+  </div>
+  {% endif %}
+
+  <p class="wexplorer-column-header">Add a Note</p>
+
+  <div class="form-group">
+    {{ macros.with_errors(note_form.note, class_="form-control") }}
+  </div>
+
+  <div class="form-group hidden">
+    {{ note_form.user(value=current_user.id) }}
+  </div>
+
+  <input type="submit" class="btn btn-success"/>
+
+</form>
+{% endif %}

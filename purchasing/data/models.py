@@ -161,6 +161,10 @@ class ContractNote(Model):
     note = Column(db.Text)
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
+    taken_by_id = ReferenceCol('users', ondelete='SET NULL', nullable=True)
+    taken_by = db.relationship('User', backref=backref(
+        'contract_note', lazy='dynamic', cascade=None
+    ))
 
     def __unicode__(self):
         return self.note
