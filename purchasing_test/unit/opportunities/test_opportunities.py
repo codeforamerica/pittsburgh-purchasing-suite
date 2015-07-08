@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import unittest
 import json
 from flask import current_app
 
@@ -17,8 +18,7 @@ class TestOpportunities(BaseTestCase):
         main(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
 
     def test_index(self):
-        '''
-        Index page works as expected
+        '''Test index page works as expected
         '''
         response = self.client.get('/beacon/')
         self.assert200(response)
@@ -29,8 +29,7 @@ class TestOpportunities(BaseTestCase):
         self.assertTrue('foo@foo.com' in signup.data)
 
     def test_signup(self):
-        '''
-        Signups work as expected including validation errors, signups, etc.
+        '''Test signups work as expected including validation errors, signups, etc.
         '''
         response = self.client.get('/beacon/signup')
         self.assert200(response)
@@ -127,8 +126,7 @@ class TestOpportunities(BaseTestCase):
             self.assert_flashes("You are already signed up! Your profile was updated with this new information", 'alert-info')
 
     def test_manage_subscriptions(self):
-        '''
-        Test subscription and unsubscription management
+        '''Test subscription and unsubscription management
         '''
 
         subscribe = self.client.post('/beacon/signup', data={
@@ -178,3 +176,15 @@ class TestOpportunities(BaseTestCase):
 
         self.assert200(unsubscribe_all)
         self.assertTrue('You are not subscribed to anything!' in unsubscribe_all.data)
+
+    @unittest.skip('')
+    def test_signup_for_opportunity(self):
+        '''Test signup for individual opportunities
+        '''
+        pass
+
+    @unittest.skip('')
+    def test_signup_for_multiple_opportunities(self):
+        '''Test signup for multiple opportunities
+        '''
+        pass

@@ -24,6 +24,12 @@ category_opportunity_association_table = Table(
     Column('opportunity_id', db.Integer, db.ForeignKey('opportunity.id', ondelete='SET NULL'), index=True)
 )
 
+opportunity_vendor_association_table = Table(
+    'opportunity_vendor_association_table', Model.metadata,
+    Column('opportunity_id', db.Integer, db.ForeignKey('opportunity.id', ondelete='SET NULL'), index=True),
+    Column('vendor_id', db.Integer, db.ForeignKey('vendor.id', ondelete='SET NULL'), index=True)
+)
+
 class Category(Model):
     __tablename__ = 'category'
 
@@ -51,6 +57,11 @@ class Opportunity(Model):
     categories = db.relationship(
         'Category',
         secondary=category_opportunity_association_table,
+        backref='opportunities'
+    )
+    vendors = db.relationship(
+        'Vendor',
+        secondary=opportunity_vendor_association_table,
         backref='opportunities'
     )
     # Date department advertised bid

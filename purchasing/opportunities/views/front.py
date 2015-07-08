@@ -36,7 +36,7 @@ def signup():
         subcategories['Select All'].append((category.id, category.subcategory))
         subcategories[category.category].append((category.id, category.subcategory))
 
-    form = SignupForm()
+    form = init_signup_form()
 
     form.categories.choices = [(None, '---')] + list(sorted(zip(categories, categories))) + [('Select All', 'Select All')]
     form.subcategories.choices = []
@@ -114,9 +114,7 @@ def signup():
         return redirect(url_for('opportunities.signup'))
 
     if 'email' in session:
-        form.email.data = session['email']
         form.email.validate(form)
-        session.pop('email')
 
     display_categories = subcategories.keys()
     display_categories.remove('Select All')
@@ -156,11 +154,32 @@ def manage():
     form.subscriptions.choices = form_subscriptions
     return render_template('opportunities/manage.html', form=form)
 
-@blueprint.route('/opportunities', methods=['GET'])
+class SignupData(object):
+    def __init__(self, email, business_name):
+        self.email = email
+        self.business_name = business_name
+
+def init_signup_form():
+    data = SignupData(session.get('email'), session.get('business_name'))
+    form = SignupForm(obj=data)
+
+    return form
+
+def signup_for_opp(form, multi=False):
+    # add the email/business name to the session
+    session['email'] = form.data.get('email')
+    session['business_name'] = form.data.get('business_name')
+
+@blueprint.route('/opportunities', methods=['GET', 'POST'])
 def browse():
     '''Browse available opportunities
     '''
     active, upcoming = [], []
+
+    signup_form = init_signup_form()
+    if signup_form.validate_on_submit():
+        signup_for_opp(signup_form, multi=True)
+
     opportunities = Opportunity.query.filter(
         Opportunity.planned_deadline >= datetime.date.today()
     ).all()
@@ -176,17 +195,21 @@ def browse():
         opportunities=opportunities,
         active=active,
         upcoming=upcoming,
-        current_user=current_user
+        current_user=current_user,
+        signup_form=signup_form
     )
 
-@blueprint.route('/opportunities/<int:opportunity_id>')
+@blueprint.route('/opportunities/<int:opportunity_id>', methods=['GET', 'POST'])
 def detail(opportunity_id):
     '''View one opportunity in detail
     '''
     opportunity = Opportunity.query.get(opportunity_id)
     if opportunity and opportunity.is_public:
+        signup_form = init_signup_form()
+        if signup_form.validate_on_submit():
+            signup_for_opp(signup_form)
         return render_template(
             'opportunities/detail.html', opportunity=opportunity,
-            current_user=current_user
+            current_user=current_user, signup_form=signup_form
         )
     abort(404)

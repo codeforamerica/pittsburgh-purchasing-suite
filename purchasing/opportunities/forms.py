@@ -7,7 +7,7 @@ from flask import current_app
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import widgets, fields
-from wtforms.validators import DataRequired, Email, ValidationError
+from wtforms.validators import DataRequired, Email, ValidationError, Optional
 
 from purchasing.opportunities.models import Category, Vendor
 
@@ -49,8 +49,9 @@ class SignupForm(Form):
     minority_owned = fields.BooleanField('Minority-owned business')
     veteran_owned = fields.BooleanField('Veteran-owned business')
     disadvantaged_owned = fields.BooleanField('Disadvantaged business enterprise')
-    categories = fields.SelectField()
-    subcategories = MultiCheckboxField(coerce=int)
+    categories = fields.SelectField(choices=[], validators=[Optional()])
+    subcategories = MultiCheckboxField(coerce=int, validators=[Optional()], choices=[])
+    also_categories = fields.BooleanField()
 
     def validate_subcategories(form, field):
         if field.data:

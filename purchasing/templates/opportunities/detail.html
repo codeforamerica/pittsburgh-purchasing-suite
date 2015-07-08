@@ -20,7 +20,9 @@
             <h4>What is it?</h4>
             <p>{{ opportunity.description }}</p>
             <p><strong>We estimate that this opportunity will be open for bid around {{ opportunity.estimate_open() }}.</strong></p>
-            <button class="btn btn-primary col-md-8">Send me reminders about this opportunity</button>
+
+            {% include "opportunities/browse_signup.html" %}
+
           </div>
         </div>
 
