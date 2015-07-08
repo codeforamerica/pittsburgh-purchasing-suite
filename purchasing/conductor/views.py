@@ -22,7 +22,7 @@ from purchasing.data.models import (
     ContractBase, ContractProperty, ContractStage, Stage,
     ContractStageActionItem
 )
-from purchasing.data.importer.costars import main
+from purchasing.data.importer.costars import main as import_costars
 from purchasing.users.models import User, Role
 from purchasing.conductor.forms import (
     EditContractForm, PostOpportunityForm,
@@ -282,6 +282,7 @@ def assign(contract_id, flow_id, user_id):
     return redirect(url_for('conductor.index'))
 
 @blueprint.route('/upload_new', methods=['GET', 'POST'])
+@requires_roles('conductor', 'admin', 'superadmin')
 def upload():
     form = FileUpload()
     if form.validate_on_submit():
@@ -289,23 +290,17 @@ def upload():
         filename = secure_filename(_file.filename)
         filepath = os.path.join(current_app.config.get('UPLOAD_FOLDER'), filename)
         _file.save(filepath)
-        main(filepath, filename, None, None, None)
-        return render_template('conductor/upload_success.html', filepath=filepath)
+        return render_template('conductor/upload_success.html', filepath=filepath, filename=filename)
     else:
         return render_template('conductor/upload_new.html', form=form)
 
 @blueprint.route('/_process_file', methods=['POST'])
+@requires_roles('conductor', 'admin', 'superadmin')
 def process_upload():
     filepath = request.form.get('filepath')
-    result = update(filepath)
-    if result.get('status') == 'success':
-        last_updated = LastUpdated.query.first()
-        if not last_updated:
-            last_updated = LastUpdated(datetime.datetime.utcnow())
-            db.session.add(last_updated)
-        else:
-            last_updated.last_updated = datetime.datetime.utcnow()
-        db.session.commit()
-        return jsonify(result), 200
-    else:
-        return jsonify(result), 403
+    filename = request.form.get('filename')
+    try:
+        import_costars(filepath, filename, None, None, None)
+        return jsonify({'status': 'success'}), 200
+    except Exception, e:
+        return jsonify({'status': 'error: {}'.format(e)}), 500
