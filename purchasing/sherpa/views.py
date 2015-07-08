@@ -81,7 +81,8 @@ class BuySomething(QuestionNode):
     }, {
         'url': '../wexplorer',
         'external': True,
-        'text': "I don't know"
+        'text': "I don't know",
+        'new_tab': True
     }]
     prev = {
         'url': 'Index',
