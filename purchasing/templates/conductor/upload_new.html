@@ -3,17 +3,18 @@
 
 {% block content %}
 {{ super() }}
+<div class="container">
+  <h2>Upload new data</h2>
+  <form method="POST" action="{{ url_for('conductor.upload') }}" enctype="multipart/form-data">
 
-<h2>Upload new data</h2>
-<form method="POST" action="{{ url_for('conductor.upload') }}" enctype="multipart/form-data">
+  {{ form.csrf_token }}
+  <div class="form-group">
+  <label for="upload">Upload a file (must be .csv format)</label>
+  {{ macros.with_errors(form.upload) }}
+  </div>
 
-{{ form.csrf_token }}
-<div class="form-group">
-<label for="upload">Upload a file (must be .xls or .xlsx format)</label>
-{{ macros.with_errors(form.upload) }}
+  <input type="submit" class="btn btn-success" value="Upload">
+  </form>
 </div>
-
-<input type="submit" class="btn btn-success" value="Upload">
-</form>
 
 {% endblock %}
