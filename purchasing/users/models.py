@@ -75,3 +75,4 @@ class User(UserMixin, SurrogatePK, Model):
 
 class AnonymousUser(AnonymousUserMixin):
     role = {'name': 'anonymous'}
+    id = -1
