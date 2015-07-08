@@ -141,4 +141,4 @@ PYTHONPATH=. nosetests purchasing_test/ -v --with-coverage --cover-package=purch
 ```
 
 ## License
-See [LICENCE.md](https://github.com/codeforamerica/pittsburgh-purchasing-suite/blob/master/LICENCE.md).
+See [LICENSE.md](https://github.com/codeforamerica/pittsburgh-purchasing-suite/blob/master/LICENSE.md).
