@@ -3,7 +3,6 @@
 
 {% block content %}
 {{ super() }}
-
 <div class="container">
   <h2>Upload new data</h2>
   <form method="POST" action="{{ url_for('conductor.upload') }}" enctype="multipart/form-data">

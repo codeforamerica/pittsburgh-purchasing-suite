@@ -2,8 +2,8 @@
 {% import "macros/with_errors.html" as macros %}
 
 {% block content %}
-<<<<<<< HEAD
 {{ super() }}
+
 <div class="container">
 
   <div class="upload-error" hidden>
@@ -21,12 +21,12 @@
     <h2>Upload successful</h2>
     <p><a href="{{ url_for('conductor.index') }}">Go Home</a></p>
   </div>
-
 </div>
 
 {% endblock %}
 
 {% block js %}
+{{ super() }}
 
 {{ super() }}
 
