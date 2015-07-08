@@ -49,7 +49,7 @@ class StartPSA(TerminationNode):
             'external': True,
             'extlink_description': "Once you're ready, fill in the form and upload required documents at the link below",
             'url': 'https://cfa.typeform.com/to/gLWMLC',
-            'button_text': 'Start Professional Service Request Form'
+            'button_text': 'Start PSA Request Form'
         }
     ]
     timeline = [
