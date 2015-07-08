@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container">
   <div class="row">
-    <div class="col-md-10 col-md-offset-1">
+    <div class="col-md-8 col-md-offset-2">
 
       <h2>All Opportunities</h2>
 
@@ -18,11 +18,13 @@
             <th>Deadline</th>
             {% if not current_user.is_anonymous() %}
             <th>Edit this contract</th>
+            <th>Public</th>
             {% endif %}
           </tr>
         </thead>
         <tbody>
           {% for opportunity in active %}
+          {% if not current_user.is_anonymous() or opportunity.is_public %}
           <tr>
             <td><input type="checkbox"></td>
             <td><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
@@ -31,9 +33,17 @@
             {% if opportunity.can_edit(current_user) %}
             <td><a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
             {% elif not current_user.is_anonymous() %}
-            <i class="fa fa-minus"></i>
+            <td><i class="fa fa-minus"></i></td>
+            {% endif %}
+            {% if not current_user.is_anonymous() %}
+              {% if opportunity.is_public %}
+              <td><i class="fa fa-eye"></i></td>
+              {% else %}
+              <td><i class="fa fa-eye-slash"></i></td>
+              {% endif %}
             {% endif %}
           </tr>
+          {% endif %}
           {% endfor %}
         </tbody>
       </table>
@@ -57,6 +67,7 @@
         </thead>
         <tbody>
           {% for opportunity in upcoming %}
+          {% if not current_user.is_anonymous() or opportunity.is_public %}
           <tr>
             <td><input type="checkbox"></td>
             <td><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
@@ -68,6 +79,7 @@
             <i class="fa fa-minus"></i>
             {% endif %}
           </tr>
+          {% endif %}
           {% endfor %}
         </tbody>
       </table>

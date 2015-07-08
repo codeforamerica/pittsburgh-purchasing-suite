@@ -46,6 +46,11 @@ class TestOpportunities(BaseTestCase):
             is_public=False, planned_open=datetime.date.today() - datetime.timedelta(2),
             planned_deadline=datetime.date.today() - datetime.timedelta(1)
         )
+        self.opportunity4 = insert_an_opportunity(
+            contact_id=self.admin.id, created_by=self.staff.id, required_documents=[self.document],
+            is_public=False, planned_open=datetime.date.today() + datetime.timedelta(1),
+            planned_deadline=datetime.date.today() + datetime.timedelta(2), title='TEST TITLE!'
+        )
 
     def tearDown(self):
         super(TestOpportunities, self).tearDown()
@@ -86,7 +91,7 @@ class TestOpportunities(BaseTestCase):
     def test_create_a_contract(self):
         '''Tests create contract page
         '''
-        self.assertEquals(Opportunity.query.count(), 3)
+        self.assertEquals(Opportunity.query.count(), 4)
         self.assertEquals(self.client.get('/beacon/opportunities/admin/new').status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
@@ -103,7 +108,7 @@ class TestOpportunities(BaseTestCase):
 
         # assert that you need a title & description
         new_contract = self.client.post('/beacon/opportunities/admin/new', data=bad_data)
-        self.assertEquals(Opportunity.query.count(), 3)
+        self.assertEquals(Opportunity.query.count(), 4)
         self.assert200(new_contract)
         self.assertTrue('This field is required.' in new_contract.data)
 
@@ -113,13 +118,13 @@ class TestOpportunities(BaseTestCase):
 
         # assert you can't create a contract with an expired deadline
         new_contract = self.client.post('/beacon/opportunities/admin/new', data=bad_data)
-        self.assertEquals(Opportunity.query.count(), 3)
+        self.assertEquals(Opportunity.query.count(), 4)
         self.assert200(new_contract)
         self.assertTrue('The deadline has to be after today!' in new_contract.data)
 
         bad_data['description'] = 'TOO LONG! ' * 500
         new_contract = self.client.post('/beacon/opportunities/admin/new', data=bad_data)
-        self.assertEquals(Opportunity.query.count(), 3)
+        self.assertEquals(Opportunity.query.count(), 4)
         self.assert200(new_contract)
         self.assertTrue('Text cannot be more than 500 words!' in new_contract.data)
 
@@ -128,7 +133,7 @@ class TestOpportunities(BaseTestCase):
         bad_data['planned_deadline'] = datetime.date.today() + datetime.timedelta(1)
 
         new_contract = self.client.post('/beacon/opportunities/admin/new', data=bad_data)
-        self.assertEquals(Opportunity.query.count(), 4)
+        self.assertEquals(Opportunity.query.count(), 5)
         self.assert_flashes('Opportunity Successfully Created!', 'alert-success')
 
     def test_edit_a_contract(self):
@@ -143,7 +148,7 @@ class TestOpportunities(BaseTestCase):
         self.assert200(self.client.get('/beacon/opportunities'))
 
         self.assertEquals(len(self.get_context_variable('active')), 1)
-        self.assertEquals(len(self.get_context_variable('upcoming')), 1)
+        self.assertEquals(len(self.get_context_variable('upcoming')), 2)
 
         self.client.post('/beacon/opportunities/2/admin/edit', data={
             'planned_open': datetime.date.today(), 'title': 'Updated',
@@ -153,21 +158,26 @@ class TestOpportunities(BaseTestCase):
 
         self.assert200(self.client.get('/beacon/opportunities'))
         self.assertEquals(len(self.get_context_variable('active')), 2)
-        self.assertEquals(len(self.get_context_variable('upcoming')), 0)
+        self.assertEquals(len(self.get_context_variable('upcoming')), 1)
 
     def test_browse_contract(self):
         '''Tests browse page loads properly
         '''
         # test admin view restrictions
-        self.assert200(self.client.get('/beacon/opportunities'))
+        self.logout_user()
+        no_user = self.client.get('/beacon/opportunities')
+        self.assert200(no_user)
         self.assertEquals(len(self.get_context_variable('active')), 1)
-        self.assertEquals(len(self.get_context_variable('upcoming')), 1)
+        self.assertEquals(len(self.get_context_variable('upcoming')), 2)
+        self.assertTrue('TEST TITLE!' not in no_user.data)
 
         self.login_user(self.admin)
-        self.assert200(self.client.get('/beacon/opportunities'))
+        good_user = self.client.get('/beacon/opportunities')
+        self.assert200(good_user)
         self.assertEquals(len(self.get_context_variable('active')), 1)
-        self.assertEquals(len(self.get_context_variable('upcoming')), 1)
-        self.assertEquals(Opportunity.query.count(), 3)
+        self.assertEquals(len(self.get_context_variable('upcoming')), 2)
+        self.assertTrue('TEST TITLE!' in good_user.data)
+        self.assertEquals(Opportunity.query.count(), 4)
 
     def test_contract_detail(self):
         '''Tests individual contract opportunity pages

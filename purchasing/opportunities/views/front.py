@@ -166,11 +166,10 @@ def browse():
     ).all()
 
     for opportunity in opportunities:
-        if opportunity.is_public:
-            if opportunity.is_published():
-                active.append(opportunity)
-            else:
-                upcoming.append(opportunity)
+        if opportunity.is_published():
+            active.append(opportunity)
+        else:
+            upcoming.append(opportunity)
 
     return render_template(
         'opportunities/browse.html',
