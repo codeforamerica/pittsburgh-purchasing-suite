@@ -25,7 +25,13 @@ class TestOpportunities(BaseTestCase):
 
     def setUp(self):
         super(TestOpportunities, self).setUp()
-        mkdir(current_app.config.get('UPLOAD_DESTINATION'))
+
+        try:
+            mkdir(current_app.config.get('UPLOAD_DESTINATION'))
+        except OSError:
+            rmtree(current_app.config.get('UPLOAD_DESTINATION'))
+            mkdir(current_app.config.get('UPLOAD_DESTINATION'))
+
         main(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
 
         self.admin_role = insert_a_role('admin')
@@ -192,17 +198,18 @@ class TestOpportunities(BaseTestCase):
         '''Test signup for multiple opportunities
         '''
         self.assertEquals(Vendor.query.count(), 0)
+        # duplicates should get filtered out
         post = self.client.post('/beacon/opportunities', data=MultiDict([
             ('email', 'foo@foo.com'), ('business_name', 'foo'),
-            ('opportunity', '1'), ('opportunity', '2')
+            ('opportunity', '1'), ('opportunity', '2'), ('opportunity', '1')
         ]))
 
         self.assertEquals(Vendor.query.count(), 1)
 
         # should subscribe that vendor to the opportunity
         self.assertEquals(len(Vendor.query.get(1).opportunities), 2)
-        self.assertEquals(Vendor.query.get(1).opportunities[0].id, 1)
-        self.assertEquals(Vendor.query.get(1).opportunities[1].id, 2)
+        for i in Vendor.query.get(1).opportunities:
+            self.assertTrue(i.id in [1, 2])
 
         # should redirect and flash properly
         self.assertEquals(post.status_code, 302)
@@ -228,7 +235,7 @@ class TestOpportunities(BaseTestCase):
 
         # should subscribe that vendor to the opportunity
         self.assertEquals(len(Vendor.query.get(1).opportunities), 1)
-        self.assertEquals(Vendor.query.get(1).opportunities[0].id, 1)
+        self.assertTrue(1 in [i.id for i in Vendor.query.get(1).opportunities])
 
         # should redirect and flash properly
         self.assertEquals(post.status_code, 302)

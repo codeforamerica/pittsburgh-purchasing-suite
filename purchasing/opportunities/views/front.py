@@ -33,8 +33,8 @@ def signup():
     categories, subcategories = set(), defaultdict(list)
     for category in all_categories:
         categories.add(category.category)
-        subcategories['Select All'].append((category.id, category.subcategory))
-        subcategories[category.category].append((category.id, category.subcategory))
+        subcategories['Select All'].append((category.id, category.category_friendly_name))
+        subcategories[category.category].append((category.id, category.category_friendly_name))
 
     form = init_form(SignupForm)
 
@@ -45,7 +45,7 @@ def signup():
 
         vendor = Vendor.query.filter(Vendor.email == form.data.get('email')).first()
         form_data = {c.name: form.data.get(c.name, None) for c in Vendor.__table__.columns if c.name not in ['id', 'created_at']}
-        form_data['categories'] = []
+        form_data['categories'] = vendor.categories if vendor else set()
         subcats = set()
 
         # manually iterate the form fields
@@ -58,10 +58,10 @@ def signup():
                 if v == 'on' and subcat_id not in subcats:
                     subcats.add(subcat_id)
                     subcat = Category.query.get(subcat_id)
-                    # make sure it's a valid subcategory
+                    # make sure it's a valid category_friendly_name
                     if subcat is None:
                         raise ValidationError('{} is not a valid choice!'.format(subcat))
-                    form_data['categories'].append(subcat)
+                    form_data['categories'].add(subcat)
 
         if vendor:
             current_app.logger.info('''
@@ -146,18 +146,18 @@ def manage():
             form.email.errors = ['We could not find the email {}'.format(email)]
 
         if request.form.get('button', '').lower() == 'unsubscribe from checked':
-            categories = list(set([i.id for i in vendor.categories]).difference(form.categories.data))
-            vendor.categories = [Category.query.get(i) for i in categories]
+            remove_categories = set([Category.query.get(i) for i in form.categories.data])
+            remove_opportunities = set([Opportunity.query.get(i) for i in form.opportunities.data])
 
-            opportunities = list(set([i.id for i in vendor.opportunities]).difference(form.opportunities.data))
-            vendor.opportunities = [opportunities.query.get(i) for i in opportunities]
+            vendor.categories = vendor.categories.difference(remove_categories)
+            vendor.opportunities = vendor.opportunities.difference(remove_opportunities)
 
             db.session.commit()
             flash('Preferences updated!', 'alert-success')
 
         if vendor:
             for subscription in vendor.categories:
-                form_categories.append((subscription.id, subscription.subcategory))
+                form_categories.append((subscription.id, subscription.category_friendly_name))
             for subscription in vendor.opportunities:
                 form_opportunities.append((subscription.id, subscription.title))
 
@@ -200,9 +200,9 @@ def signup_for_opp(form, user, opportunity, multi=False):
             if not _opp.is_public:
                 db.session.rollback()
                 return False
-            vendor.opportunities.append(_opp)
+            vendor.opportunities.add(_opp)
     else:
-        vendor.opportunities.append(opportunity)
+        vendor.opportunities.add(opportunity)
 
     if form.data.get('also_categories'):
         # TODO -- add support for categories
