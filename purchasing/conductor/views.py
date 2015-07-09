@@ -33,6 +33,8 @@ blueprint = Blueprint(
 @blueprint.route('/')
 @requires_roles('conductor', 'admin', 'superadmin')
 def index():
+    all_contracts, assigned_contracts = [], []
+
     contracts = db.session.query(
         ContractBase.id, ContractBase.description,
         ContractBase.financial_id, ContractBase.expiration_date,
@@ -52,9 +54,16 @@ def index():
 
     user_starred = [] if current_user.is_anonymous() else current_user.get_starred()
 
+    for contract in contracts:
+        if contract.assigned:
+            assigned_contracts.append(contract)
+        else:
+            all_contracts.append(contract)
+
     return render_template(
         'conductor/index.html',
-        contracts=contracts,
+        contracts=all_contracts,
+        assigned=assigned_contracts,
         user_starred=user_starred,
         current_user=current_user,
         conductors=[current_user] + conductors
