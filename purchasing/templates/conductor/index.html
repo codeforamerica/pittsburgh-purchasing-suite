@@ -9,7 +9,7 @@
 
   <div id="js-table-container" class="hidden row">
     <h3>Assigned Contracts</h3>
-    <table id="js-assigned-table">
+    <table class="display" id="js-assigned-table">
       <thead>
         <th>Star</th>
         <th>Name</th>
@@ -30,7 +30,7 @@
     <hr>
 
     <h3>Unassigned Contracts</h3>
-    <table id="js-all-table">
+    <table class="display" id="js-all-table">
       <thead>
         <th>Star</th>
         <th>Name</th>
@@ -54,8 +54,14 @@
 {{ super() }}
 <script>
 $(document).ready(function() {
-  $('#js-assigned-table').dataTable();
-  $('#js-all-table').dataTable();
+  $('#js-assigned-table').dataTable({
+    // order by expiration date -- column 4
+    order: [[4, 'asc']]
+  });
+  $('#js-all-table').dataTable({
+    // order by expiration date -- column 4
+    order: [[4, 'asc']]
+  });
 
   $('#js-loading-spinner').addClass('hidden');
   $('#js-table-container').removeClass('hidden');

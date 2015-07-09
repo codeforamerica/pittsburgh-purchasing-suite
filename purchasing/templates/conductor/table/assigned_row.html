@@ -17,7 +17,6 @@
 <td>
   {{ contract.description|title|truncate(40) }}
   <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
-    Open
     <span class="fa-stack text-center fa-1x">
       <i class="fa fa-external-link"></i>
     </span>
