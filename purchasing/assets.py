@@ -58,6 +58,8 @@ wexplorerjs = Bundle(
 
 conductorjs = Bundle(
     'js/conductor/*.js',
+    'libs/datatables/media/js/jquery.dataTables.js',
+    'libs/datatables-bootstrap3/BS3/assets/js/datatables.js',
     filters='uglifyjs',
     output='public/js/conductor.js'
 )

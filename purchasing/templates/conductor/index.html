@@ -3,7 +3,7 @@
 {% block content %}
 {{ super() }}
 <div class="container">
-  <table class="table table-striped table-condensed">
+  <table class="table table-striped table-condensed" id="js-all-table">
     <thead>
       <th>Star</th>
       <th>Name</th>
@@ -99,4 +99,11 @@
     </tbody>
   </table>
 </div>
+{% endblock %}
+
+{% block js %}
+{{ super() }}
+<script>
+$('#js-all-table').DataTable();
+</script>
 {% endblock %}
