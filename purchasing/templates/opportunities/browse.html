@@ -41,9 +41,13 @@
               {% endif %}
               {% if not current_user.is_anonymous() %}
                 {% if opportunity.is_public %}
-                <td><i class="fa fa-eye"></i></td>
+                <td>
+                  <i class="fa fa-eye" data-toggle="tooltip" title="Visible to the public"></i>
+                </td>
                 {% else %}
-                <td><i class="fa fa-eye-slash"></i></td>
+                <td>
+                  <i class="fa fa-eye-slash" data-toggle="tooltip" title="Hidden from the public"></i>
+                </td>
                 {% endif %}
               {% endif %}
             </tr>

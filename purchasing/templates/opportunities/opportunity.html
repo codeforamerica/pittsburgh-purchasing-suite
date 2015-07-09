@@ -79,12 +79,14 @@
           {% endif %}
         </div><!-- document upload -->
 
+        {% if current_user.role.name in ['conductor', 'admin', 'superadmin'] %}
         <div class="form-group">
           <label>
             {{ macros.with_errors(form.is_public) }} Make visible
           </label>
           <p class="help-block">Checking this box will make this opportunity visible to everyone (including the general public) on the <a href="{{ url_for('opportunities.browse') }}">browse page</a>.
         </div>
+        {% endif %}
 
         <button type="submit" class="btn btn-primary col-sm-6">Save</button>
 
