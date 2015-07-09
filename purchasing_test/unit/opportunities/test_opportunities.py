@@ -23,6 +23,11 @@ class TestOpportunities(BaseTestCase):
         self.assert200(response)
         self.assert_template_used('opportunities/index.html')
 
+        self.client.post('/beacon/signup?email=BADEMAIL', follow_redirects=True)
+
+        with self.client.session_transaction() as session:
+            assert 'email' not in session
+
         # assert clicking signup works as expected
         signup = self.client.post('/beacon/signup?email=foo@foo.com', follow_redirects=True)
         self.assertTrue('foo@foo.com' in signup.data)
@@ -81,6 +86,12 @@ class TestOpportunities(BaseTestCase):
                 'categories': 'Apparel'
             })
 
+            with self.client.session_transaction() as session:
+                assert 'email' in session
+                assert 'business_name' in session
+                self.assertEquals(session['email'], 'foo@foo.com')
+                self.assertEquals(session['business_name'], 'foo')
+
             self.assertEquals(success_post.status_code, 302)
             self.assertEquals(success_post.location, 'http://localhost/beacon/')
             self.assertEquals(len(outbox), 1)
@@ -123,6 +134,12 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(Vendor.query.count(), 2)
             self.assertEquals(len(Vendor.query.all()[1].categories), 3)
             self.assert_flashes("You are already signed up! Your profile was updated with this new information", 'alert-info')
+
+            with self.client.session_transaction() as session:
+                assert 'email' in session
+                assert 'business_name' in session
+                self.assertEquals(session['email'], 'foo2@foo.com')
+                self.assertEquals(session['business_name'], 'foo')
 
     def test_manage_subscriptions(self):
         '''Test subscription and unsubscription management

@@ -104,6 +104,8 @@ def signup():
             else:
                 flash('Uh oh, something went wrong. We are investigating.', 'alert-danger')
 
+        session['email'] = form_data.get('email')
+        session['business_name'] = form_data.get('business_name')
         return redirect(url_for('opportunities.index'))
 
     page_email = request.args.get('email', None)
@@ -114,7 +116,8 @@ def signup():
         return redirect(url_for('opportunities.signup'))
 
     if 'email' in session:
-        form.email.validate(form)
+        if not form.email.validate(form):
+            session.pop('email', None)
 
     display_categories = subcategories.keys()
     display_categories.remove('Select All')

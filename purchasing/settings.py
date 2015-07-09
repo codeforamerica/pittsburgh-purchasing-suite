@@ -51,6 +51,7 @@ class DevConfig(Config):
     ASSETS_DEBUG = True
     UPLOAD_S3 = False
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'uploads'))
+    MAIL_SUPPRESS_SEND = True
 
 class TestConfig(Config):
     TESTING = True
