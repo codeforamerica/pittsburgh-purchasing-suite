@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from flask import current_app
 import datetime
 from purchasing.database import (
     Column,
@@ -9,10 +10,23 @@ from purchasing.database import (
 )
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref
+from sqlalchemy.dialects.postgres import ARRAY
 
 category_vendor_association_table = Table(
     'category_vendor_association', Model.metadata,
     Column('category_id', db.Integer, db.ForeignKey('category.id', ondelete='SET NULL'), index=True),
+    Column('vendor_id', db.Integer, db.ForeignKey('vendor.id', ondelete='SET NULL'), index=True)
+)
+
+category_opportunity_association_table = Table(
+    'category_opportunity_association', Model.metadata,
+    Column('category_id', db.Integer, db.ForeignKey('category.id', ondelete='SET NULL'), index=True),
+    Column('opportunity_id', db.Integer, db.ForeignKey('opportunity.id', ondelete='SET NULL'), index=True)
+)
+
+opportunity_vendor_association_table = Table(
+    'opportunity_vendor_association_table', Model.metadata,
+    Column('opportunity_id', db.Integer, db.ForeignKey('opportunity.id', ondelete='SET NULL'), index=True),
     Column('vendor_id', db.Integer, db.ForeignKey('vendor.id', ondelete='SET NULL'), index=True)
 )
 
@@ -31,23 +45,109 @@ class Opportunity(Model):
     __tablename__ = 'opportunity'
 
     id = Column(db.Integer, primary_key=True)
-    contract_id = ReferenceCol('contract', ondelete='cascade')
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
-
-    # Also the opportunity open date
-    title = Column(db.String(255))
     department = Column(db.String(255))
-    # Autopopulated using title and department plus boilerplate copy?
+    contact_id = ReferenceCol('users', ondelete='SET NULL')
+    contact = db.relationship(
+        'User', backref=backref('opportunities', lazy='dynamic'),
+        foreign_keys='Opportunity.contact_id'
+    )
+    title = Column(db.String(255))
     description = Column(db.Text)
-
-    category_id = ReferenceCol('category', ondelete='SET NULL')
-    category = db.relationship('Category', lazy='subquery')
-
+    categories = db.relationship(
+        'Category',
+        secondary=category_opportunity_association_table,
+        backref='opportunities'
+    )
+    vendors = db.relationship(
+        'Vendor',
+        secondary=opportunity_vendor_association_table,
+        backref='opportunities'
+    )
+    # Date department advertised bid
+    planned_open = Column(db.DateTime)
     # Date department opens bids
-    bid_open = Column(db.DateTime)
-
+    planned_deadline = Column(db.DateTime)
     # Created from contract
-    created_from = db.relationship('ContractBase', lazy='subquery', backref='opportunities')
+    created_from_id = ReferenceCol('contract', ondelete='cascade', nullable=True)
+    created_from = db.relationship('ContractBase', backref=backref(
+        'opportunities', lazy='dynamic'
+    ))
+    documents_needed = Column(ARRAY(db.Integer()))
+    document = Column(db.String(255))
+    document_href = Column(db.String(255))
+    created_by = ReferenceCol('users', ondelete='SET NULL')
+    is_public = Column(db.Boolean(), default=True)
+
+    def is_published(self):
+        return self.planned_open.date() <= datetime.date.today()
+
+    def is_expired(self):
+        return self.planned_deadline.date() >= datetime.date.today()
+
+    def can_edit(self, user):
+        '''Check if a user can edit the contract
+        '''
+        return False if user.is_anonymous() or (
+            user.role.name not in ('conductor', 'admin', 'superadmin') and
+            (user.id not in (self.created_by, self.contact_id))
+        ) else True
+
+    def get_href(self):
+        '''Returns a proper link to a file
+        '''
+        if current_app.config['UPLOAD_S3']:
+            return self.document_href
+        else:
+            if self.document_href.startswith('http'):
+                return self.document_href
+            return 'file://{}'.format(self.document_href)
+
+    def estimate_open(self):
+        '''Returns the month/year based on planned_open
+        '''
+        if self.is_published():
+            return self.planned_open.strftime('%Y-%m-%d')
+        return self.planned_open.strftime('%B %Y')
+
+    def estimate_deadline(self):
+        '''
+        '''
+        if self.is_expired():
+            return self.planned_deadline.strftime('%Y-%m-%d')
+        return self.planned_deadline.strftime('%B %Y')
+
+    def get_needed_documents(self):
+        return RequiredBidDocument.query.filter(
+            RequiredBidDocument.id.in_(self.documents_needed)
+        ).all()
+
+    def get_events(self):
+        '''Returns the dates out as a nice ordered list for rendering
+        '''
+        return [
+            {
+                'event': 'bid_open', 'classes': 'event event-open',
+                'date': self.estimate_open(),
+                'description': 'Opportunity opens for submissions.'
+            },
+            {
+                'event': 'deadline', 'classes': 'event event-deadline',
+                'date': self.estimate_deadline(),
+                'description': 'Deadline to submit proposals.'
+            }
+        ]
+
+class RequiredBidDocument(Model):
+    __tablename__ = 'document'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    display_name = Column(db.String(255), nullable=False)
+    description = Column(db.Text, nullable=False)
+    form_href = Column(db.String(255))
+
+    def get_choices(self):
+        return (self.id, self.display_name)
 
 class Vendor(Model):
     __tablename__ = 'vendor'

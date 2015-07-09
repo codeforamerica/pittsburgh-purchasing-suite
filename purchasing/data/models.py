@@ -161,6 +161,10 @@ class ContractNote(Model):
     note = Column(db.Text)
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
+    taken_by_id = ReferenceCol('users', ondelete='SET NULL', nullable=True)
+    taken_by = db.relationship('User', backref=backref(
+        'contract_note', lazy='dynamic', cascade=None
+    ))
 
     def __unicode__(self):
         return self.note
@@ -217,6 +221,7 @@ class StageProperty(Model):
 
 class ContractStage(Model):
     __tablename__ = 'contract_stage'
+    __table_args__ = (db.Index('ix_contrage_stage_combined_id', 'contract_id', 'stage_id'), )
 
     id = Column(
         db.Integer, Sequence('autoincr_contract_stage_id', start=1, increment=1),

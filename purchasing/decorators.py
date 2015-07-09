@@ -4,6 +4,7 @@ from flask import (
     redirect, url_for, flash, request,
     render_template, current_app
 )
+from werkzeug.wrappers import Response
 from flask_login import current_user
 from functools import wraps
 
@@ -50,6 +51,8 @@ def wrap_form(form=None, form_name=None, template=None):
             if not template_name:
                 template_name = request.endpoint.replace('.', '/') + '.html'
             ctx = f(*args, **kwargs)
+            if isinstance(ctx, Response):
+                return ctx
             if ctx is None:
                 ctx = {}
             if isinstance(ctx, dict):

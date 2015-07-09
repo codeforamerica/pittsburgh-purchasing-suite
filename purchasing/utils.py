@@ -1,12 +1,33 @@
 # -*- coding: utf-8 -*-
 '''Helper utilities and decorators.'''
 
+import random
+import string
 import time
 import email
 from math import ceil
 from datetime import datetime, timedelta
 
 from flask import flash, request, url_for
+from flask_login import current_user
+from boto.s3.connection import S3Connection
+
+def random_id(n):
+    '''Returns random id of length n
+
+    Taken from: http://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits-in-python/2257449#2257449
+    '''
+    return ''.join(
+        random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(n)
+    )
+
+def connect_to_s3(access_key, access_secret, bucket_name):
+    conn = S3Connection(
+        aws_access_key_id=access_key,
+        aws_secret_access_key=access_secret
+    )
+    bucket = conn.get_bucket(bucket_name)
+    return conn, bucket
 
 def _get_aggressive_cache_headers(key):
     '''
@@ -57,6 +78,11 @@ def thispage():
     # pass for favicon
     except AttributeError:
         pass
+
+def _current_user():
+    args = dict(request.view_args.items() + request.args.to_dict().items())
+    args['_current_user'] = current_user
+    return url_for(request.endpoint, **args)
 
 class SimplePagination(object):
     '''

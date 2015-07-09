@@ -39,6 +39,7 @@ conductor_less = Bundle(
 vendorjs = Bundle(
     'libs/jQuery/dist/jquery.js',
     'libs/bootstrap/dist/js/bootstrap.js',
+    'libs/bootstrap-datepicker/js/bootstrap-datepicker.js',
     filters='uglifyjs',
     output='public/js/common.js'
 )

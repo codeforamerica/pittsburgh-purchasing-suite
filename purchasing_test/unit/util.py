@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 from purchasing.data.models import (
     ContractBase, ContractProperty,
     Stage, StageProperty, Flow, Company
 )
 from purchasing.users.models import User, Role
+from purchasing.opportunities.models import Opportunity, RequiredBidDocument
 
 def insert_a_contract(properties=None, **kwargs):
     contract_data = dict(
@@ -90,3 +92,26 @@ def insert_a_role(name):
 
 def get_a_role(name):
     return Role.query.filter(Role.name == name).first()
+
+def insert_a_document(name='Foo', description='Bar'):
+    document = RequiredBidDocument.create(**dict(
+        display_name=name, description=description
+    ))
+
+    return document.id
+
+def insert_an_opportunity(
+    department='Other', contact_id=None,
+    title='Test', description='Test', planned_open=datetime.date.today(),
+    planned_deadline=datetime.date.today() + datetime.timedelta(1),
+    required_documents=[],
+    created_from_id=None, created_by=None, is_public=True
+):
+    opportunity = Opportunity.create(**dict(
+        department=department, contact_id=contact_id, title=title,
+        description=description, planned_open=planned_open,
+        planned_deadline=planned_deadline, created_from_id=created_from_id,
+        created_by=created_by, is_public=is_public
+    ))
+
+    return opportunity.id

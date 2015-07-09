@@ -1,0 +1,101 @@
+{% extends "opportunities/layout.html" %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <form method="POST" enctype="multipart/form-data" action="{% if opportunity.id %}{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities.new') }}{% endif %}">
+
+        {{ form.csrf_token() }}
+        {% include "includes/flashes.html" %}
+
+        <h3>Advertise an Opportunity</h3>
+        <p>Fill out this form, and OMB will post your request to the City of Pittsburgh's new Opportunities website.</p>
+        {% if opportunity.id %}
+        <p><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">View this opportunity on Beacon.</a></p>
+        {% endif %}
+
+        <div class="form-group">
+          <label for="department" class="control-label">Department <span class="form-required">*</span></label>
+          {{ macros.with_errors(form.department, class_="form-control")}}
+        </div><!-- department -->
+
+        <div class="form-group">
+          <label for="contact_email" class="control-label">Contact Email <span class="form-required">*</span></label>
+          {{ macros.with_errors(form.contact_email, class_="form-control", placeholder="ex: example@pittsburghpa.gov")}}
+        </div><!-- email -->
+
+        <div class="form-group">
+          <label for="title" class="control-label">Title <span class="form-required">*</span></label>
+          {{ macros.with_errors(form.title, class_="form-control", placeholder="ex: What you need")}}
+        </div><!-- title -->
+
+        <div class="form-group">
+          <label for="description" class="control-label">Description <span class="form-required">*</span></label>
+          <p class="help-block">A brief description (no more than 500 words) about what you are looking to purchase.</p>
+          {{ macros.with_errors(form.description, class_="form-control", rows=4, placeholder="ex: The City of Pittsburgh will need to purchase...")}}
+        </div><!-- description -->
+
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="form-group">
+              <label for="planned_open" class="control-label">Publication Date <span class="form-required">*</span></label>
+              <p class="help-block">
+                When do you want this opportunity to be made public? If you are uncertain, use an approximate date.
+              </p>
+              {{ macros.with_errors(form.planned_open, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
+            </div><!-- publication date -->
+          </div>
+          <div class="col-sm-6">
+            <div class="form-group">
+              <label for="planned_deadline" class="control-label">Planned Deadline <span class="form-required">*</span></label>
+              <p class="help-block">
+                What do you think the deadline will be for vendors to respond? If you are uncertain, use an approximate date.
+              </p>
+              {{ macros.with_errors(form.planned_deadline, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
+            </div><!-- opp deadline -->
+          </div>
+        </div><!-- dates -->
+
+        <div class="form-group">
+          <label for="documents_needed" class="control-label">Needed Documents</label>
+            <p class="help-block">
+              Use the Control (or Command &#x2318;) to select multiple.
+            </p>
+          {{ macros.with_errors(form.documents_needed, class_="form-control")}}
+        </div><!-- documents needed -->
+
+        <div class="form-group">
+          <label for="document" class="control-label">Upload your solicitation document.</label>
+          <p class="help-block">
+            If you don't have it on hand right now, don't worry. We'll email you two weeks before the publication date to remind you to upload it.
+          </p>
+          {% if form.document.data %}
+          <p><strong>Uploaded file:</strong> <a href="{{ opportunity.get_href() }}" target="_blank">{{ form.document.data }}</a> <br/></p>
+          <p><strong>Choose different file:</strong> {{ macros.with_errors(form.document)}}</p>
+          {% else %}
+          {{ macros.with_errors(form.document)}}
+          {% endif %}
+        </div><!-- document upload -->
+
+        {% if current_user.role.name in ['conductor', 'admin', 'superadmin'] %}
+        <div class="form-group">
+          <label>
+            {{ macros.with_errors(form.is_public) }} Make visible
+          </label>
+          <p class="help-block">Checking this box will make this opportunity visible to everyone (including the general public) on the <a href="{{ url_for('opportunities.browse') }}">browse page</a>.
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary col-sm-6">Save</button>
+
+      </form>
+
+      <div class="spacer-50"></div>
+
+    </div><!-- form wrapper -->
+  </div>
+</div>
+
+{% endblock %}

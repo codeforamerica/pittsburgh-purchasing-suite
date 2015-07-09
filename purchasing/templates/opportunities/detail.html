@@ -1,0 +1,78 @@
+{% extends "opportunities/layout.html" %}
+
+{% block content %}
+
+<div class="container-fluid detail-title">
+  <div class="col-md-8 col-md-offset-1">
+    <h1>{{ opportunity.title }}</h1>
+    {% if opportunity.can_edit(current_user) %}
+    <p><a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit this opportunity</a></p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="container detail-body">
+  <div class="row">
+    <div class="col-md-12">
+      {% include 'includes/flashes.html' %}
+      <div class="col-sm-8">
+        <div class="row">
+          <div class="detail-description">
+            <h4>What is it?</h4>
+            <p>{{ opportunity.description }}</p>
+            <p><strong>We estimate that this opportunity will be open for bid around {{ opportunity.estimate_open() }}.</strong></p>
+
+          </div>
+        </div>
+
+        {% if opportunity.documents_needed and opportunity.documents_needed|length > 0 %}
+        <div class="row detail-requirements">
+          <h4>What do I need?</h4>
+          <p>You will need the following documents to bid on this opportunity:</p>
+          <ul>
+            {% for doc in opportunity.get_needed_documents() %}
+              {% if doc|lower not in ['other', 'not sure'] %}
+              <li>
+                {{ doc.display_name }} <br>
+                <small class="text-muted">{{ doc.description }}</small>
+              </li>
+
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+
+        {% endif %}
+
+        <div class="row detail-bid-opening">
+          <h4>How do I bid?</h4>
+          {% if opportunity.document_href %}
+          <p>The specification for this bid has been posted and can be downloaded <a href="{{ opportunity.get_href() }}">here</a>.</p>
+          {% else %}
+          <p>We'll update this opportunity with specific instructions for bidding soon. Sign up below to get updates as they happen.</p>
+          {% endif %}
+        </div>
+
+        <div class="row">
+          <h4>Follow this opportunity</h4>
+          <form class="form form-horizontal" method="POST" action="#">
+            {% include "opportunities/browse_signup.html" %}
+          </form>
+        </div>
+
+      </div>
+      <div class="col-sm-4 timeline-well">
+
+        <h4>Timeline</h4>
+        {% for event in opportunity.get_events() %}
+        <div class="event {{ event.classes }}">
+          <p><strong>{{ event.date }}</strong></p>
+          <p>{{ event.description }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

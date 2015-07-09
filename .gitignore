@@ -58,3 +58,6 @@ conductor.js
 
 # App logs (from foreman)
 log
+
+# File uploads
+uploads
