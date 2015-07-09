@@ -104,7 +104,8 @@ def after_today(form, field):
 
 class UnsubscribeForm(Form):
     email = fields.TextField(validators=[DataRequired(), Email(), email_present])
-    subscriptions = MultiCheckboxField(coerce=int)
+    categories = MultiCheckboxField(coerce=int)
+    opportunities = MultiCheckboxField(coerce=int)
 
 class OpportunityForm(Form):
     department = fields.SelectField(choices=DEPARTMENT_CHOICES, validators=[DataRequired()])

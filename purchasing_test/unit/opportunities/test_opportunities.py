@@ -129,7 +129,7 @@ class TestOpportunities(BaseTestCase):
         '''Test subscription and unsubscription management
         '''
 
-        subscribe = self.client.post('/beacon/signup', data={
+        self.client.post('/beacon/signup', data={
             'email': 'foo2@foo.com',
             'business_name': 'foo',
             'subcategories-1': 'on',
@@ -144,33 +144,33 @@ class TestOpportunities(BaseTestCase):
 
         self.assert200(manage)
         form = self.get_context_variable('form')
-        self.assertEquals(len(form.subscriptions.choices), 3)
+        self.assertEquals(len(form.categories.choices), 3)
 
         # it shouldn't unsubscribe you if you click the wrong button
         not_unsub_button = self.client.post('/beacon/manage', data=dict(
             email='foo2@foo.com',
-            subscriptions=[1, 2],
+            categories=[1, 2],
         ))
 
         self.assert200(not_unsub_button)
         form = self.get_context_variable('form')
-        self.assertEquals(len(form.subscriptions.choices), 3)
+        self.assertEquals(len(form.categories.choices), 3)
 
         unsubscribe = self.client.post('/beacon/manage', data=dict(
             email='foo2@foo.com',
-            subscriptions=[1, 2],
+            categories=[1, 2],
             button='Unsubscribe from Checked'
         ))
 
         self.assert200(unsubscribe)
         form = self.get_context_variable('form')
-        self.assertEquals(len(form.subscriptions.choices), 1)
+        self.assertEquals(len(form.categories.choices), 1)
 
         # it shouldn't matter if you somehow unsubscribe from things
         # you are accidentally subscribed to
         unsubscribe_all = self.client.post('/beacon/manage', data=dict(
             email='foo2@foo.com',
-            subscriptions=[3, 5, 6],
+            categories=[3, 5, 6],
             button='Unsubscribe from Checked'
         ))
 

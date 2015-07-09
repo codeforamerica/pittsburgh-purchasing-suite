@@ -3,38 +3,36 @@
 <hr>
 
 <div class="browse-signup-form-container">
-  <form class="form form-horizontal" method="POST" action="#">
 
-    {{ signup_form.csrf_token() }}
+  {{ signup_form.csrf_token() }}
 
-    <div class="form-group">
-      <div class="col-sm-9">
-        <label for="business_name">What's the name of your business? <span class="form-required">*</span></label>
-        {{ macros.with_errors(signup_form.business_name, class_="form-control", placeholder="Business name") }}
-      </div>
-    </div><!-- /business name -->
-
-    <div class="form-group">
-      <div class="col-sm-9">
-        <label for="email">What's your email address? <span class="form-required">*</span></label>
-        {{ macros.with_errors(signup_form.email, class_="form-control", placeholder="Email address") }}
-      </div>
-    </div><!-- /email -->
-
-    <div class="checkbox">
-      {{ macros.with_errors(signup_form.also_categories) }}
-      <label for="also_categories">Sign me up for updates about similar opportunities <span class="form-required">*</span></label>
-    </div><!-- /email -->
-
-    <div class="spacer-10"></div>
-
-    <div class="row">
-      <div class="col-md-5">
-        <button type="submit" class="btn btn-primary form-control">Send me updates</button>
-      </div>
+  <div class="form-group">
+    <div class="col-sm-9">
+      <label for="business_name">What's the name of your business? <span class="form-required">*</span></label>
+      {{ macros.with_errors(signup_form.business_name, class_="form-control", placeholder="Business name") }}
     </div>
+  </div><!-- /business name -->
 
-  </form>
+  <div class="form-group">
+    <div class="col-sm-9">
+      <label for="email">What's your email address? <span class="form-required">*</span></label>
+      {{ macros.with_errors(signup_form.email, class_="form-control", placeholder="Email address") }}
+    </div>
+  </div><!-- /email -->
+
+  <div class="checkbox">
+    {{ macros.with_errors(signup_form.also_categories) }}
+    <label for="also_categories">Sign me up for updates about similar opportunities <span class="form-required">*</span></label>
+  </div><!-- /email -->
+
+  <div class="spacer-10"></div>
+
+  <div class="row">
+    <div class="col-md-5">
+      <button type="submit" class="btn btn-primary form-control">Send me updates</button>
+    </div>
+  </div>
+
 </div>
 
 <hr>

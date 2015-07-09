@@ -7,6 +7,9 @@
   <div class="row">
     <div class="col-sm-8 col-sm-offset-2">
       <h2>Manage your email subscriptions</h2>
+
+      {% include 'includes/flashes.html' %}
+
       <form class="form-horizontal" method="POST">
 
         {{ form.csrf_token() }}
@@ -24,7 +27,8 @@
           </div>
         </div><!-- /email lookup group -->
 
-        {% if form.subscriptions.choices|length > 0 %}
+        {% if form.categories.choices|length > 0 or form.opportunities.choices|length > 0 %}
+          <h4>Check the boxes you wish to unsubscribe from below:</h4>
           <div class="form-group" id="js-subcategory-group-0">
             {% if 'subscriptions' in form.errors.keys() %}
             <div class="alert alert-danger alert-dismissable">
@@ -34,14 +38,30 @@
               <span>{{ form.errors['subscriptions'][0] }}</span>
             </div>
             {% endif %}
-            {% for subscription in form.subscriptions %}
-            <div class="col-sm-12">
-              <div class="checkbox">
-                {{ macros.with_errors(subscription, checked=true, class_="js-subcategory") }}
-                {{ subscription.label }}
-              </div>
-            </div><!-- subscriptions -->
-            {% endfor %}
+            {% if form.categories.choices|length > 0 %}
+              <h4>Categories subscribed to:</h4>
+              {% for subscription in form.categories %}
+                <div class="col-sm-12">
+                  <div class="checkbox">
+                    {{ macros.with_errors(subscription, class_="js-subcategory") }}
+                    {{ subscription.label }}
+                  </div>
+                </div><!-- categories -->
+              {% endfor %}
+            {% endif %}
+
+            {% if form.opportunities.choices|length > 0 %}
+              <h4>opportunities subscribed to:</h4>
+              {% for subscription in form.opportunities %}
+              <div class="col-sm-12">
+                <div class="checkbox">
+                  {{ macros.with_errors(subscription, class_="js-subcategory") }}
+                  {{ subscription.label }} - <a href="{{ url_for('opportunities.detail', opportunity_id=subscription.object_data) }}">View details</a>
+                </div>
+              </div><!-- opportunities -->
+              {% endfor %}
+            {% endif %}
+
           </div>
 
           <div class="form-group">

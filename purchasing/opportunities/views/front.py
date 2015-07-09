@@ -36,7 +36,7 @@ def signup():
         subcategories['Select All'].append((category.id, category.subcategory))
         subcategories[category.category].append((category.id, category.subcategory))
 
-    form = init_signup_form()
+    form = init_form(SignupForm)
 
     form.categories.choices = [(None, '---')] + list(sorted(zip(categories, categories))) + [('Select All', 'Select All')]
     form.subcategories.choices = []
@@ -131,8 +131,9 @@ def signup():
 def manage():
     '''Manage a vendor's signups
     '''
-    form = UnsubscribeForm()
-    form_subscriptions = []
+    form = init_form(UnsubscribeForm)
+    form_categories = []
+    form_opportunities = []
 
     if form.validate_on_submit():
         email = form.data.get('email')
@@ -142,16 +143,23 @@ def manage():
             form.email.errors = ['We could not find the email {}'.format(email)]
 
         if request.form.get('button', '').lower() == 'unsubscribe from checked':
-            subscriptions = list(set([i.id for i in vendor.categories]).difference(form.subscriptions.data))
-            vendor.categories = [Category.query.get(i) for i in subscriptions]
+            categories = list(set([i.id for i in vendor.categories]).difference(form.categories.data))
+            vendor.categories = [Category.query.get(i) for i in categories]
+
+            opportunities = list(set([i.id for i in vendor.opportunities]).difference(form.opportunities.data))
+            vendor.opportunities = [opportunities.query.get(i) for i in opportunities]
+
             db.session.commit()
             flash('Preferences updated!', 'alert-success')
 
         if vendor:
             for subscription in vendor.categories:
-                form_subscriptions.append((subscription.id, subscription.subcategory))
+                form_categories.append((subscription.id, subscription.subcategory))
+            for subscription in vendor.opportunities:
+                form_opportunities.append((subscription.id, subscription.title))
 
-    form.subscriptions.choices = form_subscriptions
+    form.opportunities.choices = form_opportunities
+    form.categories.choices = form_categories
     return render_template('opportunities/manage.html', form=form)
 
 class SignupData(object):
@@ -159,16 +167,42 @@ class SignupData(object):
         self.email = email
         self.business_name = business_name
 
-def init_signup_form():
+def init_form(form):
     data = SignupData(session.get('email'), session.get('business_name'))
-    form = SignupForm(obj=data)
+    form = form(obj=data)
 
     return form
 
-def signup_for_opp(form, multi=False):
+def signup_for_opp(form, user, opportunity, multi=False):
     # add the email/business name to the session
     session['email'] = form.data.get('email')
     session['business_name'] = form.data.get('business_name')
+    # subscribe the vendor to the opportunity
+    vendor = Vendor.query.filter(
+        Vendor.email == form.data.get('email'),
+        Vendor.business_name == form.data.get('business_name')
+    ).first()
+
+    if vendor is None:
+        vendor = Vendor(
+            email=form.data.get('email'),
+            business_name=form.data.get('business_name')
+        )
+        db.session.add(vendor)
+        db.session.commit()
+
+    if multi:
+        for opp in opportunity:
+            _opp = Opportunity.query.get(int(opp))
+            vendor.opportunities.append(_opp)
+    else:
+        vendor.opportunities.append(opportunity)
+
+    if form.data.get('also_categories'):
+        pass
+
+    db.session.commit()
+    return True
 
 @blueprint.route('/opportunities', methods=['GET', 'POST'])
 def browse():
@@ -176,9 +210,14 @@ def browse():
     '''
     active, upcoming = [], []
 
-    signup_form = init_signup_form()
+    signup_form = init_form(SignupForm)
     if signup_form.validate_on_submit():
-        signup_for_opp(signup_form, multi=True)
+        opportunities = request.form.getlist('opportunity')
+        if signup_for_opp(
+            signup_form, current_user, opportunity=opportunities, multi=True
+        ):
+            flash('Successfully subscribed for updates!', 'alert-success')
+            return redirect(url_for('opportunities.browse'))
 
     opportunities = Opportunity.query.filter(
         Opportunity.planned_deadline >= datetime.date.today()
@@ -191,11 +230,8 @@ def browse():
             upcoming.append(opportunity)
 
     return render_template(
-        'opportunities/browse.html',
-        opportunities=opportunities,
-        active=active,
-        upcoming=upcoming,
-        current_user=current_user,
+        'opportunities/browse.html', opportunities=opportunities,
+        active=active, upcoming=upcoming, current_user=current_user,
         signup_form=signup_form
     )
 
@@ -205,9 +241,13 @@ def detail(opportunity_id):
     '''
     opportunity = Opportunity.query.get(opportunity_id)
     if opportunity and opportunity.is_public:
-        signup_form = init_signup_form()
+        signup_form = init_form(SignupForm)
         if signup_form.validate_on_submit():
-            signup_for_opp(signup_form)
+            signup_success = signup_for_opp(signup_form, current_user, opportunity)
+            if signup_success:
+                flash('Successfully subscribed for updates!', 'alert-success')
+                return redirect(url_for('opportunities.detail', opportunity_id=opportunity.id))
+
         return render_template(
             'opportunities/detail.html', opportunity=opportunity,
             current_user=current_user, signup_form=signup_form

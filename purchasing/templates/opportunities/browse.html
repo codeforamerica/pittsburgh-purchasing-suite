@@ -5,91 +5,97 @@
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
 
-      <h2>All Opportunities</h2>
+      {% include 'includes/flashes.html' %}
 
-      <h3>Opportunities Open for Bid Now</h3>
-      {% if active|length > 0 %}
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Select</th>
-            <th>Opportunity Details</th>
-            <th>Department</th>
-            <th>Deadline</th>
-            {% if not current_user.is_anonymous() %}
-            <th>Edit this contract</th>
-            <th>Public</th>
-            {% endif %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for opportunity in active %}
-          {% if not current_user.is_anonymous() or opportunity.is_public %}
-          <tr>
-            <td><input type="checkbox"></td>
-            <td><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
-            <td>{{ opportunity.department }}</td>
-            <td>{{ opportunity.planned_deadline.strftime('%Y-%m-%d') }}</td>
-            {% if opportunity.can_edit(current_user) %}
-            <td><a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
-            {% elif not current_user.is_anonymous() %}
-            <td><i class="fa fa-minus"></i></td>
-            {% endif %}
-            {% if not current_user.is_anonymous() %}
-              {% if opportunity.is_public %}
-              <td><i class="fa fa-eye"></i></td>
-              {% else %}
-              <td><i class="fa fa-eye-slash"></i></td>
+      <form class="form form-horizontal" method="POST" action="#">
+
+        <h2>All Opportunities</h2>
+
+        <h3>Opportunities Open for Bid Now</h3>
+        {% if active|length > 0 %}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Opportunity Details</th>
+              <th>Department</th>
+              <th>Deadline</th>
+              {% if not current_user.is_anonymous() %}
+              <th>Edit this contract</th>
+              <th>Public</th>
               {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for opportunity in active %}
+            {% if not current_user.is_anonymous() or opportunity.is_public %}
+            <tr>
+              <td><input type="checkbox" name="opportunity" value="{{ opportunity.id }}"></td>
+              <td><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
+              <td>{{ opportunity.department }}</td>
+              <td>{{ opportunity.planned_deadline.strftime('%Y-%m-%d') }}</td>
+              {% if opportunity.can_edit(current_user) %}
+              <td><a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
+              {% elif not current_user.is_anonymous() %}
+              <td><i class="fa fa-minus"></i></td>
+              {% endif %}
+              {% if not current_user.is_anonymous() %}
+                {% if opportunity.is_public %}
+                <td><i class="fa fa-eye"></i></td>
+                {% else %}
+                <td><i class="fa fa-eye-slash"></i></td>
+                {% endif %}
+              {% endif %}
+            </tr>
             {% endif %}
-          </tr>
-          {% endif %}
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p>There are currently no opportunities open for bid.</p>
-      {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p>There are currently no opportunities open for bid.</p>
+        {% endif %}
 
-      <h3>Upcoming Opportunities</h3>
-      {% if upcoming|length > 0 %}
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Select</th>
-            <th>Opportunity</th>
-            <th>Department</th>
-            <th>Estimated Open Date</th>
-            {% if not current_user.is_anonymous() %}
-            <th>Edit this contract</th>
+        <h3>Upcoming Opportunities</h3>
+        {% if upcoming|length > 0 %}
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Opportunity</th>
+              <th>Department</th>
+              <th>Estimated Open Date</th>
+              {% if not current_user.is_anonymous() %}
+              <th>Edit this contract</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for opportunity in upcoming %}
+            {% if not current_user.is_anonymous() or opportunity.is_public %}
+            <tr>
+              <td><input type="checkbox" name="opportunity" value="{{ opportunity.id }}"></td>
+              <td><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
+              <td>{{ opportunity.department }}</td>
+              <td>{{ opportunity.planned_deadline.strftime('%Y-%m-%d') }}</td>
+              {% if opportunity.can_edit(current_user) %}
+              <td><a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
+              {% elif not current_user.is_anonymous() %}
+              <i class="fa fa-minus"></i>
+              {% endif %}
+            </tr>
             {% endif %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for opportunity in upcoming %}
-          {% if not current_user.is_anonymous() or opportunity.is_public %}
-          <tr>
-            <td><input type="checkbox"></td>
-            <td><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
-            <td>{{ opportunity.department }}</td>
-            <td>{{ opportunity.planned_deadline.strftime('%Y-%m-%d') }}</td>
-            {% if opportunity.can_edit(current_user) %}
-            <td><a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
-            {% elif not current_user.is_anonymous() %}
-            <i class="fa fa-minus"></i>
-            {% endif %}
-          </tr>
-          {% endif %}
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p>There are currently no upcoming open for bid.</p>
-      {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p>There are currently no upcoming open for bid.</p>
+        {% endif %}
 
-      <h3>Sign Up for selected opportunities</h3>
+        <h3>Sign Up for selected opportunities</h3>
 
-      {% include "opportunities/browse_signup.html" %}
+        {% include "opportunities/browse_signup.html" %}
+
+      </form>
 
     </div>
   </div>
