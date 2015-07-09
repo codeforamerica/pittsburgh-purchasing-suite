@@ -3,12 +3,14 @@
 from os import mkdir, listdir, rmdir
 import datetime
 from flask import current_app
+from werkzeug.datastructures import MultiDict
 from cStringIO import StringIO
 from werkzeug.datastructures import FileStorage
 from shutil import rmtree
 
 from purchasing.opportunities.models import Opportunity
 from purchasing.users.models import User
+from purchasing.opportunities.models import Vendor
 from purchasing.data.importer.nigp import main
 from purchasing.opportunities.views.admin import build_opportunity, upload_document
 
@@ -62,7 +64,7 @@ class TestOpportunities(BaseTestCase):
             pass
 
     def test_document_upload(self):
-        '''Tests document uploads properly
+        '''Test document uploads properly
         '''
         # assert that we return none without a document
         no_document = FileStorage(StringIO(''), filename='')
@@ -74,7 +76,7 @@ class TestOpportunities(BaseTestCase):
         self.assertTrue('test.txt' in listdir(current_app.config.get('UPLOAD_DESTINATION')))
 
     def test_build_opportunity_new_user(self):
-        '''Tests that build_opportunity creates new users appropriately
+        '''Test that build_opportunity creates new users appropriately
         '''
         data = {
             'department': 'Other', 'contact_email': 'new_email@foo.com',
@@ -89,7 +91,7 @@ class TestOpportunities(BaseTestCase):
         self.assertEquals(User.query.count(), 3)
 
     def test_create_a_contract(self):
-        '''Tests create contract page
+        '''Test create contract page
         '''
         self.assertEquals(Opportunity.query.count(), 4)
         self.assertEquals(self.client.get('/beacon/opportunities/admin/new').status_code, 302)
@@ -137,7 +139,7 @@ class TestOpportunities(BaseTestCase):
         self.assert_flashes('Opportunity Successfully Created!', 'alert-success')
 
     def test_edit_a_contract(self):
-        '''Tests updating a contract
+        '''Test updating a contract
         '''
         self.assertEquals(self.client.get('/beacon/opportunities/2/admin/edit').status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
@@ -161,7 +163,7 @@ class TestOpportunities(BaseTestCase):
         self.assertEquals(len(self.get_context_variable('upcoming')), 1)
 
     def test_browse_contract(self):
-        '''Tests browse page loads properly
+        '''Test browse page loads properly
         '''
         # test admin view restrictions
         self.logout_user()
@@ -180,8 +182,54 @@ class TestOpportunities(BaseTestCase):
         self.assertEquals(Opportunity.query.count(), 4)
 
     def test_contract_detail(self):
-        '''Tests individual contract opportunity pages
+        '''Test individual contract opportunity pages
         '''
         self.assert200(self.client.get('/beacon/opportunities/1'))
         self.assert200(self.client.get('/beacon/opportunities/2'))
         self.assert404(self.client.get('/beacon/opportunities/999'))
+
+    def test_signup_for_multiple_opportunities(self):
+        '''Test signup for multiple opportunities
+        '''
+        self.assertEquals(Vendor.query.count(), 0)
+        post = self.client.post('/beacon/opportunities', data=MultiDict([
+            ('email', 'foo@foo.com'), ('business_name', 'foo'),
+            ('opportunity', '1'), ('opportunity', '2')
+        ]))
+
+        self.assertEquals(Vendor.query.count(), 1)
+
+        # should subscribe that vendor to the opportunity
+        self.assertEquals(len(Vendor.query.get(1).opportunities), 2)
+        self.assertEquals(Vendor.query.get(1).opportunities[0].id, 1)
+        self.assertEquals(Vendor.query.get(1).opportunities[1].id, 2)
+
+        # should redirect and flash properly
+        self.assertEquals(post.status_code, 302)
+        self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
+
+        # vendor should not be able to sign up for unpublished opp
+        self.client.post('/beacon/opportunities', data={
+            'email': 'foo@foo.com', 'business_name': 'foo',
+            'opportunity': '3', 'opportunity': '4'
+        })
+        self.assertEquals(len(Vendor.query.get(1).opportunities), 2)
+        self.assert_flashes('You can\'t subscribe to that contract!', 'alert-danger')
+
+    def test_signup_for_opportunity(self):
+        '''Test signup for individual opportunities
+        '''
+        self.assertEquals(Vendor.query.count(), 0)
+        post = self.client.post('/beacon/opportunities/1', data={
+            'email': 'foo@foo.com', 'business_name': 'foo'
+        })
+        # should create a new vendor
+        self.assertEquals(Vendor.query.count(), 1)
+
+        # should subscribe that vendor to the opportunity
+        self.assertEquals(len(Vendor.query.get(1).opportunities), 1)
+        self.assertEquals(Vendor.query.get(1).opportunities[0].id, 1)
+
+        # should redirect and flash properly
+        self.assertEquals(post.status_code, 302)
+        self.assert_flashes('Successfully subscribed for updates!', 'alert-success')

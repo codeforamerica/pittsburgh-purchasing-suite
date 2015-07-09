@@ -194,11 +194,15 @@ def signup_for_opp(form, user, opportunity, multi=False):
     if multi:
         for opp in opportunity:
             _opp = Opportunity.query.get(int(opp))
+            if not _opp.is_public:
+                db.session.rollback()
+                return False
             vendor.opportunities.append(_opp)
     else:
         vendor.opportunities.append(opportunity)
 
     if form.data.get('also_categories'):
+        # TODO -- add support for categories
         pass
 
     db.session.commit()
@@ -217,6 +221,9 @@ def browse():
             signup_form, current_user, opportunity=opportunities, multi=True
         ):
             flash('Successfully subscribed for updates!', 'alert-success')
+            return redirect(url_for('opportunities.browse'))
+        else:
+            flash('You can\'t subscribe to that contract!', 'alert-danger')
             return redirect(url_for('opportunities.browse'))
 
     opportunities = Opportunity.query.filter(

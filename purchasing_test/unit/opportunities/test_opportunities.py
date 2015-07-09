@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import unittest
 import json
 from flask import current_app
 
 from purchasing.extensions import mail
 from purchasing_test.unit.test_base import BaseTestCase
-from purchasing.data.importer.nigp import main
+from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.models import Vendor
 
 class TestOpportunities(BaseTestCase):
@@ -15,7 +14,7 @@ class TestOpportunities(BaseTestCase):
     def setUp(self):
         super(TestOpportunities, self).setUp()
         # import our test categories
-        main(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
+        import_nigp(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
 
     def test_index(self):
         '''Test index page works as expected
@@ -101,8 +100,8 @@ class TestOpportunities(BaseTestCase):
                 'categories': 'Apparel'
             })
 
-            self.assertEquals(success_post.status_code, 302)
-            self.assertEquals(success_post.location, 'http://localhost/beacon/')
+            self.assertEquals(success_post_everything.status_code, 302)
+            self.assertEquals(success_post_everything.location, 'http://localhost/beacon/')
             self.assertEquals(len(outbox), 2)
             self.assertEquals(Vendor.query.count(), 2)
             self.assertEquals(len(Vendor.query.all()[1].categories), 5)
@@ -118,8 +117,8 @@ class TestOpportunities(BaseTestCase):
                 'categories': 'Apparel'
             })
 
-            self.assertEquals(success_post.status_code, 302)
-            self.assertEquals(success_post.location, 'http://localhost/beacon/')
+            self.assertEquals(success_post_old_email.status_code, 302)
+            self.assertEquals(success_post_old_email.location, 'http://localhost/beacon/')
             self.assertEquals(len(outbox), 2)
             self.assertEquals(Vendor.query.count(), 2)
             self.assertEquals(len(Vendor.query.all()[1].categories), 3)
@@ -176,15 +175,3 @@ class TestOpportunities(BaseTestCase):
 
         self.assert200(unsubscribe_all)
         self.assertTrue('You are not subscribed to anything!' in unsubscribe_all.data)
-
-    @unittest.skip('')
-    def test_signup_for_opportunity(self):
-        '''Test signup for individual opportunities
-        '''
-        pass
-
-    @unittest.skip('')
-    def test_signup_for_multiple_opportunities(self):
-        '''Test signup for multiple opportunities
-        '''
-        pass
