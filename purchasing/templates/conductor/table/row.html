@@ -1,0 +1,9 @@
+<tr>
+
+  {% if contract.assigned %}
+    {% include 'conductor/table/assigned_row.html' %}
+  {% else %}
+    {% include 'conductor/table/unassigned_row.html' %}
+  {% endif %}
+
+</tr>

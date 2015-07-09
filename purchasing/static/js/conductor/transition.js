@@ -1,6 +1,8 @@
 (function() {
   'use strict';
 
+  var activeTab;
+
   // format a date to YYYY-MM-DD
   function formatDate(datestr) {
     var _date = new Date(datestr);
