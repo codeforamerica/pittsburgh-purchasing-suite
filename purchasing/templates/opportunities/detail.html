@@ -22,10 +22,6 @@
             <p>{{ opportunity.description }}</p>
             <p><strong>We estimate that this opportunity will be open for bid around {{ opportunity.estimate_open() }}.</strong></p>
 
-            <form class="form form-horizontal" method="POST" action="#">
-              {% include "opportunities/browse_signup.html" %}
-            </form>
-
           </div>
         </div>
 
@@ -53,12 +49,20 @@
           {% if opportunity.document_href %}
           <p>The specification for this bid has been posted and can be downloaded <a href="{{ opportunity.get_href() }}">here</a>.</p>
           {% else %}
-          <p>Since details for this opportunity are not yet finalized, specifications and instructions for bidding are not yet available. We encourage you to sign up for notifications above. Make sure that you are ready to go when this opportunity opens for bidding.</p>
+          <p>We'll update this opportunity with specific instructions for bidding soon. Sign up below to get updates as they happen.</p>
           {% endif %}
+        </div>
+
+        <div class="row">
+          <h4>Follow this opportunity</h4>
+          <form class="form form-horizontal" method="POST" action="#">
+            {% include "opportunities/browse_signup.html" %}
+          </form>
         </div>
 
       </div>
       <div class="col-sm-4 timeline-well">
+
         <h4>Timeline</h4>
         {% for event in opportunity.get_events() %}
         <div class="event {{ event.classes }}">
