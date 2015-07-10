@@ -119,3 +119,5 @@ class OpportunityForm(Form):
     document = FileField(
         validators=[FileAllowed(['pdf'], '.pdf documents only!')]
     )
+    categories = fields.SelectField(choices=[], validators=[Optional()])
+    subcategories = MultiCheckboxField(coerce=int, validators=[Optional()], choices=[])

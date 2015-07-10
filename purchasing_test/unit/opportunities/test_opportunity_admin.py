@@ -8,10 +8,9 @@ from cStringIO import StringIO
 from werkzeug.datastructures import FileStorage
 from shutil import rmtree
 
-from purchasing.opportunities.models import Opportunity
+from purchasing.opportunities.models import Opportunity, Vendor, Category
 from purchasing.users.models import User
-from purchasing.opportunities.models import Vendor
-from purchasing.data.importer.nigp import main
+from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.views.admin import build_opportunity, upload_document
 
 from purchasing_test.unit.test_base import BaseTestCase
@@ -32,7 +31,7 @@ class TestOpportunities(BaseTestCase):
             rmtree(current_app.config.get('UPLOAD_DESTINATION'))
             mkdir(current_app.config.get('UPLOAD_DESTINATION'))
 
-        main(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
+        import_nigp(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
 
         self.admin_role = insert_a_role('admin')
         self.staff_role = insert_a_role('staff')
@@ -80,6 +79,44 @@ class TestOpportunities(BaseTestCase):
         upload_document(document)
 
         self.assertTrue('test.txt' in listdir(current_app.config.get('UPLOAD_DESTINATION')))
+
+    def test_build_opportunity_categories(self):
+        '''Test categories are added properly
+        '''
+        self.login_user(self.admin)
+        data = {
+            'department': 'Other', 'contact_email': self.admin.email,
+            'title': 'test', 'description': 'test', 'planned_open': datetime.date.today(),
+            'planned_deadline': datetime.date.today() + datetime.timedelta(1),
+            'is_public': False, 'subcategories-1': 'on', 'subcategories-2': 'on',
+            'subcategories-3': 'on', 'subcategories-4': 'on'
+        }
+
+        self.client.post('/beacon/opportunities/admin/new', data=data)
+
+        self.assertEquals(Opportunity.query.count(), 5)
+        self.assertEquals(len(Opportunity.query.get(5).categories), 4)
+
+        new_opp = self.client.get('/beacon/opportunities/5')
+        self.assert200(new_opp)
+
+        # because the category is a set, we can't know for sure
+        # which tags will be there on page load. however, three should
+        # always be there, and one shouldn't be
+        match, nomatch, not_associated = 0, 0, 0
+        for i in Category.query.all():
+            if i.category_friendly_name in new_opp.data:
+                match += 1
+            elif i in self.get_context_variable('opportunity').categories:
+                nomatch += 1
+            else:
+                not_associated += 1
+
+        self.assertEquals(match, 3)
+        self.assertEquals(nomatch, 1)
+        self.assertEquals(not_associated, 1)
+
+        self.assertTrue('1 more' in new_opp.data)
 
     def test_build_opportunity_new_user(self):
         '''Test that build_opportunity creates new users appropriately

@@ -39,8 +39,8 @@ class TestOpportunities(BaseTestCase):
         self.assert200(response)
         subcats = json.loads(self.get_context_variable('subcategories'))
 
-        # assert two categories (plus the total category)
-        self.assertEquals(len(subcats.keys()), 3)
+        # assert three categories (plus the total category)
+        self.assertEquals(len(subcats.keys()), 4)
         # assert five total subcatgories (plus 5 in the total field)
         self.assertEquals(len([item for sublist in subcats.values() for item in sublist]), 10)
 

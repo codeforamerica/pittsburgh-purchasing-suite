@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import os
+import json
 
 from flask import (
     render_template, url_for, current_app,
-    redirect, flash, abort
+    redirect, flash, abort, request
 )
 from werkzeug import secure_filename
 
@@ -14,9 +15,9 @@ from purchasing.utils import (
 from purchasing.extensions import login_manager
 from purchasing.decorators import requires_roles
 from purchasing.opportunities.forms import OpportunityForm
-from purchasing.opportunities.models import Opportunity, RequiredBidDocument
+from purchasing.opportunities.models import Opportunity, RequiredBidDocument, Category
 from purchasing.users.models import User
-from purchasing.opportunities.views.blueprint import blueprint
+from purchasing.opportunities.views.common import blueprint, get_categories, fix_form_categories
 
 @login_manager.user_loader
 def load_user(userid):
@@ -74,18 +75,37 @@ def build_opportunity(data, opportunity=None):
         opportunity = Opportunity.create(**data)
     return opportunity
 
+def generate_opportunity_form(obj=None):
+    all_categories = Category.query.all()
+    form = OpportunityForm(obj=obj)
+
+    categories, subcategories, form = get_categories(all_categories, form)
+    display_categories = subcategories.keys()
+    display_categories.remove('Select All')
+
+    form.documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
+
+    return form, json.dumps(sorted(display_categories) + ['Select All']), json.dumps(subcategories)
+
 @blueprint.route('/opportunities/admin/new', methods=['GET', 'POST'])
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def new():
     '''Create a new opportunity
     '''
-    form = OpportunityForm()
-    form.documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
+    form, categories, subcategories = generate_opportunity_form()
+
     if form.validate_on_submit():
-        opportunity = build_opportunity(form.data)
+        form_data = fix_form_categories(request, form, Opportunity, None)
+        # add the contact email back on because it was stripped by the cleaning
+        form_data['contact_email'] = form.data.get('contact_email')
+        opportunity = build_opportunity(form_data)
         flash('Opportunity Successfully Created!', 'alert-success')
         return redirect(url_for('opportunities.edit', opportunity_id=opportunity.id))
-    return render_template('opportunities/opportunity.html', form=form, opportunity=None)
+    return render_template(
+        'opportunities/opportunity.html', form=form, opportunity=None,
+        subcategories=subcategories,
+        categories=categories
+    )
 
 @blueprint.route('/opportunities/<int:opportunity_id>/admin/edit', methods=['GET', 'POST'])
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
@@ -94,14 +114,20 @@ def edit(opportunity_id):
     '''
     opportunity = Opportunity.query.get(opportunity_id)
     if opportunity:
-        form = OpportunityForm(obj=opportunity)
+        form, categories, subcategories = generate_opportunity_form(obj=opportunity)
         form.contact_email.data = opportunity.contact.email
-        form.documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
+
         if form.validate_on_submit():
-            build_opportunity(form.data, opportunity=opportunity)
+            form_data = fix_form_categories(request, form, Opportunity, opportunity)
+            # add the contact email back on because it was stripped by the cleaning
+            form_data['contact_email'] = form.data.get('contact_email')
+            build_opportunity(form_data, opportunity=opportunity)
             flash('Opportunity Successfully Updated!', 'alert-success')
             return redirect(url_for('opportunities.edit', opportunity_id=opportunity.id))
+
         return render_template(
-            'opportunities/opportunity.html', form=form, opportunity=opportunity
+            'opportunities/opportunity.html', form=form, opportunity=opportunity,
+            subcategories=subcategories,
+            categories=categories
         )
     abort(404)
