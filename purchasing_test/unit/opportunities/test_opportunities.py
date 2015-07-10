@@ -132,7 +132,7 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(success_post_old_email.location, 'http://localhost/beacon/')
             self.assertEquals(len(outbox), 2)
             self.assertEquals(Vendor.query.count(), 2)
-            self.assertEquals(len(Vendor.query.all()[1].categories), 3)
+            self.assertEquals(len(Vendor.query.all()[1].categories), 5)
             self.assert_flashes("You are already signed up! Your profile was updated with this new information", 'alert-info')
 
             with self.client.session_transaction() as session:
