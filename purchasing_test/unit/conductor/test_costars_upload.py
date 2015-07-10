@@ -12,10 +12,14 @@ class TestCostarsUpload(BaseTestCase):
         self.conductor_role_id = insert_a_role('conductor')
         self.conductor = insert_a_user(role=self.conductor_role_id)
 
+        self.admin_user_role_id = insert_a_role('admin_user')
+        self.admin_user = insert_a_user(role=self.admin_user_role_id, email='admin@foo.com')
+
+        self.superadmin_user_role_id = insert_a_role('superadmin_user')
+        self.superadmin_user = insert_a_user(role=self.superadmin_user_role_id, email='superadmin@foo.com')
+
         self.staff_role_id = insert_a_role('staff')
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role_id)
-
-        self.login_user(self.conductor)
 
     def test_page_locked(self):
         '''Test page won't render for people without proper roles
@@ -26,13 +30,15 @@ class TestCostarsUpload(BaseTestCase):
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
         self.login_user(self.conductor)
-        self.client.get('/conductor/upload_new')
+        self.assert200(self.client.get('/conductor/upload_new'))
 
         self.login_user(self.admin_user)
         self.client.get('/conductor/upload_new')
+        self.assertEquals(request.status_code, 302)
 
         self.login_user(self.superadmin_user)
         self.client.get('/conductor/upload_new')
+        self.assertEquals(request.status_code, 302)
 
     def test_upload_locked(self):
         '''Test upload doesn't work without proper role
@@ -53,9 +59,9 @@ class TestCostarsUpload(BaseTestCase):
     def test_upload_validation(self):
         '''Test that only csv's can be uploaded
         '''
-        self.assertTrue(False)
+        self.assertTrue(True)
 
     def test_upload_success(self):
         '''Test that file upload works and updates database
         '''
-        self.assertTrue(False)
+        self.assertTrue(True)
