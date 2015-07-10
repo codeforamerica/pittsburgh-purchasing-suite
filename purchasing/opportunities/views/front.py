@@ -2,7 +2,6 @@
 
 import json
 import datetime
-from collections import defaultdict
 
 from flask import (
     render_template, request, current_app, flash,
@@ -15,7 +14,7 @@ from purchasing.notifications import vendor_signup
 from purchasing.opportunities.forms import SignupForm, UnsubscribeForm, ValidationError
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
-from purchasing.opportunities.views.blueprint import blueprint
+from purchasing.opportunities.views.common import blueprint, get_categories, fix_form_categories
 
 @blueprint.route('/')
 def index():
@@ -30,38 +29,14 @@ def signup():
     '''The signup page for vendors
     '''
     all_categories = Category.query.all()
-    categories, subcategories = set(), defaultdict(list)
-    for category in all_categories:
-        categories.add(category.category)
-        subcategories['Select All'].append((category.id, category.category_friendly_name))
-        subcategories[category.category].append((category.id, category.category_friendly_name))
-
     form = init_form(SignupForm)
 
-    form.categories.choices = [(None, '---')] + list(sorted(zip(categories, categories))) + [('Select All', 'Select All')]
-    form.subcategories.choices = []
+    categories, subcategories, form = get_categories(all_categories, form)
 
     if form.validate_on_submit():
 
         vendor = Vendor.query.filter(Vendor.email == form.data.get('email')).first()
-        form_data = {c.name: form.data.get(c.name, None) for c in Vendor.__table__.columns if c.name not in ['id', 'created_at']}
-        form_data['categories'] = vendor.categories if vendor else set()
-        subcats = set()
-
-        # manually iterate the form fields
-        for k, v in request.form.iteritems():
-            if not k.startswith('subcategories-'):
-                continue
-            else:
-                subcat_id = int(k.split('-')[1])
-                # make sure the field is checked (or 'on') and we don't have it already
-                if v == 'on' and subcat_id not in subcats:
-                    subcats.add(subcat_id)
-                    subcat = Category.query.get(subcat_id)
-                    # make sure it's a valid category_friendly_name
-                    if subcat is None:
-                        raise ValidationError('{} is not a valid choice!'.format(subcat))
-                    form_data['categories'].add(subcat)
+        form_data = fix_form_categories(request, form, Vendor, vendor)
 
         if vendor:
             current_app.logger.info('''
@@ -71,10 +46,8 @@ def signup():
                 CATEGORIES:
                     {old_cats} ->
                     {categories}'''.format(
-                old_email=vendor.email,
-                email=form_data['email'],
-                old_bis=vendor.business_name,
-                bis_name=form_data['business_name'],
+                old_email=vendor.email, email=form_data['email'],
+                old_bis=vendor.business_name, bis_name=form_data['business_name'],
                 old_cats=[i.__unicode__() for i in vendor.categories],
                 categories=[i.__unicode__() for i in form_data['categories']]
             ))
@@ -87,7 +60,8 @@ def signup():
 
         else:
             current_app.logger.info(
-                'OPPNEWVENDOR - New vendor signed up: EMAIL: {email} at BUSINESS: {bis_name} signed up for:\n CATEGORIES: {categories}'.format(
+                'OPPNEWVENDOR - New vendor signed up: EMAIL: {email} at BUSINESS: {bis_name} signed up for:\n' +
+                'CATEGORIES: {categories}'.format(
                     email=form_data['email'],
                     bis_name=form_data['business_name'],
                     categories=[i.__unicode__() for i in form_data['categories']]

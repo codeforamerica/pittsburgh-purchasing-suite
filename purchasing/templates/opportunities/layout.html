@@ -10,6 +10,12 @@
 {% include "opportunities/nav.html" %}
 {% endblock %}
 
+{% block jsvars %}
+<script>
+var subcategories = '';
+</script>
+{% endblock %}
+
 {% block js %}
   {{ super() }}
   {% assets "opportunitiesjs" %}
