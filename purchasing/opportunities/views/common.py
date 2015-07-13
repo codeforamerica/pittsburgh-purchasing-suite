@@ -20,7 +20,9 @@ def get_categories(all_categories, form):
         subcategories['Select All'].append((category.id, category.category_friendly_name))
         subcategories[category.category].append((category.id, category.category_friendly_name))
 
-    form.categories.choices = [(None, '---')] + list(sorted(zip(categories, categories))) + [('Select All', 'Select All')]
+    form.categories.choices = list(sorted(zip(categories, categories))) + [('Select All', 'Select All')]
+    form.categories.choices.insert(0, ('', '-- Choose One --'))
+
     form.subcategories.choices = []
 
     return categories, subcategories, form

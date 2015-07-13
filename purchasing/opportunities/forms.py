@@ -38,6 +38,24 @@ def validate_phone_number(form, field):
         if len(value) != 10 and len(value) != 0:
             raise ValidationError('Invalid 10-digit phone number!')
 
+def validate_subcategories(form, field):
+    if field.data:
+        if len(field.data) == 0:
+            raise ValidationError('You must select at least one category!')
+        for val in field.data:
+            _cat = Category.query.get(val)
+            if _cat is None:
+                raise ValidationError('{} is not a valid choice!'.format(val))
+
+def validate_categories(form, field):
+    if field.data:
+        if field.data == '' and form.errors.get('subcategories', None) is None:
+            raise ValidationError('You must select at least one category!')
+    elif field.data != '':
+        pass
+    elif form.errors.get('subcategories', None) is None:
+        raise ValidationError('You must select at least one category!')
+
 class SignupForm(Form):
     business_name = fields.TextField(validators=[DataRequired()])
     email = fields.TextField(validators=[DataRequired(), Email()])
@@ -49,18 +67,9 @@ class SignupForm(Form):
     minority_owned = fields.BooleanField('Minority-owned business')
     veteran_owned = fields.BooleanField('Veteran-owned business')
     disadvantaged_owned = fields.BooleanField('Disadvantaged business enterprise')
-    categories = fields.SelectField(choices=[], validators=[Optional()])
-    subcategories = MultiCheckboxField(coerce=int, validators=[Optional()], choices=[])
+    subcategories = MultiCheckboxField(coerce=int, validators=[validate_subcategories, Optional()], choices=[])
+    categories = fields.SelectField(choices=[], validators=[validate_categories])
     also_categories = fields.BooleanField()
-
-    def validate_subcategories(form, field):
-        if field.data:
-            if len(field.data) == 0:
-                raise ValidationError('You must select at least one category!')
-            for val in field.data:
-                _cat = Category.query.get(val)
-                if _cat is None:
-                    raise ValidationError('{} is not a valid choice!'.format(val))
 
 def email_present(form, field):
     '''Checks that we have a vendor with that email address
