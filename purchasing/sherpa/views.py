@@ -79,7 +79,7 @@ class BuySomething(QuestionNode):
         'url': 'Sourcing',
         'text': 'No'
     }, {
-        'url': '../wexplorer',
+        'url': '../scout',
         'external': True,
         'text': "I don't know"
     }]

@@ -19,8 +19,6 @@
 
       <form class="form-horizontal" method="POST" action="{{ url_for('opportunities.signup') }}">
 
-        <pre>{{ form.errors }}</pre>
-
         {{ form.csrf_token() }}
 
         {% include 'opportunities/_categories.html' %}

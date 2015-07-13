@@ -213,6 +213,19 @@ def seed(user=None, secret=None, bucket=None):
     # import seed nigp
     import_nigp('./purchasing/data/importer/seed/2015-07-01-seed-nigp-cleaned.csv')
 
+@manager.command
+def reset_conductor():
+    '''Totally resets conductor, unassigns all contracts/flows/stages
+    '''
+    db.session.execute(
+        '''update contract set assigned_to = null, flow_id = null, current_stage_id = null'''
+    )
+    db.session.execute(
+        '''delete from contract_stage'''
+    )
+    db.session.commit()
+    return
+
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))
 manager.add_command('shell', Shell(make_context=_make_context))
 manager.add_command('db', MigrateCommand)
