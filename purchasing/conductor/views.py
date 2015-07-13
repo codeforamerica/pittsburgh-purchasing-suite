@@ -17,7 +17,7 @@ from purchasing.data.stages import transition_stage
 from purchasing.data.flows import create_contract_stages
 from purchasing.data.models import (
     ContractBase, ContractProperty, ContractStage, Stage,
-    ContractStageActionItem
+    ContractStageActionItem, Flow
 )
 from purchasing.users.models import User, Role
 from purchasing.conductor.forms import (
@@ -66,7 +66,10 @@ def index():
         assigned=assigned_contracts,
         user_starred=user_starred,
         current_user=current_user,
-        conductors=[current_user] + conductors
+        conductors=[current_user] + conductors,
+        path='{path}?{query}'.format(
+            path=request.path, query=request.query_string
+        )
     )
 
 @blueprint.route('/contract/<int:contract_id>', methods=['GET', 'POST'])
@@ -258,6 +261,12 @@ def assign(contract_id, flow_id, user_id):
     '''Assign a contract to an admin or a conductor
     '''
     contract = ContractBase.query.get(contract_id)
+    flow = Flow.query.get(flow_id)
+
+    if not flow:
+        flash('Something went wrong! That flow doesn\'t exist!', 'alert-danger')
+        return redirect('conductor.index')
+
     try:
         stages = create_contract_stages(flow_id, contract_id, contract=contract)
         _, contract, _ = transition_stage(contract_id, contract=contract, stages=stages)
