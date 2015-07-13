@@ -2,7 +2,9 @@
 {% elif contract.id in user_starred %}
 <td>
   <a href="{{ url_for('wexplorer.unstar', contract_id=contract.id, next=path) }}">
-    <i class="fa fa-star"></i>
+    <span class="fa-stack text-center fa-1x">
+      <i class="fa fa-star"></i>
+    </span>
   </a>
 </td>
 {% else %}
