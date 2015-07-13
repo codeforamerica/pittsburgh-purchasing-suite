@@ -6,7 +6,9 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-        <div class="spacer-20"></div>
+
+      <div class="spacer-20"></div>
+
       <h4>Complete your sign-up</h4>
       <h3>Tell us a little bit more about your business, in order to start receiving email updates about upcoming City opportunities.</h3>
 
@@ -16,6 +18,8 @@
       <p class="text-muted">Not sure what to choose? You can sign up for more than one category, or all of them if you like.</p>
 
       <form class="form-horizontal" method="POST" action="{{ url_for('opportunities.signup') }}">
+
+        <pre>{{ form.errors }}</pre>
 
         {{ form.csrf_token() }}
 

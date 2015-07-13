@@ -11,7 +11,7 @@ from flask_login import current_user
 
 from purchasing.database import db
 from purchasing.notifications import vendor_signup
-from purchasing.opportunities.forms import SignupForm, UnsubscribeForm, ValidationError
+from purchasing.opportunities.forms import SignupForm, UnsubscribeForm
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
 from purchasing.opportunities.views.common import blueprint, get_categories, fix_form_categories
