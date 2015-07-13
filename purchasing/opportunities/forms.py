@@ -3,7 +3,7 @@
 import re
 import datetime
 
-from flask import current_app
+from flask import current_app, request
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import widgets, fields
@@ -12,6 +12,7 @@ from wtforms.validators import DataRequired, Email, ValidationError, Optional
 from purchasing.opportunities.models import Category, Vendor
 
 from purchasing.users.models import DEPARTMENT_CHOICES, User
+from purchasing.opportunities.views.common import fix_form_categories
 
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
@@ -38,24 +39,6 @@ def validate_phone_number(form, field):
         if len(value) != 10 and len(value) != 0:
             raise ValidationError('Invalid 10-digit phone number!')
 
-def validate_subcategories(form, field):
-    if field.data:
-        if len(field.data) == 0:
-            raise ValidationError('You must select at least one category!')
-        for val in field.data:
-            _cat = Category.query.get(val)
-            if _cat is None:
-                raise ValidationError('{} is not a valid choice!'.format(val))
-
-def validate_categories(form, field):
-    if field.data:
-        if field.data == '' and form.errors.get('subcategories', None) is None:
-            raise ValidationError('You must select at least one category!')
-    elif field.data != '':
-        pass
-    elif form.errors.get('subcategories', None) is None:
-        raise ValidationError('You must select at least one category!')
-
 class SignupForm(Form):
     business_name = fields.TextField(validators=[DataRequired()])
     email = fields.TextField(validators=[DataRequired(), Email()])
@@ -67,8 +50,8 @@ class SignupForm(Form):
     minority_owned = fields.BooleanField('Minority-owned business')
     veteran_owned = fields.BooleanField('Veteran-owned business')
     disadvantaged_owned = fields.BooleanField('Disadvantaged business enterprise')
-    subcategories = MultiCheckboxField(coerce=int, validators=[validate_subcategories, Optional()], choices=[])
-    categories = fields.SelectField(choices=[], validators=[validate_categories])
+    subcategories = MultiCheckboxField(coerce=int, validators=[Optional()], choices=[])
+    categories = fields.SelectField(choices=[], validators=[Optional()])
     also_categories = fields.BooleanField()
 
 def email_present(form, field):

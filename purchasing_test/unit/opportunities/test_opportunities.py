@@ -57,8 +57,7 @@ class TestOpportunities(BaseTestCase):
         # assert valid email address
         invalid_email_post = self.client.post('/beacon/signup', data=dict(
             email='INVALID',
-            business_name='test',
-            subcategories=[1]
+            business_name='test'
         ))
 
         self.assert200(invalid_email_post)
@@ -66,15 +65,6 @@ class TestOpportunities(BaseTestCase):
         self.assertTrue(invalid_email_post.data.count('Invalid email address.'), 1)
 
         # assert valid categories
-        invalid_category_post = self.client.post('/beacon/signup', data=dict(
-            email='foo@foo.com',
-            business_name='test',
-            subcategories=[999]
-        ))
-
-        self.assert200(invalid_category_post)
-        self.assertTrue(invalid_category_post.data.count('alert-danger'), 1)
-        self.assertTrue('999 is not a valid choice!' in invalid_category_post.data)
 
         with mail.record_messages() as outbox:
 
@@ -97,7 +87,9 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(len(outbox), 1)
             self.assertEquals(Vendor.query.count(), 1)
             self.assertEquals(len(Vendor.query.first().categories), 1)
-            self.assert_flashes('Thank you for signing up! Check your email for more information', 'alert-success')
+            self.assert_flashes(
+                'Thank you for signing up! Check your email for more information', 'alert-success'
+            )
 
             # successful post with two sets of subcategories
             success_post_everything = self.client.post('/beacon/signup', data={
@@ -133,7 +125,9 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(len(outbox), 2)
             self.assertEquals(Vendor.query.count(), 2)
             self.assertEquals(len(Vendor.query.all()[1].categories), 5)
-            self.assert_flashes("You are already signed up! Your profile was updated with this new information", 'alert-info')
+            self.assert_flashes(
+                "You are already signed up! Your profile was updated with this new information", 'alert-info'
+            )
 
             with self.client.session_transaction() as session:
                 assert 'email' in session
