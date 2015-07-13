@@ -49,7 +49,8 @@ def index():
     ).order_by(ContractBase.expiration_date).all()
 
     conductors = User.query.join(Role).filter(
-        Role.name == 'conductor'
+        Role.name == 'conductor',
+        User.email != current_user.email
     ).all()
 
     user_starred = [] if current_user.is_anonymous() else current_user.get_starred()
