@@ -95,7 +95,14 @@ def import_costars(user=None, secret=None, bucket=None, directory=None):
     '-f', '--file', dest='filepath',
     default='./purchasing/data/importer/files/2015-07-01-nigp-cleaned.csv'
 )
-def import_nigp(filepath):
+@manager.option('-r', '--replace', dest='replace', default=False)
+def import_nigp(filepath, replace=False):
+    if replace:
+        print 'Deleting current categories...'
+        db.session.execute(
+            'DELETE FROM category'
+        )
+        db.session.commit
     from purchasing.data.importer.nigp import main
     print 'Importing data from {filepath}\n'.format(filepath=filepath)
     main(filepath)
