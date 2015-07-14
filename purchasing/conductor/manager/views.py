@@ -3,6 +3,8 @@
 import urllib2
 import datetime
 
+from collections import defaultdict
+
 from flask import (
     Blueprint, render_template, flash, redirect,
     url_for, abort, request, jsonify
@@ -34,7 +36,7 @@ blueprint = Blueprint(
 @blueprint.route('/')
 @requires_roles('conductor', 'admin', 'superadmin')
 def index():
-    all_contracts, assigned_contracts = [], []
+    in_progress, upcoming, _all = [], [], []
 
     contracts = db.session.query(
         ContractBase.id, ContractBase.description,
@@ -45,7 +47,7 @@ def index():
         ContractBase.contract_href
     ).join(ContractProperty).outerjoin(Stage).outerjoin(User).filter(
         db.func.lower(ContractBase.contract_type) == 'county',
-        ContractBase.expiration_date is not None,
+        ContractBase.expiration_date != None,
         db.func.lower(ContractProperty.key) == 'spec number',
     ).order_by(ContractBase.expiration_date).all()
 
@@ -57,15 +59,16 @@ def index():
     user_starred = [] if current_user.is_anonymous() else current_user.get_starred()
 
     for contract in contracts:
-        if contract.assigned:
-            assigned_contracts.append(contract)
+        if contract.current_stage:
+            in_progress.append(contract)
+        elif contract.expiration_date <= datetime.date.today() + datetime.timedelta(90):
+            upcoming.append(contract)
         else:
-            all_contracts.append(contract)
+            _all.append(contract)
 
     return render_template(
         'conductor/index.html',
-        contracts=all_contracts,
-        assigned=assigned_contracts,
+        in_progress=in_progress, upcoming=upcoming, _all=_all,
         user_starred=user_starred,
         current_user=current_user,
         conductors=[current_user] + conductors,

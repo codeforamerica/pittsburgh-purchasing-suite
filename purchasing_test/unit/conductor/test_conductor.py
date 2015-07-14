@@ -38,10 +38,11 @@ class TestConductor(BaseTestCase):
         # create two contracts
         self.contract1 = insert_a_contract(
             contract_type='County', description='scuba supplies', financial_id=123,
-            properties=[{'key': 'Spec Number', 'value': '123'}]
+            expiration_date=datetime.date.today(), properties=[{'key': 'Spec Number', 'value': '123'}]
         )
         self.contract2 = insert_a_contract(
             contract_type='County', description='scuba repair', financial_id=456,
+            expiration_date=datetime.date.today() + datetime.timedelta(120),
             properties=[{'key': 'Spec Number', 'value': '456'}]
         )
 
@@ -86,10 +87,12 @@ class TestConductor(BaseTestCase):
         self.assert_template_used('conductor/index.html')
 
         # we have 2 contracts
-        contracts = self.get_context_variable('contracts')
-        self.assertEquals(len(contracts), 2)
+        upcoming = self.get_context_variable('upcoming')
+        self.assertEquals(len(upcoming), 1)
+        _all = self.get_context_variable('_all')
+        self.assertEquals(len(_all), 1)
         # neither contract is assigned
-        for contract in contracts:
+        for contract in upcoming + _all:
             self.assertTrue(contract.assigned is None)
 
         # we can't get to the page normally
