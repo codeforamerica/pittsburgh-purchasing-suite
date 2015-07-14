@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import re
+
 from flask import (
     Blueprint, render_template, current_app,
     request, abort, flash, redirect, url_for
@@ -28,6 +30,8 @@ blueprint = Blueprint(
     'wexplorer', __name__, url_prefix='/scout',
     template_folder='../templates'
 )
+
+CRAZY_CHARS = re.compile('[^A-Za-z0-9 ]')
 
 @blueprint.route('/', methods=['GET'])
 @wrap_form(SearchForm, 'search_form', 'wexplorer/explore.html')
@@ -93,7 +97,10 @@ def build_filter(req_args, fields, search_for, filter_form, _all):
         if _all or req_args.get(arg_name) == 'y':
             if not _all:
                 filter_form[arg_name].checked = True
-            clauses.append(filter_column.match(search_for, postgresql_regconfig='english'))
+            clauses.append(filter_column.match(
+                search_for,
+                postgresql_regconfig='english')
+            )
     return clauses
 
 def build_cases(req_args, fields, search_for, _all):
@@ -103,7 +110,10 @@ def build_cases(req_args, fields, search_for, _all):
     for arg_name, arg_description, filter_column in fields:
         if _all or req_args.get(arg_name) == 'y':
             clauses.append(
-                (filter_column.match(search_for, postgresql_regconfig='english') == True, arg_description)
+                (filter_column.match(
+                    search_for,
+                    postgresql_regconfig='english'
+                ) == True, arg_description)
             )
     return clauses
 
@@ -119,6 +129,10 @@ def search():
 
     search_form = SearchForm(request.form)
     search_for = request.args.get('q', '')
+
+    # strip out "crazy" characters
+    search_for = re.sub(CRAZY_CHARS, '', search_for)
+    search_for = ' | '.join(search_for.split())
 
     pagination_per_page = current_app.config.get('PER_PAGE', 50)
     page = int(request.args.get('page', 1))
