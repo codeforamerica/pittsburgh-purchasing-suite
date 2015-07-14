@@ -110,7 +110,21 @@
         </div>
         {% endif %}
 
-        <button type="submit" class="btn btn-primary col-sm-6">Publish Opportunity</button>
+
+        <div class="row">
+          <div class="col-sm-6">
+            <button type="submit" class="btn btn-primary col-sm-12" id="button-save">Save Opportunity</button>
+          </div>
+          <div class="col-sm-6">
+            <button type="submit" class="btn btn-primary col-sm-12" id="button-submit">
+              {% if current_user.role.name in ['conductor', 'admin', 'superadmin'] %}
+              Publish Opportunity
+              {% else %}
+              Submit Opportunity for Review
+              {% endif %}
+            </button>
+          </div>
+        </div>
 
       </form>
 
