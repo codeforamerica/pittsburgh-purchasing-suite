@@ -5,7 +5,7 @@ import json
 
 from flask import (
     render_template, url_for, current_app,
-    redirect, flash, abort, request
+    redirect, flash, abort, request, Blueprint
 )
 from werkzeug import secure_filename
 
@@ -17,7 +17,12 @@ from purchasing.decorators import requires_roles
 from purchasing.opportunities.forms import OpportunityForm
 from purchasing.opportunities.models import Opportunity, RequiredBidDocument, Category
 from purchasing.users.models import User
-from purchasing.opportunities.views.common import blueprint, get_categories, fix_form_categories
+from purchasing.opportunities.util import get_categories, fix_form_categories
+
+blueprint = Blueprint(
+    'opportunities_admin', __name__, url_prefix='/beacon/admin',
+    static_folder='../static', template_folder='../templates'
+)
 
 @login_manager.user_loader
 def load_user(userid):
@@ -87,7 +92,7 @@ def generate_opportunity_form(obj=None):
 
     return form, json.dumps(sorted(display_categories) + ['Select All']), json.dumps(subcategories)
 
-@blueprint.route('/opportunities/admin/new', methods=['GET', 'POST'])
+@blueprint.route('/opportunities/new', methods=['GET', 'POST'])
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def new():
     '''Create a new opportunity
@@ -100,14 +105,14 @@ def new():
         form_data['contact_email'] = form.data.get('contact_email')
         opportunity = build_opportunity(form_data)
         flash('Opportunity Successfully Created!', 'alert-success')
-        return redirect(url_for('opportunities.edit', opportunity_id=opportunity.id))
+        return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
     return render_template(
-        'opportunities/opportunity.html', form=form, opportunity=None,
+        'opportunities/admin/opportunity.html', form=form, opportunity=None,
         subcategories=subcategories,
         categories=categories
     )
 
-@blueprint.route('/opportunities/<int:opportunity_id>/admin/edit', methods=['GET', 'POST'])
+@blueprint.route('/opportunities/<int:opportunity_id>', methods=['GET', 'POST'])
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def edit(opportunity_id):
     '''Edit an opportunity
@@ -123,10 +128,10 @@ def edit(opportunity_id):
             form_data['contact_email'] = form.data.get('contact_email')
             build_opportunity(form_data, opportunity=opportunity)
             flash('Opportunity Successfully Updated!', 'alert-success')
-            return redirect(url_for('opportunities.edit', opportunity_id=opportunity.id))
+            return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
 
         return render_template(
-            'opportunities/opportunity.html', form=form, opportunity=opportunity,
+            'opportunities/admin/opportunity.html', form=form, opportunity=opportunity,
             subcategories=subcategories,
             categories=categories
         )

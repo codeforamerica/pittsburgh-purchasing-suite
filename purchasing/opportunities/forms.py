@@ -3,16 +3,15 @@
 import re
 import datetime
 
-from flask import current_app, request
+from flask import current_app
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import widgets, fields
 from wtforms.validators import DataRequired, Email, ValidationError, Optional
 
-from purchasing.opportunities.models import Category, Vendor
+from purchasing.opportunities.models import Vendor
 
 from purchasing.users.models import DEPARTMENT_CHOICES, User
-from purchasing.opportunities.views.common import fix_form_categories
 
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
