@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import unittest
+
 from os import mkdir, listdir, rmdir
 from shutil import rmtree
 from flask import current_app
@@ -10,8 +12,7 @@ from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
     insert_a_role, insert_a_user
 )
-from purchasing.opportunities.views.admin import upload_document
-from purchasing.conductor.forms import FileUpload
+from purchasing.conductor.views import upload as costars_upload
 
 class TestCostarsUpload(BaseTestCase):
     def setUp(self):
@@ -28,15 +29,6 @@ class TestCostarsUpload(BaseTestCase):
 
         self.staff_role_id = insert_a_role('staff')
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role_id)
-
-    def tearDown(self):
-        super(TestCostarsUpload, self).tearDown()
-        # clear out the uploads folder
-        rmtree(current_app.config.get('UPLOAD_FOLDER'))
-        try:
-            rmdir(current_app.config.get('UPLOAD_FOLDER'))
-        except OSError:
-            pass
 
     def test_page_locked(self):
         '''Test page won't render for people without proper roles
@@ -59,28 +51,21 @@ class TestCostarsUpload(BaseTestCase):
         '''Test upload doesn't work without proper role
         '''
         document = FileStorage(StringIO('test,this,csv'), filename='test.csv')
-        #upload_document(document)
-        #self.assertTrue('test.csv' in listdir(current_app.config.get('UPLOAD_FOLDER')))
+        upload_csv = self.client.post('/conductor/upload_new', data=dict(datafile=document))
 
-        super(TestCostarsUpload, self).tearDown()
-        self.upload_document(document)
-        self.assertFalse('test.csv' in listdir(current_app.config.get('UPLOAD_FOLDER')))
+        self.assertEqual(upload_csv.status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
-        self.login_user(self.conductor)
-        self.assert200(self.client.post('/conductor/_process_file'))
-
         self.login_user(self.admin)
-        self.assert200(self.client.post('/conductor/_process_file'))
+        self.assert200(upload_csv)
 
-        self.login_user(self.superadmin)
-        self.assert200(self.client.post('/conductor/_process_file'))
-
+    @unittest.skip('csv verification coming soon')
     def test_upload_validation(self):
         '''Test that only csv's can be uploaded
         '''
         self.assertTrue(False)
 
+    @unittest.skip('upload/update test coming soon')
     def test_upload_success(self):
         '''Test that file upload works and updates database
         '''
