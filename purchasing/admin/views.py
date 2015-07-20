@@ -5,6 +5,7 @@ from wtforms.fields import SelectField
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin
 from flask_admin.contrib import sqla
+from flask.ext.admin.form.fields import Select2TagsField
 from flask_login import current_user
 from purchasing.data.models import (
     Stage, StageProperty, Flow, ContractBase, ContractProperty,
@@ -94,8 +95,18 @@ class CompanyAdmin(AuthMixin, sqla.ModelView):
         'company_name', 'contracts'
     ]
 
+def _stage_lookup(stage_name):
+    return Stage.query.filter(Stage.id == stage_name).first().id
+
 class FlowAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['flow_name', 'stage_order']
+
+    form_extra_fields = {
+        'stage_order': Select2TagsField(
+            'Stage Order', coerce=_stage_lookup,
+            save_as_list=True
+        )
+    }
 
 class UserAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['email', 'first_name', 'last_name', 'department']
