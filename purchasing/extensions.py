@@ -35,4 +35,4 @@ class PermissionsBase(AuthMixin, AdminIndexView):
     def index(self):
         return self.render('admin/index.html')
 
-admin = Admin(endpoint='admin', index_view=PermissionsBase(), template_mode='bootstrap3')
+admin = Admin(endpoint='admin', base_template='admin/purchasing_master.html', index_view=PermissionsBase(), template_mode='bootstrap3')
