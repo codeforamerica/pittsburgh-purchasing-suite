@@ -1,0 +1,9 @@
+{% extends 'admin/base.html' %}
+
+{% block access_control %}
+<ul class="nav navbar-nav pull-right">
+<li>
+  <a href="{{ url_for('public.home') }}">Leave Admin</a>
+</li>
+</ul>
+{% endblock %}
