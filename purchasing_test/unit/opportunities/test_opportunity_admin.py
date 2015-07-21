@@ -11,7 +11,7 @@ from shutil import rmtree
 from purchasing.opportunities.models import Opportunity, Vendor, Category
 from purchasing.users.models import User
 from purchasing.data.importer.nigp import main as import_nigp
-from purchasing.opportunities.views.admin import build_opportunity, upload_document
+from purchasing.opportunities.admin.views import build_opportunity, upload_document
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
@@ -92,7 +92,7 @@ class TestOpportunities(BaseTestCase):
             'subcategories-3': 'on', 'subcategories-4': 'on'
         }
 
-        self.client.post('/beacon/opportunities/admin/new', data=data)
+        self.client.post('/beacon/admin/opportunities/new', data=data)
 
         self.assertEquals(Opportunity.query.count(), 5)
         self.assertEquals(len(Opportunity.query.get(5).categories), 4)
@@ -137,11 +137,11 @@ class TestOpportunities(BaseTestCase):
         '''Test create contract page
         '''
         self.assertEquals(Opportunity.query.count(), 4)
-        self.assertEquals(self.client.get('/beacon/opportunities/admin/new').status_code, 302)
+        self.assertEquals(self.client.get('/beacon/admin/opportunities/new').status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
         self.login_user(self.admin)
-        self.assert200(self.client.get('/beacon/opportunities/admin/new'))
+        self.assert200(self.client.get('/beacon/admin/opportunities/new'))
 
         # build data dictionaries
         bad_data = {
@@ -152,7 +152,7 @@ class TestOpportunities(BaseTestCase):
         }
 
         # assert that you need a title & description
-        new_contract = self.client.post('/beacon/opportunities/admin/new', data=bad_data)
+        new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
         self.assertEquals(Opportunity.query.count(), 4)
         self.assert200(new_contract)
         self.assertTrue('This field is required.' in new_contract.data)
@@ -162,13 +162,13 @@ class TestOpportunities(BaseTestCase):
         bad_data['planned_deadline'] = datetime.date.today() - datetime.timedelta(1)
 
         # assert you can't create a contract with an expired deadline
-        new_contract = self.client.post('/beacon/opportunities/admin/new', data=bad_data)
+        new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
         self.assertEquals(Opportunity.query.count(), 4)
         self.assert200(new_contract)
         self.assertTrue('The deadline has to be after today!' in new_contract.data)
 
         bad_data['description'] = 'TOO LONG! ' * 500
-        new_contract = self.client.post('/beacon/opportunities/admin/new', data=bad_data)
+        new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
         self.assertEquals(Opportunity.query.count(), 4)
         self.assert200(new_contract)
         self.assertTrue('Text cannot be more than 500 words!' in new_contract.data)
@@ -177,25 +177,25 @@ class TestOpportunities(BaseTestCase):
         bad_data['is_public'] = True
         bad_data['planned_deadline'] = datetime.date.today() + datetime.timedelta(1)
 
-        new_contract = self.client.post('/beacon/opportunities/admin/new', data=bad_data)
+        new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
         self.assertEquals(Opportunity.query.count(), 5)
         self.assert_flashes('Opportunity Successfully Created!', 'alert-success')
 
     def test_edit_a_contract(self):
         '''Test updating a contract
         '''
-        self.assertEquals(self.client.get('/beacon/opportunities/2/admin/edit').status_code, 302)
+        self.assertEquals(self.client.get('/beacon/admin/opportunities/2').status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
         self.login_user(self.admin)
-        self.assert200(self.client.get('/beacon/opportunities/2/admin/edit'))
+        self.assert200(self.client.get('/beacon/admin/opportunities/2'))
 
         self.assert200(self.client.get('/beacon/opportunities'))
 
         self.assertEquals(len(self.get_context_variable('active')), 1)
         self.assertEquals(len(self.get_context_variable('upcoming')), 2)
 
-        self.client.post('/beacon/opportunities/2/admin/edit', data={
+        self.client.post('/beacon/admin/opportunities/2', data={
             'planned_open': datetime.date.today(), 'title': 'Updated',
             'description': 'Updated Contract!', 'is_public': True
         })

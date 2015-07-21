@@ -26,7 +26,7 @@ def splash():
     '''Landing page for opportunities site
     '''
     return render_template(
-        'opportunities/splash.html'
+        'opportunities/front/splash.html'
     )
 
 @blueprint.route('/signup', methods=['GET', 'POST'])

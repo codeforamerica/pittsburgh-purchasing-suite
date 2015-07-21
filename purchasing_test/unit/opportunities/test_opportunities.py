@@ -21,7 +21,7 @@ class TestOpportunities(BaseTestCase):
         '''
         response = self.client.get('/beacon/')
         self.assert200(response)
-        self.assert_template_used('opportunities/index.html')
+        self.assert_template_used('opportunities/front/splash.html')
 
         self.client.post('/beacon/signup?email=BADEMAIL', follow_redirects=True)
 
