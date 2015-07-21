@@ -7,11 +7,13 @@ from flask import (
     render_template, url_for, current_app,
     redirect, flash, abort, request, Blueprint
 )
+from flask_login import current_user
 from werkzeug import secure_filename
 
 from purchasing.utils import (
     connect_to_s3, _get_aggressive_cache_headers, random_id
 )
+from purchasing.database import db
 from purchasing.extensions import login_manager
 from purchasing.decorators import requires_roles
 from purchasing.opportunities.forms import OpportunityForm
@@ -136,3 +138,40 @@ def edit(opportunity_id):
             categories=categories
         )
     abort(404)
+
+@blueprint.route('/opportunities/<int:opportunity_id>/publish', methods=['GET'])
+@requires_roles('admin', 'superadmin', 'conductor')
+def publish(opportunity_id):
+    '''Publish an opportunity
+    '''
+    opportunity = Opportunity.query.get(opportunity_id)
+    if opportunity:
+        opportunity.is_public = True
+        db.session.commit()
+        flash(
+            'Opportunity successfully published! Visit the <a href="{}">browse page</a> to see it'.format(
+                url_for('opportunities.browse')
+            ), 'alert-success'
+        )
+        return redirect(url_for('opportunities_admin.pending'))
+    abort(404)
+
+@blueprint.route('/opportunities/pending', methods=['GET'])
+@requires_roles('staff', 'admin', 'superadmin', 'conductor')
+def pending():
+    '''View which contracts are currently pending approval
+    '''
+    opportunities = Opportunity.query.filter(
+        Opportunity.is_public == False
+    ).all()
+    return render_template(
+        'opportunities/admin/pending.html', opportunities=opportunities,
+        current_user=current_user
+    )
+
+@blueprint.route('/signups')
+@requires_roles('staff', 'admin', 'superadmin', 'conductor')
+def signups():
+    '''Basic dashboard view for category-level signups
+    '''
+    return render_template('opportunities/admin/signups.html')
