@@ -8,10 +8,10 @@
 {% endblock %}
 
 {% block applinks_right %}
+<li><p class="navbar-text"><a href="{{ url_for('opportunities.browse') }}" class="navbar-link">Browse Opportunities</a></p></li>
+<li><p class="navbar-text"><a href="{{ url_for('opportunities.signup') }}" class="navbar-link">Subscribe</a></p></li>
+<li><p class="navbar-text"><a href="{{ url_for('opportunities.manage') }}" class="navbar-link">Manage Subscriptions</a></p></li>
 {% if not current_user.is_anonymous() %}
-{% if current_user.is_conductor() %}
-<li><p class="navbar-text"><a href="{{ url_for('admin.index') }}" class="navbar-link">Admin</a></p></li>
-{% endif %}
 <li class="dropdown">
   <a class="btn nav-dropdown-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
     Manage Opportunities
@@ -21,12 +21,14 @@
   <ul class="dropdown-menu" role="menu">
     <li><a href="{{ url_for('opportunities_admin.new') }}">Add New Opportunity</a></li>
     <li><a href="{{ url_for('opportunities_admin.pending') }}">View Pending Opportunities</a></li>
-    <li><a href="{{ url_for('opportunities_admin.signups') }}">Download Vendor Signups</a></li>
+    <li><a href="{{ url_for('opportunities_admin.signups') }}">Download Vendor Subscriptions</a></li>
+    {% if current_user.is_conductor() %}
+    <li><a href="{{ url_for('admin.index') }}" class="navbar-link">Admin</a></li>
+    {% endif %}
   </ul>
 </li>
+{% else %}
+{% include "includes/nav-login.html" %}
 {% endif %}
-<li><p class="navbar-text"><a href="{{ url_for('opportunities.browse') }}" class="navbar-link">Browse Opportunities</a></p></li>
-<li><p class="navbar-text"><a href="{{ url_for('opportunities.signup') }}" class="navbar-link">Sign Up</a></p></li>
-<li><p class="navbar-text"><a href="{{ url_for('opportunities.manage') }}" class="navbar-link">Manage Subscriptions</a></p></li>
 {% endblock %}
 
