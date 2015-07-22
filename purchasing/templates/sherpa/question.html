@@ -24,12 +24,15 @@
 
       <div class="spacer-20">
         {% for button in buttons %}
-          <a
-            class="btn btn-primary btn-sherpa"
-            href="{{ button.url }}"
-          >
-            {{ button.text }}
-          </a>
+            <a
+              class="btn btn-primary btn-sherpa"
+              href="{{ button.url }}"
+              {% if button.new_tab %}
+              target="_blank"
+              {% endif %}
+            >
+              {{ button.text }}
+            </a>
         {% endfor %}
       </div>
 
