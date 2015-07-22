@@ -50,20 +50,35 @@ class TestCostarsUpload(BaseTestCase):
     def test_upload_locked(self):
         '''Test upload doesn't work without proper role
         '''
-        document = FileStorage(StringIO('test,this,csv'), filename='test.csv')
+        document = FileStorage(StringIO('test,this,csv'), filename='test.csv').close()
         upload_csv = self.client.post('/conductor/upload_new', data=dict(datafile=document))
 
         self.assertEqual(upload_csv.status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
-        self.login_user(self.admin)
-        self.assert200(upload_csv)
+        self.login_user(self.conductor)
+        self.assert200(self.client.post('/conductor/upload_new', data=dict(datafile=document)))
 
-    @unittest.skip('csv verification coming soon')
+        self.login_user(self.admin)
+        self.assert200(self.client.post('/conductor/upload_new', data=dict(datafile=document)))
+
+        self.login_user(self.superadmin)
+        self.assert200(self.client.post('/conductor/upload_new', data=dict(datafile=document)))
+
     def test_upload_validation(self):
         '''Test that only csv's can be uploaded
         '''
-        self.assertTrue(False)
+        csv_document = FileStorage(StringIO('test,this,csv'), filename='test.csv').close()
+
+        self.login_user(self.conductor)
+
+        upload_txt = self.client.post('/conductor/upload_new', data='../purchasing/uploads/test.txt')
+        self.assert200(upload_txt)
+        self.assert_template_used('conductor/upload_new.html')
+
+        upload_csv = self.client.post('/conductor/upload_new', data='../purchasing/uploads/test.csv')
+        self.assert200(upload_csv)
+        self.assert_template_used('conductor/upload_new.html')
 
     @unittest.skip('upload/update test coming soon')
     def test_upload_success(self):
