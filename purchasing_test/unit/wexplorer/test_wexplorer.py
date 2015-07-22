@@ -89,6 +89,10 @@ class TestWexplorer(BaseTestCase):
         self.assert200(self.client.get('/scout/search?q='))
         self.assertEquals(len(self.get_context_variable('results')), 3)
 
+        # make sure that crazy input still returns a 200
+        self.assert200(self.client.get('/scout/search?q=fj02jf,/fj20j8**#*U!?JX&&'))
+        self.assert200(self.client.get('/scout/search?q=super+man'))
+
     def test_companies(self):
         '''Test that the companies page works as expected, including throwing 404s where appropriate
         '''

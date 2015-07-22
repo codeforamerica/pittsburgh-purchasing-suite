@@ -9,7 +9,7 @@ from flask_wtf.file import FileField, FileAllowed
 from wtforms import widgets, fields
 from wtforms.validators import DataRequired, Email, ValidationError, Optional
 
-from purchasing.opportunities.models import Category, Vendor
+from purchasing.opportunities.models import Vendor
 
 from purchasing.users.models import DEPARTMENT_CHOICES, User
 
@@ -49,18 +49,9 @@ class SignupForm(Form):
     minority_owned = fields.BooleanField('Minority-owned business')
     veteran_owned = fields.BooleanField('Veteran-owned business')
     disadvantaged_owned = fields.BooleanField('Disadvantaged business enterprise')
-    categories = fields.SelectField(choices=[], validators=[Optional()])
     subcategories = MultiCheckboxField(coerce=int, validators=[Optional()], choices=[])
+    categories = fields.SelectField(choices=[], validators=[Optional()])
     also_categories = fields.BooleanField()
-
-    def validate_subcategories(form, field):
-        if field.data:
-            if len(field.data) == 0:
-                raise ValidationError('You must select at least one category!')
-            for val in field.data:
-                _cat = Category.query.get(val)
-                if _cat is None:
-                    raise ValidationError('{} is not a valid choice!'.format(val))
 
 def email_present(form, field):
     '''Checks that we have a vendor with that email address
@@ -119,3 +110,5 @@ class OpportunityForm(Form):
     document = FileField(
         validators=[FileAllowed(['pdf'], '.pdf documents only!')]
     )
+    categories = fields.SelectField(choices=[], validators=[Optional()])
+    subcategories = MultiCheckboxField(coerce=int, validators=[Optional()], choices=[])

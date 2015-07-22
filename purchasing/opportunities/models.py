@@ -11,6 +11,7 @@ from purchasing.database import (
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref
 from sqlalchemy.dialects.postgres import ARRAY
+from sqlalchemy.dialects.postgresql import TSVECTOR
 
 category_vendor_association_table = Table(
     'category_vendor_association', Model.metadata,
@@ -34,9 +35,12 @@ class Category(Model):
     __tablename__ = 'category'
 
     id = Column(db.Integer, primary_key=True, index=True)
-    nigp_code = Column(db.Integer)
+    nigp_codes = Column(ARRAY(db.Integer()))
     category = Column(db.String(255))
     subcategory = Column(db.String(255))
+    category_friendly_name = Column(db.Text)
+    examples = Column(db.Text)
+    examples_tsv = Column(TSVECTOR)
 
     def __unicode__(self):
         return '{sub} (in {main})'.format(sub=self.subcategory, main=self.category)
@@ -57,12 +61,8 @@ class Opportunity(Model):
     categories = db.relationship(
         'Category',
         secondary=category_opportunity_association_table,
-        backref='opportunities'
-    )
-    vendors = db.relationship(
-        'Vendor',
-        secondary=opportunity_vendor_association_table,
-        backref='opportunities'
+        backref='opportunities',
+        collection_class=set
     )
     # Date department advertised bid
     planned_open = Column(db.DateTime)
@@ -167,7 +167,14 @@ class Vendor(Model):
     categories = db.relationship(
         'Category',
         secondary=category_vendor_association_table,
-        backref='vendors'
+        backref='vendors',
+        collection_class=set
+    )
+    opportunities = db.relationship(
+        'Opportunity',
+        secondary=opportunity_vendor_association_table,
+        backref='vendors',
+        collection_class=set
     )
 
     def __unicode__(self):

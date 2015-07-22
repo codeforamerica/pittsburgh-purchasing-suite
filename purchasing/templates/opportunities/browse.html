@@ -12,6 +12,20 @@
         <h2>All Opportunities</h2>
 
         <h3>Opportunities Open for Bid Now</h3>
+
+        <div class="row">
+          <div class="col-sm-12">
+            {% if 'subcategories' in signup_form.errors.keys() %}
+            <div class="alert alert-danger alert-dismissable">
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+              <span>{{ signup_form.errors['subcategories'][0] }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
         {% if active|length > 0 %}
         <table class="table table-striped">
           <thead>
@@ -35,7 +49,7 @@
               <td>{{ opportunity.department }}</td>
               <td>{{ opportunity.planned_deadline.strftime('%Y-%m-%d') }}</td>
               {% if opportunity.can_edit(current_user) %}
-              <td><a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
+              <td><a href="{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
               {% elif not current_user.is_anonymous() %}
               <td><i class="fa fa-minus"></i></td>
               {% endif %}
@@ -82,7 +96,7 @@
               <td>{{ opportunity.department }}</td>
               <td>{{ opportunity.planned_deadline.strftime('%Y-%m-%d') }}</td>
               {% if opportunity.can_edit(current_user) %}
-              <td><a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
+              <td><a href="{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
               {% elif not current_user.is_anonymous() %}
               <i class="fa fa-minus"></i>
               {% endif %}

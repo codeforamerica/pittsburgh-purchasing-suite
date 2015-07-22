@@ -49,7 +49,7 @@ class StartPSA(TerminationNode):
             'external': True,
             'extlink_description': "Once you're ready, fill in the form and upload required documents at the link below",
             'url': 'https://cfa.typeform.com/to/gLWMLC',
-            'button_text': 'Start PSA Request Form'
+            'button_text': 'Start Professional Service Request Form'
         }
     ]
     timeline = [
@@ -79,9 +79,10 @@ class BuySomething(QuestionNode):
         'url': 'Sourcing',
         'text': 'No'
     }, {
-        'url': '../wexplorer',
+        'url': '../scout',
         'external': True,
-        'text': "I don't know"
+        'text': "I don't know",
+        'new_tab': True
     }]
     prev = {
         'url': 'Index',

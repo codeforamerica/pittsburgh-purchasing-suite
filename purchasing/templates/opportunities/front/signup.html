@@ -6,45 +6,22 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-        <div class="spacer-20"></div>
-      <h4>Complete your sign-up</h4>
+
+      <div class="spacer-20"></div>
+
+      <h4>Complete your subscription</h4>
       <h3>Tell us a little bit more about your business, in order to start receiving email updates about upcoming City opportunities.</h3>
 
       <div class="spacer-20"></div>
 
       <label class="signup-label">What opportunities would you like to be notified about?</label>
-      <p class="text-muted">Not sure what to choose? You can sign up for more than one category, or all of them if you like.</p>
+      <p class="text-muted">Not sure what to choose? You can subscribe for more than one category, or all of them if you like.</p>
 
       <form class="form-horizontal" method="POST" action="{{ url_for('opportunities.signup') }}">
 
         {{ form.csrf_token() }}
 
-        <div id="js-categories-container">
-
-          <div class="form-group">
-            <div class="col-sm-12">
-              {{ macros.with_errors(form.categories, class_="form-control col-sm-12 js-category-select", id="category-0") }}
-            </div>
-          </div><!-- categories -->
-
-          <div class="form-group" id="js-subcategory-group-0">
-            {% if 'subcategories' in form.errors.keys() %}
-            <div class="alert alert-danger alert-dismissable">
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-              <span>{{ form.errors['subcategories'][0] }}</span>
-            </div>
-            {% endif %}
-          </div>
-
-        </div><!-- /js-categories-container -->
-
-        <div class="form-group">
-         <div class="col-sm-6">
-            <button type="button" class="form-control btn btn-primary another-category" id="js-add-category">Add another category</button>
-         </div>
-        </div>
+        {% include 'opportunities/_categories.html' %}
 
         <div class="spacer-20"></div>
 
@@ -110,7 +87,7 @@
           </div>
         </div><!-- /certifications -->
 
-        <input type="submit" class="btn btn-primary form-control" value="Sign up">
+        <input type="submit" class="btn btn-primary form-control" value="Subscribe">
 
       </form>
 

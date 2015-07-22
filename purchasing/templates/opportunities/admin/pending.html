@@ -1,0 +1,70 @@
+{% extends "opportunities/layout.html" %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      {% include "includes/flashes.html" %}
+
+      <h3>Pending Opportunities</h3>
+      <p>Opportunities pending approval from OMB.</p>
+
+      {% for opportunity in opportunities %}
+      <div class="pending-opportunity">
+        <div class="row">
+          <div class="col-xs-12">
+
+            <div class="row pending-opportunity-title">
+              <div class="col-sm-7">
+                <p class="pending-opportunity-title-text"><strong>{{ opportunity.title }}</strong></p>
+              </div>
+              <div class="col-sm-5">
+                <div class="pull-right">
+                {% if opportunity.can_edit(current_user) %}
+                <a class="pending-opportunity-edit" href="{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}">
+                  <strong>Edit this opportunity</strong>
+                </a>
+                {% endif %}
+                {% if not current_user.is_anonymous() and current_user.is_conductor() %}
+                  <a href="{{ url_for('opportunities_admin.publish', opportunity_id=opportunity.id) }}" class="btn btn-primary">Publish</a>
+                {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <p><h4>Description:</h4>{{ opportunity.description }}</p>
+            <p><h4>Contact:</h4>{{ opportunity.contact }}</p>
+            <p><h4>Department:</h4>{{ opportunity.department }}</p>
+
+            <div class="row">
+              <div class="col-xs-4">
+                <h4>Beacon Post Date</h4>
+                <p>{{ opportunity.planned_open.strftime('%Y-%m-%d') }}</p>
+              </div>
+              <div class="col-xs-4">
+                <h4>Planned Open Date</h4>
+                <p>{{ opportunity.planned_deadline.strftime('%Y-%m-%d') }}</p>
+              </div>
+              <div class="col-xs-4">
+                <h4>Planned Deadline</h4>
+                <p>{{ opportunity.planned_deadline.strftime('%Y-%m-%d') }}</p>
+              </div>
+            </div><!-- dates -->
+
+          </div>
+
+        </div>
+      </div><!-- pending opportunity card -->
+      {% endfor %}
+
+      {% if opportunities|length == 0 %}
+      <p class="lead">
+        There are no currently pending opportunities. You can <a href="{{ url_for('opportunities_admin.new') }}">create a new one</a> and it will appear here!
+      </p>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

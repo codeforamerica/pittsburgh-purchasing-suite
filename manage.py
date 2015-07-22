@@ -93,9 +93,16 @@ def import_costars(user=None, secret=None, bucket=None, directory=None):
 
 @manager.option(
     '-f', '--file', dest='filepath',
-    default='./purchasing/data/importer/files/2015-05-28-nigp-cleaned.csv'
+    default='./purchasing/data/importer/files/2015-07-01-nigp-cleaned.csv'
 )
-def import_nigp(filepath):
+@manager.option('-r', '--replace', dest='replace', default=False)
+def import_nigp(filepath, replace=False):
+    if replace:
+        print 'Deleting current categories...'
+        db.session.execute(
+            'DELETE FROM category'
+        )
+        db.session.commit
     from purchasing.data.importer.nigp import main
     print 'Importing data from {filepath}\n'.format(filepath=filepath)
     main(filepath)
@@ -212,6 +219,19 @@ def seed(user=None, secret=None, bucket=None):
     import_costars(user, secret, 'costars', './purchasing/data/importer/seed/costars')
     # import seed nigp
     import_nigp('./purchasing/data/importer/seed/2015-07-01-seed-nigp-cleaned.csv')
+
+@manager.command
+def reset_conductor():
+    '''Totally resets conductor, unassigns all contracts/flows/stages
+    '''
+    db.session.execute(
+        '''update contract set assigned_to = null, flow_id = null, current_stage_id = null'''
+    )
+    db.session.execute(
+        '''delete from contract_stage'''
+    )
+    db.session.commit()
+    return
 
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))
 manager.add_command('shell', Shell(make_context=_make_context))

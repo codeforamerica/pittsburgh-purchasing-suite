@@ -6,7 +6,20 @@
   <div class="col-md-8 col-md-offset-1">
     <h1>{{ opportunity.title }}</h1>
     {% if opportunity.can_edit(current_user) %}
-    <p><a href="{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}">Edit this opportunity</a></p>
+    <p><a href="{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}">Edit this opportunity</a></p>
+    {% endif %}
+    {% if opportunity.categories|length > 0 %}
+    <div class="row">
+      <div class="col-md-10">
+        <p class="help-block">
+        <strong>Tags:</strong>
+        {% for category in opportunity.categories %}
+          {% if loop.index <= 3 %}{{ category.category_friendly_name }};{% endif %}
+        {% endfor %}
+        and {{ opportunity.categories|length - 3 }} more
+        </p>
+      </div>
+    </div>
     {% endif %}
   </div>
 </div>

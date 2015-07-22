@@ -73,6 +73,9 @@ class User(UserMixin, SurrogatePK, Model):
     def get_following(self):
         return [i.id for i in self.contracts_following]
 
+    def is_conductor(self):
+        return self.role.name in ('conductor', 'admin', 'superadmin')
+
 class AnonymousUser(AnonymousUserMixin):
     role = {'name': 'anonymous'}
     id = -1

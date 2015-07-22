@@ -21,7 +21,7 @@ class TestOpportunities(BaseTestCase):
         '''
         response = self.client.get('/beacon/')
         self.assert200(response)
-        self.assert_template_used('opportunities/index.html')
+        self.assert_template_used('opportunities/front/splash.html')
 
         self.client.post('/beacon/signup?email=BADEMAIL', follow_redirects=True)
 
@@ -39,8 +39,8 @@ class TestOpportunities(BaseTestCase):
         self.assert200(response)
         subcats = json.loads(self.get_context_variable('subcategories'))
 
-        # assert two categories (plus the total category)
-        self.assertEquals(len(subcats.keys()), 3)
+        # assert three categories (plus the total category)
+        self.assertEquals(len(subcats.keys()), 4)
         # assert five total subcatgories (plus 5 in the total field)
         self.assertEquals(len([item for sublist in subcats.values() for item in sublist]), 10)
 
@@ -57,8 +57,7 @@ class TestOpportunities(BaseTestCase):
         # assert valid email address
         invalid_email_post = self.client.post('/beacon/signup', data=dict(
             email='INVALID',
-            business_name='test',
-            subcategories=[1]
+            business_name='test'
         ))
 
         self.assert200(invalid_email_post)
@@ -66,15 +65,6 @@ class TestOpportunities(BaseTestCase):
         self.assertTrue(invalid_email_post.data.count('Invalid email address.'), 1)
 
         # assert valid categories
-        invalid_category_post = self.client.post('/beacon/signup', data=dict(
-            email='foo@foo.com',
-            business_name='test',
-            subcategories=[999]
-        ))
-
-        self.assert200(invalid_category_post)
-        self.assertTrue(invalid_category_post.data.count('alert-danger'), 1)
-        self.assertTrue('999 is not a valid choice!' in invalid_category_post.data)
 
         with mail.record_messages() as outbox:
 
@@ -97,7 +87,9 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(len(outbox), 1)
             self.assertEquals(Vendor.query.count(), 1)
             self.assertEquals(len(Vendor.query.first().categories), 1)
-            self.assert_flashes('Thank you for signing up! Check your email for more information', 'alert-success')
+            self.assert_flashes(
+                'Thank you for signing up! Check your email for more information', 'alert-success'
+            )
 
             # successful post with two sets of subcategories
             success_post_everything = self.client.post('/beacon/signup', data={
@@ -132,8 +124,10 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(success_post_old_email.location, 'http://localhost/beacon/')
             self.assertEquals(len(outbox), 2)
             self.assertEquals(Vendor.query.count(), 2)
-            self.assertEquals(len(Vendor.query.all()[1].categories), 3)
-            self.assert_flashes("You are already signed up! Your profile was updated with this new information", 'alert-info')
+            self.assertEquals(len(Vendor.query.all()[1].categories), 5)
+            self.assert_flashes(
+                "You are already signed up! Your profile was updated with this new information", 'alert-info'
+            )
 
             with self.client.session_transaction() as session:
                 assert 'email' in session

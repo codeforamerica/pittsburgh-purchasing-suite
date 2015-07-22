@@ -5,7 +5,7 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-      <form method="POST" enctype="multipart/form-data" action="{% if opportunity.id %}{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities.new') }}{% endif %}">
+      <form method="POST" enctype="multipart/form-data" action="{% if opportunity.id %}{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities_admin.new') }}{% endif %}">
 
         {{ form.csrf_token() }}
         {% include "includes/flashes.html" %}
@@ -51,7 +51,7 @@
             <div class="form-group">
               <label for="planned_deadline" class="control-label">Planned Deadline <span class="form-required">*</span></label>
               <p class="help-block">
-                What do you think the deadline will be for vendors to respond? If you are uncertain, use an approximate date.
+                When is the deadline for vendors to respond? If you are uncertain, use an approximate date.
               </p>
               {{ macros.with_errors(form.planned_deadline, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
             </div><!-- opp deadline -->
@@ -79,16 +79,38 @@
           {% endif %}
         </div><!-- document upload -->
 
-        {% if current_user.role.name in ['conductor', 'admin', 'superadmin'] %}
-        <div class="form-group">
-          <label>
-            {{ macros.with_errors(form.is_public) }} Make visible
-          </label>
-          <p class="help-block">Checking this box will make this opportunity visible to everyone (including the general public) on the <a href="{{ url_for('opportunities.browse') }}">browse page</a>.
+        <div class="row">
+          <div class="col-sm-12">
+            <label>Which categories would you use to describe this opportunity?</label>
+            <p class="help-block">Feel free to choose as many categories as you would like.</p>
+          </div>
+          {% include 'opportunities/_categories.html' %}
+        </div>
+
+        {% if opportunity.categories|length > 0 %}
+        <div class="row">
+          <div class="col-sm-12">
+            <label>Currently Assigned Categories:</label>
+            <ul>
+              {% for category in opportunity.categories %}
+              <li>{{ category.category_friendly_name }}</li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
         {% endif %}
 
-        <button type="submit" class="btn btn-primary col-sm-6">Save</button>
+        {% if current_user.is_conductor() %}
+        <div class="form-group">
+          <label>Publish this opportunity</label>
+          <p class="help-block">Checking this box will make this opportunity visible to everyone (including the general public) on the <a href="{{ url_for('opportunities.browse') }}">browse page</a>.</p>
+          <label>
+            {{ macros.with_errors(form.is_public) }} Make visible
+          </label>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary col-sm-6">Publish Opportunity</button>
 
       </form>
 
@@ -98,4 +120,11 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block jsvars %}
+<script type="text/javascript">
+  var subcategories = {{ subcategories|safe }};
+  var categories = {{ categories|safe }};
+</script>
 {% endblock %}

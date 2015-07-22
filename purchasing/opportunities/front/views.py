@@ -2,27 +2,31 @@
 
 import json
 import datetime
-from collections import defaultdict
 
 from flask import (
     render_template, request, current_app, flash,
-    redirect, url_for, session, abort
+    redirect, url_for, session, abort, Blueprint
 )
 from flask_login import current_user
 
 from purchasing.database import db
 from purchasing.notifications import vendor_signup
-from purchasing.opportunities.forms import SignupForm, UnsubscribeForm, ValidationError
+from purchasing.opportunities.forms import SignupForm, UnsubscribeForm
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
-from purchasing.opportunities.views.blueprint import blueprint
+from purchasing.opportunities.util import get_categories, fix_form_categories
+
+blueprint = Blueprint(
+    'opportunities', __name__, url_prefix='/beacon',
+    static_folder='../static', template_folder='../templates'
+)
 
 @blueprint.route('/')
-def index():
+def splash():
     '''Landing page for opportunities site
     '''
     return render_template(
-        'opportunities/index.html'
+        'opportunities/front/splash.html'
     )
 
 @blueprint.route('/signup', methods=['GET', 'POST'])
@@ -30,38 +34,14 @@ def signup():
     '''The signup page for vendors
     '''
     all_categories = Category.query.all()
-    categories, subcategories = set(), defaultdict(list)
-    for category in all_categories:
-        categories.add(category.category)
-        subcategories['Select All'].append((category.id, category.subcategory))
-        subcategories[category.category].append((category.id, category.subcategory))
-
     form = init_form(SignupForm)
 
-    form.categories.choices = [(None, '---')] + list(sorted(zip(categories, categories))) + [('Select All', 'Select All')]
-    form.subcategories.choices = []
+    categories, subcategories, form = get_categories(all_categories, form)
 
     if form.validate_on_submit():
 
         vendor = Vendor.query.filter(Vendor.email == form.data.get('email')).first()
-        form_data = {c.name: form.data.get(c.name, None) for c in Vendor.__table__.columns if c.name not in ['id', 'created_at']}
-        form_data['categories'] = []
-        subcats = set()
-
-        # manually iterate the form fields
-        for k, v in request.form.iteritems():
-            if not k.startswith('subcategories-'):
-                continue
-            else:
-                subcat_id = int(k.split('-')[1])
-                # make sure the field is checked (or 'on') and we don't have it already
-                if v == 'on' and subcat_id not in subcats:
-                    subcats.add(subcat_id)
-                    subcat = Category.query.get(subcat_id)
-                    # make sure it's a valid subcategory
-                    if subcat is None:
-                        raise ValidationError('{} is not a valid choice!'.format(subcat))
-                    form_data['categories'].append(subcat)
+        form_data = fix_form_categories(request, form, Vendor, vendor)
 
         if vendor:
             current_app.logger.info('''
@@ -71,10 +51,8 @@ def signup():
                 CATEGORIES:
                     {old_cats} ->
                     {categories}'''.format(
-                old_email=vendor.email,
-                email=form_data['email'],
-                old_bis=vendor.business_name,
-                bis_name=form_data['business_name'],
+                old_email=vendor.email, email=form_data['email'],
+                old_bis=vendor.business_name, bis_name=form_data['business_name'],
                 old_cats=[i.__unicode__() for i in vendor.categories],
                 categories=[i.__unicode__() for i in form_data['categories']]
             ))
@@ -87,7 +65,8 @@ def signup():
 
         else:
             current_app.logger.info(
-                'OPPNEWVENDOR - New vendor signed up: EMAIL: {email} at BUSINESS: {bis_name} signed up for:\n CATEGORIES: {categories}'.format(
+                'OPPNEWVENDOR - New vendor signed up: EMAIL: {email} at BUSINESS: {bis_name} signed up for:\n' +
+                'CATEGORIES: {categories}'.format(
                     email=form_data['email'],
                     bis_name=form_data['business_name'],
                     categories=[i.__unicode__() for i in form_data['categories']]
@@ -106,7 +85,7 @@ def signup():
 
         session['email'] = form_data.get('email')
         session['business_name'] = form_data.get('business_name')
-        return redirect(url_for('opportunities.index'))
+        return redirect(url_for('opportunities.splash'))
 
     page_email = request.args.get('email', None)
 
@@ -123,7 +102,7 @@ def signup():
     display_categories.remove('Select All')
 
     return render_template(
-        'opportunities/signup.html', form=form,
+        'opportunities/front/signup.html', form=form,
         subcategories=json.dumps(subcategories),
         categories=json.dumps(
             sorted(display_categories) + ['Select All']
@@ -146,24 +125,24 @@ def manage():
             form.email.errors = ['We could not find the email {}'.format(email)]
 
         if request.form.get('button', '').lower() == 'unsubscribe from checked':
-            categories = list(set([i.id for i in vendor.categories]).difference(form.categories.data))
-            vendor.categories = [Category.query.get(i) for i in categories]
+            remove_categories = set([Category.query.get(i) for i in form.categories.data])
+            remove_opportunities = set([Opportunity.query.get(i) for i in form.opportunities.data])
 
-            opportunities = list(set([i.id for i in vendor.opportunities]).difference(form.opportunities.data))
-            vendor.opportunities = [opportunities.query.get(i) for i in opportunities]
+            vendor.categories = vendor.categories.difference(remove_categories)
+            vendor.opportunities = vendor.opportunities.difference(remove_opportunities)
 
             db.session.commit()
             flash('Preferences updated!', 'alert-success')
 
         if vendor:
             for subscription in vendor.categories:
-                form_categories.append((subscription.id, subscription.subcategory))
+                form_categories.append((subscription.id, subscription.category_friendly_name))
             for subscription in vendor.opportunities:
                 form_opportunities.append((subscription.id, subscription.title))
 
     form.opportunities.choices = form_opportunities
     form.categories.choices = form_categories
-    return render_template('opportunities/manage.html', form=form)
+    return render_template('opportunities/front/manage.html', form=form)
 
 class SignupData(object):
     def __init__(self, email, business_name):
@@ -200,9 +179,9 @@ def signup_for_opp(form, user, opportunity, multi=False):
             if not _opp.is_public:
                 db.session.rollback()
                 return False
-            vendor.opportunities.append(_opp)
+            vendor.opportunities.add(_opp)
     else:
-        vendor.opportunities.append(opportunity)
+        vendor.opportunities.add(opportunity)
 
     if form.data.get('also_categories'):
         # TODO -- add support for categories
@@ -250,7 +229,7 @@ def detail(opportunity_id):
     '''View one opportunity in detail
     '''
     opportunity = Opportunity.query.get(opportunity_id)
-    if opportunity and opportunity.is_public:
+    if opportunity and (opportunity.is_public or not current_user.is_anonymous()):
         signup_form = init_form(SignupForm)
         if signup_form.validate_on_submit():
             signup_success = signup_for_opp(signup_form, current_user, opportunity)
@@ -259,7 +238,7 @@ def detail(opportunity_id):
                 return redirect(url_for('opportunities.detail', opportunity_id=opportunity.id))
 
         return render_template(
-            'opportunities/detail.html', opportunity=opportunity,
+            'opportunities/front/detail.html', opportunity=opportunity,
             current_user=current_user, signup_form=signup_form
         )
     abort(404)

@@ -20,7 +20,7 @@ from purchasing.data.stages import transition_stage
 from purchasing.data.flows import create_contract_stages
 from purchasing.data.models import (
     ContractBase, ContractProperty, ContractStage, Stage,
-    ContractStageActionItem
+    ContractStageActionItem, Flow
 )
 from purchasing.data.importer.costars import main as import_costars
 from purchasing.users.models import User, Role
@@ -53,7 +53,8 @@ def index():
     ).order_by(ContractBase.expiration_date).all()
 
     conductors = User.query.join(Role).filter(
-        Role.name == 'conductor'
+        Role.name == 'conductor',
+        User.email != current_user.email
     ).all()
 
     user_starred = [] if current_user.is_anonymous() else current_user.get_starred()
@@ -70,7 +71,10 @@ def index():
         assigned=assigned_contracts,
         user_starred=user_starred,
         current_user=current_user,
-        conductors=[current_user] + conductors
+        conductors=[current_user] + conductors,
+        path='{path}?{query}'.format(
+            path=request.path, query=request.query_string
+        )
     )
 
 @blueprint.route('/contract/<int:contract_id>', methods=['GET', 'POST'])
@@ -220,14 +224,15 @@ def edit(contract_id):
     if contract:
         spec_number = contract.get_spec_number()
         form = EditContractForm(obj=contract)
-        form.spec_number.data = spec_number.value
 
         if form.validate_on_submit():
             data = form.data
             new_spec = data.pop('spec_number', None)
 
             if new_spec:
+                spec_number.key = 'Spec Number'
                 spec_number.value = new_spec
+                contract.properties.append(spec_number)
 
             contract.update(**data)
             flash('Contract Successfully Updated!', 'alert-success')
@@ -235,6 +240,7 @@ def edit(contract_id):
 
             return redirect(url_for('conductor.edit', contract_id=contract.id))
 
+        form.spec_number.data = spec_number.value
         return render_template('conductor/edit.html', form=form, contract=contract)
     abort(404)
 
@@ -262,6 +268,12 @@ def assign(contract_id, flow_id, user_id):
     '''Assign a contract to an admin or a conductor
     '''
     contract = ContractBase.query.get(contract_id)
+    flow = Flow.query.get(flow_id)
+
+    if not flow:
+        flash('Something went wrong! That flow doesn\'t exist!', 'alert-danger')
+        return redirect('conductor.index')
+
     try:
         stages = create_contract_stages(flow_id, contract_id, contract=contract)
         _, contract, _ = transition_stage(contract_id, contract=contract, stages=stages)

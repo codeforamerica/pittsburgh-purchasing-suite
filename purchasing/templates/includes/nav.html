@@ -42,13 +42,13 @@
                 </span>
                 Sherpa
               </a></li>
-              <li><a href="{{ url_for('opportunities.index') }}">
+              <li><a href="{{ url_for('opportunities.splash') }}">
                 <span class="fa-stack fa-1x">
                   <i class="fa fa-envelope"></i>
                 </span>
                 Beacon
               </a></li>
-              {% if not _current_user.is_anonymous() and _current_user.role.name in ['conductor', 'admin', 'superadmin'] %}
+              {% if not _current_user.is_anonymous() and _current_user.is_conductor() %}
               <li><a href="{{ url_for('conductor.index') }}">
                 <span class="fa-stack fa-1x">
                   <i class="fa fa-train"></i>

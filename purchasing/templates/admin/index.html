@@ -1,4 +1,16 @@
-{% extends 'admin/master.html' %}
+{% extends 'admin/purchasing_master.html' %}
 {% block body %}
-Welcome to the Pittsburgh Purchasing Suite Admin!
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12">
+      <p>Welcome to the Pittsburgh Purchasing Suite Admin!</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12">
+      <a class="btn btn-primary" href="{{ url_for('public.home' )}}"><i class="glyphicon glyphicon-chevron-left"></i> Exit Admin</a>
+    </div>
+  </div>
+</div>
 {% endblock %}
