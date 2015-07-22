@@ -277,3 +277,41 @@ class TestOpportunities(BaseTestCase):
         # should redirect and flash properly
         self.assertEquals(post.status_code, 302)
         self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
+
+    def test_pending_opportunity(self):
+        '''Test pending opportunity works as expected for anon user
+        '''
+        # assert randos can't
+        self.assertEquals(self.client.get('/beacon/admin/opportunities/pending').status_code, 302)
+        random_publish = self.client.get('/beacon/admin/opportunities/3/publish')
+        self.assertEquals(random_publish.status_code, 302)
+        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assertFalse(Opportunity.query.get(3).is_public)
+
+    def test_pending_opportunity_staff(self):
+        '''Test pending opportunity works as expected for staff user
+        '''
+        # assert staff can get to the page, see the opportunities, but can't publish
+        self.login_user(self.staff)
+        staff_pending = self.client.get('/beacon/admin/opportunities/pending')
+        self.assert200(staff_pending)
+        self.assertEquals(len(self.get_context_variable('opportunities')), 2)
+        self.assertTrue('Publish' not in staff_pending.data)
+        # make sure staff can't publish somehow
+        staff_publish = self.client.get('/beacon/admin/opportunities/3/publish')
+        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assertEquals(staff_publish.status_code, 302)
+        self.assertFalse(Opportunity.query.get(3).is_public)
+
+    def test_pending_opportunity_admin(self):
+        '''Test pending opportunity works as expected for admin user
+        '''
+        self.login_user(self.admin)
+        admin_pending = self.client.get('/beacon/admin/opportunities/pending')
+        self.assert200(admin_pending)
+        self.assertEquals(len(self.get_context_variable('opportunities')), 2)
+        self.assertTrue('Publish' in admin_pending.data)
+        staff_publish = self.client.get('/beacon/admin/opportunities/3/publish')
+        self.assert_flashes('Opportunity successfully published!', 'alert-success')
+        self.assertEquals(staff_publish.status_code, 302)
+        self.assertTrue(Opportunity.query.get(3).is_public)

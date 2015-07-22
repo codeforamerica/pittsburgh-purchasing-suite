@@ -2,14 +2,15 @@
 
 from flask import current_app
 from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import insert_a_user
+from purchasing_test.unit.util import insert_a_user, insert_a_role
 
 class TestSherpa(BaseTestCase):
 
     def setUp(self):
         super(TestSherpa, self).setUp()
+        self.staff_role = insert_a_role('staff')
         self.email = 'foo@foo.com'
-        self.user = insert_a_user(email=self.email)
+        self.user = insert_a_user(email=self.email, role=self.staff_role)
 
     def test_sherpa(self):
         '''

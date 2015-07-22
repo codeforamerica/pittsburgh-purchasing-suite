@@ -148,11 +148,7 @@ def publish(opportunity_id):
     if opportunity:
         opportunity.is_public = True
         db.session.commit()
-        flash(
-            'Opportunity successfully published! Visit the <a href="{}">browse page</a> to see it'.format(
-                url_for('opportunities.browse')
-            ), 'alert-success'
-        )
+        flash('Opportunity successfully published!', 'alert-success')
         return redirect(url_for('opportunities_admin.pending'))
     abort(404)
 
