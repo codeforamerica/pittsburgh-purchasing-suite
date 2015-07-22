@@ -8,7 +8,7 @@
 <li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('wexplorer.explore') }}">Scout</a></p></li>
 <li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('sherpa.index') }}">Sherpa</a></p></li>
 <li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('opportunities.splash') }}">Beacon</a></p></li>
-{% if not _current_user.is_anonymous() and _current_user.role.name in ['conductor', 'admin', 'superadmin'] %}
+{% if not _current_user.is_anonymous() and _current_user.is_conductor() %}
 <li><a href="{{ url_for('conductor.index') }}">Conductor</a></li>
 {% endif %}
 

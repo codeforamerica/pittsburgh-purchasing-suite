@@ -14,6 +14,7 @@ from purchasing.data.models import (
 from purchasing.opportunities.models import RequiredBidDocument
 from purchasing.extensions import login_manager
 from purchasing.users.models import User, Role, DEPARTMENT_CHOICES
+from purchasing.opportunities.models import Opportunity, Category
 
 @login_manager.user_loader
 def load_user(userid):
@@ -136,6 +137,14 @@ class RoleAdmin(SuperAdminMixin, sqla.ModelView):
 class DocumentAdmin(AuthMixin, sqla.ModelView):
     pass
 
+class OpportunityAdmin(AuthMixin, sqla.ModelView):
+    column_list = ['contact', 'department', 'title', 'description', 'is_public']
+
+    form_columns = [
+        'contact', 'department', 'title', 'description',
+        'planned_open', 'planned_deadline', 'is_public'
+    ]
+
 admin.add_view(ScoutContractAdmin(
     ContractBase, db.session, name='Contracts', endpoint='contract', category='Scout'
 ))
@@ -149,6 +158,9 @@ admin.add_view(ConductorContractAdmin(
     ContractBase, db.session, name='Contracts', endpoint='conductor-contract', category='Conductor'
 ))
 
+admin.add_view(OpportunityAdmin(
+    Opportunity, db.session, name='Opportunities', endpoint='opportunity', category='Beacon'
+))
 admin.add_view(DocumentAdmin(
     RequiredBidDocument, db.session, name='Bid Document', endpoint='bid_document', category='Beacon'
 ))

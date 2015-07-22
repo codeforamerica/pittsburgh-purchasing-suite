@@ -1,21 +1,26 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 import os
 import json
 
 from flask import (
-    render_template, url_for, current_app,
+    render_template, url_for, current_app, Response, stream_with_context,
     redirect, flash, abort, request, Blueprint
 )
+from flask_login import current_user
 from werkzeug import secure_filename
 
 from purchasing.utils import (
     connect_to_s3, _get_aggressive_cache_headers, random_id
 )
+from purchasing.database import db
 from purchasing.extensions import login_manager
 from purchasing.decorators import requires_roles
 from purchasing.opportunities.forms import OpportunityForm
-from purchasing.opportunities.models import Opportunity, RequiredBidDocument, Category
+from purchasing.opportunities.models import (
+    Opportunity, RequiredBidDocument, Category, Vendor
+)
 from purchasing.users.models import User
 from purchasing.opportunities.util import get_categories, fix_form_categories
 
@@ -136,3 +141,78 @@ def edit(opportunity_id):
             categories=categories
         )
     abort(404)
+
+@blueprint.route('/opportunities/<int:opportunity_id>/publish', methods=['GET'])
+@requires_roles('admin', 'superadmin', 'conductor')
+def publish(opportunity_id):
+    '''Publish an opportunity
+    '''
+    opportunity = Opportunity.query.get(opportunity_id)
+    if opportunity:
+        opportunity.is_public = True
+        db.session.commit()
+        flash('Opportunity successfully published!', 'alert-success')
+        return redirect(url_for('opportunities_admin.pending'))
+    abort(404)
+
+@blueprint.route('/opportunities/pending', methods=['GET'])
+@requires_roles('staff', 'admin', 'superadmin', 'conductor')
+def pending():
+    '''View which contracts are currently pending approval
+    '''
+    opportunities = Opportunity.query.filter(
+        Opportunity.is_public == False
+    ).all()
+
+    return render_template(
+        'opportunities/admin/pending.html', opportunities=opportunities,
+        current_user=current_user
+    )
+
+def build_downloadable_groups(val, iterable):
+    '''Sorts and dedupes related lists
+
+    Handles quoting, deduping, and sorting
+    '''
+    return '"' + '; '.join(
+        sorted(list(set([i.__dict__[val] for i in iterable])))
+    ) + '"'
+
+def build_vendor_row(vendor):
+    '''Takes in a vendor and returns a list of that vendor's properties
+
+    Used to build the signup csv download
+    '''
+    return [
+        vendor.first_name, vendor.last_name, vendor.business_name,
+        vendor.email, vendor.phone_number, vendor.minority_owned,
+        vendor.woman_owned, vendor.veteran_owned, vendor.disadvantaged_owned,
+        build_downloadable_groups('category_friendly_name', vendor.categories),
+        build_downloadable_groups('title', vendor.opportunities)
+    ]
+
+@blueprint.route('/signups')
+@requires_roles('staff', 'admin', 'superadmin', 'conductor')
+def signups():
+    '''Basic dashboard view for category-level signups
+    '''
+    def stream():
+        # yield the title columns
+        yield 'first_name,last_name,business_name,email,phone_number,' +\
+            'minority_owned,woman_owned,veteran_owned,' +\
+            'disadvantaged_owned,categories,opportunities\n'
+
+        vendors = Vendor.query.all()
+        for vendor in vendors:
+            row = build_vendor_row(vendor)
+            yield ','.join([str(i) for i in row]) + '\n'
+
+    resp = Response(
+        stream_with_context(stream()),
+        headers={
+            "Content-Disposition": "attachment; filename=vendors-{}.csv".format(datetime.date.today())
+        },
+        mimetype='text/csv'
+    )
+
+    return resp

@@ -100,7 +100,7 @@
         </div>
         {% endif %}
 
-        {% if current_user.role.name in ['conductor', 'admin', 'superadmin'] %}
+        {% if current_user.is_conductor() %}
         <div class="form-group">
           <label>Publish this opportunity</label>
           <p class="help-block">Checking this box will make this opportunity visible to everyone (including the general public) on the <a href="{{ url_for('opportunities.browse') }}">browse page</a>.</p>
