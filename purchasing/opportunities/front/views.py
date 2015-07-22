@@ -5,7 +5,7 @@ import datetime
 
 from flask import (
     render_template, request, current_app, flash,
-    redirect, url_for, session, abort
+    redirect, url_for, session, abort, Blueprint
 )
 from flask_login import current_user
 
@@ -14,14 +14,19 @@ from purchasing.notifications import vendor_signup
 from purchasing.opportunities.forms import SignupForm, UnsubscribeForm
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
-from purchasing.opportunities.views.common import blueprint, get_categories, fix_form_categories
+from purchasing.opportunities.util import get_categories, fix_form_categories
+
+blueprint = Blueprint(
+    'opportunities', __name__, url_prefix='/beacon',
+    static_folder='../static', template_folder='../templates'
+)
 
 @blueprint.route('/')
-def index():
+def splash():
     '''Landing page for opportunities site
     '''
     return render_template(
-        'opportunities/index.html'
+        'opportunities/front/splash.html'
     )
 
 @blueprint.route('/signup', methods=['GET', 'POST'])
@@ -80,7 +85,7 @@ def signup():
 
         session['email'] = form_data.get('email')
         session['business_name'] = form_data.get('business_name')
-        return redirect(url_for('opportunities.index'))
+        return redirect(url_for('opportunities.splash'))
 
     page_email = request.args.get('email', None)
 
@@ -97,7 +102,7 @@ def signup():
     display_categories.remove('Select All')
 
     return render_template(
-        'opportunities/signup.html', form=form,
+        'opportunities/front/signup.html', form=form,
         subcategories=json.dumps(subcategories),
         categories=json.dumps(
             sorted(display_categories) + ['Select All']
@@ -137,7 +142,7 @@ def manage():
 
     form.opportunities.choices = form_opportunities
     form.categories.choices = form_categories
-    return render_template('opportunities/manage.html', form=form)
+    return render_template('opportunities/front/manage.html', form=form)
 
 class SignupData(object):
     def __init__(self, email, business_name):
@@ -224,7 +229,7 @@ def detail(opportunity_id):
     '''View one opportunity in detail
     '''
     opportunity = Opportunity.query.get(opportunity_id)
-    if opportunity and opportunity.is_public:
+    if opportunity and (opportunity.is_public or not current_user.is_anonymous()):
         signup_form = init_form(SignupForm)
         if signup_form.validate_on_submit():
             signup_success = signup_for_opp(signup_form, current_user, opportunity)
@@ -233,7 +238,7 @@ def detail(opportunity_id):
                 return redirect(url_for('opportunities.detail', opportunity_id=opportunity.id))
 
         return render_template(
-            'opportunities/detail.html', opportunity=opportunity,
+            'opportunities/front/detail.html', opportunity=opportunity,
             current_user=current_user, signup_form=signup_form
         )
     abort(404)

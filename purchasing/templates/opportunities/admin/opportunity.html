@@ -5,7 +5,7 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-      <form method="POST" enctype="multipart/form-data" action="{% if opportunity.id %}{{ url_for('opportunities.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities.new') }}{% endif %}">
+      <form method="POST" enctype="multipart/form-data" action="{% if opportunity.id %}{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities_admin.new') }}{% endif %}">
 
         {{ form.csrf_token() }}
         {% include "includes/flashes.html" %}

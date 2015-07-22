@@ -58,6 +58,12 @@
     var subcatGroup = '#js-subcategory-group-' + subcatLabel.id.split('-')[1];
     displayNewSubcats($(subcatGroup), subcatLabel.value);
     uncheckAll();
+
+    if (subcatLabel.value !== '') {
+      $('#js-add-another-container').removeClass('hidden');
+    } else if (subcatLabel.value === '' && categoryId === 1) {
+      $('#js-add-another-container').addClass('hidden');
+    }
   }
 
   function generateNewSubcats () {
@@ -69,7 +75,7 @@
   generateNewSubcats();
 
   $(addAnother).click(function () {
-    var categorySelect = '';
+    var categorySelect = '<option value="">-- Choose One --</option>';
 
     $.each(categories, function (ix, value) {
       categorySelect += '<option value="' + value + '">' + value + '</option>';

@@ -1,15 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from flask import Blueprint
 from collections import defaultdict
 
 from purchasing.opportunities.forms import ValidationError
 from purchasing.opportunities.models import Category
-
-blueprint = Blueprint(
-    'opportunities', __name__, url_prefix='/beacon',
-    static_folder='../static', template_folder='../templates'
-)
 
 def get_categories(all_categories, form):
     '''Build category/subcategory lists/dictionaries
