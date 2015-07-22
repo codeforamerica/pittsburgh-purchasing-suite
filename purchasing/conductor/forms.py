@@ -35,5 +35,5 @@ class NoteForm(Form):
 class FileUpload(Form):
     upload = FileField('datafile', validators=[
         FileRequired(),
-        FileAllowed(['csv'], '.csv files only')
+        FileAllowed(['csv'], message='.csv files only')
     ])
