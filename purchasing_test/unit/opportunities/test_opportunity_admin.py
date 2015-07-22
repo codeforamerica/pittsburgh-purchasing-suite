@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from os import mkdir, listdir, rmdir
 import datetime
-from flask import current_app
-from werkzeug.datastructures import MultiDict
+import csv
+
+from os import mkdir, listdir, rmdir
 from cStringIO import StringIO
-from werkzeug.datastructures import FileStorage
 from shutil import rmtree
+
+from werkzeug.datastructures import MultiDict
+from werkzeug.datastructures import FileStorage
+
+from flask import current_app
 
 from purchasing.opportunities.models import Opportunity, Vendor, Category
 from purchasing.users.models import User
@@ -315,3 +319,44 @@ class TestOpportunities(BaseTestCase):
         self.assert_flashes('Opportunity successfully published!', 'alert-success')
         self.assertEquals(staff_publish.status_code, 302)
         self.assertTrue(Opportunity.query.get(3).is_public)
+
+    def test_signup_download(self):
+        '''Test signup downloads don't work for non-staff
+        '''
+        request = self.client.get('/beacon/admin/signups')
+        self.assertEquals(request.status_code, 302)
+        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+
+    def test_signup_download_staff(self):
+        '''Test signup downloads work properly
+        '''
+
+        # insert some vendors
+        self.client.post('/beacon/signup', data={
+            'email': 'foo@foo.com', 'business_name': 'foo',
+            'subcategories-1': 'on', 'categories': 'Apparel'
+        })
+
+        self.client.post('/beacon/signup', data={
+            'email': 'foo2@foo.com', 'business_name': 'foo',
+            'subcategories-1': 'on', 'subcategories-2': 'on',
+            'subcategories-3': 'on', 'subcategories-4': 'on',
+            'subcategories-5': 'on', 'categories': 'Apparel'
+        })
+
+        self.login_user(self.staff)
+        request = self.client.get('/beacon/admin/signups')
+        self.assertEquals(request.mimetype, 'text/csv')
+        self.assertEquals(
+            request.headers.get('Content-Disposition'),
+            'attachment; filename=vendors-{}.csv'.format(datetime.date.today())
+        )
+
+        # python adds an extra return character to the end,
+        # so we chop it off. we should have the header row and
+        # the two rows we inserted above
+        csv_data = request.data.split('\n')[:-1]
+
+        self.assertEquals(len(csv_data), 3)
+        for row in csv_data:
+            self.assertEquals(len(row.split(',')), 11)

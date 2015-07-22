@@ -198,7 +198,7 @@ def signups():
     '''
     def stream():
         # yield the title columns
-        yield 'first_name,last_name,business_name,email,phone_number' +\
+        yield 'first_name,last_name,business_name,email,phone_number,' +\
             'minority_owned,woman_owned,veteran_owned,' +\
             'disadvantaged_owned,categories,opportunities\n'
 
