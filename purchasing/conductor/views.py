@@ -301,7 +301,12 @@ def upload():
         _file = request.files.get('upload')
         filename = secure_filename(_file.filename)
         filepath = os.path.join(current_app.config.get('UPLOAD_FOLDER'), filename)
-        _file.save(filepath)
+        try:
+            _file.save(filepath)
+        except IOError:
+            # if the upload folder doesn't exist, create it then save
+            os.mkdir(current_app.config.get('UPLOAD_FOLDER'))
+            _file.save(filepath)
         return render_template('conductor/upload_success.html', filepath=filepath, filename=filename)
     else:
         return render_template('conductor/upload_new.html', form=form)
