@@ -11,7 +11,7 @@ from flask_login import current_user
 
 from purchasing.database import db
 from purchasing.notifications import vendor_signup
-from purchasing.opportunities.forms import SignupForm, UnsubscribeForm
+from purchasing.opportunities.forms import UnsubscribeForm, VendorSignupForm, OpportunitySignupForm
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
 from purchasing.opportunities.util import get_categories, fix_form_categories
@@ -34,58 +34,58 @@ def signup():
     '''The signup page for vendors
     '''
     all_categories = Category.query.all()
-    form = init_form(SignupForm)
+    form = init_form(VendorSignupForm)
 
     categories, subcategories, form = get_categories(all_categories, form)
 
     if form.validate_on_submit():
 
         vendor = Vendor.query.filter(Vendor.email == form.data.get('email')).first()
-        form_data = fix_form_categories(request, form, Vendor, vendor)
-
-        if vendor:
-            current_app.logger.info('''
-                OPPPUPDATEVENDOR - Vendor updated:
-                EMAIL: {old_email} -> {email} at
-                BUSINESS: {old_bis} -> {bis_name} signed up for:
-                CATEGORIES:
-                    {old_cats} ->
-                    {categories}'''.format(
-                old_email=vendor.email, email=form_data['email'],
-                old_bis=vendor.business_name, bis_name=form_data['business_name'],
-                old_cats=[i.__unicode__() for i in vendor.categories],
-                categories=[i.__unicode__() for i in form_data['categories']]
-            ))
-
-            vendor.update(
-                **form_data
-            )
-
-            flash("You are already signed up! Your profile was updated with this new information", 'alert-info')
-
-        else:
-            current_app.logger.info(
-                'OPPNEWVENDOR - New vendor signed up: EMAIL: {email} at BUSINESS: {bis_name} signed up for:\n' +
-                'CATEGORIES: {categories}'.format(
-                    email=form_data['email'],
-                    bis_name=form_data['business_name'],
+        form_data = fix_form_categories(request, form, Vendor, validate='subcategories', obj=vendor)
+        if not form.errors:
+            if vendor:
+                current_app.logger.info('''
+                    OPPPUPDATEVENDOR - Vendor updated:
+                    EMAIL: {old_email} -> {email} at
+                    BUSINESS: {old_bis} -> {bis_name} signed up for:
+                    CATEGORIES:
+                        {old_cats} ->
+                        {categories}'''.format(
+                    old_email=vendor.email, email=form_data['email'],
+                    old_bis=vendor.business_name, bis_name=form_data['business_name'],
+                    old_cats=[i.__unicode__() for i in vendor.categories],
                     categories=[i.__unicode__() for i in form_data['categories']]
+                ))
+
+                vendor.update(
+                    **form_data
                 )
-            )
-            vendor = Vendor.create(
-                **form_data
-            )
 
-            confirmation_sent = vendor_signup(vendor, categories=form_data['categories'])
+                flash("You are already signed up! Your profile was updated with this new information", 'alert-info')
 
-            if confirmation_sent:
-                flash('Thank you for signing up! Check your email for more information', 'alert-success')
             else:
-                flash('Uh oh, something went wrong. We are investigating.', 'alert-danger')
+                current_app.logger.info(
+                    'OPPNEWVENDOR - New vendor signed up: EMAIL: {email} at BUSINESS: {bis_name} signed up for:\n' +
+                    'CATEGORIES: {categories}'.format(
+                        email=form_data['email'],
+                        bis_name=form_data['business_name'],
+                        categories=[i.__unicode__() for i in form_data['categories']]
+                    )
+                )
+                vendor = Vendor.create(
+                    **form_data
+                )
 
-        session['email'] = form_data.get('email')
-        session['business_name'] = form_data.get('business_name')
-        return redirect(url_for('opportunities.splash'))
+                confirmation_sent = vendor_signup(vendor, categories=form_data['categories'])
+
+                if confirmation_sent:
+                    flash('Thank you for signing up! Check your email for more information', 'alert-success')
+                else:
+                    flash('Uh oh, something went wrong. We are investigating.', 'alert-danger')
+
+            session['email'] = form_data.get('email')
+            session['business_name'] = form_data.get('business_name')
+            return redirect(url_for('opportunities.splash'))
 
     page_email = request.args.get('email', None)
 
@@ -151,11 +151,12 @@ class SignupData(object):
 
 def init_form(form):
     data = SignupData(session.get('email'), session.get('business_name'))
-    form = form(obj=data)
-
-    return form
+    return form(obj=data)
 
 def signup_for_opp(form, user, opportunity, multi=False):
+    if opportunity is None or (isinstance(opportunity, list) and len(opportunity) == 0):
+        form.errors['opportunities'] = ['You must select at least one opportunity!']
+        return False
     # add the email/business name to the session
     session['email'] = form.data.get('email')
     session['business_name'] = form.data.get('business_name')
@@ -178,6 +179,7 @@ def signup_for_opp(form, user, opportunity, multi=False):
             _opp = Opportunity.query.get(int(opp))
             if not _opp.is_public:
                 db.session.rollback()
+                form.errors['opportunities'] = ['That\'s not a valid choice.']
                 return False
             vendor.opportunities.add(_opp)
     else:
@@ -196,16 +198,13 @@ def browse():
     '''
     active, upcoming = [], []
 
-    signup_form = init_form(SignupForm)
+    signup_form = init_form(OpportunitySignupForm)
     if signup_form.validate_on_submit():
         opportunities = request.form.getlist('opportunity')
         if signup_for_opp(
             signup_form, current_user, opportunity=opportunities, multi=True
         ):
             flash('Successfully subscribed for updates!', 'alert-success')
-            return redirect(url_for('opportunities.browse'))
-        else:
-            flash('You can\'t subscribe to that contract!', 'alert-danger')
             return redirect(url_for('opportunities.browse'))
 
     opportunities = Opportunity.query.filter(
@@ -230,7 +229,7 @@ def detail(opportunity_id):
     '''
     opportunity = Opportunity.query.get(opportunity_id)
     if opportunity and (opportunity.is_public or not current_user.is_anonymous()):
-        signup_form = init_form(SignupForm)
+        signup_form = init_form(OpportunitySignupForm)
         if signup_form.validate_on_submit():
             signup_success = signup_for_opp(signup_form, current_user, opportunity)
             if signup_success:

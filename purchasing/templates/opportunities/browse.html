@@ -13,19 +13,6 @@
 
         <h3>Opportunities Open for Bid Now</h3>
 
-        <div class="row">
-          <div class="col-sm-12">
-            {% if 'subcategories' in signup_form.errors.keys() %}
-            <div class="alert alert-danger alert-dismissable">
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-              <span>{{ signup_form.errors['subcategories'][0] }}</span>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-
         {% if active|length > 0 %}
         <table class="table table-striped">
           <thead>

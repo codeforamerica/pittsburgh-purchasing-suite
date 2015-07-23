@@ -25,6 +25,8 @@
     {% if current_user.is_conductor() %}
     <li><a href="{{ url_for('admin.index') }}" class="navbar-link">Admin</a></li>
     {% endif %}
+    <li role="separator" class="divider"></li>
+    <li><a class="navbar-link js-signout" href="#"><i class="fa fa-sign-out"></i> Sign Out</a></li>
   </ul>
 </li>
 {% else %}

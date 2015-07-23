@@ -41,6 +41,8 @@ def validate_phone_number(form, field):
 class SignupForm(Form):
     business_name = fields.TextField(validators=[DataRequired()])
     email = fields.TextField(validators=[DataRequired(), Email()])
+
+class VendorSignupForm(SignupForm):
     first_name = fields.TextField()
     last_name = fields.TextField()
     phone_number = fields.TextField(validators=[validate_phone_number])
@@ -49,7 +51,11 @@ class SignupForm(Form):
     minority_owned = fields.BooleanField('Minority-owned business')
     veteran_owned = fields.BooleanField('Veteran-owned business')
     disadvantaged_owned = fields.BooleanField('Disadvantaged business enterprise')
-    subcategories = MultiCheckboxField(coerce=int, validators=[Optional()], choices=[])
+    subcategories = MultiCheckboxField(coerce=int, choices=[])
+    categories = fields.SelectField(choices=[], validators=[])
+
+class OpportunitySignupForm(SignupForm):
+    subcategories = MultiCheckboxField(coerce=int, choices=[])
     categories = fields.SelectField(choices=[], validators=[Optional()])
     also_categories = fields.BooleanField()
 
