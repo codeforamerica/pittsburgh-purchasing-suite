@@ -8,10 +8,12 @@
       {% include 'includes/flashes.html' %}
 
       <form class="form form-horizontal" method="POST" action="#">
+        
+        <div class="spacer-20"></div>
 
-        <h2>All Opportunities</h2>
+        <h4>All Opportunities</h4>
 
-        <h3>Opportunities Open for Bid Now</h3>
+        <h3><strong>Currently accepting proposals</strong></h3>
 
         {% if active|length > 0 %}
         <table class="table table-striped">
@@ -57,10 +59,10 @@
           </tbody>
         </table>
         {% else %}
-        <p>There are currently no opportunities open for bid.</p>
+        <p>There aren't any opportunities accepting proposals right now. <a href="front/signup.html">Subscribe to our mailing list</a> and be among the first to know when upcoming opportunities become active ones.</p>
         {% endif %}
 
-        <h3>Upcoming Opportunities</h3>
+        <h3><strong>Upcoming</strong></h3>
         {% if upcoming|length > 0 %}
         <table class="table table-striped">
           <thead>
@@ -93,12 +95,13 @@
           </tbody>
         </table>
         {% else %}
-        <p>There are currently no upcoming open for bid.</p>
+           <p>There aren't any upcoming opportunities right now. <a href="front/signup.html">Subscribe to our mailing list</a> and find out when new ones get posted.</p>
         {% endif %}
 
-        <h3>Sign Up for selected opportunities</h3>
-
+        {% if active|length > 0 or upcoming|length > 0 %}
         {% include "opportunities/browse_signup.html" %}
+        {% endif %}
+
 
       </form>
 
