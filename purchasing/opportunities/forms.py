@@ -109,6 +109,7 @@ class OpportunityForm(Form):
     contact_email = fields.TextField(validators=[Email(), city_domain_email, DataRequired()])
     title = fields.TextField(validators=[DataRequired()])
     description = fields.TextAreaField(validators=[max_words(), DataRequired()])
+    planned_advertise = fields.DateField(validators=[DataRequired()])
     planned_open = fields.DateField(validators=[DataRequired()])
     planned_deadline = fields.DateField(validators=[DataRequired(), after_today])
     documents_needed = fields.SelectMultipleField(coerce=int)

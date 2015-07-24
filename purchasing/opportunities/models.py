@@ -64,23 +64,33 @@ class Opportunity(Model):
         backref='opportunities',
         collection_class=set
     )
-    # Date department advertised bid
-    planned_open = Column(db.DateTime)
-    # Date department opens bids
-    planned_deadline = Column(db.DateTime)
+    # Date opportunity should be made public on beacon
+    planned_advertise = Column(db.DateTime, nullable=False)
+    # Date opportunity opens for responses
+    planned_open = Column(db.DateTime, nullable=False)
+    # Date opportunity closes for receiving responses
+    planned_deadline = Column(db.DateTime, nullable=False)
     # Created from contract
     created_from_id = ReferenceCol('contract', ondelete='cascade', nullable=True)
     created_from = db.relationship('ContractBase', backref=backref(
         'opportunities', lazy='dynamic'
     ))
-    documents_needed = Column(ARRAY(db.Integer()))
-    document = Column(db.String(255))
-    document_href = Column(db.String(255))
-    created_by = ReferenceCol('users', ondelete='SET NULL')
+
+    # documents needed from the vendors
+    vendor_documents_needed = Column(ARRAY(db.Integer()))
+
+    created_by_id = ReferenceCol('users', ondelete='SET NULL')
+    created_by = db.relationship(
+        'User', backref=backref('opportunities_created', lazy='dynamic'),
+        foreign_keys='Opportunity.created_by_id'
+    )
     is_public = Column(db.Boolean(), default=True)
 
     def is_published(self):
-        return self.planned_open.date() <= datetime.date.today()
+        return self.planned_advertise.date() <= datetime.date.today()
+
+    def is_open(self):
+        return self.planned_open.date() >= datetime.date.today() and not self.is_expired()
 
     def is_expired(self):
         return self.planned_deadline.date() >= datetime.date.today()
@@ -137,6 +147,19 @@ class Opportunity(Model):
                 'description': 'Deadline to submit proposals.'
             }
         ]
+
+class OpportunityDocument(Model):
+    __tablename__ = 'opportunity_document'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    opportunity_id = ReferenceCol('opportunity', ondelete='cascade')
+    opportunity = db.relationship(
+        'Opportunity',
+        backref=backref('opportunity_documents', lazy='dynamic', cascade='all, delete-orphan')
+    )
+
+    name = db.String(255)
+    href = db.Text()
 
 class RequiredBidDocument(Model):
     __tablename__ = 'document'

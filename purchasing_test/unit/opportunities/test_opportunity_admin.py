@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-import csv
 
 from os import mkdir, listdir, rmdir
 from cStringIO import StringIO
@@ -45,21 +44,21 @@ class TestOpportunities(BaseTestCase):
 
         self.document = insert_a_document()
         self.opportunity1 = insert_an_opportunity(
-            contact_id=self.admin.id, created_by=self.staff.id, required_documents=[self.document]
+            contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document]
         )
         self.opportunity2 = insert_an_opportunity(
-            contact_id=self.admin.id, created_by=self.staff.id, required_documents=[self.document],
-            is_public=True, planned_open=datetime.date.today() + datetime.timedelta(1),
+            contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
+            is_public=True, planned_advertise=datetime.date.today() + datetime.timedelta(1),
             planned_deadline=datetime.date.today() + datetime.timedelta(2)
         )
         self.opportunity3 = insert_an_opportunity(
-            contact_id=self.admin.id, created_by=self.staff.id, required_documents=[self.document],
-            is_public=False, planned_open=datetime.date.today() - datetime.timedelta(2),
+            contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
+            is_public=False, planned_advertise=datetime.date.today() - datetime.timedelta(2),
             planned_deadline=datetime.date.today() - datetime.timedelta(1)
         )
         self.opportunity4 = insert_an_opportunity(
-            contact_id=self.admin.id, created_by=self.staff.id, required_documents=[self.document],
-            is_public=False, planned_open=datetime.date.today() + datetime.timedelta(1),
+            contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
+            is_public=False, planned_advertise=datetime.date.today() + datetime.timedelta(1),
             planned_deadline=datetime.date.today() + datetime.timedelta(2), title='TEST TITLE!'
         )
 
@@ -90,7 +89,9 @@ class TestOpportunities(BaseTestCase):
         self.login_user(self.admin)
         data = {
             'department': 'Other', 'contact_email': self.admin.email,
-            'title': 'test', 'description': 'test', 'planned_open': datetime.date.today(),
+            'title': 'test', 'description': 'test',
+            'planned_advertise': datetime.date.today(),
+            'planned_open': datetime.date.today(),
             'planned_deadline': datetime.date.today() + datetime.timedelta(1),
             'is_public': False, 'subcategories-1': 'on', 'subcategories-2': 'on',
             'subcategories-3': 'on', 'subcategories-4': 'on'
@@ -125,17 +126,21 @@ class TestOpportunities(BaseTestCase):
     def test_build_opportunity_new_user(self):
         '''Test that build_opportunity creates new users appropriately
         '''
-        data = {
-            'department': 'Other', 'contact_email': 'new_email@foo.com',
-            'title': 'test', 'description': 'test', 'planned_open': datetime.date.today(),
-            'planned_deadline': datetime.date.today() + datetime.timedelta(1),
-            'is_public': False
-        }
+        with self.client as c:
+            self.login_user(self.admin)
+            data = {
+                'department': 'Other', 'contact_email': 'new_email@foo.com',
+                'title': 'test', 'description': 'test',
+                'planned_advertise': datetime.date.today(),
+                'planned_open': datetime.date.today(),
+                'planned_deadline': datetime.date.today() + datetime.timedelta(1),
+                'is_public': False
+            }
 
-        # assert that we create a new user when we build with a new email
-        self.assertEquals(User.query.count(), 2)
-        build_opportunity(data, None)
-        self.assertEquals(User.query.count(), 3)
+            # assert that we create a new user when we build with a new email
+            self.assertEquals(User.query.count(), 2)
+            build_opportunity(data, None)
+            self.assertEquals(User.query.count(), 3)
 
     def test_create_a_contract(self):
         '''Test create contract page
@@ -150,7 +155,9 @@ class TestOpportunities(BaseTestCase):
         # build data dictionaries
         bad_data = {
             'department': 'Other', 'contact_email': self.staff.email,
-            'title': None, 'description': None, 'planned_open': datetime.date.today(),
+            'title': None, 'description': None,
+            'planned_advertise': datetime.date.today(),
+            'planned_open': datetime.date.today(),
             'planned_deadline': datetime.date.today() + datetime.timedelta(1),
             'is_public': False
         }
@@ -200,7 +207,7 @@ class TestOpportunities(BaseTestCase):
         self.assertEquals(len(self.get_context_variable('upcoming')), 2)
 
         self.client.post('/beacon/admin/opportunities/2', data={
-            'planned_open': datetime.date.today(), 'title': 'Updated',
+            'planned_advertise': datetime.date.today(), 'title': 'Updated',
             'description': 'Updated Contract!', 'is_public': True
         })
         self.assert_flashes('Opportunity Successfully Updated!', 'alert-success')

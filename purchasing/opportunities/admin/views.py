@@ -19,7 +19,7 @@ from purchasing.extensions import login_manager
 from purchasing.decorators import requires_roles
 from purchasing.opportunities.forms import OpportunityForm
 from purchasing.opportunities.models import (
-    Opportunity, RequiredBidDocument, Category, Vendor
+    Opportunity, RequiredBidDocument, Category, Vendor, OpportunityDocument
 )
 from purchasing.users.models import User
 from purchasing.opportunities.util import get_categories, fix_form_categories
@@ -75,14 +75,19 @@ def build_opportunity(data, opportunity=None):
     filename, filepath = upload_document(data.get('document', None), _id)
 
     data.update(dict(
-        contact_id=contact.id, created_by=1,
-        document=filename, document_href=filepath
+        contact_id=contact.id, created_by_id=current_user.id
     ))
 
     if opportunity:
         opportunity = opportunity.update(**data)
     else:
         opportunity = Opportunity.create(**data)
+
+    opportunity.opportunity_documents.append(OpportunityDocument(
+        name=filename, href=filepath
+    ))
+    db.session.commit()
+
     return opportunity
 
 def generate_opportunity_form(obj=None):
