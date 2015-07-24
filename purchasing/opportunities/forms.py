@@ -114,7 +114,7 @@ class OpportunityForm(Form):
     documents_needed = fields.SelectMultipleField(coerce=int)
     is_public = fields.BooleanField()
     document = FileField(
-        validators=[FileAllowed(['pdf'], '.pdf documents only!')]
+        validators=[FileAllowed(['pdf', 'doc', 'docx'], '.pdf, .doc, or .docx documents only!')]
     )
     categories = fields.SelectField(choices=[], validators=[Optional()])
     subcategories = MultiCheckboxField(coerce=int, validators=[Optional()], choices=[])
