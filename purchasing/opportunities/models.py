@@ -103,16 +103,6 @@ class Opportunity(Model):
             (user.id not in (self.created_by, self.contact_id))
         ) else True
 
-    def get_href(self):
-        '''Returns a proper link to a file
-        '''
-        if current_app.config['UPLOAD_S3']:
-            return self.document_href
-        else:
-            if self.document_href.startswith('http'):
-                return self.document_href
-            return 'file://{}'.format(self.document_href)
-
     def estimate_open(self):
         '''Returns the month/year based on planned_open
         '''
@@ -158,8 +148,18 @@ class OpportunityDocument(Model):
         backref=backref('opportunity_documents', lazy='dynamic', cascade='all, delete-orphan')
     )
 
-    name = db.String(255)
-    href = db.Text()
+    name = Column(db.String(255))
+    href = Column(db.Text())
+
+    def get_href(self):
+        '''Returns a proper link to a file
+        '''
+        if current_app.config['UPLOAD_S3']:
+            return self.href
+        else:
+            if self.href.startswith('http'):
+                return self.href
+            return 'file://{}'.format(self.href)
 
 class RequiredBidDocument(Model):
     __tablename__ = 'document'

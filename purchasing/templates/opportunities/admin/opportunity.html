@@ -88,11 +88,16 @@
           <p class="help-block"><strong>
             .pdf, .doc, or .docx files only!
           </strong></p>
-          {% if form.document.data %}
-          <p><strong>Uploaded file:</strong> <a href="{{ opportunity.get_href() }}" target="_blank">{{ form.document.data }}</a> <br/></p>
-          <p><strong>Choose different file:</strong> {{ macros.with_errors(form.document)}}</p>
+          {% if opportunity and opportunity.opportunity_documents.all()|length > 0 %}
+            <p><strong>Uploaded files:</strong>
+            <ul>
+              {% for document in opportunity.opportunity_documents %}
+              <li><a href="{{ document.get_href() }}" target="_blank">{{ document.name }}</a> <br/></p></li>
+              {% endfor %}
+            </ul>
+          <p><strong>Upload additional files:</strong> {{ macros.with_errors(form.document, multiple="")}}</p>
           {% else %}
-          {{ macros.with_errors(form.document)}}
+          {{ macros.with_errors(form.document, multiple="")}}
           {% endif %}
         </div><!-- document upload -->
 

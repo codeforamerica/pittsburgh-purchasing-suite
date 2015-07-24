@@ -76,12 +76,12 @@ class TestOpportunities(BaseTestCase):
         '''
         # assert that we return none without a document
         no_document = FileStorage(StringIO(''), filename='')
-        self.assertEquals((None, None), upload_document(no_document))
+        self.assertEquals((None, None), upload_document(no_document, 1))
 
         document = FileStorage(StringIO('hello world!'), filename='test.txt')
-        upload_document(document)
+        upload_document(document, 1)
 
-        self.assertTrue('test.txt' in listdir(current_app.config.get('UPLOAD_DESTINATION')))
+        self.assertTrue('opportunity-1-test.txt' in listdir(current_app.config.get('UPLOAD_DESTINATION')))
 
     def test_build_opportunity_categories(self):
         '''Test categories are added properly

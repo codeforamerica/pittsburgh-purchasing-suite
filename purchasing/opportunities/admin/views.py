@@ -33,31 +33,37 @@ blueprint = Blueprint(
 def load_user(userid):
     return User.get_by_id(int(userid))
 
-def upload_document(document, _id=None):
+def upload_document(document, _id):
     if document is None or document == '':
         return None, None
 
     filename = secure_filename(document.filename)
-    _id = _id if _id else random_id(6)
 
     if filename == '':
         return None, None
 
-    elif current_app.config.get('UPLOAD_S3') is True:
+    _filename = 'opportunity-{}-{}'.format(_id, filename)
+
+    if current_app.config.get('UPLOAD_S3') is True:
         # upload file to s3
         conn, bucket = connect_to_s3(
             current_app.config['AWS_ACCESS_KEY_ID'],
             current_app.config['AWS_SECRET_ACCESS_KEY'],
             current_app.config['UPLOAD_DESTINATION']
         )
-        _document = bucket.new_key('opportunity-{}.pdf'.format(_id))
+        _document = bucket.new_key(_filename)
         aggressive_headers = _get_aggressive_cache_headers(_document)
         _document.set_contents_from_file(document, headers=aggressive_headers, replace=True)
         _document.set_acl('public-read')
         return _document.name, _document.generate_url(expires_in=0, query_auth=False)
 
     else:
-        filepath = os.path.join(current_app.config['UPLOAD_DESTINATION'], filename)
+        try:
+            os.mkdir(current_app.config['UPLOAD_DESTINATION'])
+        except:
+            pass
+
+        filepath = os.path.join(current_app.config['UPLOAD_DESTINATION'], _filename)
         document.save(filepath)
         return filename, filepath
 
@@ -72,22 +78,31 @@ def build_opportunity(data, opportunity=None):
 
     _id = opportunity.id if opportunity else None
 
-    filename, filepath = upload_document(data.get('document', None), _id)
-
-    data.update(dict(
-        contact_id=contact.id, created_by_id=current_user.id
-    ))
+    data.update(dict(contact_id=contact.id))
 
     if opportunity:
         opportunity = opportunity.update(**data)
     else:
+        data.update(dict(created_by_id=current_user.id))
         opportunity = Opportunity.create(**data)
 
-    opportunity.opportunity_documents.append(OpportunityDocument(
-        name=filename, href=filepath
-    ))
-    db.session.commit()
+    opp_documents = opportunity.opportunity_documents.all()
 
+    for _file in request.files.getlist('document'):
+
+        _id = _id if _id else random_id(6)
+
+        if _file.filename in [i.name for i in opp_documents]:
+            continue
+
+        filename, filepath = upload_document(_file, _id)
+
+        if filename and filepath:
+            opportunity.opportunity_documents.append(OpportunityDocument(
+                name=filename, href=filepath
+            ))
+
+    db.session.commit()
     return opportunity
 
 def generate_opportunity_form(obj=None):
