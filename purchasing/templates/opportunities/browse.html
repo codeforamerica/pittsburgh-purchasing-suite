@@ -8,7 +8,7 @@
       {% include 'includes/flashes.html' %}
 
       <form class="form form-horizontal" method="POST" action="#">
-        
+
         <div class="spacer-20"></div>
 
         <h4>All Opportunities</h4>
@@ -59,7 +59,7 @@
           </tbody>
         </table>
         {% else %}
-        <p>There aren't any opportunities accepting proposals right now. <a href="front/signup.html">Subscribe to our mailing list</a> and be among the first to know when upcoming opportunities become active ones.</p>
+        <p>There aren't any opportunities accepting proposals right now. <a href="{{ url_for('opportunities.signup') }}">Subscribe to our mailing list</a> and be among the first to know when upcoming opportunities become active ones.</p>
         {% endif %}
 
         <h3><strong>Upcoming</strong></h3>
@@ -95,7 +95,7 @@
           </tbody>
         </table>
         {% else %}
-           <p>There aren't any upcoming opportunities right now. <a href="front/signup.html">Subscribe to our mailing list</a> and find out when new ones get posted.</p>
+           <p>There aren't any upcoming opportunities right now. <a href="{{ url_for('opportunities.signup') }}">Subscribe to our mailing list</a> and find out when new ones get posted.</p>
         {% endif %}
 
         {% if active|length > 0 or upcoming|length > 0 %}
