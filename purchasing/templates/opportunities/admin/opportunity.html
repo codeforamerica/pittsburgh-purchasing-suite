@@ -18,22 +18,25 @@
 
         <div class="form-group">
           <label for="department" class="control-label">Department <span class="form-required">*</span></label>
+          <p class="help-block">Who is the using department for this opportunity?</p>
           {{ macros.with_errors(form.department, class_="form-control")}}
         </div><!-- department -->
 
         <div class="form-group">
           <label for="contact_email" class="control-label">Contact Email <span class="form-required">*</span></label>
+          <p class="help-block">What is the email of the primary contact for this opportunity?</p>
           {{ macros.with_errors(form.contact_email, class_="form-control", placeholder="ex: example@pittsburghpa.gov")}}
         </div><!-- email -->
 
         <div class="form-group">
           <label for="title" class="control-label">Title <span class="form-required">*</span></label>
+          <p class="help-block">What do you want your opportunity to be named?</p>
           {{ macros.with_errors(form.title, class_="form-control", placeholder="ex: What you need")}}
         </div><!-- title -->
 
         <div class="form-group">
           <label for="description" class="control-label">Description <span class="form-required">*</span></label>
-          <p class="help-block">A brief description (no more than 500 words) about what you are looking to purchase.</p>
+          <p class="help-block">How would you describe what you are looking to purchase (no more than 500 words).</p>
           {{ macros.with_errors(form.description, class_="form-control", rows=4, placeholder="ex: The City of Pittsburgh will need to purchase...")}}
         </div><!-- description -->
 
@@ -61,7 +64,7 @@
         <div class="form-group">
           <label for="documents_needed" class="control-label">Needed Documents</label>
             <p class="help-block">
-              Use the Control (or Command &#x2318;) to select multiple.
+              Use the Control (or Command &#x2318; on Macs) to select multiple.
             </p>
           {{ macros.with_errors(form.documents_needed, class_="form-control")}}
         </div><!-- documents needed -->
@@ -71,6 +74,9 @@
           <p class="help-block">
             If you don't have it on hand right now, don't worry. We'll email you two weeks before the publication date to remind you to upload it.
           </p>
+          <p class="help-block"><strong>
+            .pdf, .doc, or .docx files only!
+          </strong></p>
           {% if form.document.data %}
           <p><strong>Uploaded file:</strong> <a href="{{ opportunity.get_href() }}" target="_blank">{{ form.document.data }}</a> <br/></p>
           <p><strong>Choose different file:</strong> {{ macros.with_errors(form.document)}}</p>
@@ -84,7 +90,9 @@
             <label>Which categories would you use to describe this opportunity?</label>
             <p class="help-block">Feel free to choose as many categories as you would like.</p>
           </div>
+
           {% include 'opportunities/_categories.html' %}
+
         </div>
 
         {% if opportunity.categories|length > 0 %}
@@ -101,6 +109,8 @@
         {% endif %}
 
         {% if current_user.is_conductor() %}
+        <div class="spacer-10"></div>
+
         <div class="form-group">
           <label>Publish this opportunity</label>
           <p class="help-block">Checking this box will make this opportunity visible to everyone (including the general public) on the <a href="{{ url_for('opportunities.browse') }}">browse page</a>.</p>
