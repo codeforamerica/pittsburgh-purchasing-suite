@@ -73,11 +73,11 @@
         </div><!-- dates -->
 
         <div class="form-group">
-          <label for="documents_needed" class="control-label">Needed Documents</label>
+          <label for="documents_needed" class="control-label">Documents the vendor will need</label>
             <p class="help-block">
-              Use the Control (or Command &#x2318; on Macs) to select multiple.
+              Choose the documents that vendor will need to include in order to successfully respond to the opportunity.
             </p>
-          {{ macros.with_errors(form.documents_needed, class_="form-control")}}
+            {{ form.documents_needed }}
         </div><!-- documents needed -->
 
         <div class="form-group">

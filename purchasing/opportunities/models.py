@@ -170,7 +170,7 @@ class RequiredBidDocument(Model):
     form_href = Column(db.String(255))
 
     def get_choices(self):
-        return (self.id, self.display_name)
+        return (self.id, [self.display_name, self.description, self.form_href])
 
 class Vendor(Model):
     __tablename__ = 'vendor'
