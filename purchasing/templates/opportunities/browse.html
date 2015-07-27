@@ -71,6 +71,7 @@
               <th>Estimated Open Date</th>
               {% if not current_user.is_anonymous() %}
               <th>Edit this contract</th>
+              <th>Public</th>
               {% endif %}
             </tr>
           </thead>
@@ -87,8 +88,19 @@
               {% elif not current_user.is_anonymous() %}
               <i class="fa fa-minus"></i>
               {% endif %}
-            </tr>
+              {% if not current_user.is_anonymous() %}
+                {% if opportunity.is_public %}
+                <td>
+                  <i class="fa fa-eye" data-toggle="tooltip" title="Visible to the public"></i>
+                </td>
+                {% else %}
+                <td>
+                  <i class="fa fa-eye-slash" data-toggle="tooltip" title="Hidden from the public"></i>
+                </td>
+                {% endif %}
+              {% endif %}
             {% endif %}
+            </tr>
             {% endfor %}
           </tbody>
         </table>
