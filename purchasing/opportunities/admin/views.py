@@ -162,6 +162,21 @@ def edit(opportunity_id):
         )
     abort(404)
 
+@blueprint.route('/opportunities/<int:opportunity_id>/document/<int:document_id>/remove', methods=['GET', 'POST'])
+@requires_roles('staff', 'admin', 'superadmin', 'conductor')
+def remove_document(opportunity_id, document_id):
+    try:
+        document = OpportunityDocument.query.get(document_id)
+        # TODO: delete the document from S3
+        if document:
+            document.delete()
+            flash('Document successfully deleted', 'alert-success')
+        else:
+            flash("That document doesn't exist!", 'alert-danger')
+    except Exception, e:
+        flash('Something went wrong: {}'.format(e.message), 'alert-danger')
+    return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity_id))
+
 @blueprint.route('/opportunities/<int:opportunity_id>/publish', methods=['GET'])
 @requires_roles('admin', 'superadmin', 'conductor')
 def publish(opportunity_id):

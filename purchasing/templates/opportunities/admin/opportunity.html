@@ -92,7 +92,11 @@
             <p><strong>Uploaded files:</strong>
             <ul>
               {% for document in opportunity.opportunity_documents %}
-              <li><a href="{{ document.get_href() }}" target="_blank">{{ document.name }}</a> <br/></p></li>
+              <li>
+                <a href="{{ document.get_href() }}" target="_blank">{{ document.name }}</a>
+                <span class="pull-right"><a class="js-confirm-delete" href="{{ url_for('opportunities_admin.remove_document', opportunity_id=opportunity.id, document_id=document.id) }}" data-confirm="Are you sure you want to delete this document? This cannot be undone."><i class="fa fa-trash-o"></i></a></span>
+              </li>
+              {% if not loop.last %}<hr class="hr-no-padding">{% endif %}
               {% endfor %}
             </ul>
           <p><strong>Upload additional files:</strong> {{ macros.with_errors(form.document, multiple="")}}</p>

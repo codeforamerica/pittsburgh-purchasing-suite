@@ -11,7 +11,10 @@ from werkzeug.datastructures import FileStorage
 
 from flask import current_app
 
-from purchasing.opportunities.models import Opportunity, Vendor, Category
+from purchasing.database import db
+from purchasing.opportunities.models import (
+    Opportunity, Vendor, Category, OpportunityDocument
+)
 from purchasing.users.models import User
 from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.admin.views import build_opportunity, upload_document
@@ -215,6 +218,32 @@ class TestOpportunities(BaseTestCase):
         self.assert200(self.client.get('/beacon/opportunities'))
         self.assertEquals(len(self.get_context_variable('active')), 2)
         self.assertEquals(len(self.get_context_variable('upcoming')), 1)
+
+    def test_delete_document(self):
+        '''Test removing documents from opportunities
+        '''
+        opp = Opportunity.query.get(self.opportunity1)
+        opp.opportunity_documents.append(OpportunityDocument(
+            name='the_test_document', href='test'
+        ))
+        db.session.commit()
+
+        self.assertEquals(len(opp.opportunity_documents.all()), 1)
+
+        opp_doc = OpportunityDocument.query.filter(OpportunityDocument.name == 'the_test_document').first()
+        self.client.get('/beacon/admin/opportunities/{}/document/{}/remove'.format(opp.id, opp_doc.id))
+        self.assertEquals(len(opp.opportunity_documents.all()), 1)
+        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+
+        self.login_user(self.admin)
+
+        self.client.get('/beacon/admin/opportunities/{}/document/{}/remove'.format(opp.id, '999'))
+        self.assertEquals(len(opp.opportunity_documents.all()), 1)
+        self.assert_flashes("That document doesn't exist!", 'alert-danger')
+
+        self.client.get('/beacon/admin/opportunities/{}/document/{}/remove'.format(opp.id, opp_doc.id))
+        self.assertEquals(len(opp.opportunity_documents.all()), 0)
+        self.assert_flashes('Document successfully deleted', 'alert-success')
 
     def test_browse_contract(self):
         '''Test browse page loads properly
