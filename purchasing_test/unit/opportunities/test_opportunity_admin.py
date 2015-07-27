@@ -257,12 +257,12 @@ class TestOpportunities(BaseTestCase):
         self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
 
         # vendor should not be able to sign up for unpublished opp
-        self.client.post('/beacon/opportunities', data={
+        bad_contract = self.client.post('/beacon/opportunities', data={
             'email': 'foo@foo.com', 'business_name': 'foo',
             'opportunity': '3', 'opportunity': '4'
         })
         self.assertEquals(len(Vendor.query.get(1).opportunities), 2)
-        self.assert_flashes('You can\'t subscribe to that contract!', 'alert-danger')
+        self.assertTrue('not a valid choice.' in bad_contract.data)
 
     def test_signup_for_opportunity(self):
         '''Test signup for individual opportunities
