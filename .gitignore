@@ -52,7 +52,7 @@ libs/
 # Flask-assets output
 css
 common.js
-opportunities.js
+beacon.js
 wexplorer.js
 conductor.js
 
