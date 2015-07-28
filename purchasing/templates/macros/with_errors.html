@@ -6,8 +6,8 @@
       <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       <span>{{ error|e }}</span>
     </div>
-  {% endfor %}
-  {{ field(class=css_class, **kwargs) }}
+    {% endfor %}
+    {{ field(class=css_class, **kwargs) }}
   {% else %}
     {{ field(**kwargs) }}
   {% endif %}

@@ -64,23 +64,33 @@ class Opportunity(Model):
         backref='opportunities',
         collection_class=set
     )
-    # Date department advertised bid
-    planned_open = Column(db.DateTime)
-    # Date department opens bids
-    planned_deadline = Column(db.DateTime)
+    # Date opportunity should be made public on beacon
+    planned_advertise = Column(db.DateTime, nullable=False)
+    # Date opportunity opens for responses
+    planned_open = Column(db.DateTime, nullable=False)
+    # Date opportunity closes for receiving responses
+    planned_deadline = Column(db.DateTime, nullable=False)
     # Created from contract
     created_from_id = ReferenceCol('contract', ondelete='cascade', nullable=True)
     created_from = db.relationship('ContractBase', backref=backref(
         'opportunities', lazy='dynamic'
     ))
-    documents_needed = Column(ARRAY(db.Integer()))
-    document = Column(db.String(255))
-    document_href = Column(db.String(255))
-    created_by = ReferenceCol('users', ondelete='SET NULL')
+
+    # documents needed from the vendors
+    vendor_documents_needed = Column(ARRAY(db.Integer()))
+
+    created_by_id = ReferenceCol('users', ondelete='SET NULL')
+    created_by = db.relationship(
+        'User', backref=backref('opportunities_created', lazy='dynamic'),
+        foreign_keys='Opportunity.created_by_id'
+    )
     is_public = Column(db.Boolean(), default=True)
 
     def is_published(self):
-        return self.planned_open.date() <= datetime.date.today()
+        return self.planned_advertise.date() <= datetime.date.today()
+
+    def is_open(self):
+        return self.planned_open.date() >= datetime.date.today() and not self.is_expired()
 
     def is_expired(self):
         return self.planned_deadline.date() >= datetime.date.today()
@@ -92,16 +102,6 @@ class Opportunity(Model):
             user.role.name not in ('conductor', 'admin', 'superadmin') and
             (user.id not in (self.created_by, self.contact_id))
         ) else True
-
-    def get_href(self):
-        '''Returns a proper link to a file
-        '''
-        if current_app.config['UPLOAD_S3']:
-            return self.document_href
-        else:
-            if self.document_href.startswith('http'):
-                return self.document_href
-            return 'file://{}'.format(self.document_href)
 
     def estimate_open(self):
         '''Returns the month/year based on planned_open
@@ -138,6 +138,29 @@ class Opportunity(Model):
             }
         ]
 
+class OpportunityDocument(Model):
+    __tablename__ = 'opportunity_document'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    opportunity_id = ReferenceCol('opportunity', ondelete='cascade')
+    opportunity = db.relationship(
+        'Opportunity',
+        backref=backref('opportunity_documents', lazy='dynamic', cascade='all, delete-orphan')
+    )
+
+    name = Column(db.String(255))
+    href = Column(db.Text())
+
+    def get_href(self):
+        '''Returns a proper link to a file
+        '''
+        if current_app.config['UPLOAD_S3']:
+            return self.href
+        else:
+            if self.href.startswith('http'):
+                return self.href
+            return 'file://{}'.format(self.href)
+
 class RequiredBidDocument(Model):
     __tablename__ = 'document'
 
@@ -147,7 +170,7 @@ class RequiredBidDocument(Model):
     form_href = Column(db.String(255))
 
     def get_choices(self):
-        return (self.id, self.display_name)
+        return (self.id, [self.display_name, self.description, self.form_href])
 
 class Vendor(Model):
     __tablename__ = 'vendor'

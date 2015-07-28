@@ -16,6 +16,36 @@ from purchasing.users.models import DEPARTMENT_CHOICES, User
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
 
+def build_label_tooltip(name, description, href):
+    return '''
+    {} <i
+        class="fa fa-question-circle"
+        aria-hidden="true" data-toggle="tooltip"
+        data-placement="right" title="{}">
+    </i>'''.format(name, description)
+
+
+def select_multi_checkbox(field, ul_class='', **kwargs):
+    '''Custom multi-select widget for vendor documents needed
+
+    Renders with tooltips describing each document
+    '''
+    kwargs.setdefault('type', 'checkbox')
+    field_id = kwargs.pop('id', field.id)
+    html = [u'<div %s>' % widgets.html_params(id=field_id, class_=ul_class)]
+    for value, label, checked in field.iter_choices():
+        name, description, href = label
+        choice_id = u'%s-%s' % (field_id, value)
+        options = dict(kwargs, name=field.name, value=value, id=choice_id)
+        if checked:
+            options['checked'] = 'checked'
+        html.append(u'<div class="checkbox">')
+        html.append(u'<input %s /> ' % widgets.html_params(**options))
+        html.append(u'<label for="%s">%s</label>' % (choice_id, build_label_tooltip(name, description, href)))
+        html.append(u'</div>')
+    html.append(u'</div>')
+    return u''.join(html)
+
 class MultiCheckboxField(fields.SelectMultipleField):
     '''Custom multiple select that displays a list of checkboxes
 
@@ -109,9 +139,10 @@ class OpportunityForm(Form):
     contact_email = fields.TextField(validators=[Email(), city_domain_email, DataRequired()])
     title = fields.TextField(validators=[DataRequired()])
     description = fields.TextAreaField(validators=[max_words(), DataRequired()])
+    planned_advertise = fields.DateField(validators=[DataRequired()])
     planned_open = fields.DateField(validators=[DataRequired()])
     planned_deadline = fields.DateField(validators=[DataRequired(), after_today])
-    documents_needed = fields.SelectMultipleField(coerce=int)
+    documents_needed = fields.SelectMultipleField(widget=select_multi_checkbox)
     is_public = fields.BooleanField()
     document = FileField(
         validators=[FileAllowed(['pdf', 'doc', 'docx'], '.pdf, .doc, or .docx documents only!')]
