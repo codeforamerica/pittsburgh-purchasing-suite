@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 from flask_assets import Bundle, Environment
 
 less = Bundle(
@@ -45,19 +46,20 @@ vendorjs = Bundle(
 )
 
 opportunitiesjs = Bundle(
-    'js/opportunities/*.js',
+    'js/opportunities/opportunities.js',
+    'js/opportunities/signup.js',
     filters='uglifyjs',
     output='public/js/opportunities.js'
 )
 
 wexplorerjs = Bundle(
-    'js/wexplorer/*.js',
+    'js/wexplorer/sort.js',
     filters='uglifyjs',
     output='public/js/wexplorer.js'
 )
 
 conductorjs = Bundle(
-    'js/conductor/*.js',
+    'js/conductor/edit.js', 'js/conductor/transition.js',
     'libs/datatables/media/js/jquery.dataTables.js',
     filters='uglifyjs',
     output='public/js/conductor.js'
