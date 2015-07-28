@@ -162,7 +162,7 @@ class TestOpportunities(BaseTestCase):
             'planned_advertise': datetime.date.today(),
             'planned_open': datetime.date.today(),
             'planned_deadline': datetime.date.today() + datetime.timedelta(1),
-            'is_public': False
+            'save_type': 'save'
         }
 
         # assert that you need a title & description
@@ -188,12 +188,13 @@ class TestOpportunities(BaseTestCase):
         self.assertTrue('Text cannot be more than 500 words!' in new_contract.data)
 
         bad_data['description'] = 'Just right.'
-        bad_data['is_public'] = True
         bad_data['planned_deadline'] = datetime.date.today() + datetime.timedelta(1)
 
         new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
         self.assertEquals(Opportunity.query.count(), 5)
         self.assert_flashes('Opportunity Successfully Created!', 'alert-success')
+
+        self.assertFalse(Opportunity.query.get(5).is_public)
 
     def test_edit_a_contract(self):
         '''Test updating a contract
@@ -211,7 +212,7 @@ class TestOpportunities(BaseTestCase):
 
         self.client.post('/beacon/admin/opportunities/2', data={
             'planned_advertise': datetime.date.today(), 'title': 'Updated',
-            'description': 'Updated Contract!', 'is_public': True
+            'description': 'Updated Contract!', 'save_type': 'public'
         })
         self.assert_flashes('Opportunity Successfully Updated!', 'alert-success')
 

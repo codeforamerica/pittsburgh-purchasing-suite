@@ -5,7 +5,7 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-      <form method="POST" enctype="multipart/form-data" action="{% if opportunity.id %}{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities_admin.new') }}{% endif %}">
+      <form method="POST" enctype="multipart/form-data" action="{% if opportunity.id %}{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities_admin.new') }}{% endif %}" id="js-opportunity-form">
 
         {{ form.csrf_token() }}
         {% include "includes/flashes.html" %}
@@ -81,9 +81,9 @@
         </div><!-- documents needed -->
 
         <div class="form-group">
-          <label for="document" class="control-label">Upload your solicitation document.</label>
+          <label for="document" class="control-label">Upload your solicitation documents.</label>
           <p class="help-block">
-            If you don't have it on hand right now, don't worry. We'll email you two weeks before the publication date to remind you to upload it.
+            If you don't have them on hand right now, don't worry. We'll email you two weeks before the publication date to remind you to upload it.
           </p>
           <p class="help-block"><strong>
             .pdf, .doc, or .docx files only!
@@ -128,25 +128,33 @@
         </div>
         {% endif %}
 
-        <div class="spacer-10"></div>
-        {% if current_user.is_conductor() %}
+        <div class="spacer-20"></div>
 
-        <div class="form-group">
-          <label>Publish this opportunity</label>
-          <p class="help-block">Checking this box will make this opportunity visible to everyone (including the general public) on the <a href="{{ url_for('opportunities.browse') }}">browse page</a>.</p>
-          <label>
-            {{ macros.with_errors(form.is_public) }} Make visible
-          </label>
-        </div>
-        {% endif %}
-
+        {% if opportunity.is_public %}
         <button type="submit" class="btn btn-primary col-sm-6">
-          {% if current_user.is_conductor() %}
-          Publish Opportunity
-          {% else %}
-          Submit to OMB
-          {% endif %}
+          Save Changes
         </button>
+        {% elif current_user.is_conductor() %}
+
+        <input class="span2" id="save_type" name="save_type" type="hidden">
+
+        <div class="row">
+          <div class="col-xs-6">
+            <button type="submit" class="btn btn-primary col-sm-12 dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Save <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu submit-dropdown">
+              <li><a href="#" onclick="$('#save_type').val('save'); $('#js-opportunity-form').submit()">Save as draft</a></li>
+              <li><a href="#" onclick="$('#save_type').val('publish'); $('#js-opportunity-form').submit()">Save and make public</a></li>
+            </ul>
+          </div>
+        </div>
+
+        {% else %}
+        <button type="submit" class="btn btn-primary col-sm-6">
+          Submit to OMB
+        </button>
+        {% endif %}
 
       </form>
 

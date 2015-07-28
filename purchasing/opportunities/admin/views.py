@@ -67,7 +67,14 @@ def upload_document(document, _id):
         document.save(filepath)
         return filename, filepath
 
-def build_opportunity(data, opportunity=None):
+def build_opportunity(data, publish=None, opportunity=None):
+    '''Create/edit a new opportunity
+
+    data - the form data from the request
+    publish - either 'publish' or 'save':
+      determines if the opportunity should be made public
+    opportunity - the actual opportunity object
+    '''
     contact_email = data.pop('contact_email')
     contact = User.query.filter(User.email == contact_email).first()
 
@@ -102,6 +109,9 @@ def build_opportunity(data, opportunity=None):
                 name=filename, href=filepath
             ))
 
+    if not opportunity.is_public:
+        opportunity.is_public = True if publish == 'publish' else False
+
     db.session.commit()
     return opportunity
 
@@ -128,7 +138,7 @@ def new():
         form_data = fix_form_categories(request, form, Opportunity, None)
         # add the contact email back on because it was stripped by the cleaning
         form_data['contact_email'] = form.data.get('contact_email')
-        opportunity = build_opportunity(form_data)
+        opportunity = build_opportunity(form_data, publish=request.form.get('save_type'))
         flash('Opportunity Successfully Created!', 'alert-success')
         return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
     return render_template(
@@ -151,7 +161,7 @@ def edit(opportunity_id):
             form_data = fix_form_categories(request, form, Opportunity, opportunity)
             # add the contact email back on because it was stripped by the cleaning
             form_data['contact_email'] = form.data.get('contact_email')
-            build_opportunity(form_data, opportunity=opportunity)
+            build_opportunity(form_data, publish=request.form.get('save_type'), opportunity=opportunity)
             flash('Opportunity Successfully Updated!', 'alert-success')
             return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
 
