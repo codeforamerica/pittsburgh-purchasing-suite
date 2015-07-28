@@ -46,20 +46,19 @@ vendorjs = Bundle(
 )
 
 opportunitiesjs = Bundle(
-    'js/opportunities/opportunities.js',
-    'js/opportunities/signup.js',
+    'js/opportunities/*.js',
     filters='uglifyjs',
-    output='public/js/opportunities.js'
+    output='public/js/beacon.js'
 )
 
 wexplorerjs = Bundle(
-    'js/wexplorer/sort.js',
+    'js/wexplorer/*.js',
     filters='uglifyjs',
     output='public/js/wexplorer.js'
 )
 
 conductorjs = Bundle(
-    'js/conductor/edit.js', 'js/conductor/transition.js',
+    'js/conductor/*.js',
     'libs/datatables/media/js/jquery.dataTables.js',
     filters='uglifyjs',
     output='public/js/conductor.js'
