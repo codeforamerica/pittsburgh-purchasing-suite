@@ -66,3 +66,4 @@ class TestConfig(Config):
     MAIL_SUPPRESS_SEND = True
     UPLOAD_S3 = False
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'test_uploads'))
+    UPLOAD_FOLDER = UPLOAD_DESTINATION
