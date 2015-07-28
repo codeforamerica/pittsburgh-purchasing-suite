@@ -111,7 +111,9 @@
         {% endif %}
 
         {% if active|length > 0 or upcoming|length > 0 %}
-        {% include "opportunities/browse_signup.html" %}
+            <div class="spacer-20"></div>
+           <h4>Subscribe to selected opportunities</h4>
+        {% include "opportunities/opp_signup_form.html" %}
         {% endif %}
 
 
