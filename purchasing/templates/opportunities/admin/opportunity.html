@@ -5,7 +5,7 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-      <form method="POST" enctype="multipart/form-data" action="{% if opportunity.id %}{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities_admin.new') }}{% endif %}">
+      <form method="POST" enctype="multipart/form-data" action="{% if opportunity.id %}{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities_admin.new') }}{% endif %}" id="js-opportunity-form">
 
         {{ form.csrf_token() }}
         {% include "includes/flashes.html" %}
@@ -41,20 +41,31 @@
         </div><!-- description -->
 
         <div class="row">
-          <div class="col-sm-6">
+          <div class="col-sm-4">
             <div class="form-group">
-              <label for="planned_open" class="control-label">Publication Date <span class="form-required">*</span></label>
+              <label for="planned_advertise" class="control-label">Advertise Date <span class="form-required">*</span></label>
               <p class="help-block">
                 When do you want this opportunity to be made public? If you are uncertain, use an approximate date.
               </p>
-              {{ macros.with_errors(form.planned_open, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
+              {{ macros.with_errors(form.planned_advertise, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
             </div><!-- publication date -->
           </div>
-          <div class="col-sm-6">
+
+          <div class="col-sm-4">
+            <div class="form-group">
+              <label for="planned_open" class="control-label">Open Date <span class="form-required">*</span></label>
+              <p class="help-block">
+                When do you want to start receiving responses to this opportunity? If you are uncertain, use an approximate date.
+              </p>
+              {{ macros.with_errors(form.planned_open, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
+            </div><!-- opportunity open date -->
+          </div>
+
+          <div class="col-sm-4">
             <div class="form-group">
               <label for="planned_deadline" class="control-label">Planned Deadline <span class="form-required">*</span></label>
               <p class="help-block">
-                When is the deadline for vendors to respond? If you are uncertain, use an approximate date.
+                When is the deadline for vendors to respond to this opportunity? If you are uncertain, use an approximate date.
               </p>
               {{ macros.with_errors(form.planned_deadline, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
             </div><!-- opp deadline -->
@@ -62,26 +73,35 @@
         </div><!-- dates -->
 
         <div class="form-group">
-          <label for="documents_needed" class="control-label">Needed Documents</label>
+          <label for="documents_needed" class="control-label">Documents the vendor will need</label>
             <p class="help-block">
-              Use the Control (or Command &#x2318; on Macs) to select multiple.
+              Choose the documents that vendor will need to include in order to successfully respond to the opportunity.
             </p>
-          {{ macros.with_errors(form.documents_needed, class_="form-control")}}
+            {{ form.documents_needed }}
         </div><!-- documents needed -->
 
         <div class="form-group">
-          <label for="document" class="control-label">Upload your solicitation document.</label>
+          <label for="document" class="control-label">Upload your solicitation documents.</label>
           <p class="help-block">
-            If you don't have it on hand right now, don't worry. We'll email you two weeks before the publication date to remind you to upload it.
+            If you don't have them on hand right now, don't worry. We'll email you two weeks before the publication date to remind you to upload it.
           </p>
           <p class="help-block"><strong>
             .pdf, .doc, or .docx files only!
           </strong></p>
-          {% if form.document.data %}
-          <p><strong>Uploaded file:</strong> <a href="{{ opportunity.get_href() }}" target="_blank">{{ form.document.data }}</a> <br/></p>
-          <p><strong>Choose different file:</strong> {{ macros.with_errors(form.document)}}</p>
+          {% if opportunity and opportunity.opportunity_documents.all()|length > 0 %}
+            <p><strong>Uploaded files:</strong>
+            <ul>
+              {% for document in opportunity.opportunity_documents %}
+              <li>
+                <a href="{{ document.get_href() }}" target="_blank">{{ document.name }}</a>
+                <span class="pull-right"><a class="js-confirm-delete" href="{{ url_for('opportunities_admin.remove_document', opportunity_id=opportunity.id, document_id=document.id) }}" data-confirm="Are you sure you want to delete this document? This cannot be undone."><i class="fa fa-trash-o"></i></a></span>
+              </li>
+              {% if not loop.last %}<hr class="hr-no-padding">{% endif %}
+              {% endfor %}
+            </ul>
+          <p><strong>Upload additional files:</strong> {{ macros.with_errors(form.document, multiple="")}}</p>
           {% else %}
-          {{ macros.with_errors(form.document)}}
+          {{ macros.with_errors(form.document, multiple="")}}
           {% endif %}
         </div><!-- document upload -->
 
@@ -108,19 +128,33 @@
         </div>
         {% endif %}
 
-        {% if current_user.is_conductor() %}
-        <div class="spacer-10"></div>
+        <div class="spacer-20"></div>
 
-        <div class="form-group">
-          <label>Publish this opportunity</label>
-          <p class="help-block">Checking this box will make this opportunity visible to everyone (including the general public) on the <a href="{{ url_for('opportunities.browse') }}">browse page</a>.</p>
-          <label>
-            {{ macros.with_errors(form.is_public) }} Make visible
-          </label>
+        {% if opportunity.is_public %}
+        <button type="submit" class="btn btn-primary col-sm-6">
+          Save Changes
+        </button>
+        {% elif current_user.is_conductor() %}
+
+        <input class="span2" id="save_type" name="save_type" type="hidden">
+
+        <div class="row">
+          <div class="col-xs-6">
+            <button type="submit" class="btn btn-primary col-sm-12 dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Save <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu submit-dropdown">
+              <li><a href="#" onclick="$('#save_type').val('save'); $('#js-opportunity-form').submit()">Save as draft</a></li>
+              <li><a href="#" onclick="$('#save_type').val('publish'); $('#js-opportunity-form').submit()">Save and make public</a></li>
+            </ul>
+          </div>
         </div>
-        {% endif %}
 
-        <button type="submit" class="btn btn-primary col-sm-6">Publish Opportunity</button>
+        {% else %}
+        <button type="submit" class="btn btn-primary col-sm-6">
+          Submit to OMB
+        </button>
+        {% endif %}
 
       </form>
 

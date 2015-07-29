@@ -197,6 +197,7 @@ def browse():
     '''Browse available opportunities
     '''
     active, upcoming = [], []
+    visible_active, visible_upcoming = 0, 0
 
     signup_form = init_form(OpportunitySignupForm)
     if signup_form.validate_on_submit():
@@ -214,13 +215,18 @@ def browse():
     for opportunity in opportunities:
         if opportunity.is_published():
             active.append(opportunity)
+            if not current_user.is_anonymous() or opportunity.is_public:
+                visible_active += 1
         else:
             upcoming.append(opportunity)
+            if not current_user.is_anonymous() or opportunity.is_public:
+                visible_upcoming += 1
 
     return render_template(
         'opportunities/browse.html', opportunities=opportunities,
         active=active, upcoming=upcoming, current_user=current_user,
-        signup_form=signup_form
+        signup_form=signup_form, visible_active=visible_active,
+        visible_upcoming=visible_upcoming
     )
 
 @blueprint.route('/opportunities/<int:opportunity_id>', methods=['GET', 'POST'])

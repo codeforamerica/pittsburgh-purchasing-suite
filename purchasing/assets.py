@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 from flask_assets import Bundle, Environment
 
 less = Bundle(
@@ -47,7 +48,7 @@ vendorjs = Bundle(
 opportunitiesjs = Bundle(
     'js/opportunities/*.js',
     filters='uglifyjs',
-    output='public/js/opportunities.js'
+    output='public/js/beacon.js'
 )
 
 wexplorerjs = Bundle(

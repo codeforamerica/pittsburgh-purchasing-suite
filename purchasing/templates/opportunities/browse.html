@@ -15,7 +15,8 @@
 
         <h3><strong>Currently accepting proposals</strong></h3>
 
-        {% if active|length > 0 %}
+        {% if visible_active > 0 %}
+
         <table class="table table-striped">
           <thead>
             <tr>
@@ -58,12 +59,17 @@
             {% endfor %}
           </tbody>
         </table>
+
         {% else %}
+
         <p>There aren't any opportunities accepting proposals right now. <a href="{{ url_for('opportunities.signup') }}">Subscribe to our mailing list</a> and be among the first to know when upcoming opportunities become active ones.</p>
+
         {% endif %}
 
         <h3><strong>Upcoming</strong></h3>
-        {% if upcoming|length > 0 %}
+
+        {% if visible_upcoming > 0 %}
+
         <table class="table table-striped">
           <thead>
             <tr>
@@ -73,6 +79,7 @@
               <th>Estimated Open Date</th>
               {% if not current_user.is_anonymous() %}
               <th>Edit this contract</th>
+              <th>Public</th>
               {% endif %}
             </tr>
           </thead>
@@ -89,19 +96,36 @@
               {% elif not current_user.is_anonymous() %}
               <i class="fa fa-minus"></i>
               {% endif %}
-            </tr>
+              {% if not current_user.is_anonymous() %}
+                {% if opportunity.is_public %}
+                <td>
+                  <i class="fa fa-eye" data-toggle="tooltip" title="Visible to the public"></i>
+                </td>
+                {% else %}
+                <td>
+                  <i class="fa fa-eye-slash" data-toggle="tooltip" title="Hidden from the public"></i>
+                </td>
+                {% endif %}
+              {% endif %}
             {% endif %}
+            </tr>
             {% endfor %}
           </tbody>
         </table>
+
         {% else %}
+
            <p>There aren't any upcoming opportunities right now. <a href="{{ url_for('opportunities.signup') }}">Subscribe to our mailing list</a> and find out when new ones get posted.</p>
+
         {% endif %}
 
         {% if active|length > 0 or upcoming|length > 0 %}
-        {% include "opportunities/browse_signup.html" %}
-        {% endif %}
 
+          <div class="spacer-20"></div>
+          <h4>Subscribe to selected opportunities</h4>
+          {% include "opportunities/opp_signup_form.html" %}
+
+        {% endif %}
 
       </form>
 
