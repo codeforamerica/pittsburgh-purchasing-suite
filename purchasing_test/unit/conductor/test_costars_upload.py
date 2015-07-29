@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import unittest
-
-from os import mkdir, listdir, rmdir
+from collections import defaultdict
+from os import mkdir, rmdir
 from shutil import rmtree
 from flask import current_app
 from werkzeug.datastructures import FileStorage, Headers
@@ -12,8 +11,9 @@ from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
     insert_a_role, insert_a_user
 )
-from purchasing.conductor.views import upload as costars_upload
-from purchasing.conductor.forms import FileUpload
+from purchasing.data.contracts import get_all_contracts
+from purchasing.data.companies import get_all_companies
+from purchasing.data.models import LineItem
 
 class TestCostarsUpload(BaseTestCase):
 
@@ -90,8 +90,37 @@ class TestCostarsUpload(BaseTestCase):
         upload_csv = self.client.post('conductor/upload_new', data=dict(upload=csv_file))
         self.assertTrue(upload_csv.data.count('Upload successful', 1))
 
-    @unittest.skip('upload/update test coming soon')
     def test_upload_success(self):
         '''Test that file upload works and updates database
         '''
-        self.assertTrue(False)
+        self.login_user(self.conductor)
+        costars_filepath = current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/COSTARS-1.csv'
+        costars_filename = 'COSTARS-1.csv'
+        props = defaultdict(list)
+
+        self.client.post(
+            'conductor/_process_file',
+            data=dict(filepath=costars_filepath, filename=costars_filename)
+        )
+
+        contracts = get_all_contracts()
+        # assert we got both contracts
+        self.assertEquals(len(contracts), 3)
+
+        for contract in contracts:
+            self.assertTrue(contract.expiration_date is not None)
+            for property in contract.properties:
+                props[property.key].append(property.value)
+
+        # assert the county importer works properly
+        self.assertEquals(len(props['Located in']), 2)
+        self.assertEquals(len(props['List of manufacturers']), 2)
+
+        # assert that we got all the line items
+        self.assertEquals(LineItem.query.count(), 12)
+
+        companies = get_all_companies()
+
+        self.assertEquals(len(companies), 3)
+        for company in companies:
+            self.assertEquals(company.contacts.count(), 0)
