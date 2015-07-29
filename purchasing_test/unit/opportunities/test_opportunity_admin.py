@@ -129,21 +129,20 @@ class TestOpportunities(BaseTestCase):
     def test_build_opportunity_new_user(self):
         '''Test that build_opportunity creates new users appropriately
         '''
-        with self.client as c:
-            self.login_user(self.admin)
-            data = {
-                'department': 'Other', 'contact_email': 'new_email@foo.com',
-                'title': 'test', 'description': 'test',
-                'planned_advertise': datetime.date.today(),
-                'planned_open': datetime.date.today(),
-                'planned_deadline': datetime.date.today() + datetime.timedelta(1),
-                'is_public': False
-            }
+        self.login_user(self.admin)
+        data = {
+            'department': 'Other', 'contact_email': 'new_email@foo.com',
+            'title': 'test', 'description': 'test',
+            'planned_advertise': datetime.date.today(),
+            'planned_open': datetime.date.today(),
+            'planned_deadline': datetime.date.today() + datetime.timedelta(1),
+            'is_public': False
+        }
 
-            # assert that we create a new user when we build with a new email
-            self.assertEquals(User.query.count(), 2)
-            build_opportunity(data, None)
-            self.assertEquals(User.query.count(), 3)
+        # assert that we create a new user when we build with a new email
+        self.assertEquals(User.query.count(), 2)
+        self.client.post('/beacon/admin/opportunities/new', data=data)
+        self.assertEquals(User.query.count(), 3)
 
     def test_create_a_contract(self):
         '''Test create contract page
