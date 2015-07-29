@@ -201,7 +201,7 @@ class TestConductor(BaseTestCase):
         self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 3).first().exited is None)
 
     def test_conductor_link_directions(self):
-        '''Test that we can access completed stages but not non-stared ones
+        '''Test that we can access completed stages but not non-starred ones
         '''
         self.assign_contract()
         self.client.get(self.detail_view.format(self.contract1.id, self.stage1.id) + '?transition=true')
