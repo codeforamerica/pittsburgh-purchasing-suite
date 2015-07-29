@@ -43,13 +43,11 @@ Now that you have the code, you'll need to create your environment file to make 
 sh dockerenv.sh
 ```
 
-This will create a new `.dockerenv` file with the necessary variables set for you. The `dockerenv.sh` script will output the address of your Docker container. If you don't remember it, you can run `boot2docker ip` to find it at any time. For now, you should be ready to go:
+This will create a new `.dockerenv` file with the necessary variables set for you. The `dockerenv.sh` script will output the address of your Docker container. If you don't remember it, you can run `boot2docker ip` to find it at any time. For now, you should be ready build your web container:
 
 ```bash
-docker-compose up
+docker-compose build web
 ```
-
-Navigate to the IP address at port 9000, and you should be ready to go!
 
 #### Setting up the database
 
@@ -60,11 +58,18 @@ While Docker will create a Postgres container for you, it won't set up the datab
 docker-compose run web python manage.py db upgrade
 # create a user
 docker-compose run web python manage.py seed_user -e <your-email-here> -r <your-desired-role>
-# import some contracts
-docker-compose run web python manage.py import_old_contracts
+# import some baseline data
+docker-compose run web python manage.py seed
+docker-compose run web python manage.py import_nigp --replace t
 ```
 
 Now everything should be ready to go.
+
+```bash
+docker-compose up
+```
+
+Navigate to the IP address that you found when you ran `boot2docker ip` at port 9000, and you should be up and running.
 
 ### Without Docker
 

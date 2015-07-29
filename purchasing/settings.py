@@ -4,6 +4,7 @@ import os
 os_env = os.environ
 
 class Config(object):
+
     DB_NAME = os_env.get('DB_NAME')
     DB_USER = os_env.get('DB_USER')
     DB_PASS = os_env.get('DB_PASS')
@@ -15,6 +16,7 @@ class Config(object):
         SQLALCHEMY_DATABASE_URI = 'postgresql://{0}:{1}@{2}:{3}/{4}'.format(
             DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME
         )
+
     SECRET_KEY = os_env.get('PITTSBURGH-PURCHASING-SUITE_SECRET', 'secret-key')  # TODO: Change me
     APP_DIR = os.path.abspath(os.path.dirname(__file__))  # This directory
     PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, os.pardir))
@@ -52,8 +54,20 @@ class ProdConfig(Config):
 class DevConfig(Config):
     """Development configuration."""
     ENV = 'dev'
+
+    DB_NAME = os_env.get('DB_NAME')
+    DB_USER = os_env.get('DB_USER')
+    DB_PASS = os_env.get('DB_PASS')
+    DB_HOST = os_env.get('DB_HOST')
+    DB_PORT = os_env.get('DB_PORT')
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing')  # TODO: Change me
+    if DB_NAME is None or DB_USER is None or DB_HOST is None:
+        SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing')
+    else:
+        SQLALCHEMY_DATABASE_URI = 'postgresql://{0}:{1}@{2}:{3}/{4}'.format(
+            DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME
+        )
+
     SQLALCHEMY_ECHO = os_env.get('SQLALCHEMY_ECHO', False)
     DEBUG_TB_ENABLED = True
     BROWSERID_URL = os_env.get('BROWSERID_URL', 'http://127.0.0.1:9000')
