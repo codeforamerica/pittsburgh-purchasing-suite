@@ -31,16 +31,17 @@
 <script>
 var filepath = '{{ filepath }}';
 var filename = '{{ filename }}';
+var _delete = true;
 
 if (!filepath) {
   window.location.reload();
 }
 
 $.ajax({
-  url: "{{ url_for('conductor.process_upload') }}",
+  url: "{{ url_for('conductor.process_costars_upload') }}",
   method: 'POST',
 
-  data: { filepath: filepath, filename: filename },
+  data: { filepath: filepath, filename: filename, _delete: _delete },
 
   success: function(data, status, xhr) {
     $('.upload-processing').hide()

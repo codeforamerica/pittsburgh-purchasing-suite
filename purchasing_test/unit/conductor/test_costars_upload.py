@@ -56,25 +56,25 @@ class TestCostarsUpload(BaseTestCase):
         '''Test page won't render for people without proper roles
         '''
         # test that you can't access upload page unless you are signed in with proper role
-        self.assertEqual(self.client.get('/conductor/upload_new').status_code, 302)
+        self.assertEqual(self.client.get('/conductor/upload/costars').status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
         for user in [self.conductor, self.admin, self.superadmin]:
             self.login_user(user)
-            self.assert200(self.client.get('/conductor/upload_new'))
+            self.assert200(self.client.get('/conductor/upload/costars'))
 
     def test_upload_locked(self):
         '''Test upload doesn't work without proper role
         '''
         test_file = self.create_file('test.csv', 'text/csv')
-        upload_csv = self.client.post('/conductor/upload_new', data=dict(upload=test_file))
+        upload_csv = self.client.post('/conductor/upload/costars', data=dict(upload=test_file))
         self.assertEqual(upload_csv.status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
         for user in [self.conductor, self.admin, self.superadmin]:
             self.login_user(user)
             test_file = self.create_file('test.csv', 'text/csv')
-            req = self.client.post('/conductor/upload_new', data=dict(upload=test_file))
+            req = self.client.post('/conductor/upload/costars', data=dict(upload=test_file))
             self.assert200(req)
 
     def test_upload_validation(self):
@@ -83,11 +83,11 @@ class TestCostarsUpload(BaseTestCase):
         self.login_user(self.conductor)
 
         txt_file = self.create_file('test.txt', 'text/plain')
-        upload_txt = self.client.post('conductor/upload_new', data=dict(upload=txt_file))
+        upload_txt = self.client.post('conductor/upload/costars', data=dict(upload=txt_file))
         self.assertTrue(upload_txt.data.count('.csv files only'), 1)
 
         csv_file = self.create_file('test.csv', 'text/csv')
-        upload_csv = self.client.post('conductor/upload_new', data=dict(upload=csv_file))
+        upload_csv = self.client.post('conductor/upload/costars', data=dict(upload=csv_file))
         self.assertTrue(upload_csv.data.count('Upload successful', 1))
 
     def test_upload_success(self):
@@ -99,8 +99,8 @@ class TestCostarsUpload(BaseTestCase):
         props = defaultdict(list)
 
         self.client.post(
-            'conductor/_process_file',
-            data=dict(filepath=costars_filepath, filename=costars_filename)
+            'conductor/upload/costars/_process',
+            data=dict(filepath=costars_filepath, filename=costars_filename, _delete=False)
         )
 
         contracts = get_all_contracts()

@@ -293,9 +293,9 @@ def assign(contract_id, flow_id, user_id):
     flash('Successfully assigned to {}!'.format(user.email), 'alert-success')
     return redirect(url_for('conductor.index'))
 
-@blueprint.route('/upload_new', methods=['GET', 'POST'])
+@blueprint.route('/upload/costars', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
-def upload():
+def upload_costars():
     form = FileUpload()
     if form.validate_on_submit():
         _file = request.files.get('upload')
@@ -311,13 +311,22 @@ def upload():
     else:
         return render_template('conductor/upload_new.html', form=form)
 
-@blueprint.route('/_process_file', methods=['POST'])
+@blueprint.route('/upload/costars/_process', methods=['POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
-def process_upload():
+def process_costars_upload():
+
     filepath = request.form.get('filepath')
     filename = request.form.get('filename')
+    delete = request.form.get('_delete')
+
     try:
         import_costars(filepath, filename, None, None, None)
+
+        if delete not in ['False', 'false', False]:
+            os.remove(filepath)
+
         return jsonify({'status': 'success'}), 200
+
     except Exception, e:
+        raise e
         return jsonify({'status': 'error: {}'.format(e)}), 500
