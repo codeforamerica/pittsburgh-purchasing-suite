@@ -1,0 +1,45 @@
+{% extends "conductor/layout.html" %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12">
+      {% if contracts|length > 0 %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Contract</th>
+            <th>Upload Document</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for contract in contracts %}
+          <form class="form-horizontal" method="POST" action="{{ url_for('conductor_uploads.costars_contract_upload') }}" enctype="multipart/form-data">
+            {{ form.csrf_token() }}
+            <tr>
+              <td>{{ contract.description }}</td>
+              <td>
+                {{ macros.with_errors(form.upload) }}
+                {{ macros.with_errors(form.contract_id, value=contract.id) }}
+              </td>
+              <td><input type="submit"></td>
+            </tr>
+          </form>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="spacer-20"></div>
+      <p class="lead">
+        There are no COSTARS contracts that don't have an associated contract PDF. You can always <a href="{{ url_for('conductor_uploads.upload_costars') }}">upload more</a>.
+      </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -35,9 +35,12 @@ class ScoutContractAdmin(ContractBaseAdmin):
     inline_models = (ContractProperty, LineItem,)
 
     form_columns = [
-        'contract_type', 'description', 'properties', 'financial_id',
-        'expiration_date', 'companies', 'followers', 'starred', 'is_archived'
+        'contract_type', 'description', 'properties',
+        'financial_id', 'expiration_date', 'contract_href',
+        'companies', 'followers', 'starred', 'is_archived'
     ]
+
+    column_labels = dict(contract_href='Link to Contract PDF')
 
     column_list = [
         'contract_type', 'description', 'financial_id', 'expiration_date',

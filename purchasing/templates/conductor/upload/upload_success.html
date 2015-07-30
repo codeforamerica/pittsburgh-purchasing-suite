@@ -38,19 +38,19 @@ if (!filepath) {
 }
 
 $.ajax({
-  url: "{{ url_for('conductor.process_costars_upload') }}",
+  url: "{{ url_for('conductor_uploads.process_costars_upload') }}",
   method: 'POST',
 
   data: { filepath: filepath, filename: filename, _delete: _delete },
 
   success: function(data, status, xhr) {
-    $('.upload-processing').hide()
-    $('.upload-success').show()
+    $('.upload-processing').hide();
+    $('.upload-success').show();
   }, error: function(xhr, status, error) {
-    $('.upload-error').show()
+    $('.upload-error').show();
     $('.error-message').append(error + ': ' + JSON.parse(xhr.responseText).message);
   }
-})
+});
 
 </script>
 

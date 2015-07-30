@@ -2,13 +2,10 @@
 
 import urllib2
 import datetime
-import os
-
-from werkzeug import secure_filename
 
 from flask import (
     Blueprint, render_template, flash, redirect,
-    url_for, abort, request, jsonify, current_app
+    url_for, abort, request, jsonify
 )
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
@@ -22,11 +19,11 @@ from purchasing.data.models import (
     ContractBase, ContractProperty, ContractStage, Stage,
     ContractStageActionItem, Flow
 )
-from purchasing.data.importer.costars import main as import_costars
+
 from purchasing.users.models import User, Role
 from purchasing.conductor.forms import (
     EditContractForm, PostOpportunityForm,
-    SendUpdateForm, NoteForm, FileUpload
+    SendUpdateForm, NoteForm
 )
 
 blueprint = Blueprint(
@@ -292,41 +289,3 @@ def assign(contract_id, flow_id, user_id):
     db.session.commit()
     flash('Successfully assigned to {}!'.format(user.email), 'alert-success')
     return redirect(url_for('conductor.index'))
-
-@blueprint.route('/upload/costars', methods=['GET', 'POST'])
-@requires_roles('conductor', 'admin', 'superadmin')
-def upload_costars():
-    form = FileUpload()
-    if form.validate_on_submit():
-        _file = request.files.get('upload')
-        filename = secure_filename(_file.filename)
-        filepath = os.path.join(current_app.config.get('UPLOAD_FOLDER'), filename)
-        try:
-            _file.save(filepath)
-        except IOError:
-            # if the upload folder doesn't exist, create it then save
-            os.mkdir(current_app.config.get('UPLOAD_FOLDER'))
-            _file.save(filepath)
-        return render_template('conductor/upload_success.html', filepath=filepath, filename=filename)
-    else:
-        return render_template('conductor/upload_new.html', form=form)
-
-@blueprint.route('/upload/costars/_process', methods=['POST'])
-@requires_roles('conductor', 'admin', 'superadmin')
-def process_costars_upload():
-
-    filepath = request.form.get('filepath')
-    filename = request.form.get('filename')
-    delete = request.form.get('_delete')
-
-    try:
-        import_costars(filepath, filename, None, None, None)
-
-        if delete not in ['False', 'false', False]:
-            os.remove(filepath)
-
-        return jsonify({'status': 'success'}), 200
-
-    except Exception, e:
-        raise e
-        return jsonify({'status': 'error: {}'.format(e)}), 500
