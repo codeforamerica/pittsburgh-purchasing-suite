@@ -19,6 +19,7 @@
         <ul class="nav navbar-nav">
           <li class="dropdown">
             <a type="button" href="{% block brandhref %}{%endblock %}" class="btn nav-dropdown-btn navbar-brand">{% block brand %}{% endblock %}</a>
+            {% block dropdown %}
             <a class="btn nav-dropdown-btn navbar-brand dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
               <span class="caret"></span>
               <span class="sr-only">Toggle Dropdown</span>
@@ -57,6 +58,7 @@
               </a></li>
               {% endif %}
             </ul>
+            {% endblock %}
           </li>
         </ul>
       </div>
