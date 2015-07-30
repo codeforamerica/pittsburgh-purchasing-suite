@@ -5,7 +5,7 @@
 {{ super() }}
 <div class="container">
   <h2>Upload new data</h2>
-  <form method="POST" action="{{ url_for('conductor.upload_costars') }}" enctype="multipart/form-data">
+  <form method="POST" action="{{ url_for('conductor_uploads.upload_costars') }}" enctype="multipart/form-data">
 
   {{ form.csrf_token }}
   <div class="form-group">

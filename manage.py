@@ -10,7 +10,7 @@ from flask.ext.assets import ManageAssets
 from purchasing.app import create_app
 from purchasing.settings import DevConfig, ProdConfig
 from purchasing.database import db
-from purchasing.utils import _get_aggressive_cache_headers, connect_to_s3
+from purchasing.utils import connect_to_s3, upload_file
 
 from purchasing.public.models import AppStatus
 
@@ -126,16 +126,6 @@ def delete_contracts():
         Company.query.delete()
         db.session.commit()
     return
-
-def upload_file(filename, bucket, root=None, prefix='/static'):
-    filepath = os.path.join(root, filename.lstrip('/')) if root else filename
-    _file = bucket.new_key(
-        '{}/{}'.format(prefix, filename)
-    )
-    aggressive_headers = _get_aggressive_cache_headers(_file)
-    _file.set_contents_from_filename(filepath, headers=aggressive_headers)
-    _file.set_acl('public-read')
-    return True
 
 @manager.option('-u', '--user_id', dest='user')
 @manager.option('-p', '--secret', dest='secret')

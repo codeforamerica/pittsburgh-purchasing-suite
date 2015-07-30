@@ -13,7 +13,7 @@ from purchasing_test.unit.util import (
 )
 from purchasing.data.contracts import get_all_contracts
 from purchasing.data.companies import get_all_companies
-from purchasing.data.models import LineItem
+from purchasing.data.models import LineItem, ContractBase
 
 class TestCostarsUpload(BaseTestCase):
 
@@ -124,3 +124,46 @@ class TestCostarsUpload(BaseTestCase):
         self.assertEquals(len(companies), 3)
         for company in companies:
             self.assertEquals(company.contacts.count(), 0)
+
+class TestCostarsContractUpload(TestCostarsUpload):
+    def setUp(self):
+        super(TestCostarsContractUpload, self).setUp()
+
+        self.login_user(self.conductor)
+        costars_filepath = current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/COSTARS-1.csv'
+        costars_filename = 'COSTARS-1.csv'
+
+        self.client.post(
+            'conductor/upload/costars/_process',
+            data=dict(filepath=costars_filepath, filename=costars_filename, _delete=False)
+        )
+        self.logout_user()
+
+    def tearDown(self):
+        super(TestCostarsContractUpload, self).tearDown()
+
+    def test_app_locked(self):
+        '''Test that the views are gated
+        '''
+        self.assertEquals(self.client.get('/conductor/upload/costars/contracts').status_code, 302)
+        self.assertEquals(self.client.post('/conductor/upload/costars/contracts').status_code, 302)
+
+    def test_contract_upload_view(self):
+        '''Test the upload contract views work as expected
+        '''
+        self.login_user(self.admin)
+        self.assert200(self.client.get('/conductor/upload/costars/contracts'))
+        self.assertEquals(len(self.get_context_variable('contracts')), 3)
+
+    def test_contract_upload(self):
+        '''Test that uploading contracts work as expected
+        '''
+        self.login_user(self.admin)
+        test_file = self.create_file('test.pdf', 'application/pdf')
+        self.client.post(
+            '/conductor/upload/costars/contracts',
+            data=dict(upload=test_file, contract_id=1)
+        )
+        self.assertTrue(ContractBase.query.get(1).contract_href is not None)
+        self.assert200(self.client.get('/conductor/upload/costars/contracts'))
+        self.assertEquals(len(self.get_context_variable('contracts')), 2)
