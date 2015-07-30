@@ -130,12 +130,20 @@
         <table class="table table-striped line-item-table">
           <thead>
             <th>Description</th>
+            <th>Company</th>
             <th>Unit Cost</th>
           </thead>
-          <tbody>
           {% for _item in contract.line_items %}
+          <tbody>
             <tr>
-              <td class="col-md-10">{{ _item.description }}</td>
+              <td class="col-md-7">{{ _item.description }}</td>
+              <td class="col-md-3">
+                {% if _item.company_name %}
+                  {{ _item.company_name|title }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
               <td class="col-md-2">
                 {% if _item.percentage %}
                   {{ _item.unit_cost|int }} percent discount
