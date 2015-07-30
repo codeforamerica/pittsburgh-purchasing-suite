@@ -4,7 +4,7 @@ import os
 
 from flask import (
     Blueprint, request, current_app, render_template,
-    jsonify, redirect, url_for
+    jsonify, redirect, url_for, flash
 )
 from werkzeug import secure_filename
 
@@ -104,6 +104,7 @@ def costars_contract_upload():
         contract = ContractBase.query.get(int(form.data.get('contract_id')))
 
         contract.update(contract_href=filepath)
+        flash('Contract uploaded successfully', 'alert-success')
         return redirect(url_for('conductor_uploads.costars_contract_upload'))
 
     return render_template(
