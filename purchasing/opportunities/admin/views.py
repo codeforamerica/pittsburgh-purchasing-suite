@@ -123,7 +123,7 @@ def generate_opportunity_form(obj=None):
     display_categories = subcategories.keys()
     display_categories.remove('Select All')
 
-    form.documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
+    form.vendor_documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
 
     return form, json.dumps(sorted(display_categories) + ['Select All']), json.dumps(subcategories)
 
