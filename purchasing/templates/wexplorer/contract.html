@@ -12,23 +12,11 @@
         <div class="row">
           {% if current_user.role.name == 'anonymous' %}
           <div class="col-sm-12"><h3><strong>
-            {% if contract.contract_href %}
-            <a href="{{ contract.contract_href }}" target="_blank">
-              {{ contract.description|title }}
-            </a>
-            {% else %}
             {{ contract.description|title }}
-            {% endif %}
           </strong></h3></div>
           {% else %}
           <div class="col-sm-9"><h3><strong>
-            {% if contract.contract_href %}
-            <a href="{{ contract.contract_href }}" target="_blank">
               {{ contract.description|title }}
-            </a>
-            {% else %}
-            {{ contract.description|title }}
-            {% endif %}
           </strong></h3></div>
           <div class="col-sm-3">
             {% if current_user in contract.followers %}
@@ -45,8 +33,16 @@
           <a href="{{ url_for('contract.edit_view', id=contract.id) }}">Edit this contract</a>
         </p>
         {% endif %}
+        {% if contract.contract_href %}
+          <a href="{{ contract.contract_href }}" target="_blank">
+            View contract
+            <span class="fa-stack fa-1x">
+              <i class="fa fa-file-pdf-o"></i>
+            </span>
+          </a>
+        {% endif %}
         <p>
-          See something wrong? <a href="{{ url_for('wexplorer.feedback', contract_id=contract.id) }}" target="_blank">Send your feedback.</a> <br /><small>(Opens new tab)</small>
+          See something wrong? <a href="{{ url_for('wexplorer.feedback', contract_id=contract.id) }}" target="_blank">Send your feedback.</a>
         </p>
 
       <hr>
