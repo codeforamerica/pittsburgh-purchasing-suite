@@ -251,8 +251,10 @@ def detail(opportunity_id):
                 flash('Successfully subscribed for updates!', 'alert-success')
                 return redirect(url_for('opportunities.detail', opportunity_id=opportunity.id))
 
+        has_docs = opportunity.opportunity_documents.count() > 0
+
         return render_template(
             'opportunities/front/detail.html', opportunity=opportunity,
-            current_user=current_user, signup_form=signup_form
+            current_user=current_user, signup_form=signup_form, has_docs=has_docs
         )
     abort(404)
