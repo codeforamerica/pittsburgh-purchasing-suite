@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from collections import defaultdict
 from flask import render_template, current_app
 from flask_mail import Message
+
 from purchasing.extensions import mail
+from purchasing.users.models import User, Role
 
 def vendor_signup(vendor, categories=[]):
     '''Sends a signup notification to the email associated with a vendor object
@@ -91,3 +94,36 @@ def send_conductor_alert(send_to, subject, body, sender):
 
     mail.send(msg)
     return True
+
+def convert_models(kwarg_dict):
+    for key, value in kwarg_dict.iteritems():
+        if isinstance(value, (set, list)):
+            tmp_list = []
+            for v in value:
+                tmp_list.append(v.__unicode__())
+            kwarg_dict[key] = '; '.join(tmp_list)
+        else:
+            pass
+
+    return kwarg_dict
+
+def notify_site_admins(subject, message, sender=None, *args, **kwargs):
+    '''Trigger email sent to site admins
+    '''
+    msg_body = render_template(
+        '/public/emails/email_admins.html',
+        message=message,
+        kwargs=convert_models(dict(kwargs))
+    )
+
+    with mail.connect() as conn:
+        for user in User.query.join(Role).filter(Role.name.in_(['admin', 'superadmin'])).all():
+            msg = Message(
+                subject='[Pittsburgh Purchasing] {}'.format(subject),
+                html=msg_body,
+                sender=sender if sender else current_app.config['MAIL_DEFAULT_SENDER'],
+                recipients=[user.email]
+            )
+
+            conn.send(msg)
+        return True
