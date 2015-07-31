@@ -37,10 +37,18 @@ conductor_less = Bundle(
     depends=('less/*.less', 'less/**/*.less')
 )
 
+ie8 = Bundle(
+    'libs/html5shiv/dist/html5shiv.js',
+    'libs/html5shiv/dist/html5shiv-printshiv.js',
+    filters='uglifyjs',
+    output='public/js/html5shiv.js'
+)
+
 vendorjs = Bundle(
     'libs/jQuery/dist/jquery.js',
     'libs/bootstrap/dist/js/bootstrap.js',
     'libs/bootstrap-datepicker/js/bootstrap-datepicker.js',
+    'libs/respond/dest/respond.min.js',
     filters='uglifyjs',
     output='public/js/common.js'
 )
@@ -68,6 +76,7 @@ assets = Environment()
 test_assets = Environment()
 
 # register our javascript bundles
+assets.register('ie8', ie8)
 assets.register('vendorjs', vendorjs)
 assets.register('opportunitiesjs', opportunitiesjs)
 assets.register('wexplorerjs', wexplorerjs)

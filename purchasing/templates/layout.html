@@ -25,7 +25,11 @@
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
   {% block css %}{% endblock %}
-
+  <!--[if lt IE 9]>
+    {% assets "ie8" %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+  <![endif]-->
 </head>
 <body class="{% block body_class %}{% endblock %}">
 {% block body %}
