@@ -1,3 +1,8 @@
+.h1-padding {
+  margin-top: @line-height-computed;
+  margin-bottom: (@line-height-computed / 2);
+}
+
 .detail-title {
   background-color: darken(@gray, 10%);
   margin-top: -10px;
@@ -13,6 +18,20 @@
   margin-top: 25px;
 }
 
+.browse-signup-form-container {
+  margin-top: 10px;
+}
+
+.well-no-background {
+  background: @body-bg;
+}
+
+.browse-signup-collapse-container {
+  padding-left: 0;
+  padding-right: 0;
+  margin-bottom: 10px;
+}
+
 .timeline-well {
   background: @body-bg;
   border: none;
@@ -21,7 +40,6 @@
 .event {
   min-height: 65px;
   position: relative;
-  border-left: 5px solid @beacon-timeline-dot-default;
   margin: 5px;
   padding-bottom: 2px;
   &:before {
@@ -65,4 +83,8 @@
     font-size: @font-size-large;
     font-weight: bold;
   }
+}
+
+.event {
+  border-left: 5px solid @beacon-timeline-dot-default;
 }

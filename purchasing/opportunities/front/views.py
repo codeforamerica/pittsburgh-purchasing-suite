@@ -10,7 +10,7 @@ from flask import (
 from flask_login import current_user
 
 from purchasing.database import db
-from purchasing.notifications import vendor_signup
+from purchasing.notifications import vendor_signup, notify_site_admins
 from purchasing.opportunities.forms import UnsubscribeForm, VendorSignupForm, OpportunitySignupForm
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
@@ -79,6 +79,13 @@ def signup():
                 confirmation_sent = vendor_signup(vendor, categories=form_data['categories'])
 
                 if confirmation_sent:
+                    notify_site_admins(
+                        'New signup on beacon',
+                        message='A new vendor has signed up on beacon',
+                        categories=form_data['categories'],
+                        vendor=form_data['email'],
+                        business_name=form_data['business_name']
+                    )
                     flash('Thank you for signing up! Check your email for more information', 'alert-success')
                 else:
                     flash('Uh oh, something went wrong. We are investigating.', 'alert-danger')
@@ -90,7 +97,9 @@ def signup():
     page_email = request.args.get('email', None)
 
     if page_email:
-        current_app.logger.info('OPPSIGNUPVIEW - User clicked through to signup with email {}'.format(page_email))
+        current_app.logger.info(
+            'OPPSIGNUPVIEW - User clicked through to signup with email {}'.format(page_email)
+        )
         session['email'] = page_email
         return redirect(url_for('opportunities.signup'))
 
@@ -242,8 +251,10 @@ def detail(opportunity_id):
                 flash('Successfully subscribed for updates!', 'alert-success')
                 return redirect(url_for('opportunities.detail', opportunity_id=opportunity.id))
 
+        has_docs = opportunity.opportunity_documents.count() > 0
+
         return render_template(
             'opportunities/front/detail.html', opportunity=opportunity,
-            current_user=current_user, signup_form=signup_form
+            current_user=current_user, signup_form=signup_form, has_docs=has_docs
         )
     abort(404)

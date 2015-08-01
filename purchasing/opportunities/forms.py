@@ -24,7 +24,6 @@ def build_label_tooltip(name, description, href):
         data-placement="right" title="{}">
     </i>'''.format(name, description)
 
-
 def select_multi_checkbox(field, ul_class='', **kwargs):
     '''Custom multi-select widget for vendor documents needed
 
@@ -34,6 +33,7 @@ def select_multi_checkbox(field, ul_class='', **kwargs):
     field_id = kwargs.pop('id', field.id)
     html = [u'<div %s>' % widgets.html_params(id=field_id, class_=ul_class)]
     for value, label, checked in field.iter_choices():
+        print value, label, checked
         name, description, href = label
         choice_id = u'%s-%s' % (field_id, value)
         options = dict(kwargs, name=field.name, value=value, id=choice_id)
@@ -142,7 +142,7 @@ class OpportunityForm(Form):
     planned_advertise = fields.DateField(validators=[DataRequired()])
     planned_open = fields.DateField(validators=[DataRequired()])
     planned_deadline = fields.DateField(validators=[DataRequired(), after_today])
-    documents_needed = fields.SelectMultipleField(widget=select_multi_checkbox)
+    vendor_documents_needed = fields.SelectMultipleField(widget=select_multi_checkbox, coerce=int)
     is_public = fields.BooleanField()
     document = FileField(
         validators=[FileAllowed(['pdf', 'doc', 'docx'], '.pdf, .doc, or .docx documents only!')]

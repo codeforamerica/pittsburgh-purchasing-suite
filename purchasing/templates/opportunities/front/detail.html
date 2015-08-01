@@ -3,24 +3,49 @@
 {% block content %}
 
 <div class="container-fluid detail-title">
-  <div class="col-md-8 col-md-offset-1">
-    <h1>{{ opportunity.title }}</h1>
-    {% if opportunity.can_edit(current_user) %}
-    <p><a href="{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}">Edit this opportunity</a></p>
-    {% endif %}
-    {% if opportunity.categories|length > 0 %}
+  <div class="container">
     <div class="row">
+
       <div class="col-md-10">
-        <p class="help-block">
-        <strong>Tags:</strong>
-        {% for category in opportunity.categories %}
-          {% if loop.index <= 3 %}{{ category.category_friendly_name }};{% endif %}
-        {% endfor %}
-        and {{ opportunity.categories|length - 3 }} more
-        </p>
+        <h1>{{ opportunity.title }}</h1>
+
+        {% if opportunity.can_edit(current_user) %}
+        <p><a href="{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}">Edit this opportunity</a></p>
+        {% endif %}
+        {% if opportunity.categories|length > 0 %}
+
+        <div class="status status-complete">
+          {% if opportunity.is_advertised() %}
+          <p class="status-date"><strong>Opening soon!</strong> Accepting proposals starting {{ opportunity.estimate_open() }}</p>
+          {% elif opportunity.is_open() %}
+          <h3>Open: accepting proposals</h3>
+          <p>Responses due by {{ opportunity.estimate_deadline() }}</p>
+          {% elif opportunity.is_expired() %}
+          <h3>Closed</h3>
+          <p>We are no longer accepting responses.</p>
+          {% endif %}
+        </div>
+
+        <div class="row">
+          <div class="col-md-10">
+            <p class="help-block">
+            <strong>Tags:</strong>
+            {% for category in opportunity.categories %}
+              {% if loop.index <= 3 %}{{ category.category_friendly_name }};{% endif %}
+            {% endfor %}
+            {% if opportunity.categories|length > 3 %} and {{ opportunity.categories|length - 3 }} more{% endif %}
+            </p>
+          </div>
+        </div>
+        {% endif %}
+
       </div>
+
+      <div class="col-md-4">
+
+      </div>
+
     </div>
-    {% endif %}
   </div>
 </div>
 
@@ -29,18 +54,20 @@
     <div class="col-md-12">
       {% include 'includes/flashes.html' %}
       <div class="col-sm-8">
+
         <div class="row">
           <div class="detail-description">
-            <h4>What is it?</h4>
+            <h3><strong>What is it?</strong></h3>
             <p>{{ opportunity.description }}</p>
-            <p><strong>We estimate that this opportunity will be open for bid around {{ opportunity.estimate_open() }}.</strong></p>
-
+            {% if opportunity.planned_open.date() > today %}
+            <p><strong>We estimate that this opportunity will start accepting responses on{{ opportunity.estimate_open() }}.</strong></p>
+            {% endif %}
           </div>
         </div>
 
         {% if opportunity.documents_needed and opportunity.documents_needed|length > 0 %}
         <div class="row detail-requirements">
-          <h4>What do I need?</h4>
+          <h3><strong>What do I need?</strong></h3>
           <p>You will need the following documents to bid on this opportunity:</p>
           <ul>
             {% for doc in opportunity.get_needed_documents() %}
@@ -57,32 +84,59 @@
 
         {% endif %}
 
-        <div class="row detail-bid-opening">
-          <h4>How do I bid?</h4>
-          {% if opportunity.document_href %}
-          <p>The specification for this bid has been posted and can be downloaded <a href="{{ opportunity.get_href() }}">here</a>.</p>
-          {% else %}
-          <p>We'll update this opportunity with specific instructions for bidding soon. Sign up below to get updates as they happen.</p>
-          {% endif %}
+        {% if has_docs > 0 %}
+        <div class="row">
+          <h3><strong>Download Opportunity Documents</strong></h3>
+          <p>Not sure where to start? The document labeled as an RFP (Request for Proposals), RFQ (Request for Qualifications), or IFB (Invitation for Bid) will contained more detailed instructions about the project timeline, what we're looking for, and how to put together a proposal.</p>
+          <ul>
+          {% for document in opportunity.opportunity_documents %}
+          <li><a href="{{ document.get_href() }}">{{ document.clean_name() }}</a></li>
+          {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <div class="row">
+          <h3><strong>How do I bid?</strong></h3>
+          <p>Sealed proposals (3 printed copies and 1 digital copy on a CD or USB) must be received by noon on {{ opportunity.planned_deadline.strftime('%B %d, %Y') }}. Postmarks are not sufficient. Proposals by fax and email will not be accepted.</p>
+
+          {% if has_docs > 0 %}<p>Mail or deliver proposals to the address detailed in the main solicitation document (RFP, IFB, RFQ). </p>{% endif %}
+          {# TODO: generate a way to determine if something is city/county, have directions in an if/else in each place. #}
         </div>
 
         <div class="row">
-          <h4>Follow this opportunity</h4>
-          <form class="form form-horizontal" method="POST" action="#">
-            {% include "opportunities/opp_signup_form.html" %}
-          </form>
+          <div class="browse-signup-collapse-container">
+            <button data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample" class="btn btn-primary col-md-6">
+              Follow this opportunity
+            </button>
+          </div>
         </div>
+        <div class="row collapse browse-signup-form-container" id="collapseExample">
+          <div class="well well-no-background">
+            <form class="form form-horizontal" method="POST" action="#">
+              {% include "opportunities/opp_signup_form.html" %}
+            </form>
+          </div>
+        </div>
+
+        <div class="spacer-20"></div>
 
       </div>
       <div class="col-sm-4 timeline-well">
 
-        <h4>Timeline</h4>
+        <h3><strong>Status</strong></h3>
         {% for event in opportunity.get_events() %}
         <div class="event {{ event.classes }}">
           <p><strong>{{ event.date }}</strong></p>
           <p>{{ event.description }}</p>
         </div>
         {% endfor %}
+
+        <h3><strong>Have a question?</strong></h3>
+        <div class="">
+          <p>We'd be happy to answer it! Send it in to {% if opportunity.contact.first_name and opportunity.contact.last_name %}{{ opportunity.contact.first_name }} {{ opportunity.contact.last_name }} at {% endif %} <a href="mailto:{{ opportunity.contact.email }}">{{ opportunity.contact.email }}</a>.{% if has_docs > 0 %}</p><p> Please refer to the timeline section of the opportunity documents to see when the question &amp; answer period opens and closes.{% endif %}</p>
+        </div>
+
       </div>
     </div>
   </div>

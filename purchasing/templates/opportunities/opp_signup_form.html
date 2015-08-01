@@ -1,11 +1,11 @@
 {% import "macros/with_errors.html" as macros %}
 
 
-<div class="browse-signup-form-container">
+<div>
 
   {{ signup_form.csrf_token() }}
 
-<div class="row">
+  <div class="row">
     <div class="col-sm-12">
       {% if 'opportunities' in signup_form.errors.keys() %}
       <div class="alert alert-danger alert-dismissable">
@@ -37,14 +37,12 @@
     <label for="also_categories">Subscribe to updates about similar opportunities</label>
   </div>
 
-  <div class="spacer-10"></div> 
+  <div class="spacer-10"></div>
 
   <div class="row">
-    <div class="col-md-5">
+    <div class="col-md-6">
       <button type="submit" class="btn btn-primary form-control">Subscribe</button>
     </div>
   </div>
 
 </div>
-
-<hr>

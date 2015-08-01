@@ -17,7 +17,7 @@ from purchasing.opportunities.models import (
 )
 from purchasing.users.models import User
 from purchasing.data.importer.nigp import main as import_nigp
-from purchasing.opportunities.admin.views import build_opportunity, upload_document
+from purchasing.opportunities.admin.views import upload_document
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (

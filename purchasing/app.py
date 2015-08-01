@@ -105,6 +105,7 @@ def register_blueprints(app):
     app.jinja_env.globals['thispage'] = thispage
     app.jinja_env.filters['currency'] = format_currency
     app.jinja_env.globals['_current_user'] = current_user
+    app.jinja_env.globals['today'] = datetime.date.today()
     # import admin views
     from purchasing.admin import views
     return None

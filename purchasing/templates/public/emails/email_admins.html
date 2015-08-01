@@ -1,0 +1,10 @@
+<p>This is an automated email from the Pittsburgh Purchasing Suite.</p>
+
+<strong>{{ message }}</strong>
+
+<ul>
+{% for key, value in kwargs.iteritems() -%}
+  <li><strong>{{ key.replace('_', ' ')|title }}</strong>: {{ value }}</li>
+{%- endfor %}
+</ul>
+
