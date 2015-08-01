@@ -90,14 +90,14 @@ class Opportunity(Model):
         return self.planned_advertise.date() <= datetime.date.today()
 
     def is_advertised(self):
-        return self.planned_advertise.date() >= datetime.date.today() and \
-            self.planned_open.date() <= datetime.date.today()
+        return self.planned_advertise.date() <= datetime.date.today() and \
+            self.planned_open.date() >= datetime.date.today()
 
     def is_open(self):
-        return self.planned_open.date() >= datetime.date.today() and not self.is_expired()
+        return self.planned_open.date() <= datetime.date.today() and not self.is_expired()
 
     def is_expired(self):
-        return self.planned_deadline.date() >= datetime.date.today()
+        return self.planned_deadline.date() < datetime.date.today()
 
     def can_edit(self, user):
         '''Check if a user can edit the contract

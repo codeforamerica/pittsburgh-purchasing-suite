@@ -16,10 +16,10 @@
 
         <div class="status status-complete">
           {% if opportunity.is_advertised() %}
-          <p class="status-date"><strong>Not open yet!</strong> Will be open on {{ opportunity.estimate_open() }}!</p>
+          <p class="status-date"><strong>Opening soon!</strong> Accepting proposals starting {{ opportunity.estimate_open() }}</p>
           {% elif opportunity.is_open() %}
-          <h3>Open</h3>
-          <p>Open for bidding! Responses due by {{ opportunity.estimate_deadline() }}</p>
+          <h3>Open: accepting proposals</h3>
+          <p>Responses due by {{ opportunity.estimate_deadline() }}</p>
           {% elif opportunity.is_expired() %}
           <h3>Closed</h3>
           <p>We are no longer accepting responses.</p>
@@ -59,8 +59,8 @@
           <div class="detail-description">
             <h3><strong>What is it?</strong></h3>
             <p>{{ opportunity.description }}</p>
-            {% if opportunity.planned_open.date() < today %}
-            <p><strong>We estimate that this opportunity will be open for bid around {{ opportunity.estimate_open() }}.</strong></p>
+            {% if opportunity.planned_open.date() > today %}
+            <p><strong>We estimate that this opportunity will start accepting responses on{{ opportunity.estimate_open() }}.</strong></p>
             {% endif %}
           </div>
         </div>
@@ -87,7 +87,7 @@
         {% if has_docs > 0 %}
         <div class="row">
           <h3><strong>Download Opportunity Documents</strong></h3>
-          <p>Placeholder text for a nice thing.</p>
+          <p>Not sure where to start? The document labeled as an RFP (Request for Proposals), RFQ (Request for Qualifications), or IFB (Invitation for Bid) will contained more detailed instructions about the project timeline, what we're looking for, and how to put together a proposal.</p>
           <ul>
           {% for document in opportunity.opportunity_documents %}
           <li><a href="{{ document.get_href() }}">{{ document.clean_name() }}</a></li>
@@ -98,7 +98,9 @@
 
         <div class="row">
           <h3><strong>How do I bid?</strong></h3>
-          <p>UPDATE THIS. {% if has_docs > 0 %}For more details, please refer to the opportunity documents posted above.{% endif %}</p>
+          <p>Sealed proposals (3 printed copies and 1 digital copy on a CD or USB) must be received by noon on {{ opportunity.estimate_deadline() }}. Postmarks are not sufficient. Proposals by fax and email will not be accepted.</p>
+
+{% if has_docs > 0 %}<p>Mail or deliver proposals to the address detailed in the main solicitation document (RFP, IFB, RFQ). </p>{% endif %}
           {# TODO: generate a way to determine if something is city/county, have directions in an if/else in each place. #}
         </div>
 
