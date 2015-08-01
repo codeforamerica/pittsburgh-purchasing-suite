@@ -98,18 +98,28 @@
 
         <div class="row">
           <h3><strong>How do I bid?</strong></h3>
-          <p>Sealed proposals (3 printed copies and 1 digital copy on a CD or USB) must be received by noon on {{ opportunity.estimate_deadline() }}. Postmarks are not sufficient. Proposals by fax and email will not be accepted.</p>
+          <p>Sealed proposals (3 printed copies and 1 digital copy on a CD or USB) must be received by noon on {{ opportunity.planned_deadline.strftime('%B %d, %Y') }}. Postmarks are not sufficient. Proposals by fax and email will not be accepted.</p>
 
-{% if has_docs > 0 %}<p>Mail or deliver proposals to the address detailed in the main solicitation document (RFP, IFB, RFQ). </p>{% endif %}
+          {% if has_docs > 0 %}<p>Mail or deliver proposals to the address detailed in the main solicitation document (RFP, IFB, RFQ). </p>{% endif %}
           {# TODO: generate a way to determine if something is city/county, have directions in an if/else in each place. #}
         </div>
 
         <div class="row">
-          <h3><strong>Follow this opportunity</strong></h3>
-          <form class="form form-horizontal" method="POST" action="#">
-            {% include "opportunities/opp_signup_form.html" %}
-          </form>
+          <div class="browse-signup-collapse-container">
+            <button data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample" class="btn btn-primary col-md-6">
+              Follow this opportunity
+            </button>
+          </div>
         </div>
+        <div class="row collapse browse-signup-form-container" id="collapseExample">
+          <div class="well well-no-background">
+            <form class="form form-horizontal" method="POST" action="#">
+              {% include "opportunities/opp_signup_form.html" %}
+            </form>
+          </div>
+        </div>
+
+        <div class="spacer-20"></div>
 
       </div>
       <div class="col-sm-4 timeline-well">
