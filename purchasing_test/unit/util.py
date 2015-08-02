@@ -11,7 +11,7 @@ from purchasing.users.models import Role
 from purchasing_test.unit.factories import (
     UserFactory, RoleFactory, StageFactory, FlowFactory,
     StagePropertyFactory, ContractBaseFactory, ContractPropertyFactory,
-    CompanyFactory
+    CompanyFactory, OpportunityFactory, RequiredBidDocumentFactory
 )
 from purchasing.opportunities.models import Opportunity, RequiredBidDocument
 
@@ -117,22 +117,22 @@ def get_a_role(name):
     return Role.query.filter(Role.name == name).first()
 
 def insert_a_document(name='Foo', description='Bar'):
-    document = RequiredBidDocument.create(**dict(
+    document = RequiredBidDocumentFactory.create(**dict(
         display_name=name, description=description
     ))
 
-    return document.id
+    return document
 
 def insert_an_opportunity(
     department='Other', contact_id=None,
     title='Test', description='Test',
     planned_advertise=datetime.datetime.today(),
-    planned_open=datetime.date.today(),
-    planned_deadline=datetime.date.today() + datetime.timedelta(1),
+    planned_open=datetime.datetime.today(),
+    planned_deadline=datetime.datetime.today() + datetime.timedelta(1),
     required_documents=[],
     created_from_id=None, created_by_id=None, is_public=True
 ):
-    opportunity = Opportunity.create(**dict(
+    opportunity = OpportunityFactory.create(**dict(
         department=department, contact_id=contact_id, title=title,
         description=description, planned_advertise=planned_advertise,
         planned_open=planned_open, planned_deadline=planned_deadline,
@@ -140,4 +140,4 @@ def insert_an_opportunity(
         is_public=is_public
     ))
 
-    return opportunity.id
+    return opportunity

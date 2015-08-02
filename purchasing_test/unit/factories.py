@@ -11,6 +11,9 @@ from purchasing.data.models import (
     Flow, Stage, StageProperty, ContractBase, ContractProperty,
     Company
 )
+from purchasing.opportunities.models import (
+    Opportunity, RequiredBidDocument, OpportunityDocument
+)
 
 class BaseFactory(SQLAlchemyModelFactory):
     class Meta:
@@ -76,3 +79,17 @@ class ContractPropertyFactory(BaseFactory):
 
     class Meta:
         model = ContractProperty
+
+class OpportunityFactory(BaseFactory):
+    id = factory.Sequence(lambda n: n)
+
+    class Meta:
+        model = Opportunity
+
+class RequiredBidDocumentFactory(BaseFactory):
+    class Meta:
+        model = RequiredBidDocument
+
+class OpportunityDocumentFactory(BaseFactory):
+    class Meta:
+        model = OpportunityDocument
