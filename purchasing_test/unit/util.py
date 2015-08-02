@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+from purchasing.database import db
+from sqlalchemy.exc import IntegrityError
 from purchasing.data.models import (
     ContractBase, ContractProperty,
     Stage, StageProperty, Flow, Company
 )
-from purchasing.users.models import User, Role
+from purchasing.users.models import Role
+from purchasing_test.unit.factories import (
+    UserFactory, RoleFactory, StageFactory, FlowFactory,
+    StagePropertyFactory
+)
 from purchasing.opportunities.models import Opportunity, RequiredBidDocument
 
 def insert_a_contract(properties=None, **kwargs):
@@ -36,18 +42,18 @@ def get_a_property():
     return contract.properties.first()
 
 def insert_a_stage(name='foo', send_notifs=False, post_opportunities=False):
-    stage = Stage.create(**{
+    stage = StageFactory.create(**{
         'name': name, 'send_notifs': send_notifs,
         'post_opportunities': post_opportunities
     })
 
     properties = [
-        dict(stage_id=stage.id, key='foo', value='bar'),
-        dict(stage_id=stage.id, key='baz', value='qux')
+        dict(stage=stage, key='foo', value='bar'),
+        dict(stage=stage, key='baz', value='qux')
     ]
 
     for property in properties:
-        StageProperty.create(**property)
+        StagePropertyFactory.create(**property)
     return stage
 
 def get_a_stage_property():
@@ -58,12 +64,17 @@ def get_a_stage_property():
     return stage.properties.first()
 
 def insert_a_flow(name='test', stage_ids=None):
-    flow = Flow.create(**{
-        'flow_name': name,
-        'stage_order': stage_ids
-    })
+    try:
+        flow = FlowFactory.create(**{
+            'flow_name': name,
+            'stage_order': stage_ids
+        })
 
-    return flow
+        return flow
+    except IntegrityError:
+        db.session.rollback()
+        return Flow.query.filter(Flow.name == name).first()
+
 
 def insert_a_company(name='test company', insert_contract=True):
     if insert_contract:
@@ -78,17 +89,28 @@ def insert_a_company(name='test company', insert_contract=True):
     return company
 
 def create_a_user(email='foo@foo.com', department='Other', role=None):
-    return User(email=email, first_name='foo', last_name='foo', department=department, role_id=role)
+    return UserFactory(email=email, first_name='foo', last_name='foo', department=department, role=role)
 
 def insert_a_user(email='foo@foo.com', department='Other', role=None):
-    user = create_a_user(email, department, role)
-    user.save()
-    return user
+    try:
+        user = UserFactory(
+            email=email, first_name='foo', last_name='foo',
+            department=department, role=role
+        )
+        user.save()
+        return user
+    except IntegrityError:
+        db.session.rollback()
+        pass
 
 def insert_a_role(name):
-    role = Role(name=name)
-    role.save()
-    return role.id
+    try:
+        role = RoleFactory(name=name)
+        role.save()
+        return role
+    except IntegrityError:
+        db.session.rollback()
+        pass
 
 def get_a_role(name):
     return Role.query.filter(Role.name == name).first()

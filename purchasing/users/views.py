@@ -12,7 +12,7 @@ from flask.ext.login import current_user, login_user, logout_user, login_require
 
 from purchasing.database import db
 from purchasing.users.forms import DepartmentForm
-from purchasing.users.models import User
+from purchasing.users.models import User, Role
 
 blueprint = Blueprint(
     'users', __name__, url_prefix='/users',
@@ -92,7 +92,10 @@ def auth():
         return next_url if next_url else '/'
 
     elif domain == current_app.config.get('CITY_DOMAIN'):
-        user = User.create(email=email, role_id=3, department='New User')
+        user = User.create(
+            email=email,
+            role=Role.query.filter(Role.name == 'staff').first(),
+            department='New User')
         login_user(user)
 
         current_app.logger.debug('NEWUSER: New User {} successfully created'.format(user.email))

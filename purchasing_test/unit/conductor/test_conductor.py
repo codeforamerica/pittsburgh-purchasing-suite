@@ -46,13 +46,37 @@ class TestConductor(BaseTestCase):
         )
 
         self.login_user(self.conductor)
-
         self.detail_view = '/conductor/contract/{}/stage/{}'
+
+    def tearDown(self):
+        super(TestConductor, self).tearDown()
 
     def assign_contract(self):
         return self.client.get('/conductor/contract/{}/assign/{}/flow/{}'.format(
             self.contract1.id, self.conductor.id, self.flow.id
         ))
+
+    def get_current_contract_stage_id(self, contract, old_stage=None):
+        if not contract.current_stage_id:
+            return -1
+
+        if not old_stage:
+            stage = ContractStage.query.filter(
+                contract.current_stage_id == ContractStage.stage_id,
+                contract.id == ContractStage.contract_id
+            ).first()
+        else:
+            stage = ContractStage.query.filter(
+                old_stage.id == ContractStage.stage_id,
+                contract.id == ContractStage.contract_id
+            ).first()
+
+        return stage.id
+
+    def build_detail_view(self, contract, old_stage=None):
+        return self.detail_view.format(
+            contract.id, self.get_current_contract_stage_id(contract, old_stage)
+        )
 
     def test_conductor_contract_list(self):
         '''Test basic conductor list view
@@ -106,9 +130,9 @@ class TestConductor(BaseTestCase):
 
         self.assign_contract()
 
-        detail_view_url = self.detail_view.format(self.contract1.id, self.stage1.id)
+        detail_view_url = self.build_detail_view(self.contract1)
 
-        detail = self.client.get(detail_view_url)
+        detail = self.client.get(self.build_detail_view(self.contract1))
         self.assert200(detail)
         self.assert_template_used('conductor/detail.html')
         self.assertEquals(self.get_context_variable('active_tab'), '#activity')
@@ -142,13 +166,13 @@ class TestConductor(BaseTestCase):
         '''
         self.assign_contract()
 
-        transition_url = self.detail_view.format(self.contract1.id, self.stage1.id) + '?transition=true'
+        transition_url = self.build_detail_view(self.contract1) + '?transition=true'
         transition = self.client.get(transition_url)
         self.assertEquals(transition.status_code, 302)
         self.assertEquals(
-            transition.location, 'http://localhost' + self.detail_view.format(self.contract1.id, self.stage2.id)
+            transition.location, 'http://localhost' + self.build_detail_view(self.contract1)
         )
-        new_page = self.client.get(self.detail_view.format(self.contract1.id, self.stage2.id))
+        new_page = self.client.get(self.build_detail_view(self.contract1))
         self.assertTrue('<a href="#post" aria-controls="post" role="tab" data-toggle="tab">' not in new_page.data)
 
         contract_stages = ContractStage.query.all()
@@ -167,41 +191,41 @@ class TestConductor(BaseTestCase):
         self.assertEquals(ContractStageActionItem.query.count(), 0)
 
         # transition to the third stage
-        transition_url = self.detail_view + '?transition=true'
-        self.client.get(transition_url.format(self.contract1.id, self.stage1.id))
-        self.client.get(transition_url.format(self.contract1.id, self.stage2.id))
+        transition_url = self.build_detail_view(self.contract1) + '?transition=true'
+        self.client.get(transition_url)
+        self.client.get(transition_url)
 
         self.assertEquals(ContractBase.query.get(1).current_stage_id, self.stage3.id)
 
-        revert_url = self.detail_view + '?transition=true&destination={}'
+        revert_url = self.build_detail_view(self.contract1) + '?transition=true&destination={}'
         # revert to the original stage
-        self.client.get(revert_url.format(self.contract1.id, self.stage1.id, self.stage1.id))
+        self.client.get(revert_url.format(self.stage1.id))
 
         self.assertEquals(ContractStageActionItem.query.count(), 7)
         # there should be 3 for stage 1 & 2 (enter, exit, reopen)
-        self.assertEquals(ContractStageActionItem.query.filter(
-            ContractStageActionItem.contract_stage_id == self.stage1.id
+        self.assertEquals(ContractStageActionItem.query.join(ContractStage).filter(
+            ContractStage.stage_id == self.stage1.id
         ).count(), 3)
 
-        self.assertEquals(ContractStageActionItem.query.filter(
-            ContractStageActionItem.contract_stage_id == self.stage2.id
+        self.assertEquals(ContractStageActionItem.query.join(ContractStage).filter(
+            ContractStage.stage_id == self.stage2.id
         ).count(), 3)
 
-        self.assertEquals(ContractStageActionItem.query.filter(
-            ContractStageActionItem.contract_stage_id == self.stage3.id
+        self.assertEquals(ContractStageActionItem.query.join(ContractStage).filter(
+            ContractStage.stage_id == self.stage3.id
         ).count(), 1)
 
         self.assertEquals(ContractBase.query.get(1).current_stage_id, self.stage1.id)
-        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 1).first().entered is not None)
-        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 2).first().entered is None)
-        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 3).first().entered is None)
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage1.id).first().entered is not None)
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage2.id).first().entered is None)
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage3.id).first().entered is None)
 
-        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 1).first().exited is None)
-        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 2).first().exited is None)
-        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == 3).first().exited is None)
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage1.id).first().exited is None)
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage2.id).first().exited is None)
+        self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage3.id).first().exited is None)
 
     def test_conductor_link_directions(self):
-        '''Test that we can access completed stages but not non-starred ones
+        '''Test that we can access completed stages but not non-started ones
         '''
         self.assign_contract()
         self.client.get(self.detail_view.format(self.contract1.id, self.stage1.id) + '?transition=true')
@@ -209,13 +233,13 @@ class TestConductor(BaseTestCase):
         # assert the current stage is stage 2
         redir = self.client.get('/conductor/contract/{}'.format(self.contract1.id))
         self.assertEquals(redir.status_code, 302)
-        self.assertEquals(redir.location, 'http://localhost' + self.detail_view.format(self.contract1.id, self.stage2.id))
+        self.assertEquals(redir.location, 'http://localhost' + self.build_detail_view(self.contract1))
         # assert we can/can't go the correct locations
-        old_view = self.client.get(self.detail_view.format(self.contract1.id, self.stage1.id))
+        old_view = self.client.get(self.build_detail_view(self.contract1, old_stage=self.stage1))
         self.assert200(old_view)
         self.assertTrue('You are viewing an already-completed stage.' in old_view.data)
-        self.assert200(self.client.get(self.detail_view.format(self.contract1.id, self.stage2.id)))
-        self.assert404(self.client.get(self.detail_view.format(self.contract1.id, self.stage3.id)))
+        self.assert200(self.client.get(self.build_detail_view(self.contract1, old_stage=self.stage2)))
+        self.assert404(self.client.get(self.build_detail_view(self.contract1, old_stage=self.stage3)))
 
     def test_conductor_contract_complete(self):
         '''Test completing an old and editing a new contract
@@ -336,7 +360,7 @@ class TestConductor(BaseTestCase):
 
         self.assertEquals(ContractStageActionItem.query.count(), 0)
 
-        detail_view_url = self.detail_view.format(self.contract1.id, self.stage1.id)
+        detail_view_url = self.build_detail_view(self.contract1)
         self.client.post(detail_view_url + '?form=activity', data=dict(
             note='a test note!'
         ))
@@ -347,13 +371,13 @@ class TestConductor(BaseTestCase):
 
         # make sure you can't post notes to an unstarted stage
         self.assert404(self.client.post(
-            self.detail_view.format(self.contract1.id, self.stage3.id) + '?form=activity',
+            self.build_detail_view(self.contract1, old_stage=self.stage3) + '?form=activity',
             data=dict(note='a test note!')
         ))
 
         # make sure you can't post a note to an unstarted contract
         self.assert404(self.client.post(
-            self.detail_view.format(self.contract2.id, self.stage1.id) + '?form=activity',
+            self.build_detail_view(self.contract2) + '?form=activity',
             data=dict(note='a test note!')
         ))
 
@@ -362,7 +386,7 @@ class TestConductor(BaseTestCase):
         '''
         self.assign_contract()
         self.assertEquals(ContractStageActionItem.query.count(), 0)
-        detail_view_url = self.detail_view.format(self.contract1.id, self.stage1.id)
+        detail_view_url = self.build_detail_view(self.contract1)
         self.client.post(detail_view_url + '?form=activity', data=dict(
             note='a test note!'
         ))
@@ -391,7 +415,7 @@ class TestConductor(BaseTestCase):
         self.assign_contract()
 
         self.assertEquals(ContractStageActionItem.query.count(), 0)
-        detail_view_url = self.detail_view.format(self.contract1.id, self.stage1.id)
+        detail_view_url = self.build_detail_view(self.contract1)
         # make sure the form validators work
         bad_post = self.client.post(detail_view_url + '?form=update', data=dict(
             send_to='bademail', subject='test', body='test'

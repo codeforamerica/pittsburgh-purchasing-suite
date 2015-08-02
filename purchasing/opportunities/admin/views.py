@@ -21,7 +21,7 @@ from purchasing.opportunities.forms import OpportunityForm
 from purchasing.opportunities.models import (
     Opportunity, RequiredBidDocument, Category, Vendor, OpportunityDocument
 )
-from purchasing.users.models import User
+from purchasing.users.models import User, Role
 from purchasing.opportunities.util import get_categories, fix_form_categories
 
 blueprint = Blueprint(
@@ -80,7 +80,9 @@ def build_opportunity(data, publish=None, opportunity=None):
 
     if contact is None:
         contact = User().create(
-            email=contact_email, role_id=2, department=data.get('department')
+            email=contact_email,
+            role=Role.query.filter(Role.name == 'staff').first(),
+            department=data.get('department')
         )
 
     _id = opportunity.id if opportunity else None
