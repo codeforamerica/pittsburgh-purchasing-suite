@@ -149,8 +149,14 @@ def detail(contract_id, stage_id=-1):
     ).order_by(db.text('taken_at asc')).all()
 
     actions.extend([
-        ContractStageActionItem(action_type='entered', action_detail=active_stage.entered, taken_at=active_stage.entered),
-        ContractStageActionItem(action_type='exited', action_detail=active_stage.exited, taken_at=active_stage.exited)
+        ContractStageActionItem(
+            action_type='entered', action_detail=active_stage.entered,
+            taken_at=active_stage.entered
+        ),
+        ContractStageActionItem(
+            action_type='exited', action_detail=active_stage.exited,
+            taken_at=active_stage.exited
+        )
     ])
     actions = sorted(actions, key=lambda stage: stage.get_sort_key())
 

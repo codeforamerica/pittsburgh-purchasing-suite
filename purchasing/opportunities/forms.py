@@ -33,7 +33,6 @@ def select_multi_checkbox(field, ul_class='', **kwargs):
     field_id = kwargs.pop('id', field.id)
     html = [u'<div %s>' % widgets.html_params(id=field_id, class_=ul_class)]
     for value, label, checked in field.iter_choices():
-        print value, label, checked
         name, description, href = label
         choice_id = u'%s-%s' % (field_id, value)
         options = dict(kwargs, name=field.name, value=value, id=choice_id)

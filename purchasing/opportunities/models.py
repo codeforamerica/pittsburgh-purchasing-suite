@@ -86,18 +86,26 @@ class Opportunity(Model):
     )
     is_public = Column(db.Boolean(), default=True)
 
+    def coerce_to_date(self, field):
+        if isinstance(field, datetime.datetime):
+            return field.date()
+        if isinstance(field, datetime.date):
+            return field
+        return field
+
     def is_published(self):
-        return self.planned_advertise.date() <= datetime.date.today()
+        return self.coerce_to_date(self.planned_advertise) <= datetime.date.today()
 
     def is_advertised(self):
-        return self.planned_advertise.date() <= datetime.date.today() and \
-            self.planned_open.date() >= datetime.date.today()
+        return self.coerce_to_date(self.planned_advertise) <= datetime.date.today() and \
+            self.coerce_to_date(self.planned_open) >= datetime.date.today()
 
     def is_open(self):
-        return self.planned_open.date() <= datetime.date.today() and not self.is_expired()
+        return self.coerce_to_date(self.planned_open) <= datetime.date.today() and \
+            not self.is_expired()
 
     def is_expired(self):
-        return self.planned_deadline.date() < datetime.date.today()
+        return self.coerce_to_date(self.planned_deadline) < datetime.date.today()
 
     def can_edit(self, user):
         '''Check if a user can edit the contract

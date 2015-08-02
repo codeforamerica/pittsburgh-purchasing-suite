@@ -20,6 +20,9 @@ from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.admin.views import upload_document
 
 from purchasing_test.unit.test_base import BaseTestCase
+from purchasing_test.unit.factories import (
+    OpportunityFactory, OpportunityDocumentFactory, RequiredBidDocumentFactory
+)
 from purchasing_test.unit.util import (
     insert_a_role, insert_a_user, insert_a_document,
     insert_an_opportunity
@@ -92,7 +95,7 @@ class TestOpportunities(BaseTestCase):
         self.login_user(self.admin)
         data = {
             'department': 'Other', 'contact_email': self.admin.email,
-            'title': 'test', 'description': 'test',
+            'title': 'NEW_OPPORTUNITY', 'description': 'test',
             'planned_advertise': datetime.date.today(),
             'planned_open': datetime.date.today(),
             'planned_deadline': datetime.date.today() + datetime.timedelta(1),
@@ -103,17 +106,18 @@ class TestOpportunities(BaseTestCase):
         self.client.post('/beacon/admin/opportunities/new', data=data)
 
         self.assertEquals(Opportunity.query.count(), 5)
-        self.assertEquals(len(Opportunity.query.get(5).categories), 4)
+        new_opp = Opportunity.query.filter(Opportunity.title == 'NEW_OPPORTUNITY').first()
+        self.assertEquals(len(new_opp.categories), 4)
 
-        new_opp = self.client.get('/beacon/opportunities/5')
-        self.assert200(new_opp)
+        new_opp_req = self.client.get('/beacon/opportunities/{}'.format(new_opp.id))
+        self.assert200(new_opp_req)
 
         # because the category is a set, we can't know for sure
         # which tags will be there on page load. however, three should
         # always be there, and one shouldn't be
         match, nomatch, not_associated = 0, 0, 0
         for i in Category.query.all():
-            if i.category_friendly_name in new_opp.data:
+            if i.category_friendly_name in new_opp_req.data:
                 match += 1
             elif i in self.get_context_variable('opportunity').categories:
                 nomatch += 1
@@ -124,7 +128,7 @@ class TestOpportunities(BaseTestCase):
         self.assertEquals(nomatch, 1)
         self.assertEquals(not_associated, 1)
 
-        self.assertTrue('1 more' in new_opp.data)
+        self.assertTrue('1 more' in new_opp_req.data)
 
     def test_build_opportunity_new_user(self):
         '''Test that build_opportunity creates new users appropriately
@@ -193,23 +197,29 @@ class TestOpportunities(BaseTestCase):
         self.assertEquals(Opportunity.query.count(), 5)
         self.assert_flashes('Opportunity Successfully Created!', 'alert-success')
 
-        self.assertFalse(Opportunity.query.get(5).is_public)
+        self.assertFalse(
+            Opportunity.query.filter(Opportunity.description == 'Just right.').first().is_public
+        )
 
     def test_edit_a_contract(self):
         '''Test updating a contract
         '''
-        self.assertEquals(self.client.get('/beacon/admin/opportunities/2').status_code, 302)
+        self.assertEquals(self.client.get('/beacon/admin/opportunities/{}'.format(
+            self.opportunity2.id
+        )).status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
         self.login_user(self.admin)
-        self.assert200(self.client.get('/beacon/admin/opportunities/2'))
+        self.assert200(self.client.get('/beacon/admin/opportunities/{}'.format(
+            self.opportunity2.id
+        )))
 
         self.assert200(self.client.get('/beacon/opportunities'))
 
         self.assertEquals(len(self.get_context_variable('active')), 1)
         self.assertEquals(len(self.get_context_variable('upcoming')), 2)
 
-        self.client.post('/beacon/admin/opportunities/2', data={
+        self.client.post('/beacon/admin/opportunities/{}'.format(self.opportunity2.id), data={
             'planned_advertise': datetime.date.today(), 'title': 'Updated',
             'description': 'Updated Contract!', 'save_type': 'public'
         })
@@ -222,8 +232,8 @@ class TestOpportunities(BaseTestCase):
     def test_delete_document(self):
         '''Test removing documents from opportunities
         '''
-        opp = Opportunity.query.get(self.opportunity1)
-        opp.opportunity_documents.append(OpportunityDocument(
+        opp = self.opportunity1
+        opp.opportunity_documents.append(OpportunityDocumentFactory(
             name='the_test_document', href='test'
         ))
         db.session.commit()
@@ -267,8 +277,8 @@ class TestOpportunities(BaseTestCase):
     def test_contract_detail(self):
         '''Test individual contract opportunity pages
         '''
-        self.assert200(self.client.get('/beacon/opportunities/1'))
-        self.assert200(self.client.get('/beacon/opportunities/2'))
+        self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity1.id)))
+        self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity2.id)))
         self.assert404(self.client.get('/beacon/opportunities/999'))
 
     def test_signup_for_multiple_opportunities(self):
@@ -278,7 +288,9 @@ class TestOpportunities(BaseTestCase):
         # duplicates should get filtered out
         post = self.client.post('/beacon/opportunities', data=MultiDict([
             ('email', 'foo@foo.com'), ('business_name', 'foo'),
-            ('opportunity', '1'), ('opportunity', '2'), ('opportunity', '1')
+            ('opportunity', str(self.opportunity1.id)),
+            ('opportunity', str(self.opportunity2.id)),
+            ('opportunity', str(self.opportunity1.id))
         ]))
 
         self.assertEquals(Vendor.query.count(), 1)
@@ -286,7 +298,7 @@ class TestOpportunities(BaseTestCase):
         # should subscribe that vendor to the opportunity
         self.assertEquals(len(Vendor.query.get(1).opportunities), 2)
         for i in Vendor.query.get(1).opportunities:
-            self.assertTrue(i.id in [1, 2])
+            self.assertTrue(i.id in [self.opportunity1.id, self.opportunity2.id])
 
         # should redirect and flash properly
         self.assertEquals(post.status_code, 302)
@@ -295,7 +307,8 @@ class TestOpportunities(BaseTestCase):
         # vendor should not be able to sign up for unpublished opp
         bad_contract = self.client.post('/beacon/opportunities', data={
             'email': 'foo@foo.com', 'business_name': 'foo',
-            'opportunity': '3', 'opportunity': '4'
+            'opportunity': str(self.opportunity3.id),
+            'opportunity': str(self.opportunity4.id)
         })
         self.assertEquals(len(Vendor.query.get(1).opportunities), 2)
         self.assertTrue('not a valid choice.' in bad_contract.data)
@@ -304,15 +317,15 @@ class TestOpportunities(BaseTestCase):
         '''Test signup for individual opportunities
         '''
         self.assertEquals(Vendor.query.count(), 0)
-        post = self.client.post('/beacon/opportunities/1', data={
+        post = self.client.post('/beacon/opportunities/{}'.format(self.opportunity1.id), data={
             'email': 'foo@foo.com', 'business_name': 'foo'
         })
         # should create a new vendor
         self.assertEquals(Vendor.query.count(), 1)
 
         # should subscribe that vendor to the opportunity
-        self.assertEquals(len(Vendor.query.get(1).opportunities), 1)
-        self.assertTrue(1 in [i.id for i in Vendor.query.get(1).opportunities])
+        self.assertEquals(len(Vendor.query.first().opportunities), 1)
+        self.assertTrue(self.opportunity1.id in [i.id for i in Vendor.query.first().opportunities])
 
         # should redirect and flash properly
         self.assertEquals(post.status_code, 302)
@@ -326,7 +339,7 @@ class TestOpportunities(BaseTestCase):
         random_publish = self.client.get('/beacon/admin/opportunities/3/publish')
         self.assertEquals(random_publish.status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
-        self.assertFalse(Opportunity.query.get(3).is_public)
+        self.assertFalse(self.opportunity3.is_public)
 
     def test_pending_opportunity_staff(self):
         '''Test pending opportunity works as expected for staff user
@@ -341,7 +354,7 @@ class TestOpportunities(BaseTestCase):
         staff_publish = self.client.get('/beacon/admin/opportunities/3/publish')
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
         self.assertEquals(staff_publish.status_code, 302)
-        self.assertFalse(Opportunity.query.get(3).is_public)
+        self.assertFalse(self.opportunity3.is_public)
 
     def test_pending_opportunity_admin(self):
         '''Test pending opportunity works as expected for admin user
@@ -351,10 +364,12 @@ class TestOpportunities(BaseTestCase):
         self.assert200(admin_pending)
         self.assertEquals(len(self.get_context_variable('opportunities')), 2)
         self.assertTrue('Publish' in admin_pending.data)
-        staff_publish = self.client.get('/beacon/admin/opportunities/3/publish')
+        staff_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(
+            self.opportunity3.id
+        ))
         self.assert_flashes('Opportunity successfully published!', 'alert-success')
         self.assertEquals(staff_publish.status_code, 302)
-        self.assertTrue(Opportunity.query.get(3).is_public)
+        self.assertTrue(Opportunity.query.get(self.opportunity3.id).is_public)
 
     def test_signup_download(self):
         '''Test signup downloads don't work for non-staff

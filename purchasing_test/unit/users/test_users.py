@@ -85,8 +85,7 @@ class TestUserAuth(BaseTestCase):
 
     @patch('urllib2.urlopen')
     def test_new_user_success(self, urlopen):
-        '''
-        Test that we properly register and onboard new users with a city domain
+        '''Test that we properly register and onboard new users with a city domain
         '''
         # insert all of our roles
         insert_a_role('superadmin')
@@ -120,7 +119,9 @@ class TestUserAuth(BaseTestCase):
         bad_update = self.client.post('/users/profile', data=dict(
             department='THIS IS NOT A VALID DEPARTMENT'
         ), follow_redirects=True)
-        self.assertFalse(User.query.get(2).department == 'THIS IS NOT A VALID DEPARTMENT')
+        self.assertTrue(
+            'THIS IS NOT A VALID DEPARTMENT' not in [i.department for i in User.query.all()]
+        )
         self.assertTrue('Not a valid choice' in bad_update.data)
 
         # update the user successfully
