@@ -10,7 +10,8 @@ from purchasing.data.models import (
 from purchasing.users.models import Role
 from purchasing_test.unit.factories import (
     UserFactory, RoleFactory, StageFactory, FlowFactory,
-    StagePropertyFactory
+    StagePropertyFactory, ContractBaseFactory, ContractPropertyFactory,
+    CompanyFactory
 )
 from purchasing.opportunities.models import Opportunity, RequiredBidDocument
 
@@ -20,18 +21,18 @@ def insert_a_contract(properties=None, **kwargs):
         description='test2',
     ) if not kwargs else dict(kwargs)
 
-    contract = ContractBase.create(**contract_data)
+    contract = ContractBaseFactory.create(**contract_data)
 
     if properties:
-        [i.update({'contract_id': contract.id}) for i in properties]
+        [i.update({'contract': contract}) for i in properties]
     else:
         properties = [
-            dict(contract_id=contract.id, key='foo', value='bar'),
-            dict(contract_id=contract.id, key='baz', value='qux')
+            dict(contract=contract, key='foo', value='bar'),
+            dict(contract=contract, key='baz', value='qux')
         ]
 
-    for property in properties:
-        ContractProperty.create(**property)
+    for _property in properties:
+        ContractPropertyFactory.create(**_property)
     return contract
 
 def get_a_property():
@@ -79,12 +80,12 @@ def insert_a_flow(name='test', stage_ids=None):
 def insert_a_company(name='test company', insert_contract=True):
     if insert_contract:
         contract = insert_a_contract()
-        company = Company.create(**{
+        company = CompanyFactory.create(**{
             'company_name': name,
             'contracts': [contract]
         })
     else:
-        company = Company.create(**{'company_name': name})
+        company = CompanyFactory.create(**{'company_name': name})
 
     return company
 

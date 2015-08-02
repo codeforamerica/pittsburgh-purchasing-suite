@@ -7,7 +7,10 @@ from factory.alchemy import SQLAlchemyModelFactory
 
 from purchasing.database import db
 from purchasing.users.models import User, Role
-from purchasing.data.models import Flow, Stage, StageProperty
+from purchasing.data.models import (
+    Flow, Stage, StageProperty, ContractBase, ContractProperty,
+    Company
+)
 
 class BaseFactory(SQLAlchemyModelFactory):
     class Meta:
@@ -57,3 +60,19 @@ class StagePropertyFactory(BaseFactory):
 
     class Meta:
         model = StageProperty
+
+class CompanyFactory(BaseFactory):
+
+    class Meta:
+        model = Company
+
+
+class ContractBaseFactory(BaseFactory):
+    class Meta:
+        model = ContractBase
+
+class ContractPropertyFactory(BaseFactory):
+    contract = factory.SubFactory(ContractBase)
+
+    class Meta:
+        model = ContractProperty
