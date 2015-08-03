@@ -132,7 +132,7 @@
           {% for _item in contract.line_items %}
           <tbody>
             <tr>
-              <td class="col-md-7">{{ _item.description }}</td>
+              <td class="col-md-7">{{ _item.description|title }}</td>
               <td class="col-md-3">
                 {% if _item.company_name %}
                   {{ _item.company_name|title }}
