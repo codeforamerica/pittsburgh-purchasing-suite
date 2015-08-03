@@ -58,4 +58,6 @@
     currentEvent.get(0).scrollIntoView(false);
   }
 
+  $('[data-toggle="tooltip"]').tooltip();
+
 })();

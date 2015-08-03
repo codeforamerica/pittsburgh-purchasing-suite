@@ -1,28 +1,13 @@
-{% if current_user.is_anonymous() %}
-{% elif contract.id in user_starred %}
-<td class="text-center">
-  <a href="{{ url_for('wexplorer.unstar', contract_id=contract.id, next=path) }}">
-    <span class="fa-stack text-center fa-1x">
-      <i class="fa fa-star"></i>
-    </span>
-  </a>
-</td>
-{% else %}
-<td class="text-center">
-  <a href="{{ url_for('wexplorer.star', contract_id=contract.id, next=path) }}">
-    <span class="fa-stack text-center fa-1x">
-      <i class="fa fa-star-o"></i>
-    </span>
-  </a>
-</td><!-- star -->
-{% endif %}
+<td>{{ contract.id }}</td>
 <td>
   {{ contract.description|title|truncate(40) }}
+  {% if contract.stage_name %}
   <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
     <span class="fa-stack text-center fa-1x">
       <i class="fa fa-external-link"></i>
     </span>
   </a>
+  {% endif %}
 </td>
 <td>{{ contract.spec_number}}</td><!-- spec number -->
 <td>{{ contract.expiration_date }}</td><!-- expiration date -->
@@ -60,7 +45,7 @@ N/A
   <ul class="dropdown-menu" aria-labelledby="actionDropdown-{{ contract.id }}">
     {% if contract.current_stage or contract.assigned %}
     <li><a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
-      View Progress <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-external-link"></i></span>
+      Update contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-external-link"></i></span>
     </a></li>
     {% endif %}
     {% if contract.contract_href %}

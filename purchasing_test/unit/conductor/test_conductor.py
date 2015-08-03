@@ -87,12 +87,10 @@ class TestConductor(BaseTestCase):
         self.assert_template_used('conductor/index.html')
 
         # we have 2 contracts
-        upcoming = self.get_context_variable('upcoming')
-        self.assertEquals(len(upcoming), 1)
         _all = self.get_context_variable('_all')
-        self.assertEquals(len(_all), 1)
+        self.assertEquals(len(_all), 2)
         # neither contract is assigned
-        for contract in upcoming + _all:
+        for contract in _all:
             self.assertTrue(contract.assigned is None)
 
         # we can't get to the page normally

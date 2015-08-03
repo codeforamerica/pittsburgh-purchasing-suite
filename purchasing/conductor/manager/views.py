@@ -36,14 +36,14 @@ blueprint = Blueprint(
 @blueprint.route('/')
 @requires_roles('conductor', 'admin', 'superadmin')
 def index():
-    in_progress, upcoming, _all = [], [], []
+    in_progress, _all = [], []
 
     contracts = db.session.query(
         ContractBase.id, ContractBase.description,
         ContractBase.financial_id, ContractBase.expiration_date,
         ContractBase.current_stage, Stage.name.label('stage_name'),
-        ContractBase.updated_at, User.email.label('assigned'),
-        ContractProperty.value.label('spec_number'),
+        ContractStage.entered, ContractProperty.value.label('spec_number'),
+        db.func.string.split_part(User.email, '@', 1).label('assigned'),
         ContractBase.contract_href
     ).join(ContractProperty).outerjoin(Stage).outerjoin(User).filter(
         db.func.lower(ContractBase.contract_type) == 'county',
@@ -56,20 +56,15 @@ def index():
         User.email != current_user.email
     ).all()
 
-    user_starred = [] if current_user.is_anonymous() else current_user.get_starred()
-
     for contract in contracts:
         if contract.current_stage:
             in_progress.append(contract)
-        elif contract.expiration_date <= datetime.date.today() + datetime.timedelta(90):
-            upcoming.append(contract)
         else:
             _all.append(contract)
 
     return render_template(
         'conductor/index.html',
-        in_progress=in_progress, upcoming=upcoming, _all=_all,
-        user_starred=user_starred,
+        in_progress=in_progress, _all=_all,
         current_user=current_user,
         conductors=[current_user] + conductors,
         path='{path}?{query}'.format(

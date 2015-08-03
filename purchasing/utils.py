@@ -8,7 +8,7 @@ import time
 import re
 import email
 from math import ceil
-from datetime import datetime, timedelta
+import datetime
 
 from flask import flash, request, url_for
 from flask_login import current_user
@@ -59,7 +59,7 @@ def _get_aggressive_cache_headers(key):
     # HTTP/1.0 (5 years)
     metadata['Expires'] = '{} GMT'.format(
         email.Utils.formatdate(
-            time.mktime((datetime.now() + timedelta(days=365 * 5)).timetuple())
+            time.mktime((datetime.datetime.now() + datetime.timedelta(days=365 * 5)).timetuple())
         )
     )
 
@@ -128,6 +128,16 @@ def better_title(string):
 
     return ' '.join(rv)
 
+def days_from_today(field):
+    '''Takes a python date object and returns days from today
+    '''
+    if isinstance(field, datetime.date) or isinstance(field, datetime.datetime):
+        return (
+            datetime.datetime(field.year, field.month, field.day) -
+            datetime.datetime.today()
+        ).days
+    else:
+        return field
 
 class SimplePagination(object):
     '''
