@@ -13,7 +13,10 @@ from purchasing.extensions import (
     migrate, debug_toolbar, admin, s3, mail
 )
 from purchasing.users.models import AnonymousUser
-from purchasing.utils import url_for_other_page, thispage, format_currency, current_user
+from purchasing.utils import (
+    url_for_other_page, thispage, format_currency, current_user,
+    better_title
+)
 from purchasing.public import views as public_views
 from purchasing.users import views as user_views
 from purchasing.wexplorer import views as wexplorer_views
@@ -106,6 +109,7 @@ def register_blueprints(app):
     app.jinja_env.filters['currency'] = format_currency
     app.jinja_env.globals['_current_user'] = current_user
     app.jinja_env.globals['today'] = datetime.date.today()
+    app.jinja_env.filters['title'] = better_title
     # import admin views
     from purchasing.admin import views
     return None
