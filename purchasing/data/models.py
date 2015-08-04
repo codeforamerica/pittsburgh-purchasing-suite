@@ -199,7 +199,6 @@ class Stage(Model):
 
     id = Column(db.Integer, primary_key=True, index=True)
     name = Column(db.String(255))
-    send_notifs = Column(db.Boolean, default=False, nullable=False)
     post_opportunities = Column(db.Boolean, default=False, nullable=False)
 
     def __unicode__(self):

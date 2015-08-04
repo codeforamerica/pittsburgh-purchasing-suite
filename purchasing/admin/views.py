@@ -23,7 +23,7 @@ def load_user(userid):
 class StageAdmin(AuthMixin, sqla.ModelView):
     inline_models = (StageProperty, )
 
-    form_columns = ['name', 'send_notifs', 'post_opportunities']
+    form_columns = ['name', 'post_opportunities']
 
 class ContractBaseAdmin(AuthMixin, sqla.ModelView):
     '''Base model for different representations of contracts
