@@ -1,10 +1,10 @@
 <td>{{ contract.id }}</td>
 
 <td>
-  {{ contract.description|title|truncate(40) }}
+  <span>{{ contract.description|title|truncate(40) }}</span>
   {% if contract.stage_name %}
   <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
-    <span class="fa-stack text-center pull-right fa-1x">
+    <span class="pull-right">
       <i class="fa fa-search-plus"></i>
     </span>
   </a>

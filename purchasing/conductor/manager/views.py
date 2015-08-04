@@ -44,7 +44,8 @@ def index():
         db.func.string.split_part(User.email, '@', 1).label('assigned'),
         ContractBase.contract_href
     ).outerjoin(Stage).outerjoin(
-        ContractStage, ContractStage.contract_id == ContractBase.id
+        ContractStage,
+        ContractStage.stage_id == ContractBase.current_stage_id
     ).join(ContractProperty).outerjoin(User).filter(
         db.func.lower(ContractBase.contract_type) == 'county',
         ContractBase.expiration_date != None,
@@ -184,7 +185,6 @@ def handle_form(form, form_name, stage_id, user):
                 'body': form.data.get('body'),
                 'subject': form.data.get('subject')
             }
-
             Notification(
                 to_email=form.data.get('send_to'),
                 from_email=current_user.email,

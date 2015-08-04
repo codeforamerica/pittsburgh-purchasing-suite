@@ -71,6 +71,7 @@ class Notification(object):
 
             conn.send(msg)
             return True
+
         except Exception, e:
             current_app.logger.debug(
                 'EMAILFAIL | Error: {}\nTo: {}\n:From: {}\nSubject: {}'.format(

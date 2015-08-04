@@ -1,11 +1,22 @@
 # -*- coding: utf-8 -*-
 
+import re
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.fields import (
     TextField, IntegerField, DateField, TextAreaField, HiddenField
 )
-from wtforms.validators import DataRequired, URL, Email, Optional
+from wtforms.validators import DataRequired, URL, Optional, ValidationError
+
+EMAIL_REGEX = re.compile(r'^.+@([^.@][^@]+)$', re.IGNORECASE)
+
+def validate_multiple_emails(form, field):
+    '''Parses a semicolon-delimited list of emails, validating each
+    '''
+    if field.data:
+        for email in field.data.split(';'):
+            if not re.match(EMAIL_REGEX, email):
+                raise ValidationError('One of the supplied emails is invalid!')
 
 class EditContractForm(Form):
     '''Form to control details needed for new contract
@@ -20,7 +31,8 @@ class EditContractForm(Form):
 class SendUpdateForm(Form):
     '''Form to update
     '''
-    send_to = TextField(validators=[DataRequired(), Email()])
+    send_to = TextField(validators=[DataRequired(), validate_multiple_emails])
+    send_to_cc = TextField(validators=[Optional(), validate_multiple_emails])
     subject = TextField(validators=[DataRequired()])
     body = TextAreaField(validators=[DataRequired()])
 
