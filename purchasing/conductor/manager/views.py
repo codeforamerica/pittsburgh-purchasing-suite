@@ -3,6 +3,8 @@
 import urllib2
 import datetime
 
+from collections import defaultdict
+
 from flask import (
     Blueprint, render_template, flash, redirect,
     url_for, abort, request, jsonify
@@ -34,18 +36,20 @@ blueprint = Blueprint(
 @blueprint.route('/')
 @requires_roles('conductor', 'admin', 'superadmin')
 def index():
-    all_contracts, assigned_contracts = [], []
+    in_progress, _all = [], []
 
     contracts = db.session.query(
         ContractBase.id, ContractBase.description,
         ContractBase.financial_id, ContractBase.expiration_date,
         ContractBase.current_stage, Stage.name.label('stage_name'),
-        ContractBase.updated_at, User.email.label('assigned'),
-        ContractProperty.value.label('spec_number'),
+        ContractStage.entered, ContractProperty.value.label('spec_number'),
+        db.func.string.split_part(User.email, '@', 1).label('assigned'),
         ContractBase.contract_href
-    ).join(ContractProperty).outerjoin(Stage).outerjoin(User).filter(
+    ).outerjoin(Stage).outerjoin(
+        ContractStage, ContractStage.contract_id == ContractBase.id
+    ).join(ContractProperty).outerjoin(User).filter(
         db.func.lower(ContractBase.contract_type) == 'county',
-        ContractBase.expiration_date is not None,
+        ContractBase.expiration_date != None,
         db.func.lower(ContractProperty.key) == 'spec number',
     ).order_by(ContractBase.expiration_date).all()
 
@@ -54,19 +58,15 @@ def index():
         User.email != current_user.email
     ).all()
 
-    user_starred = [] if current_user.is_anonymous() else current_user.get_starred()
-
     for contract in contracts:
         if contract.assigned:
-            assigned_contracts.append(contract)
+            in_progress.append(contract)
         else:
-            all_contracts.append(contract)
+            _all.append(contract)
 
     return render_template(
         'conductor/index.html',
-        contracts=all_contracts,
-        assigned=assigned_contracts,
-        user_starred=user_starred,
+        in_progress=in_progress, _all=_all,
         current_user=current_user,
         conductors=[current_user] + conductors,
         path='{path}?{query}'.format(

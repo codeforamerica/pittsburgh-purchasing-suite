@@ -1,9 +1,68 @@
-<tr>
+<td>{{ contract.id }}</td>
 
-  {% if contract.assigned %}
-    {% include 'conductor/table/assigned_row.html' %}
-  {% else %}
-    {% include 'conductor/table/unassigned_row.html' %}
+<td>
+  {{ contract.description|title|truncate(40) }}
+  {% if contract.stage_name %}
+  <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
+    <span class="fa-stack text-center pull-right fa-1x">
+      <i class="fa fa-search-plus"></i>
+    </span>
+  </a>
   {% endif %}
+</td>
 
-</tr>
+<td>{{ contract.spec_number}}</td><!-- spec number -->
+
+<td>{{ contract.expiration_date }}</td><!-- expiration date -->
+
+<td>{% if contract.stage_name %}{{ contract.stage_name }}{% else %}Not Started{% endif %}</td><!-- current stage -->
+
+<td>
+  {% if contract.stage_name %}
+  {{ contract.entered.strftime('%Y-%m-%d') }}
+  {% else %}
+  N/A
+  {% endif %}
+</td><!-- current stage started -->
+
+<td>
+  <div class="dropdown">
+    <button id="dLabel-{{ contract.id }}" class="btn btn-sm" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      {% if contract.assigned %}
+        {{ contract.assigned }}
+      {% else %}
+        Not assigned
+      {% endif %}
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel-{{ contract.id }}">
+      {% for conductor in conductors %}
+        <li><a href="{{ url_for('conductor.assign', contract_id=contract.id, user_id=conductor.id, flow_id=1) }}">{{ conductor.email }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+</td><!-- assigned to -->
+
+<td>
+<div class="dropdown">
+  <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    Actions
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="actionDropdown-{{ contract.id }}">
+    {% if contract.current_stage or contract.assigned %}
+    <li><a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
+      Update contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search-plus"></i></i></span>
+    </a></li>
+    {% endif %}
+    {% if contract.contract_href %}
+    <li><a href="{{ contract.contract_href }}" target="_blank">
+      View Contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-file-pdf-o"></i></span>
+    </a></li>
+    {% endif %}
+    <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
+      View on Scout <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search"></i></span>
+    </a></li>
+  </ul>
+</div>
+</td><!-- button dropdowns -->

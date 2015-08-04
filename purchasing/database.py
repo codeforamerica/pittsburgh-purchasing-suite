@@ -85,3 +85,7 @@ def ReferenceCol(tablename, nullable=False, ondelete=None, pk_name='id', **kwarg
 class TSRank(GenericFunction):
     package = 'full_text'
     name = 'ts_rank'
+
+class SplitPart(GenericFunction):
+    package = 'string'
+    name = 'split_part'

@@ -1,0 +1,49 @@
+// Custom data table styles
+
+table.dataTable thead .sorting_asc,
+table.dataTable thead .sorting_desc,
+table.dataTable thead .sorting {
+  background-position: center left;
+}
+
+table.dataTable thead .sorting {
+  background-image: url("../img/sort_both.png");
+}
+table.dataTable thead .sorting_asc {
+  background-image: url("../img/sort_asc.png");
+}
+table.dataTable thead .sorting_desc {
+  background-image: url("../img/sort_desc.png");
+}
+table.dataTable thead .sorting_asc_disabled {
+  background-image: url("../img/sort_asc_disabled.png");
+}
+table.dataTable thead .sorting_desc_disabled {
+  background-image: url("../img/sort_desc_disabled.png");
+}
+
+// Other styles for list page
+table.dataTable.display tbody tr.contract-row-expiring-danger {
+  color: @contract-expiring-danger;
+  font-weight: bold;
+}
+table.dataTable.display tbody tr.contract-row-expiring-danger .btn {
+  background-color: @contract-expiring-danger;
+  color: @btn-danger-color;
+}
+
+table.dataTable.stripe tbody tr.odd,
+table.dataTable.display tbody tr.odd,
+table.dataTable.display tbody tr.even:hover, {
+  background-color: #fcfcfc;
+}
+
+table.dataTable.display tbody tr.contract-row-expiring-warning {
+  color: @contract-expiring-warning;
+  font-weight: bold;
+}
+table.dataTable.display tbody tr.contract-row-expiring-warning .btn {
+  background-color: @contract-expiring-warning;
+  color: @btn-warning-color;
+}
+

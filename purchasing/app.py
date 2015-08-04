@@ -15,7 +15,7 @@ from purchasing.extensions import (
 from purchasing.users.models import AnonymousUser
 from purchasing.utils import (
     url_for_other_page, thispage, format_currency, current_user,
-    better_title
+    better_title, days_from_today
 )
 from purchasing.public import views as public_views
 from purchasing.users import views as user_views
@@ -46,6 +46,7 @@ def create_app(config_object=ProdConfig):
     app.config.from_object(config_object)
     register_extensions(app)
     register_blueprints(app)
+    register_jinja_extensions(app)
     register_errorhandlers(app)
 
     @app.before_first_request
@@ -104,14 +105,18 @@ def register_blueprints(app):
     app.register_blueprint(opportunities_admin_views.blueprint)
     app.register_blueprint(conductor_views.blueprint)
     app.register_blueprint(conductor_upload_views.blueprint)
+    # import admin views
+    from purchasing.admin import views
+    return None
+
+def register_jinja_extensions(app):
     app.jinja_env.globals['url_for_other_page'] = url_for_other_page
     app.jinja_env.globals['thispage'] = thispage
     app.jinja_env.filters['currency'] = format_currency
     app.jinja_env.globals['_current_user'] = current_user
     app.jinja_env.globals['today'] = datetime.date.today()
+    app.jinja_env.globals['days_from_today'] = days_from_today
     app.jinja_env.filters['title'] = better_title
-    # import admin views
-    from purchasing.admin import views
     return None
 
 def register_errorhandlers(app):
