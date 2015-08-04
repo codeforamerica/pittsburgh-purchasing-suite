@@ -40,15 +40,15 @@ conductor_less = Bundle(
 ie8 = Bundle(
     'libs/html5shiv/dist/html5shiv.js',
     'libs/html5shiv/dist/html5shiv-printshiv.js',
+    'libs/respond/dest/respond.min.js',
     filters='uglifyjs',
     output='public/js/html5shiv.js'
 )
 
 vendorjs = Bundle(
-    'libs/jQuery/dist/jquery.js',
+    'libs/jquery/dist/jquery.js',
     'libs/bootstrap/dist/js/bootstrap.js',
     'libs/bootstrap-datepicker/js/bootstrap-datepicker.js',
-    'libs/respond/dest/respond.min.js',
     filters='uglifyjs',
     output='public/js/common.js'
 )
