@@ -3,7 +3,7 @@
 in app.py
 """
 
-from purchasing.decorators import AuthMixin
+from purchasing.decorators import ConductorAuthMixin
 
 from flask_bcrypt import Bcrypt
 bcrypt = Bcrypt()
@@ -30,7 +30,7 @@ from flask_mail import Mail
 mail = Mail()
 
 from flask_admin import Admin, AdminIndexView, expose
-class PermissionsBase(AuthMixin, AdminIndexView):
+class PermissionsBase(ConductorAuthMixin, AdminIndexView):
     @expose('/')
     def index(self):
         return self.render('admin/index.html')

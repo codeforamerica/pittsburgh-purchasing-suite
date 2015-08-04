@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from flask import url_for, request
 
+from wtforms.validators import ValidationError
 from wtforms.fields import SelectField
 from purchasing.extensions import admin, db
-from purchasing.decorators import AuthMixin, SuperAdminMixin
+from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
 from flask.ext.admin.form.fields import Select2TagsField
 from flask_login import current_user
@@ -19,11 +20,6 @@ from purchasing.opportunities.models import Opportunity, Category
 @login_manager.user_loader
 def load_user(userid):
     return User.get_by_id(int(userid))
-
-class StageAdmin(AuthMixin, sqla.ModelView):
-    inline_models = (StageProperty, )
-
-    form_columns = ['name', 'post_opportunities']
 
 class ContractBaseAdmin(AuthMixin, sqla.ModelView):
     '''Base model for different representations of contracts
@@ -100,9 +96,11 @@ class CompanyAdmin(AuthMixin, sqla.ModelView):
     ]
 
 def _stage_lookup(stage_name):
+    if not isinstance(stage_name, int):
+        raise ValidationError('Must be integers')
     return Stage.query.filter(Stage.id == stage_name).first().id
 
-class FlowAdmin(AuthMixin, sqla.ModelView):
+class FlowAdmin(ConductorAuthMixin, sqla.ModelView):
     form_columns = ['flow_name', 'stage_order']
 
     form_extra_fields = {
@@ -112,11 +110,16 @@ class FlowAdmin(AuthMixin, sqla.ModelView):
         )
     }
 
+class StageAdmin(ConductorAuthMixin, sqla.ModelView):
+    inline_models = (StageProperty, )
+
+    form_columns = ['name', 'post_opportunities']
+
 class UserAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['email', 'first_name', 'last_name', 'department']
 
     form_overrides = dict(department=SelectField)
-    form_args = dict(department={
+    form_args = dict(dictepartment={
         'choices': DEPARTMENT_CHOICES
     })
 

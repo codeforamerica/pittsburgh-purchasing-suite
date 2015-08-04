@@ -71,24 +71,12 @@ class AuthMixin(object):
     accepted_roles = ['admin', 'superadmin']
 
     def is_accessible(self):
-        if current_user.is_anonymous():
-            return url_for('users.login', next=request.path)
         if current_user.role.name in self.accepted_roles:
             return True
+        return False
 
-    def _handle_view(self, name, **kwargs):
-        if isinstance(self.is_accessible(), str):
-            return redirect(self.is_accessible())
+class SuperAdminMixin(AuthMixin):
+    accepted_roles = ['superadmin']
 
-class SuperAdminMixin(object):
-    def is_accessible(self):
-        if current_user.is_anonymous():
-            return url_for('users.login', next=request.url)
-        if current_user.role.name == 'superadmin':
-            return True
-
-    def _handle_view(self, name, **kwargs):
-        if isinstance(self.is_accessible(), str):
-            return redirect(self.is_accessible())
-        if not self.is_accessible():
-            return redirect(url_for('admin.index'))
+class ConductorAuthMixin(AuthMixin):
+    accepted_roles = ['conductor', 'admin', 'superadmin']

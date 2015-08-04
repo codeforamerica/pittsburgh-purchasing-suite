@@ -255,6 +255,11 @@ def edit(contract_id):
         return render_template('conductor/edit.html', form=form, contract=contract)
     abort(404)
 
+@blueprint.route('')
+@requires_roles('conductor', 'admin', 'superadmin')
+def flows():
+    pass
+
 @blueprint.route('/contract/<int:contract_id>/edit/url-exists', methods=['POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def url_exists(contract_id):
