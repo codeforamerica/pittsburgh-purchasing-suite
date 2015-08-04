@@ -45,7 +45,9 @@ def index():
         ContractStage.entered, ContractProperty.value.label('spec_number'),
         db.func.string.split_part(User.email, '@', 1).label('assigned'),
         ContractBase.contract_href
-    ).join(ContractProperty).outerjoin(Stage).outerjoin(User).filter(
+    ).outerjoin(Stage).outerjoin(
+        ContractStage, ContractStage.contract_id == ContractBase.id
+    ).join(ContractProperty).outerjoin(User).filter(
         db.func.lower(ContractBase.contract_type) == 'county',
         ContractBase.expiration_date != None,
         db.func.lower(ContractProperty.key) == 'spec number',
@@ -57,7 +59,7 @@ def index():
     ).all()
 
     for contract in contracts:
-        if contract.current_stage:
+        if contract.assigned:
             in_progress.append(contract)
         else:
             _all.append(contract)

@@ -6,6 +6,9 @@ from flask.ext.testing import TestCase
 from purchasing.settings import TestConfig
 from purchasing.app import create_app as _create_app, db
 
+import logging
+logging.getLogger("factory").setLevel(logging.WARN)
+
 class BaseTestCase(TestCase):
     '''
     A base test case that boots our app
