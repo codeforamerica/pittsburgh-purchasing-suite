@@ -33,7 +33,10 @@ class Notification(object):
             if isinstance(value, (set, list)):
                 tmp_list = []
                 for v in value:
-                    tmp_list.append(v.__unicode__())
+                    if hasattr(v, '__unicode__'):
+                        tmp_list.append(v.__unicode__())
+                    else:
+                        tmp_list.append(v)
                 kwarg_dict[key] = '; '.join(tmp_list)
             else:
                 pass
