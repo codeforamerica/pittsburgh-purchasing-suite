@@ -7,6 +7,8 @@ from purchasing.notifications import Notification, render_template, current_app,
 class TestNotification(TestCase):
     @patch('purchasing.notifications.render_template', return_value='a test')
     def test_notification_initialization(self, render_template):
+        '''Test notifications properly initialize
+        '''
         notification = Notification(from_email='foo@foo.com')
         self.assertEquals(notification.to_email, [])
         self.assertEquals(notification.from_email, 'foo@foo.com')
@@ -17,6 +19,8 @@ class TestNotification(TestCase):
 
     @patch('purchasing.notifications.render_template', return_value='a test')
     def test_notification_flatten(self, render_template):
+        '''Test notification kwarg flattener
+        '''
         obj = MagicMock()
         obj.__unicode__ = lambda x: 'quux'
         notification = Notification(from_email='foo@foo.com', foo='bar', baz=['qux1', obj])
@@ -29,6 +33,8 @@ class TestNotification(TestCase):
     @patch('purchasing.notifications.current_app')
     @patch('purchasing.notifications.mail')
     def test_notification_send(self, render_template, current_app, mail):
+        '''Test notification sender
+        '''
         current_app.logger = MagicMock()
         mail.send = MagicMock()
         notification = Notification(to_email='foobar@foo.com', from_email='foo@foo.com')
@@ -37,6 +43,8 @@ class TestNotification(TestCase):
 
     @patch('purchasing.notifications.render_template', return_value='a test')
     def test_notification_reshape(self, render_template):
+        '''Test notification recipient flattener
+        '''
         notification = Notification(to_email='foobar@foo.com', from_email='foo@foo.com')
         test_recips = [('a',), ('multi',), ['nested', 'thing']]
         self.assertEquals(
