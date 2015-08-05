@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import collections
+
 from flask import render_template, current_app
 from flask_mail import Message
 
@@ -38,6 +40,9 @@ class Notification(object):
 
         return kwarg_dict
 
+    def flatten(self, iterable):
+        return [item for sublist in iterable for item in sublist]
+
     def _send(self, conn, recipient):
         try:
             current_app.logger.debug(
@@ -46,10 +51,12 @@ class Notification(object):
                 )
             )
 
-            if isinstance(recipient, list):
-                pass
-            else:
+            if isinstance(recipient, str) or isinstance(recipient, unicode):
                 recipient = [recipient]
+            elif isinstance(recipient, collections.Iterable):
+                recipient = self.flatten(recipient)
+            else:
+                raise Exception('Unsupported recipient type: {}'.format(type(recipient)))
 
             msg = Message(
                 subject='[Pittsburgh Purchasing] {}'.format(self.subject),

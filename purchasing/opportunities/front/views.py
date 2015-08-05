@@ -95,7 +95,7 @@ def signup():
                         categories=form_data['categories'],
                         vendor=form_data['email'], convert_args=True,
                         business_name=form_data['business_name']
-                    ).send(multi=True)
+                    ).send()
 
                     flash('Thank you for signing up! Check your email for more information', 'alert-success')
 

@@ -92,8 +92,8 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(success_post.status_code, 302)
             self.assertEquals(success_post.location, 'http://localhost/beacon/')
             # should send three emails
-            # one to the vendor, one to each admin
-            self.assertEquals(len(outbox), 3)
+            # one to the vendor, one to the admins
+            self.assertEquals(len(outbox), 2)
             self.assertEquals(Vendor.query.count(), 1)
             self.assertEquals(len(Vendor.query.first().categories), 1)
             self.assert_flashes(
@@ -114,7 +114,7 @@ class TestOpportunities(BaseTestCase):
 
             self.assertEquals(success_post_everything.status_code, 302)
             self.assertEquals(success_post_everything.location, 'http://localhost/beacon/')
-            self.assertEquals(len(outbox), 6)
+            self.assertEquals(len(outbox), 4)
             self.assertEquals(Vendor.query.count(), 2)
             self.assertEquals(len(Vendor.query.all()[1].categories), 5)
             self.assert_flashes('Thank you for signing up! Check your email for more information', 'alert-success')
@@ -131,7 +131,7 @@ class TestOpportunities(BaseTestCase):
 
             self.assertEquals(success_post_old_email.status_code, 302)
             self.assertEquals(success_post_old_email.location, 'http://localhost/beacon/')
-            self.assertEquals(len(outbox), 6)
+            self.assertEquals(len(outbox), 4)
             self.assertEquals(Vendor.query.count(), 2)
             self.assertEquals(len(Vendor.query.all()[1].categories), 5)
             self.assert_flashes(
@@ -145,7 +145,7 @@ class TestOpportunities(BaseTestCase):
                 if 'Thank you for signing up' in _mail.subject:
                     vendor_mail += 1
 
-            self.assertEquals(admin_mail, 4)
+            self.assertEquals(admin_mail, 2)
             self.assertEquals(vendor_mail, 2)
 
             with self.client.session_transaction() as session:
