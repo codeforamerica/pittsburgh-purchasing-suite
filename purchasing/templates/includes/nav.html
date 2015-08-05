@@ -10,6 +10,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
+      <a type="button" href="{% block brandhref %}{%endblock %}" class="btn nav-dropdown-btn navbar-brand">{% block brand %}{% endblock %}</a>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
@@ -18,7 +19,6 @@
       <div class="navbar-header">
         <ul class="nav navbar-nav">
           <li class="dropdown">
-            <a type="button" href="{% block brandhref %}{%endblock %}" class="btn nav-dropdown-btn navbar-brand">{% block brand %}{% endblock %}</a>
             {% block dropdown %}
             <a class="btn nav-dropdown-btn navbar-brand dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
               <span class="caret"></span>
