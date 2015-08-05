@@ -1,19 +1,17 @@
 {% extends "opportunities/emails/base.html" %}
 
 {% block content %}
-<h2>Your new subscription is confirmed</h2>
-{% endblock %}
+<h2>Thanks for subscribing!</h2>
 
-{% block panel %}
-<p>Thanks for subscribing to:</p>
+<p>Hi there! You've successfully subscribed to updates about:</p>
  {% for opportunity in opportunities %}
  <ul>
-  <li><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id), _external=True }}">{{ opportunity.title }}</a></li>
+  <li><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}">{{ opportunity.title }}</a></li>
 </ul>
   {% endfor %}  
   <p>If you’re interested, we invite you to send in a proposal! Stay tuned for reminders about deadlines and opportunities to send in questions.
 </p>
-{% endblock %}
+<p>Have a question? Click on the link at the end of this message to send us an email, and we'll get back to you as soon as we can.</p>
 
 <p>Best,<br>
     - The Beacon team

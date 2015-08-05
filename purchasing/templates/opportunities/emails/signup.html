@@ -5,7 +5,6 @@
 <p>Thanks for subscribing for updates about opportunities to do business with the City of Pittsburgh! We hope you'll find an opportunity that's right for your business.</p>
 {% endblock %}
 
-{% block panel %}
 {% if categories|length > 20 %}
 <p>You've signed up to receive notifications about {{ categories|length }} categories. You can view all of them <a href="{{ url_for('opportunities.manage', _external=True) }}">here.</a></p>
 {% else %}
@@ -15,12 +14,10 @@
   <li>{{ category.subcategory }}</li>
   {% endfor %}
 </ul>
-{% endif %}
-{% endblock %}
 
-{% block content %}
 <p>Every 2 weeks, we’ll send a short summary of all opportunities that have been posted, so you don’t miss out on potential business. 
 </p>
+<p>Have a question? Click on the link at the end of this message to send us an email, and we'll get back to you as soon as we can.</p>
 <p>Thanks,<br>
     - The Beacon team
 </p>
