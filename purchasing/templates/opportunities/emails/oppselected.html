@@ -1,0 +1,25 @@
+{% extends "opportunities/emails/base.html" %}
+
+{% block content %}
+<h2>Your new subscription is confirmed</h2>
+{% endblock %}
+
+{% block panel %}
+<p>Thanks for subscribing to:</p>
+ {% for opportunity in opportunities %}
+ <ul>
+  <li><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id), _external=True }}">{{ opportunity.title }}</a></li>
+</ul>
+  {% endfor %}  
+  <p>If you’re interested, we invite you to send in a proposal! Stay tuned for reminders about deadlines and opportunities to send in questions.
+</p>
+{% endblock %}
+
+<p>Best,<br>
+    - The Beacon team
+</p>
+{% endblock %}
+
+{% block footer %}
+<p><a href="{{ url_for('opportunities.manage', _external=True) }}">Manage your subscription</a> | <a href="mailto:pittsburgh@codeforamerica.org?Subject=Feedback%20from%20Email">Questions? Email us</a>
+{% endblock %}

@@ -1,0 +1,11 @@
+Your new Beacon subscription is confirmed.
+
+Thanks for subscribing to: 
+{% for opportunity in opportunities %}
+- {{ opportunity.title }}
+{% endfor %}  
+
+If you’re interested, we invite you to send in a proposal! Stay tuned for reminders about deadlines and opportunities to send in questions.
+
+Best,
+The Beacon Team

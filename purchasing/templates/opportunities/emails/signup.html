@@ -1,14 +1,15 @@
 {% extends "opportunities/emails/base.html" %}
 
 {% block content %}
-<h2>Thank you for subscribing for updates about Pittsburgh Opportunities!</h2>
+<h2>Hello and welcome to Beacon!</h2>
+<p>Thanks for subscribing for updates about opportunities to do business with the City of Pittsburgh! We hope you'll find an opportunity that's right for your business.</p>
 {% endblock %}
 
 {% block panel %}
 {% if categories|length > 20 %}
-<p>You have signed up to receive notifications about {{ categories|length }} categories!</p>
+<p>You've signed up to receive notifications about {{ categories|length }} categories. You can view all of them <a href="{{ url_for('opportunities.manage', _external=True) }}">here.</a></p>
 {% else %}
-<p>You have signed up to receive notifications about the following categories:</p>
+<p>You've signed up to receive notifications about the following categories:</p>
 <ul>
   {% for category in categories %}
   <li>{{ category.subcategory }}</li>
@@ -17,6 +18,14 @@
 {% endif %}
 {% endblock %}
 
+{% block content %}
+<p>Every 2 weeks, we’ll send a short summary of all opportunities that have been posted, so you don’t miss out on potential business. 
+</p>
+<p>Thanks,<br>
+    - The Beacon team
+</p>
+{% endblock %}
+
 {% block footer %}
-<a href="{{ url_for('opportunities.manage', _external=True) }}">Manage your notification settings</a> | <a href="mailto:pittsburgh@codeforamerica.org?Subject=Feedback%20from%20Email">Send feedback</a>
+<p><a href="{{ url_for('opportunities.manage', _external=True) }}">Manage your subscription</a> | <a href="mailto:pittsburgh@codeforamerica.org?Subject=Feedback%20from%20Email">Questions? Email us</a>
 {% endblock %}
