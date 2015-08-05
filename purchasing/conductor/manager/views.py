@@ -3,8 +3,6 @@
 import urllib2
 import datetime
 
-from collections import defaultdict
-
 from flask import (
     Blueprint, render_template, flash, redirect,
     url_for, abort, request, jsonify
@@ -14,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 
 from purchasing.decorators import requires_roles
 from purchasing.database import db
-from purchasing.notifications import new_contract_autoupdate, send_conductor_alert
+from purchasing.notifications import Notification
 from purchasing.data.stages import transition_stage
 from purchasing.data.flows import create_contract_stages
 from purchasing.data.models import (
@@ -186,10 +184,14 @@ def handle_form(form, form_name, stage_id, user):
                 'body': form.data.get('body'),
                 'subject': form.data.get('subject')
             }
-            send_conductor_alert(
-                form.data.get('send_to'), form.data.get('subject'),
-                form.data.get('body'), current_user.email
-            )
+
+            Notification(
+                to_email=form.data.get('send_to'),
+                from_email=current_user.email,
+                subject=form.data.get('subject'),
+                html_template='conductor/emails/email_update.html',
+                body=form.data.get('body')
+            ).send()
 
         elif form_name == 'opportunity':
             pass
@@ -239,7 +241,13 @@ def edit(contract_id):
 
             contract.update(**data)
             flash('Contract Successfully Updated!', 'alert-success')
-            new_contract_autoupdate(contract, current_user.email)
+            Notification(
+                to_email=[i.email for i in contract.followers],
+                from_email=current_user.email,
+                subject='A contract you follow has been updated!',
+                html_template='conductor/emails/new_contract.html',
+                contract=contract
+            ).send(multi=True)
 
             return redirect(url_for('conductor.edit', contract_id=contract.id))
 

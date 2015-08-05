@@ -11,7 +11,7 @@ from flask_login import current_user
 from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
-from purchasing.notifications import wexplorer_feedback
+from purchasing.notifications import Notification
 from purchasing.wexplorer.forms import (
     SearchForm, FeedbackForm, FilterForm, NoteForm
 )
@@ -275,9 +275,15 @@ def feedback(contract_id):
                 contract=contract.description
             ))
 
-            feedback_sent = wexplorer_feedback(
-                contract, form.data.get('sender'), form.data.get('body')
-            )
+            feedback_sent = Notification(
+                to_email=current_app.config['ADMIN_EMAIL'],
+                subject='Wexplorer contract feedback - ID: {id}, Description: {description}'.format(
+                    id=contract.id,
+                    description=contract.description
+                ), html_template='wexplorer/feedback_email.html',
+                contract=contract, sender=form.data.get('sender'),
+                body=form.data.get('body')
+            ).send()
 
             if feedback_sent:
                 flash('Thank you for your feedback!', 'alert-success')

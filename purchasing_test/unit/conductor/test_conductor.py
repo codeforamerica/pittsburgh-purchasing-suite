@@ -323,7 +323,7 @@ class TestConductor(BaseTestCase):
             self.assertEquals(ContractBase.query.get(1).description, 'a different description!')
             self.assertEquals(len(outbox), 1)
             self.assertTrue('foo@foo.com' in outbox[0].send_to)
-            self.assertTrue('[Pittsburgh Procurement] A contract you follow has been updated!' in outbox[0].subject)
+            self.assertTrue('A contract you follow has been updated!' in outbox[0].subject)
             self.assertTrue('Successfully Updated' in good_post.data)
 
     @patch('urllib2.urlopen')
