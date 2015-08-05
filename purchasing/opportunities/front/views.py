@@ -10,11 +10,13 @@ from flask import (
 from flask_login import current_user
 
 from purchasing.database import db
-from purchasing.notifications import vendor_signup, notify_site_admins
+from purchasing.notifications import Notification
 from purchasing.opportunities.forms import UnsubscribeForm, VendorSignupForm, OpportunitySignupForm
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
 from purchasing.opportunities.util import get_categories, fix_form_categories
+
+from purchasing.users.models import User, Role
 
 blueprint = Blueprint(
     'opportunities', __name__, url_prefix='/beacon',
@@ -76,18 +78,29 @@ def signup():
                     **form_data
                 )
 
-                confirmation_sent = vendor_signup(vendor, categories=form_data['categories'])
+                confirmation_sent = Notification(
+                    to_email=vendor.email, subject='Thank you for signing up!',
+                    html_template='opportunities/emails/signup.html',
+                    txt_template='opportunities/emails/signup.txt',
+                    categories=form_data['categories']
+                ).send()
 
                 if confirmation_sent:
-                    notify_site_admins(
-                        'New signup on beacon',
-                        message='A new vendor has signed up on beacon',
+                    admins = db.session.query(User.email).join(Role).filter(
+                        Role.name.in_(['admin', 'superadmin'])
+                    ).all()
+
+                    Notification(
+                        to_email=admins, subject='A new vendor has signed up on beacon',
                         categories=form_data['categories'],
-                        vendor=form_data['email'],
+                        vendor=form_data['email'], convert_args=True,
                         business_name=form_data['business_name']
-                    )
+                    ).send(multi=True)
+
                     flash('Thank you for signing up! Check your email for more information', 'alert-success')
+
                 else:
+
                     flash('Uh oh, something went wrong. We are investigating.', 'alert-danger')
 
             session['email'] = form_data.get('email')

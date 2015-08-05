@@ -140,7 +140,7 @@ class TestOpportunities(BaseTestCase):
 
             admin_mail, vendor_mail = 0, 0
             for _mail in outbox:
-                if 'New signup on beacon' in _mail.subject:
+                if 'new vendor has signed up on beacon' in _mail.subject:
                     admin_mail += 1
                 if 'Thank you for signing up' in _mail.subject:
                     vendor_mail += 1
