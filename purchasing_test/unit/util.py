@@ -44,7 +44,7 @@ def get_a_property():
 
 def insert_a_stage(name='foo', send_notifs=False, post_opportunities=False):
     stage = StageFactory.create(**{
-        'name': name, 'send_notifs': send_notifs,
+        'name': name,
         'post_opportunities': post_opportunities
     })
 

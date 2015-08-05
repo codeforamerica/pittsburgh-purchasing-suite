@@ -5,7 +5,7 @@
     {%- if action.taken_by == current_user.id %}
       You
     {%- else %}
-      {{ action.taken_by }}
+      {{ action.taken_by_user.print_pretty_name() }}
     {%- endif %}
     wrote "<strong>{{ action.action_detail.note }}</strong>" on {{ action.taken_at.strftime('%Y-%m-%d') }}.
 
@@ -19,7 +19,7 @@
     {%- if action.taken_by == current_user.id %}
       You
     {%- else %}
-      {{ action.taken_by }}
+      {{ action.taken_by_user.print_pretty_name() }}
     {%- endif %}
     sent <strong>{{ action.action_detail.sent_to }}</strong> an update on {{ action.taken_at.strftime('%Y-%m-%d') }} with the subject "<strong>{{ action.action_detail.subject }}</strong>".
   </div>

@@ -76,6 +76,12 @@ class User(UserMixin, SurrogatePK, Model):
     def is_conductor(self):
         return self.role.name in ('conductor', 'admin', 'superadmin')
 
+    def print_pretty_name(self):
+        if self.first_name and self.last_name:
+            return self.full_name
+        else:
+            return self.email
+
 class AnonymousUser(AnonymousUserMixin):
     role = {'name': 'anonymous'}
     id = -1

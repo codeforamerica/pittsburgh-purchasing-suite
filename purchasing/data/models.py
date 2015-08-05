@@ -277,6 +277,9 @@ class ContractStageActionItem(Model):
     action_detail = Column(JSON)
     taken_at = Column(db.DateTime, default=datetime.datetime.now())
     taken_by = ReferenceCol('users', ondelete='SET NULL', nullable=True)
+    taken_by_user = db.relationship('User', backref=backref(
+        'contract_stage_actions', lazy='dynamic'
+    ))
 
     def __unicode__(self):
         return self.action
@@ -291,6 +294,8 @@ class ContractStageActionItem(Model):
         # otherwise, return the taken_at time
         else:
             return self.taken_at if self.taken_at else datetime.datetime(1970, 1, 1)
+
+
 
 class Flow(Model):
     __tablename__ = 'flow'

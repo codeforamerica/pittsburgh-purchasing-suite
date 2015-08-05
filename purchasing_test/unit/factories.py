@@ -52,7 +52,6 @@ class FlowFactory(BaseFactory):
 class StageFactory(BaseFactory):
     id = factory.Sequence(lambda n: n)
     name = factory.Sequence(lambda n: '{}'.format(n))
-    send_notifs = factory.Sequence(lambda n: n)
     post_opportunities = factory.Sequence(lambda n: n)
 
     class Meta:

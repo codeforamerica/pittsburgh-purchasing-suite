@@ -110,7 +110,7 @@ def detail(contract_id, stage_id=-1):
     stages = db.session.query(
         ContractStage.contract_id, ContractStage.stage_id, ContractStage.id,
         ContractStage.entered, ContractStage.exited, Stage.name,
-        Stage.send_notifs, Stage.post_opportunities, ContractBase.description
+        Stage.post_opportunities, ContractBase.description
     ).join(Stage, Stage.id == ContractStage.stage_id).join(
         ContractBase, ContractBase.id == ContractStage.contract_id
     ).filter(
@@ -158,6 +158,8 @@ def detail(contract_id, stage_id=-1):
         )
     ])
     actions = sorted(actions, key=lambda stage: stage.get_sort_key())
+
+    contract = ContractBase.query.get(contract_id)
 
     if len(stages) > 0:
         return render_template(
@@ -255,10 +257,15 @@ def edit(contract_id):
         return render_template('conductor/edit.html', form=form, contract=contract)
     abort(404)
 
-@blueprint.route('')
-@requires_roles('conductor', 'admin', 'superadmin')
-def flows():
-    pass
+# @blueprint.route('')
+# @requires_roles('conductor', 'admin', 'superadmin')
+# def flows():
+    # pass
+
+# @blueprint.route('')
+# @requires_roles('conductor', 'admin', 'superadmin')
+# def stages():
+#     pass
 
 @blueprint.route('/contract/<int:contract_id>/edit/url-exists', methods=['POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
