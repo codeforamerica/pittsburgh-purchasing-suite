@@ -4,3 +4,6 @@ WWe invite you to take a look and send in a proposal if you’re interested! The
 
 Thanks,
 The Beacon Team
+
+Manage your subscription: {{ url_for('opportunities.manage', _external=True) }}
+Questions? Email us at pittsburgh@codeforamerica.org

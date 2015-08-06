@@ -7,5 +7,9 @@ Thanks for subscribing to:
 
 If you’re interested, we invite you to take a look and send in a proposal! Stay tuned for reminders about deadlines and opportunities to send in questions.
 
+
 Best,
 The Beacon Team
+
+Manage your subscription: {{ url_for('opportunities.manage', _external=True) }}
+Questions? Email us at pittsburgh@codeforamerica.org
