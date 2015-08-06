@@ -6,7 +6,7 @@ import factory
 from factory.alchemy import SQLAlchemyModelFactory
 
 from purchasing.database import db
-from purchasing.users.models import User, Role
+from purchasing.users.models import User, Role, Department
 from purchasing.data.models import (
     Flow, Stage, StageProperty, ContractBase, ContractProperty,
     Company
@@ -29,13 +29,19 @@ class RoleFactory(BaseFactory):
     class Meta:
         model = Role
 
+class DepartmentFactory(BaseFactory):
+    name = factory.Sequence(lambda n: '{}'.format(n))
+
+    class Meta:
+        model = Department
+
 class UserFactory(BaseFactory):
     id = factory.Sequence(lambda n: n)
-    email = factory.Sequence(lambda n: 'user{}@foo.com'.format(n))
+    email = factory.Sequence(lambda n: '{}'.format(n))
     created_at = factory.Sequence(lambda n: datetime.datetime.now())
     first_name = factory.Sequence(lambda n: '{}'.format(n))
     last_name = factory.Sequence(lambda n: '{}'.format(n))
-    department = factory.Sequence(lambda n: '{}'.format(n))
+    department = factory.SubFactory(DepartmentFactory)
     active = factory.Sequence(lambda n: True)
     role = factory.SubFactory(RoleFactory)
 

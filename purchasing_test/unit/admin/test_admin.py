@@ -2,6 +2,7 @@
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import insert_a_user, insert_a_role
+from purchasing_test.unit.factories import UserFactory
 
 class TestAdmin(BaseTestCase):
     render_templates = False
@@ -36,8 +37,6 @@ class TestAdmin(BaseTestCase):
     def test_superadmin_role_access(self):
         # test that it works properly for superadmin users
         self.login_user(self.superadmin_user)
-        request = self.client.get('/admin/')
-        self.assert200(request)
-
+        self.assert200(self.client.get('/admin/'))
         self.assert200(self.client.get('/admin/role/'))
         self.assert200(self.client.get('/admin/user-roles/'))

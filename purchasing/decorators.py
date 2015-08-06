@@ -71,6 +71,8 @@ class AuthMixin(object):
     accepted_roles = ['admin', 'superadmin']
 
     def is_accessible(self):
+        if current_user.is_anonymous():
+            return False
         if current_user.role.name in self.accepted_roles:
             return True
         return False

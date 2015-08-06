@@ -126,6 +126,11 @@ class ContractBase(Model):
         'assignments', lazy='dynamic', cascade='none'
     ))
 
+    department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True)
+    department = db.relationship('Department', backref=backref(
+        'contracts', lazy='dynamic', cascade='none'
+    ))
+
     is_visible = Column(db.Boolean, default=False, nullable=False)
     is_archived = Column(db.Boolean, default=False, nullable=False)
 

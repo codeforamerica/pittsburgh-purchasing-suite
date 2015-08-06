@@ -14,7 +14,7 @@ from purchasing.data.models import (
 )
 from purchasing.opportunities.models import RequiredBidDocument
 from purchasing.extensions import login_manager
-from purchasing.users.models import User, Role, DEPARTMENT_CHOICES
+from purchasing.users.models import User, Role
 from purchasing.opportunities.models import Opportunity, Category
 
 @login_manager.user_loader
@@ -124,18 +124,10 @@ class StageAdmin(ConductorAuthMixin, sqla.ModelView):
 class UserAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['email', 'first_name', 'last_name', 'department']
 
-    form_overrides = dict(department=SelectField)
-    form_args = dict(dictepartment={
-        'choices': DEPARTMENT_CHOICES
-    })
-
 class UserRoleAdmin(SuperAdminMixin, sqla.ModelView):
     form_columns = ['email', 'first_name', 'last_name', 'department', 'role']
 
     form_overrides = dict(department=SelectField)
-    form_args = dict(department={
-        'choices': DEPARTMENT_CHOICES
-    })
 
 class RoleAdmin(SuperAdminMixin, sqla.ModelView):
     pass

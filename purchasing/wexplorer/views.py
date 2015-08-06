@@ -12,6 +12,7 @@ from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import Notification
+from purchasing.users.models import get_department_choices
 from purchasing.wexplorer.forms import (
     SearchForm, FeedbackForm, FilterForm, NoteForm
 )
@@ -41,7 +42,7 @@ def explore():
     The landing page for wexplorer. Renders the "big search"
     template.
     '''
-    return dict(current_user=current_user, choices=DEPARTMENT_CHOICES[1:])
+    return dict(current_user=current_user, choices=[get_department_choices()])
 
 @blueprint.route('/filter', methods=['GET'])
 @blueprint.route('/filter/<department>', methods=['GET'])
@@ -54,9 +55,7 @@ def filter(department=None):
     lower_bound_result = (page - 1) * pagination_per_page
     upper_bound_result = lower_bound_result + pagination_per_page
 
-    if department not in [i[0] for i in DEPARTMENT_CHOICES]:
-        flash('You must choose a valid department!', 'alert-danger')
-        return redirect(url_for('wexplorer.explore'))
+    return redirect(url_for('wexplorer.explore'))
 
     contracts = db.session.query(
         ContractBase.id, ContractBase.description,
@@ -81,7 +80,7 @@ def filter(department=None):
         results=results,
         pagination=pagination,
         department=department,
-        choices=DEPARTMENT_CHOICES[1:],
+        choices=[get_department_choices()],
         path='{path}?{query}'.format(
             path=request.path, query=request.query_string
         )
@@ -193,7 +192,7 @@ def search():
         results=contracts[lower_bound_result:upper_bound_result],
         pagination=pagination,
         search_form=search_form,
-        choices=DEPARTMENT_CHOICES[1:],
+        choices=[get_department_choices()],
         path='{path}?{query}'.format(
             path=request.path, query=request.query_string
         )
@@ -208,7 +207,7 @@ def company(company_id):
         current_app.logger.info('WEXCOMPANY - Viewed company page {}'.format(company.company_name))
         return dict(
             company=company,
-            choices=DEPARTMENT_CHOICES[1:],
+            choices=[get_department_choices()],
             path='{path}?{query}'.format(
                 path=request.path, query=request.query_string
             )
@@ -246,7 +245,7 @@ def contract(contract_id):
 
         return dict(
             contract=contract, departments=departments,
-            choices=DEPARTMENT_CHOICES[1:],
+            choices=[get_department_choices()],
             path='{path}?{query}'.format(
                 path=request.path, query=request.query_string
             ), notes=notes, note_form=note_form
@@ -296,7 +295,7 @@ def feedback(contract_id):
             'wexplorer/feedback.html',
             search_form=search_form,
             contract=contract,
-            choices=DEPARTMENT_CHOICES[1:],
+            choices=[get_department_choices()],
             feedback_form=form
         )
     abort(404)

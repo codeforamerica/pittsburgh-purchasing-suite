@@ -7,9 +7,9 @@ from purchasing.data.models import (
     ContractBase, ContractProperty,
     Stage, StageProperty, Flow, Company
 )
-from purchasing.users.models import Role
+from purchasing.users.models import Role, User
 from purchasing_test.unit.factories import (
-    UserFactory, RoleFactory, StageFactory, FlowFactory,
+    UserFactory, RoleFactory, StageFactory, FlowFactory, DepartmentFactory,
     StagePropertyFactory, ContractBaseFactory, ContractPropertyFactory,
     CompanyFactory, OpportunityFactory, RequiredBidDocumentFactory
 )
@@ -75,7 +75,6 @@ def insert_a_flow(name='test', stage_ids=None):
         db.session.rollback()
         return Flow.query.filter(Flow.name == name).first()
 
-
 def insert_a_company(name='test company', insert_contract=True):
     if insert_contract:
         contract = insert_a_contract()
@@ -89,19 +88,19 @@ def insert_a_company(name='test company', insert_contract=True):
     return company
 
 def create_a_user(email='foo@foo.com', department='Other', role=None):
-    return UserFactory(email=email, first_name='foo', last_name='foo', department=department, role=role)
+    return UserFactory(
+        email=email, first_name='foo', last_name='foo',
+        department=DepartmentFactory.create(name=department), role=role
+    )
 
 def insert_a_user(email='foo@foo.com', department='Other', role=None):
+    role = role if role else RoleFactory.create()
     try:
-        user = UserFactory(
-            email=email, first_name='foo', last_name='foo',
-            department=department, role=role
-        )
-        user.save()
+        user = UserFactory.create(role=role)
         return user
     except IntegrityError:
         db.session.rollback()
-        pass
+        return User.query.filter(User.email == email).first()
 
 def insert_a_role(name):
     try:

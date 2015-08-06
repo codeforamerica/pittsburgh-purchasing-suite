@@ -12,7 +12,7 @@ from flask.ext.login import current_user, login_user, logout_user, login_require
 
 from purchasing.database import db
 from purchasing.users.forms import DepartmentForm
-from purchasing.users.models import User, Role
+from purchasing.users.models import User, Role, Department, get_department_choices
 
 blueprint = Blueprint(
     'users', __name__, url_prefix='/users',
@@ -36,11 +36,7 @@ def logout():
 @login_required
 def profile():
 
-    form = DepartmentForm(
-        first_name=current_user.first_name,
-        last_name=current_user.last_name,
-        department=current_user.department
-    )
+    form = DepartmentForm(obj=current_user)
 
     if form.validate_on_submit():
         user = User.query.get(current_user.id)
@@ -48,7 +44,7 @@ def profile():
 
         user.first_name = data.get('first_name')
         user.last_name = data.get('last_name')
-        user.department = data.get('department')
+        user.department_id = int(data.get('department'))
         db.session.commit()
 
         flash('Updated your profile!', 'alert-success')
@@ -95,7 +91,8 @@ def auth():
         user = User.create(
             email=email,
             role=Role.query.filter(Role.name == 'staff').first(),
-            department='New User')
+            department=Department.query.filter(Department.name == 'New User').first()
+        )
         login_user(user)
 
         current_app.logger.debug('NEWUSER: New User {} successfully created'.format(user.email))

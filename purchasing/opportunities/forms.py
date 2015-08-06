@@ -13,7 +13,7 @@ from wtforms.validators import (
 
 from purchasing.opportunities.models import Vendor
 
-from purchasing.users.models import DEPARTMENT_CHOICES, User
+from purchasing.users.models import User
 
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
@@ -161,7 +161,7 @@ class OpportunityDocumentForm(Form):
     )
 
 class OpportunityForm(Form):
-    department = fields.SelectField(choices=DEPARTMENT_CHOICES, validators=[DataRequired()])
+    department = fields.SelectField(choices=[], validators=[DataRequired()])
     contact_email = fields.TextField(validators=[Email(), city_domain_email, DataRequired()])
     title = fields.TextField(validators=[DataRequired()])
     description = fields.TextAreaField(validators=[max_words(), DataRequired()])

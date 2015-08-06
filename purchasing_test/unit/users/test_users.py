@@ -6,6 +6,7 @@ from flask.ext.login import login_user
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import insert_a_user, insert_a_role
 from purchasing.users.models import User
+from purchasing_test.unit.factories import DepartmentFactory
 
 class TestUserAuth(BaseTestCase):
     render_template = True
@@ -14,6 +15,7 @@ class TestUserAuth(BaseTestCase):
         super(TestUserAuth, self).setUp()
         self.email = 'foo@foo.com'
         insert_a_user(email=self.email)
+        DepartmentFactory.create(name='New User')
 
     def test_login_route(self):
         '''
