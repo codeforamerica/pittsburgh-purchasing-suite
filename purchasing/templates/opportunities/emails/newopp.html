@@ -6,7 +6,7 @@
 <p>We’re pleased to announce a new opportunity to work with the City: <a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}">{{ opportunity.title }}</a>.  It could be a great fit for your business! 
 </p>
 
-<p>We invite you to <a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}">take a look</a> and send in a proposal if you’re interested! The window to send in proposals opens on {{ opportunity.planned_open }} and closes on {{ opportunity.planned_deadline }}.
+<p>We invite you to <a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}">take a look</a> and send in a proposal if you’re interested! The window to send in proposals opens on {{ opportunity.estimate_open() }} and closes on {{ opportunity.estimate_deadline() }}.
 </p>
 <p>Have a question? Click on the link at the end of this message to send us an email, and we'll get back to you as soon as we can.</p>
 

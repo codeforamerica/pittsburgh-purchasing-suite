@@ -119,15 +119,14 @@ class Opportunity(Model):
         '''Returns the month/year based on planned_open
         '''
         if self.is_published():
-            return self.planned_open.strftime('%Y-%m-%d')
+            return self.planned_open.strftime('%B %d, %Y')
         return self.planned_open.strftime('%B %Y')
 
     def estimate_deadline(self):
         '''
         '''
-        if self.is_expired():
-            return self.planned_deadline.strftime('%Y-%m-%d')
-        return self.planned_deadline.strftime('%B %Y')
+        return self.planned_deadline.strftime('%B %d, %Y')
+        
 
     def get_needed_documents(self):
         return RequiredBidDocument.query.filter(
