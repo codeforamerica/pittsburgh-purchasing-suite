@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from mock import Mock, patch
-from flask.ext.testing import TestCase
+from flask.ext.testing import TestCase as FlaskTestCase
 
 from purchasing.settings import TestConfig
 from purchasing.app import create_app as _create_app, db
@@ -9,7 +9,7 @@ from purchasing.app import create_app as _create_app, db
 import logging
 logging.getLogger("factory").setLevel(logging.WARN)
 
-class BaseTestCase(TestCase):
+class BaseTestCase(FlaskTestCase):
     '''
     A base test case that boots our app
     '''

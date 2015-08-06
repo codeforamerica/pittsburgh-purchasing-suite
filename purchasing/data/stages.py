@@ -195,55 +195,42 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None, 
             reversion = _perform_revert(
                 contract, stages, current_stage_idx, destination_idx, user
             )
-            db.session.commit()
+
             return reversion, contract, False
 
     # implement first case -- current stage is none
     elif contract.current_stage_id is None:
-        try:
-            transition = _perform_transition(
-                contract, stages=[stages[0]], single_enter=True
-            )
-            db.session.commit()
-            return transition[0], contract, False
-        except Exception:
-            db.session.rollback()
-            raise
+        transition = _perform_transition(
+            contract, stages=[stages[0]], single_enter=True
+        )
+
+        return transition[0], contract, False
 
     # implement the second case -- current stage is last stage
     elif contract.current_stage_id == contract.flow.stage_order[-1]:
         # complete the contract
         current_stage_idx = stages.index(contract.current_stage_id)
 
-        try:
-            transition = _perform_transition(
-                contract, stages=[stages[current_stage_idx]],
-                single_enter=False
-            )
+        transition = _perform_transition(
+            contract, stages=[stages[current_stage_idx]],
+            single_enter=False
+        )
 
-            complete_contract(contract.parent, contract)
+        complete_contract(contract.parent, contract)
 
-            return transition[0], contract, True
-        except Exception:
-            raise
-            db.session.rollback()
+        return transition[0], contract, True
 
     # implement final case -- transitioning to new stage
     else:
         current_stage_idx = stages.index(contract.current_stage_id)
 
-        try:
-            transition = _perform_transition(
-                contract, stages=[
-                    stages[current_stage_idx], stages[current_stage_idx + 1]
-                ]
-            )
-            db.session.commit()
+        transition = _perform_transition(
+            contract, stages=[
+                stages[current_stage_idx], stages[current_stage_idx + 1]
+            ]
+        )
 
-            return transition[1], contract, False
-        except Exception:
-            db.session.rollback()
-            raise
+        return transition[1], contract, False
 
 def switch_flow(contract_id, new_flow, contract=None, flow=None):
     '''

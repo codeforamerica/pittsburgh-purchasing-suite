@@ -118,21 +118,9 @@ def extend_a_contract(child_contract_id=None, delete_child=True):
 
     parent_contract.expiration_date = None
 
-    child_contract.delete()
+    delete_contract(child_contract_id)
 
-    db.session.commit()
     return parent_contract
-
-def complete_contract(parent_contract, child_contract):
-    transfer_contract_relationships(parent_contract, child_contract)
-
-    parent_contract.is_archived = True
-    if not parent_contract.description.endswith(' [Archived'):
-        parent_contract.description += ' [Archived]'
-    child_contract.is_visible = True
-
-    db.session.commit()
-    return child_contract
 
 def transfer_contract_relationships(parent_contract, child_contract):
     '''Transfers stars/follows from parent to child contract
@@ -147,6 +135,16 @@ def transfer_contract_relationships(parent_contract, child_contract):
         for i in users:
             unfollow_a_contract(parent_contract.id, i, interaction)
             follow_a_contract(child_contract.id, i, interaction)
+
+    return child_contract
+
+def complete_contract(parent_contract, child_contract):
+    transfer_contract_relationships(parent_contract, child_contract)
+
+    parent_contract.is_archived = True
+    if not parent_contract.description.endswith(' [Archived'):
+        parent_contract.description += ' [Archived]'
+    child_contract.is_visible = True
 
     return child_contract
 

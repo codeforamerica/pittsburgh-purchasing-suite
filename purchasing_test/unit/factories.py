@@ -17,12 +17,14 @@ from purchasing.opportunities.models import (
 )
 
 class BaseFactory(SQLAlchemyModelFactory):
+
     class Meta:
         abstract = True
         sqlalchemy_session = db.session
 
 class RoleFactory(BaseFactory):
     id = factory.Sequence(lambda n: n)
+    name = factory.Sequence(lambda n: '{}'.format(n))
 
     class Meta:
         model = Role
@@ -64,12 +66,14 @@ class StagePropertyFactory(BaseFactory):
         model = StageProperty
 
 class CompanyFactory(BaseFactory):
+    id = factory.Sequence(lambda n: n)
 
     class Meta:
         model = Company
 
-
 class ContractBaseFactory(BaseFactory):
+    id = factory.Sequence(lambda n: 100 + n)
+
     class Meta:
         model = ContractBase
 

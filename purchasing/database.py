@@ -45,6 +45,11 @@ class Model(CRUDMixin, db.Model):
     """Base model class that includes CRUD convenience methods."""
     __abstract__ = True
 
+    def unicode_helper(self, field):
+        if field:
+            return field.encode('utf-8').strip()
+        return u''
+
     def as_dict(self):
         return {
             c.name: getattr(self, c.name) for c in self.__table__.columns

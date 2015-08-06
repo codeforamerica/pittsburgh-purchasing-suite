@@ -284,7 +284,7 @@ class TestConductor(BaseTestCase):
         '''
         # subscribe to this contract
         self.login_user(self.conductor)
-        self.client.get('/scout/contracts/1/subscribe')
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
 
         edit_contract_url = '/conductor/contract/{}/edit'.format(self.contract1.id)
         self.assert200(self.client.get(edit_contract_url))

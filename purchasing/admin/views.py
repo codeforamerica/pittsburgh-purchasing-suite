@@ -21,14 +21,29 @@ from purchasing.opportunities.models import Opportunity, Category
 def load_user(userid):
     return User.get_by_id(int(userid))
 
+class CompanyAdmin(AuthMixin, sqla.ModelView):
+    inline_models = (CompanyContact,)
+
+    column_searchable_list = ('company_name',)
+
+    form_columns = [
+        'company_name', 'contracts'
+    ]
+
+class CompanyContractAdmin(AuthMixin, sqla.ModelView):
+    inline_models = (CompanyContact,)
+
+    form_columns = ['company_name']
+
 class ContractBaseAdmin(AuthMixin, sqla.ModelView):
     '''Base model for different representations of contracts
     '''
     column_labels = dict(financial_id='Controller Number')
     column_searchable_list = ('description', 'contract_type')
 
+
 class ScoutContractAdmin(ContractBaseAdmin):
-    inline_models = (ContractProperty, LineItem,)
+    inline_models = (ContractProperty, LineItem, CompanyContractAdmin(Company, db.session))
 
     form_columns = [
         'contract_type', 'description', 'properties',
@@ -44,7 +59,7 @@ class ScoutContractAdmin(ContractBaseAdmin):
     ]
 
 class ConductorContractAdmin(ContractBaseAdmin):
-    inline_models = (ContractProperty,)
+    inline_models = (ContractProperty, CompanyContractAdmin(Company, db.session))
 
     column_list = [
         'description', 'expiration_date', 'current_stage', 'current_flow', 'assigned'
@@ -85,15 +100,6 @@ class ConductorContractAdmin(ContractBaseAdmin):
         return self.session.query(User).join(Role).filter(
             Role.name.in_(['conductor', 'admin', 'superadmin'])
         ).all()
-
-class CompanyAdmin(AuthMixin, sqla.ModelView):
-    inline_models = (CompanyContact,)
-
-    column_searchable_list = ('company_name',)
-
-    form_columns = [
-        'company_name', 'contracts'
-    ]
 
 def _stage_lookup(stage_name):
     if not isinstance(stage_name, int):

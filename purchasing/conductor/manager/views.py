@@ -87,9 +87,18 @@ def detail(contract_id, stage_id=-1):
         clicked = int(request.args.get('destination')) if \
             request.args.get('destination') else None
 
-        stage, mod_contract, complete = transition_stage(
-            contract_id, destination=clicked, user=current_user
-        )
+        try:
+            stage, mod_contract, complete = transition_stage(
+                contract_id, destination=clicked, user=current_user
+            )
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            pass
+        except Exception:
+            db.session.rollback()
+            raise
+
         if complete:
             return redirect(url_for('conductor.edit', contract_id=mod_contract.id))
 
@@ -291,6 +300,7 @@ def assign(contract_id, flow_id, user_id):
         try:
             stages = create_contract_stages(flow_id, contract.id, contract=contract)
             _, new_contract, _ = transition_stage(contract.id, contract=contract, stages=stages)
+            db.session.commit()
         except IntegrityError, e:
             # we already have the sequence for this, so just
             # rollback and pass
