@@ -13,7 +13,6 @@ from purchasing_test.unit.factories import (
     StagePropertyFactory, ContractBaseFactory, ContractPropertyFactory,
     CompanyFactory, OpportunityFactory, RequiredBidDocumentFactory
 )
-from purchasing.opportunities.models import Opportunity, RequiredBidDocument
 
 def insert_a_contract(properties=None, **kwargs):
     contract_data = dict(

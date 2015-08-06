@@ -123,12 +123,6 @@ class UserAdmin(AuthMixin, sqla.ModelView):
         'choices': DEPARTMENT_CHOICES
     })
 
-    def is_accessible(self):
-        if current_user.is_anonymous():
-            return url_for('users.login', next=request.path)
-        if current_user.role.name == 'admin':
-            return True
-
 class UserRoleAdmin(SuperAdminMixin, sqla.ModelView):
     form_columns = ['email', 'first_name', 'last_name', 'department', 'role']
 

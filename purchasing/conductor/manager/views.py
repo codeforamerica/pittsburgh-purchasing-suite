@@ -300,10 +300,8 @@ def assign(contract_id, flow_id, user_id):
             flash('Something went wrong! {}'.format(e.message), 'alert-danger')
             abort(403)
 
-        user = User.query.get(user_id)
-
         new_contract.assigned_to = user_id
 
     db.session.commit()
-    flash('Successfully assigned to {}!'.format(user.email), 'alert-success')
+    flash('Successfully assigned to {}!'.format(contract.assigned.email), 'alert-success')
     return redirect(url_for('conductor.index'))

@@ -83,5 +83,5 @@ class User(UserMixin, SurrogatePK, Model):
             return self.email
 
 class AnonymousUser(AnonymousUserMixin):
-    role = {'name': 'anonymous'}
+    role = Role(name='anonymous')
     id = -1

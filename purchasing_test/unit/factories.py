@@ -23,7 +23,6 @@ class BaseFactory(SQLAlchemyModelFactory):
 
 class RoleFactory(BaseFactory):
     id = factory.Sequence(lambda n: n)
-    name = factory.Sequence(lambda n: '{}'.format(n))
 
     class Meta:
         model = Role

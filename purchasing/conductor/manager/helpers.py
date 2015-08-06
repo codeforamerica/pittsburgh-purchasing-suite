@@ -45,8 +45,9 @@ def handle_form(form, form_name, stage_id, user, contract):
                 'subject': form.data.get('subject')
             }
             Notification(
-                to_email=form.data.get('send_to'),
+                to_email=[i.strip() for i in form.data.get('send_to').split(';')],
                 from_email=current_user.email,
+                cc_email=form.data.get('send_to_cc', []),
                 subject=form.data.get('subject'),
                 html_template='conductor/emails/email_update.html',
                 body=form.data.get('body')

@@ -89,9 +89,6 @@ class TestConductor(BaseTestCase):
         # we have 2 contracts
         _all = self.get_context_variable('_all')
         self.assertEquals(len(_all), 2)
-        # neither contract is assigned
-        for contract in _all:
-            self.assertTrue(contract.assigned is None)
 
         # we can't get to the page normally
         self.logout_user()
@@ -196,7 +193,7 @@ class TestConductor(BaseTestCase):
         self.client.get(transition_url)
         self.client.get(transition_url)
 
-        self.assertEquals(ContractBase.query.get(1).current_stage_id, self.stage3.id)
+        self.assertEquals(self.contract1.current_stage_id, self.stage3.id)
 
         revert_url = self.build_detail_view(self.contract1) + '?transition=true&destination={}'
         # revert to the original stage
@@ -216,7 +213,7 @@ class TestConductor(BaseTestCase):
             ContractStage.stage_id == self.stage3.id
         ).count(), 1)
 
-        self.assertEquals(ContractBase.query.get(1).current_stage_id, self.stage1.id)
+        self.assertEquals(self.contract1.current_stage_id, self.stage1.id)
         self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage1.id).first().entered is not None)
         self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage2.id).first().entered is None)
         self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage3.id).first().entered is None)
@@ -246,6 +243,7 @@ class TestConductor(BaseTestCase):
         '''Test completing an old and editing a new contract
         '''
         self.assertEquals(ContractBase.query.count(), 2)
+        old_id = self.contract1.id
 
         # star and follow the contracts
         self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
@@ -261,14 +259,14 @@ class TestConductor(BaseTestCase):
             self.assertTrue(stage.entered is not None and stage.exited is not None)
 
         self.assertEquals(ContractBase.query.count(), 3)
+        new_contract = ContractBase.query.all()[-1]
 
         self.assertEquals(complete.status_code, 302)
-        self.assertEquals(complete.location, 'http://localhost/conductor/contract/3/edit')
+        self.assertEquals(complete.location, 'http://localhost/conductor/contract/{}/edit'.format(new_contract.id))
 
         # assert that the stars/follows were transferred over
-        new_contract = ContractBase.query.get(3)
         # refresh our old contract, which has gone stale
-        old_contract = ContractBase.query.get(1)
+        old_contract = ContractBase.query.get(old_id)
 
         self.assertEquals(len(new_contract.followers), 1)
         self.assertEquals(len(new_contract.starred), 1)
@@ -298,7 +296,7 @@ class TestConductor(BaseTestCase):
             'expiration_date': datetime.date(2015, 9, 30),
             'financial_id': 1234, 'spec_number': 'test'
         }, follow_redirects=True)
-        self.assertEquals(ContractBase.query.get(1).financial_id, self.contract1.financial_id)
+        self.assertEquals(self.contract1.financial_id, self.contract1.financial_id)
         self.assert200(bad_url)
         self.assertTrue("That URL doesn&#39;t work!" in bad_url.data)
 
@@ -307,8 +305,8 @@ class TestConductor(BaseTestCase):
             'contract_href': 'http://www.example.com', 'description': 'a different description!',
             'financial_id': 1234
         }, follow_redirects=True)
-        self.assertEquals(ContractBase.query.get(1).financial_id, self.contract1.financial_id)
-        self.assertEquals(ContractBase.query.get(1), self.contract1)
+        self.assertEquals(self.contract1.financial_id, self.contract1.financial_id)
+        self.assertEquals(self.contract1, self.contract1)
         self.assertTrue("This field is required." in missing_data.data)
 
         # test a good form
@@ -319,8 +317,8 @@ class TestConductor(BaseTestCase):
                 'expiration_date': datetime.date(2015, 9, 30),
                 'financial_id': 1234, 'spec_number': '1234'
             }, follow_redirects=True)
-            self.assertEquals(ContractBase.query.get(1).contract_href, 'http://www.example.com')
-            self.assertEquals(ContractBase.query.get(1).description, 'a different description!')
+            self.assertEquals(self.contract1.contract_href, 'http://www.example.com')
+            self.assertEquals(self.contract1.description, 'a different description!')
             self.assertEquals(len(outbox), 1)
             self.assertTrue('foo@foo.com' in outbox[0].send_to)
             self.assertTrue('A contract you follow has been updated!' in outbox[0].subject)

@@ -43,8 +43,16 @@ class Notification(object):
 
         return kwarg_dict
 
-    def flatten(self, iterable):
-        return [item for sublist in iterable for item in sublist]
+    def _flatten(self, l):
+        for el in l:
+            if isinstance(el, collections.Iterable) and not isinstance(el, basestring):
+                for sub in self._flatten(el):
+                    yield sub
+            else:
+                yield el
+
+    def flatten(self, l):
+        return list(self._flatten(l))
 
     def _send(self, conn, recipient):
         try:

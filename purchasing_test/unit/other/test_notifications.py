@@ -51,3 +51,9 @@ class TestNotification(TestCase):
             ['a', 'multi', 'nested', 'thing'],
             notification.flatten(test_recips)
         )
+
+        test_recips_complex = ['a', ['b', ['c', 'd']], ['e']]
+        self.assertEquals(
+            ['a', 'b', 'c', 'd', 'e'],
+            notification.flatten(test_recips_complex)
+        )

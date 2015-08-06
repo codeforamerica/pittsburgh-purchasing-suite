@@ -7,7 +7,7 @@ from purchasing.data.models import (
     Stage, StageProperty, ContractStage, ContractStageActionItem
 )
 from purchasing.data.contracts import (
-    get_one_contract, transfer_contract_relationships
+    get_one_contract, complete_contract
 )
 
 def create_new_stage(stage_data):
@@ -221,7 +221,7 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None, 
                 single_enter=False
             )
 
-            transfer_contract_relationships(contract.parent, contract)
+            complete_contract(contract.parent, contract)
 
             return transition[0], contract, True
         except Exception:
