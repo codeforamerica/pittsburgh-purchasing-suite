@@ -44,6 +44,7 @@ def upgrade():
     # we need to replace the current values with references to the new model
     # therefore, we build out everything, make the update, and the drop
     # the old (string) column reference
+
     op.add_column(u'users', sa.Column('department_id', sa.Integer(), nullable=True))
     op.create_foreign_key('user_id_department_user_id_fkey', 'users', 'department', ['department_id'], ['id'])
 

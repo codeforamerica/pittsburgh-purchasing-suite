@@ -95,6 +95,10 @@ def filter(department_id):
         pagination = SimplePagination(page, pagination_per_page, len(contracts))
         results = contracts[lower_bound_result:upper_bound_result]
 
+    else:
+        pagination = None
+        results = []
+
     current_app.logger.info('WEXFILTER - {department}: Filter by {department}'.format(
         department=department.name
     ))
