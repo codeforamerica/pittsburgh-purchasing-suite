@@ -105,6 +105,41 @@ def unfollow_a_contract(contract_id, user, field):
             return ('You haven\'t starred this contract!', 'alert-warning'), contract
     return None, None
 
+def extend_a_contract(child_contract_id=None, delete_child=True):
+    '''Extends a contract.
+
+    Because conductor clones existing contracts when work begins,
+    when we get an "extend" signal, we actually want to extend the
+    parent conract of the clone. Optionally (by default), we also
+    want to delete the child (cloned) contract.
+    '''
+    child_contract = get_one_contract(child_contract_id)
+    parent_contract = child_contract.parent
+
+    parent_contract.expiration_date = None
+
+    child_contract.delete()
+
+    db.session.commit()
+    return parent_contract
+
+def transfer_contract_relationships(parent_contract, child_contract):
+    '''Transfers stars/follows from parent to child contract
+    '''
+
+    subscribers = [
+        ('follow', list(parent_contract.followers)),
+        ('star', list(parent_contract.starred))
+    ]
+
+    for interaction, users in subscribers:
+        for i in users:
+            unfollow_a_contract(parent_contract.id, i, interaction)
+            follow_a_contract(child_contract.id, i, interaction)
+            db.session.commit()
+
+    return child_contract
+
 def clone_a_contract(contract):
     '''Takes a contract object and clones it
 
@@ -116,16 +151,10 @@ def clone_a_contract(contract):
         + Contract HREF
 
     Relationships are handled as follows:
-        + Stars, Follows - moved to new contract (dropped from old)
         + Stage, Flow - Duplicated
-        + Properties, Notes, Line Items, Companies kept on old
+        + Properties, Notes, Line Items, Companies, Stars, Follows kept on old
     '''
     old_contract_id = int(contract.id)
-
-    subscribers = [
-        ('follow', list(contract.followers)),
-        ('star', list(contract.starred))
-    ]
 
     db.session.expunge(contract)
     make_transient(contract)
@@ -137,24 +166,9 @@ def clone_a_contract(contract):
     contract.current_stage = None
     contract.contract_href = None
 
-    old_contract = get_one_contract(old_contract_id)
-    # group everything that will rebuild the trigger
-    # into one flush
-    db.session.add(contract)
-    old_contract.is_archived = True
-    old_contract.description = old_contract.description + ' [Archived]'
-
-    # we have to commit here in order to manage the relationships
-    db.session.commit()
-
-    for interaction, users in subscribers:
-        for i in users:
-            unfollow_a_contract(old_contract_id, i, interaction)
-            follow_a_contract(contract.id, i, interaction)
-            db.session.commit()
-
     # set the parent
     contract.parent_id = old_contract_id
 
+    db.session.add(contract)
     db.session.commit()
     return contract

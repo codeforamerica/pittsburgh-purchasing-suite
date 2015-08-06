@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import time
 import datetime
 
 from purchasing.database import db
 from purchasing.data.models import (
     Stage, StageProperty, ContractStage, ContractStageActionItem
 )
-from purchasing.data.contracts import get_one_contract, clone_a_contract
+from purchasing.data.contracts import (
+    get_one_contract, clone_a_contract, transfer_contract_relationships
+)
 
 def create_new_stage(stage_data):
     '''Create a new stage.
@@ -220,9 +221,9 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None, 
                 single_enter=False
             )
 
-            new_contract = clone_a_contract(contract)
+            transfer_contract_relationships(contract.parent, contract)
 
-            return transition[0], new_contract, True
+            return transition[0], contract, True
         except Exception:
             raise
             db.session.rollback()

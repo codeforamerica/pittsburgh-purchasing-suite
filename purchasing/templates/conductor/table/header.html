@@ -1,8 +1,12 @@
   <th>Item #</th>
   <th>Name</th>
+  {% if type != 'in_progress' %}
   <th>Spec #</th>
   <th>Expires</th>
+  {% endif %}
+  {% if type != 'all' %}
   <th>Current Step</th>
   <th>Current Step Started</th>
+  {% endif %}
   <th>Assigned To</th>
   <th>Actions</th>

@@ -1,0 +1,9 @@
+{% macro comma_separated_loop(loop) %}
+  {%- if loop.length == 2 -%}
+    {%- if not loop.last %} and{%- endif -%}
+  {%- elif loop.length > 2 -%}
+    {%- if loop.index == loop.length - 1 -%}, and
+    {%- elif not loop.last -%},
+    {%- endif -%}
+  {%- endif -%}
+{% endmacro %}

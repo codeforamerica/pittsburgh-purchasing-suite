@@ -10,6 +10,12 @@ from wtforms.validators import DataRequired, URL, Optional, ValidationError
 
 EMAIL_REGEX = re.compile(r'^.+@([^.@][^@]+)$', re.IGNORECASE)
 
+def not_all_hidden(form, field):
+    '''Makes sure that every field isn't blank
+    '''
+    if not any([v for (k, v) in form.data.items() if k != field.name]):
+        raise ValidationError('You must update at least one field!')
+
 def validate_multiple_emails(form, field):
     '''Parses a semicolon-delimited list of emails, validating each
     '''
@@ -19,7 +25,7 @@ def validate_multiple_emails(form, field):
                 raise ValidationError('One of the supplied emails is invalid!')
 
 class EditContractForm(Form):
-    '''Form to control details needed for new contract
+    '''Form to control details needed to finalize a new/renewed contract
     '''
 
     description = TextField(validators=[DataRequired()])
@@ -27,6 +33,14 @@ class EditContractForm(Form):
     expiration_date = DateField(validators=[DataRequired()])
     spec_number = TextField(validators=[DataRequired()])
     contract_href = TextField(validators=[Optional(), URL(message="That URL doesn't work!")])
+
+class ContractMetadataForm(Form):
+    '''Edit a contract's metadata during the renewal process
+    '''
+    financial_id = IntegerField(validators=[Optional()])
+    expiration_date = DateField(validators=[Optional()])
+    spec_number = TextField(validators=[Optional()], filters=[lambda x: x or None])
+    all_blank = HiddenField(validators=[not_all_hidden])
 
 class SendUpdateForm(Form):
     '''Form to update

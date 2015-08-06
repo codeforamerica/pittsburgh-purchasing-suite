@@ -1,3 +1,5 @@
+{% import "macros/comma_separated_loop.html" as macros %}
+
 {%- for action in actions -%}
   {%- if action.action_type in ['activity', 'note'] -%}
   <div class="action-event">
@@ -45,5 +47,23 @@
   <div class="action-event action-event-reversion">
     {{ action.action_detail.label }} on "{{ active_stage.name }}" on {{ action.action_detail.date }}.
   </div>
+
+  {# metadata update handling #}
+  {%- elif action.action_type == 'update-metadata' -%}
+  {% if action.non_null_items_count > 0 %}
+  <div class="action-event action-event-metadata">
+    {%- if action.taken_by == current_user.id %}
+      You
+    {%- else %}
+      {{ action.taken_by_user.print_pretty_name() }}
+    {%- endif %} set
+    {% for field, value in action.non_null_items.items() %}
+    <strong>{{ field.replace('_', ' ')|title }}</strong> to <strong>"{{ value }}"</strong>
+    {{- macros.comma_separated_loop(loop) -}}
+    {% endfor %}
+    on {{ action.taken_at.strftime('%Y-%m-%d') }}
+  </div>
+  {% endif %}
+
   {%- endif -%}
 {%- endfor -%}

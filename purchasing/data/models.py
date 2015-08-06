@@ -295,6 +295,13 @@ class ContractStageActionItem(Model):
         else:
             return self.taken_at if self.taken_at else datetime.datetime(1970, 1, 1)
 
+    @property
+    def non_null_items(self):
+        return dict((k, v) for (k, v) in self.action_detail.items() if v is not None)
+
+    @property
+    def non_null_items_count(self):
+        return len(self.non_null_items)
 
 
 class Flow(Model):

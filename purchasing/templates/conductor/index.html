@@ -12,7 +12,9 @@
 
     <table class="display" id="js-table-progress">
       <thead>
+        {% set type = 'in_progress' %}
         {% include 'conductor/table/header.html' %}
+
       </thead>
       <tbody>
         {% for contract in in_progress %}
@@ -33,6 +35,7 @@
 
     <table class="display" id="js-table-all">
       <thead>
+        {% set type = 'all' %}
         {% include 'conductor/table/header.html' %}
       </thead>
       <tbody>
