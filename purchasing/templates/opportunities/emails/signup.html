@@ -11,7 +11,7 @@
 <p>You have signed up to receive notifications about the following categories:</p>
 <ul>
   {% for category in categories %}
-  <li>{{ category.subcategory }}</li>
+  <li>{{ category.category_friendly_name }}</li>
   {% endfor %}
 </ul>
 {% endif %}

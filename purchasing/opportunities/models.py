@@ -43,7 +43,7 @@ class Category(Model):
     examples_tsv = Column(TSVECTOR)
 
     def __unicode__(self):
-        return '{sub} (in {main})'.format(sub=self.subcategory, main=self.category)
+        return '{sub} (in {main})'.format(sub=self.category_friendly_name, main=self.category)
 
 class Opportunity(Model):
     __tablename__ = 'opportunity'
