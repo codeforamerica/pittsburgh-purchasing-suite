@@ -1,6 +1,6 @@
 We’re pleased to announce a new opportunity to work with the City: {{ url_for('opportunities.detail', opportunity_id=opportunity.id), _external=True }} It could be a great fit for your business! 
 
-WWe invite you to take a look and send in a proposal if you’re interested! The window to send in proposals opens on {{ opportunity.planned_open }} and closes on {{ opportuninty.planned_deadline }}
+We invite you to take a look and send in a proposal if you’re interested! The window to send in proposals opens on {{ opportunity.planned_open }} and closes on {{ opportunity.planned_deadline }}
 
 Thanks,
 The Beacon Team
