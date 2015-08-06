@@ -7,7 +7,7 @@ from purchasing.data.models import (
     Stage, StageProperty, ContractStage, ContractStageActionItem
 )
 from purchasing.data.contracts import (
-    get_one_contract, clone_a_contract, transfer_contract_relationships
+    get_one_contract, transfer_contract_relationships
 )
 
 def create_new_stage(stage_data):
@@ -244,3 +244,8 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None, 
         except Exception:
             db.session.rollback()
             raise
+
+def switch_flow(contract_id, new_flow, contract=None, flow=None):
+    '''
+    '''
+    pass

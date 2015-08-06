@@ -12,6 +12,13 @@ from sqlalchemy.dialects.postgresql import TSVECTOR, JSON
 from sqlalchemy.schema import Table, Sequence
 from sqlalchemy.orm import backref
 
+TRIGGER_TUPLES = [
+    ('contract', 'description', 'WHEN (NEW.is_visible != False)'),
+    ('company', 'company_name', ''),
+    ('contract_property', 'value', ''),
+    ('line_item', 'description', ''),
+]
+
 company_contract_association_table = Table(
     'company_contract_association', Model.metadata,
     Column('company_id', db.Integer, db.ForeignKey('company.id', ondelete='SET NULL'), index=True),
@@ -119,7 +126,10 @@ class ContractBase(Model):
     assigned = db.relationship('User', backref=backref(
         'assignments', lazy='dynamic', cascade='none'
     ))
+
+    is_visible = Column(db.Boolean, default=False, nullable=False)
     is_archived = Column(db.Boolean, default=False, nullable=False)
+
     parent_id = Column(db.Integer, db.ForeignKey('contract.id'))
     children = db.relationship('ContractBase', backref=backref(
         'parent', remote_side=[id]

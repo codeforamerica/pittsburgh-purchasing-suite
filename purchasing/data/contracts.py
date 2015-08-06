@@ -64,13 +64,13 @@ def get_all_contracts():
 
 def follow_a_contract(contract_id, user, field):
     '''
-    Takes in a contract_id and a user model, and
-    associates the user model with the relevant
-    contract. This makes the user "follow" the
-    contract for notification purposes. NOTE -
-    normally we would just use the UPDATE method above,
-    but because the user lives on an array, this would
-    prevent multiple users from following one contract
+    Takes in a contract_id and a user model, and associates the
+    user model with the relevant contract. This makes the user
+    "follow" the contract for notification purposes.
+
+    NOTE - normally we would just use the UPDATE method above,
+    but because the user lives on an array, this would prevent
+    multiple users from following one contract
     '''
     contract = get_one_contract(contract_id)
     if contract:

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import urllib2
-import datetime
 
 from flask import (
     Blueprint, render_template, flash, redirect,
@@ -25,6 +24,10 @@ from purchasing.users.models import User, Role
 from purchasing.conductor.forms import (
     EditContractForm, PostOpportunityForm,
     SendUpdateForm, NoteForm, ContractMetadataForm
+)
+
+from purchasing.conductor.manager.helpers import (
+    update_contract_with_spec, handle_form, ContractMetadataObj
 )
 
 blueprint = Blueprint(
@@ -72,12 +75,6 @@ def index():
             path=request.path, query=request.query_string
         )
     )
-
-class ContractMetadataObj(object):
-    def __init__(self, contract):
-        self.expiration_date = contract.expiration_date
-        self.financial_id = contract.financial_id
-        self.spec_number = contract.get_spec_number().value
 
 @blueprint.route('/contract/<int:contract_id>', methods=['GET', 'POST'])
 @blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>', methods=['GET', 'POST'])
@@ -194,63 +191,10 @@ def detail(contract_id, stage_id=-1):
         )
     abort(404)
 
-def update_contract_with_spec(contract, form_data):
-    spec_number = contract.get_spec_number()
-
-    data = form_data
-    new_spec = data.pop('spec_number', None)
-
-    if new_spec:
-        spec_number.key = 'Spec Number'
-        spec_number.value = new_spec
-        contract.properties.append(spec_number)
-
-    contract.update(**data)
-    return contract, spec_number
-
-def handle_form(form, form_name, stage_id, user, contract):
-    if form.validate_on_submit():
-        action = ContractStageActionItem(
-            contract_stage_id=stage_id, action_type=form_name,
-            taken_by=user.id, taken_at=datetime.datetime.now()
-        )
-        if form_name == 'activity':
-            action.action_detail = {'note': form.data.get('note', '')}
-
-        elif form_name == 'update':
-            action.action_detail = {
-                'sent_to': form.data.get('send_to', ''),
-                'body': form.data.get('body'),
-                'subject': form.data.get('subject')
-            }
-            Notification(
-                to_email=form.data.get('send_to'),
-                from_email=current_user.email,
-                subject=form.data.get('subject'),
-                html_template='conductor/emails/email_update.html',
-                body=form.data.get('body')
-            ).send()
-
-        elif form_name == 'opportunity':
-            pass
-
-        elif form_name == 'update-metadata':
-            # remove the blank hidden field -- we don't need it
-            data = form.data
-            del data['all_blank']
-
-            action.action_detail = data
-
-        else:
-            return False
-
-        db.session.add(action)
-        db.session.commit()
-        return True
-
-    return False
-
-@blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/note/<int:note_id>/delete', methods=['GET', 'POST'])
+@blueprint.route(
+    '/contract/<int:contract_id>/stage/<int:stage_id>/note/<int:note_id>/delete',
+    methods=['GET', 'POST']
+)
 @requires_roles('conductor', 'admin', 'superadmin')
 def delete_note(contract_id, stage_id, note_id):
     try:
