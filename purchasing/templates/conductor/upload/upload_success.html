@@ -29,6 +29,23 @@
 {{ super() }}
 
 <script>
+var processCostars = function(filepath, filename, _delete) {
+  $.ajax({
+    url: "{{ url_for('conductor_uploads.process_costars_upload') }}",
+    method: 'POST',
+
+    data: { filepath: filepath, filename: filename, _delete: _delete },
+
+    success: function(data, status, xhr) {
+      $('.upload-processing').hide();
+      $('.upload-success').show();
+    }, error: function(xhr, status, error) {
+      $('.upload-error').show();
+      $('.error-message').append(error + ': ' + JSON.parse(xhr.responseText).message);
+    }
+  });
+}
+
 var filepath = '{{ filepath }}';
 var filename = '{{ filename }}';
 var _delete = true;
@@ -37,20 +54,7 @@ if (!filepath) {
   window.location.reload();
 }
 
-$.ajax({
-  url: "{{ url_for('conductor_uploads.process_costars_upload') }}",
-  method: 'POST',
-
-  data: { filepath: filepath, filename: filename, _delete: _delete },
-
-  success: function(data, status, xhr) {
-    $('.upload-processing').hide();
-    $('.upload-success').show();
-  }, error: function(xhr, status, error) {
-    $('.upload-error').show();
-    $('.error-message').append(error + ': ' + JSON.parse(xhr.responseText).message);
-  }
-});
+processCostars(filepath, filename, _delete);
 
 </script>
 
