@@ -38,6 +38,7 @@ def upload_costars():
         session['filepath'] = filepath
         session['filename'] = filename
 
+        flash('Uploaded successful', 'alert-success')
         return redirect(url_for(
             'conductor_uploads.process'
         ))
