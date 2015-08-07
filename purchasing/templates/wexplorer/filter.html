@@ -29,7 +29,8 @@
             <td><a href="{{ url_for('wexplorer.contract', contract_id=result.id) }}">
               {{ result.description|title }}
             </a></td>
-            <td>{{ result.cnt }}</td>
+            <td>{{ result.stars }}</td>
+            <td>{{ result.follows }}</td>
           </tr>
         {% endfor %}
         </tbody>

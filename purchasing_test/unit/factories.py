@@ -30,7 +30,8 @@ class RoleFactory(BaseFactory):
         model = Role
 
 class DepartmentFactory(BaseFactory):
-    name = factory.Sequence(lambda n: '{}'.format(n))
+    id = factory.Sequence(lambda n: n)
+    name = factory.Sequence(lambda n: 'department{}'.format(n))
 
     class Meta:
         model = Department
@@ -97,6 +98,7 @@ class CategoryFactory(BaseFactory):
 
 class OpportunityFactory(BaseFactory):
     id = factory.Sequence(lambda n: n)
+    department = factory.SubFactory(DepartmentFactory)
 
     class Meta:
         model = Opportunity

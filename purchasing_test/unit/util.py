@@ -93,10 +93,13 @@ def create_a_user(email='foo@foo.com', department='Other', role=None):
         department=DepartmentFactory.create(name=department), role=role
     )
 
-def insert_a_user(email='foo@foo.com', department='Other', role=None):
+def insert_a_user(email=None, department=None, role=None):
     role = role if role else RoleFactory.create()
     try:
-        user = UserFactory.create(role=role)
+        if email:
+            user = UserFactory.create(email=email, role=role, department=department)
+        else:
+            user = UserFactory.create(role=role, department=department)
         return user
     except IntegrityError:
         db.session.rollback()
@@ -109,7 +112,7 @@ def insert_a_role(name):
         return role
     except IntegrityError:
         db.session.rollback()
-        pass
+        return Role.query.filter(Role.name == name).first()
 
 def get_a_role(name):
     return Role.query.filter(Role.name == name).first()
@@ -122,7 +125,7 @@ def insert_a_document(name='Foo', description='Bar'):
     return document
 
 def insert_an_opportunity(
-    department='Other', contact_id=None,
+    contact_id=None, department=None,
     title='Test', description='Test',
     planned_advertise=datetime.datetime.today(),
     planned_open=datetime.datetime.today(),
@@ -130,8 +133,9 @@ def insert_an_opportunity(
     required_documents=[],
     created_from_id=None, created_by_id=None, is_public=True
 ):
+    department = department if department else DepartmentFactory()
     opportunity = OpportunityFactory.create(**dict(
-        department=department, contact_id=contact_id, title=title,
+        department_id=department.id, contact_id=contact_id, title=title,
         description=description, planned_advertise=planned_advertise,
         planned_open=planned_open, planned_deadline=planned_deadline,
         created_from_id=created_from_id, created_by_id=created_by_id,

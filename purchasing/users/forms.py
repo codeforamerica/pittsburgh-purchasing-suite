@@ -10,7 +10,7 @@ class DepartmentForm(Form):
         query_factory=department_query,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.name,
-        allow_blank=True
+        allow_blank=True, blank_text='-----'
     )
     first_name = TextField()
     last_name = TextField()

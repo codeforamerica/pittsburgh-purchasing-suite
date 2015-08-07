@@ -28,11 +28,18 @@ def upgrade():
     )
     op.create_unique_constraint('department_unique_name', 'department', ['name'])
 
+    # handle departments, build foreign key relationships
+    # we need to replace the current values with references to the new model
+    # therefore, we build out everything, make the update, and the drop
+    # the old (string) column reference
     op.add_column(u'users', sa.Column('department_id', sa.Integer(), nullable=True))
     op.create_foreign_key('user_id_department_user_id_fkey', 'users', 'department', ['department_id'], ['id'])
 
     op.add_column(u'contract', sa.Column('department_id', sa.Integer(), nullable=True))
     op.create_foreign_key('department_id_contract_department_id_fkey', 'contract', 'department', ['department_id'], ['id'])
+
+    op.add_column(u'opportunity', sa.Column('department_id', sa.Integer(), nullable=True))
+    op.create_foreign_key('opportunity_department_id_department_id_fkey', 'opportunity', 'department', ['department_id'], ['id'])
 
     op.bulk_insert(department, [
         {'name': 'Bureau of Neighborhood Empowerment'},
@@ -57,6 +64,7 @@ def upgrade():
         {'name': 'Other'},
         {'name': 'New User'}
     ])
+
     # recreate the triggers, only rebuild when updates
     # are made
     conn = op.get_bind()
@@ -69,13 +77,21 @@ def upgrade():
         '''
     ))
 
+    conn.execute(sa.sql.text(
+        '''UPDATE opportunity SET department_id = (
+            SELECT id FROM department WHERE opportunity.department = department.name
+        )
+        '''
+    ))
+
+    op.drop_column(u'users', 'department')
+    op.drop_column(u'opportunity', 'department')
+
     # add a new role
     conn.execute(sa.sql.text(
         '''INSERT INTO roles VALUES (nextval('roles_id_seq'::regclass), 'county')
         '''
     ))
-
-    op.drop_column(u'users', 'department')
 
     for table, column, when in TRIGGER_TUPLES:
         conn.execute(sa.sql.text('''
@@ -110,6 +126,10 @@ def downgrade():
     op.drop_constraint('department_unique_name', 'department', type_='unique')
     op.drop_constraint('department_id_contract_department_id_fkey', 'contract', type_='foreignkey')
     op.drop_column(u'contract', 'department_id')
+
+    op.add_column(u'opportunity', sa.Column('department', sa.VARCHAR(length=255), autoincrement=False, nullable=True))
+    op.drop_constraint('opportunity_department_id_department_id_fkey', 'opportunity', type_='foreignkey')
+    op.drop_column(u'opportunity', 'department_id')
 
     op.drop_table('department')
 

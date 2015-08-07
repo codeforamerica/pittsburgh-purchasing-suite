@@ -320,7 +320,6 @@ class TestConductor(BaseTestCase):
             self.assertEquals(self.contract1.contract_href, 'http://www.example.com')
             self.assertEquals(self.contract1.description, 'a different description!')
             self.assertEquals(len(outbox), 1)
-            self.assertTrue('foo@foo.com' in outbox[0].send_to)
             self.assertTrue('A contract you follow has been updated!' in outbox[0].subject)
             self.assertTrue('Successfully Updated' in good_post.data)
 

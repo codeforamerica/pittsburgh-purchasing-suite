@@ -13,12 +13,14 @@
 </form>
 
 <li class="dropdown">
+  {% if choices|length > 0 %}
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Browse a Department <span class="caret"></span></a>
   <ul class="dropdown-menu" role="menu">
-    {% for choice in choices[1:] %}
-    <li><a href="{{ url_for('wexplorer.filter', department=choice[0]) }}">{{ choice[1] }}</a></li>
+    {% for choice in choices %}
+    <li><a href="{{ url_for('wexplorer.filter', department_id=choice[0]) }}">{{ choice[1] }}</a></li>
     {% endfor %}
   </ul>
+  {% endif %}
 </li>
 
 {% endblock %}

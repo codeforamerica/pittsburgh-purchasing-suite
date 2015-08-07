@@ -31,6 +31,12 @@ def fix_form_categories(request, form, cls, validate=None, obj=None,):
     validate - the field name to attach an errors to
     '''
     form_data = {c.name: form.data.get(c.name, None) for c in cls.__table__.columns if c.name not in ['id', 'created_at', 'created_by_id']}
+
+    # manual fixup for opportunity-department relationship
+
+    if form.data.get('department', None):
+        form_data['department_id'] = form.data.get('department').id
+
     form_data['categories'] = obj.categories if obj else set()
     subcats = set()
 

@@ -2,12 +2,13 @@
 
 from flask import current_app
 from flask_login import current_user
-from purchasing.extensions import mail
+from purchasing.extensions import mail, db
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
     insert_a_company, insert_a_contract,
     insert_a_user, insert_a_role
 )
+from purchasing_test.unit.factories import DepartmentFactory
 
 from purchasing.data.models import ContractBase, LineItem, ContractNote
 from purchasing.data.contracts import get_one_contract
@@ -17,12 +18,18 @@ class TestWexplorer(BaseTestCase):
 
     def setUp(self):
         super(TestWexplorer, self).setUp()
+        # insert departments
+        self.department1 = DepartmentFactory()
 
         # insert the users/roles
         self.admin_role = insert_a_role('admin')
         self.superadmin_role = insert_a_role('superadmin')
-        self.admin_user = insert_a_user(email='foo@foo.com', role=self.admin_role)
-        self.superadmin_user = insert_a_user(email='bar@foo.com', role=self.superadmin_role)
+        self.admin_user = insert_a_user(
+            email='foo@foo.com', role=self.admin_role, department=self.department1
+        )
+        self.superadmin_user = insert_a_user(
+            email='bar@foo.com', role=self.superadmin_role, department=self.department1
+        )
 
         # insert the companies/contracts
         self.company1 = insert_a_company(name='ship', insert_contract=False)
@@ -176,33 +183,23 @@ class TestWexplorer(BaseTestCase):
     def test_department_filter(self):
         '''Test that filter page works properly and shows the error where appropriate
         '''
-        # login as admin user and subscribe to two contracts
         self.login_user(self.admin_user)
-        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
-        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract2.id))
+        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
+        self.client.get('/scout/contracts/{}/star'.format(self.contract2.id))
 
-        # login as superadmin user and subscribe to one contract
         self.login_user(self.superadmin_user)
-        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
-
-        # filter base page successfully returns
-        self.assert200(self.client.get('/scout/filter'))
+        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
 
         # filter by contracts associated with Other department
-        self.client.get('/scout/filter/Other')
+        self.client.get('/scout/filter/{}'.format(self.admin_user.department_id))
         self.assertEquals(len(self.get_context_variable('results')), 2)
         # assert that contract 1 is first
         self.assertEquals(self.get_context_variable('results')[0].id, self.contract1.id)
-        self.assertEquals(self.get_context_variable('results')[0].cnt, 2)
-
-        # assert innovation and performance has no results
-        self.client.get('/scout/filter/Innovation and Performance')
-        self.assertEquals(len(self.get_context_variable('results')), 0)
+        self.assertEquals(self.get_context_variable('results')[0].stars, 2)
 
         # assert that the department must be a real department
         request = self.client.get('/scout/filter/FAKEFAKEFAKE')
-        self.assertEquals(request.status_code, 302)
-        self.assert_flashes('You must choose a valid department!', 'alert-danger')
+        self.assertEquals(request.status_code, 404)
 
     def test_notes(self):
         '''Test taking notes on scout
@@ -238,8 +235,6 @@ class TestWexplorer(BaseTestCase):
 
         self.assert404(self.client.get('/scout/contracts/1000/feedback'))
 
-        contract = get_one_contract(1)
-
         # assert data validation
         bad_post = self.client.post('/scout/contracts/{}/feedback'.format(self.contract1.id), data=dict(
             sender='JUNK'
@@ -257,6 +252,7 @@ class TestWexplorer(BaseTestCase):
 
         # assert email works properly
         self.login_user(self.admin_user)
+        self.admin_user.email = 'foo@foo.com'
 
         with mail.record_messages() as outbox:
             success_post = self.client.post('/scout/contracts/{}/feedback'.format(self.contract1.id), data=dict(

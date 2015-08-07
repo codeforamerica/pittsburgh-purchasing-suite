@@ -10,10 +10,11 @@ from wtforms import widgets, fields
 from wtforms.validators import (
     DataRequired, Email, ValidationError, Optional, InputRequired
 )
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 from purchasing.opportunities.models import Vendor
 
-from purchasing.users.models import User
+from purchasing.users.models import User, department_query
 
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
@@ -161,7 +162,12 @@ class OpportunityDocumentForm(Form):
     )
 
 class OpportunityForm(Form):
-    department = fields.SelectField(choices=[], validators=[DataRequired()])
+    department = QuerySelectField(
+        query_factory=department_query,
+        get_pk=lambda i: i.id,
+        get_label=lambda i: i.name,
+        allow_blank=True, blank_text='-----'
+    )
     contact_email = fields.TextField(validators=[Email(), city_domain_email, DataRequired()])
     title = fields.TextField(validators=[DataRequired()])
     description = fields.TextAreaField(validators=[max_words(), DataRequired()])

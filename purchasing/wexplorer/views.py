@@ -12,7 +12,7 @@ from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import Notification
-from purchasing.users.models import get_department_choices
+from purchasing.users.models import get_department_choices, Department
 from purchasing.wexplorer.forms import (
     SearchForm, FeedbackForm, FilterForm, NoteForm
 )
@@ -42,11 +42,24 @@ def explore():
     The landing page for wexplorer. Renders the "big search"
     template.
     '''
-    return dict(current_user=current_user, choices=[get_department_choices()])
+    return dict(current_user=current_user, choices=get_department_choices())
 
 @blueprint.route('/filter', methods=['GET'])
-@blueprint.route('/filter/<department>', methods=['GET'])
-def filter(department=None):
+def filter_no_department():
+    '''The landing page for filtering by departments
+    '''
+    return render_template(
+        'wexplorer/filter.html',
+        search_form=SearchForm(),
+        results=[],
+        choices=get_department_choices(),
+        path='{path}?{query}'.format(
+            path=request.path, query=request.query_string
+        )
+    )
+
+@blueprint.route('/filter/<int:department_id>', methods=['GET'])
+def filter(department_id):
     '''
     Filter contracts by which ones have departmental subscribers
     '''
@@ -54,25 +67,36 @@ def filter(department=None):
     page = int(request.args.get('page', 1))
     lower_bound_result = (page - 1) * pagination_per_page
     upper_bound_result = lower_bound_result + pagination_per_page
+    department = Department.query.get(int(department_id))
 
-    return redirect(url_for('wexplorer.explore'))
+    contracts = db.session.execute(
+        '''
+        SELECT
+            contract.id, description,
+            count(contract_starred_association.user_id) AS stars,
+            count(contract_user_association.user_id) AS follows
+        FROM contract
+        LEFT OUTER JOIN contract_starred_association
+            ON contract.id = contract_starred_association.contract_id
+        LEFT OUTER JOIN contract_user_association
+            ON contract.id = contract_user_association.contract_id
+        FULL OUTER JOIN users
+            ON contract_starred_association.user_id = users.id
+        JOIN department
+            ON users.department_id = department.id
+        WHERE department.id = :department
+        GROUP BY 1,2
+        ORDER BY 3 DESC, 4 DESC, 1 ASC
+        ''', {'department': int(department_id)}
+    ).fetchall()
 
-    contracts = db.session.query(
-        ContractBase.id, ContractBase.description,
-        db.func.count(contract_user_association_table.c.user_id).label('cnt')
-    ).outerjoin(contract_user_association_table).outerjoin(
-        contract_starred_association_table
-    ).filter(
-        ContractBase.followers.any(department=department)
-    ).group_by(ContractBase).having(db.or_(
-        db.func.count(contract_user_association_table.c.user_id) > 0
-    )).order_by(db.text('cnt DESC, description ASC')).all()
+    if len(contracts) > 0:
+        pagination = SimplePagination(page, pagination_per_page, len(contracts))
+        results = contracts[lower_bound_result:upper_bound_result]
 
-    pagination = SimplePagination(page, pagination_per_page, len(contracts))
-
-    results = contracts[lower_bound_result:upper_bound_result]
-
-    current_app.logger.info('WEXFILTER - {department}: Filter by {department}'.format(department=department))
+    current_app.logger.info('WEXFILTER - {department}: Filter by {department}'.format(
+        department=department.name
+    ))
 
     return render_template(
         'wexplorer/filter.html',
@@ -80,7 +104,7 @@ def filter(department=None):
         results=results,
         pagination=pagination,
         department=department,
-        choices=[get_department_choices()],
+        choices=get_department_choices(),
         path='{path}?{query}'.format(
             path=request.path, query=request.query_string
         )
@@ -192,7 +216,7 @@ def search():
         results=contracts[lower_bound_result:upper_bound_result],
         pagination=pagination,
         search_form=search_form,
-        choices=[get_department_choices()],
+        choices=get_department_choices(),
         path='{path}?{query}'.format(
             path=request.path, query=request.query_string
         )
@@ -207,7 +231,7 @@ def company(company_id):
         current_app.logger.info('WEXCOMPANY - Viewed company page {}'.format(company.company_name))
         return dict(
             company=company,
-            choices=[get_department_choices()],
+            choices=get_department_choices(),
             path='{path}?{query}'.format(
                 path=request.path, query=request.query_string
             )
@@ -245,7 +269,7 @@ def contract(contract_id):
 
         return dict(
             contract=contract, departments=departments,
-            choices=[get_department_choices()],
+            choices=get_department_choices(),
             path='{path}?{query}'.format(
                 path=request.path, query=request.query_string
             ), notes=notes, note_form=note_form
@@ -295,7 +319,7 @@ def feedback(contract_id):
             'wexplorer/feedback.html',
             search_form=search_form,
             contract=contract,
-            choices=[get_department_choices()],
+            choices=get_department_choices(),
             feedback_form=form
         )
     abort(404)

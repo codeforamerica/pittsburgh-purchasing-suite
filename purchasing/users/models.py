@@ -59,10 +59,6 @@ class User(UserMixin, SurrogatePK, Model):
         else:
             return self.email
 
-class AnonymousUser(AnonymousUserMixin):
-    role = Role(name='anonymous')
-    id = -1
-
 class Department(SurrogatePK, Model):
     __tablename__ = 'department'
 
@@ -72,10 +68,16 @@ class Department(SurrogatePK, Model):
     def __unicode__(self):
         return self.name
 
+class AnonymousUser(AnonymousUserMixin):
+    role = Role(name='anonymous')
+    department = Department(name='anonymous')
+    id = -1
+
 def department_query():
     return Department.query.filter(Department.name != 'New User')
 
-def get_department_choices():
-    return [(None, '-----')] + [
-        (i.id, i.name) for i in department_query().all()
-    ]
+def get_department_choices(blank=False):
+    departments = [(i.id, i.name) for i in department_query().all()]
+    if blank:
+        departments = [(None, '-----')] + departments
+    return departments

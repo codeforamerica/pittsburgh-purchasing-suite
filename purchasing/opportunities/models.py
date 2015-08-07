@@ -50,7 +50,10 @@ class Opportunity(Model):
 
     id = Column(db.Integer, primary_key=True)
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
-    department = Column(db.String(255))
+    department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True)
+    department = db.relationship(
+        'Department', backref=backref('opportunities', lazy='dynamic')
+    )
     contact_id = ReferenceCol('users', ondelete='SET NULL')
     contact = db.relationship(
         'User', backref=backref('opportunities', lazy='dynamic'),
