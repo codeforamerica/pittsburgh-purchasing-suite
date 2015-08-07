@@ -94,6 +94,9 @@ def register_extensions(app):
     admin.init_app(app)
     s3.init_app(app)
     mail.init_app(app)
+
+    from flask_sslify import SSLify
+    SSLify(app)
     return None
 
 def register_blueprints(app):
