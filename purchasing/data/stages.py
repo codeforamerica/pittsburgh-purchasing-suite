@@ -4,7 +4,8 @@ import datetime
 
 from purchasing.database import db
 from purchasing.data.models import (
-    Stage, StageProperty, ContractStage, ContractStageActionItem
+    Stage, StageProperty, ContractStage, ContractStageActionItem,
+    ContractBase
 )
 from purchasing.data.contracts import (
     get_one_contract, complete_contract
@@ -236,3 +237,16 @@ def switch_flow(contract_id, new_flow, contract=None, flow=None):
     '''
     '''
     pass
+
+def get_contract_stages(contract_id):
+    '''Returns the appropriate stages and their metadata based on a contract id
+    '''
+    return db.session.query(
+        ContractStage.contract_id, ContractStage.stage_id, ContractStage.id,
+        ContractStage.entered, ContractStage.exited, Stage.name,
+        Stage.post_opportunities, ContractBase.description
+    ).join(Stage, Stage.id == ContractStage.stage_id).join(
+        ContractBase, ContractBase.id == ContractStage.contract_id
+    ).filter(
+        ContractStage.contract_id == contract_id
+    ).order_by(ContractStage.id).all()

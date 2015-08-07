@@ -1,5 +1,5 @@
 {% import "macros/with_errors.html" as macros %}
-<form class="form form-horizontal" method="POST" action="{{ url_for('conductor.detail', contract_id=contract_id, stage_id=active_stage.id, form='activity') }}">
+<form class="form form-horizontal" method="POST" action="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, form='activity') }}">
   {{ note_form.csrf_token() }}
   <div class="form-group">
     <label for="description" class="control-label col-sm-2">Add Note</label>

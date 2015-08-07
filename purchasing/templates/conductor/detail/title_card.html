@@ -7,13 +7,14 @@
     <div class="col-md-2">
       <span class="pull-right">
       {% if active_stage.id != current_stage.id %}
-        <a href="{{ url_for('conductor.detail', contract_id=contract_id, stage_id=active_stage.id, transition='true', destination=active_stage.stage_id) }}" class="btn btn-detail btn-gray">Revert to this stage</a>
+        <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, transition='true', destination=active_stage.stage_id) }}" class="btn btn-detail btn-gray">Revert to this stage</a>
       {% else %}
         <div class="dropdown">
           <button class="btn btn-success btn-detail-target" id="btnActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions <span class="caret"></span></button>
           <ul class="dropdown-menu" aria-labelledby="btnActions">
-            <li><a href="{{ url_for('conductor.detail', contract_id=contract_id, stage_id=active_stage.id, transition='true') }}" class="btn-detail">Mark Complete</a></li>
-            <li><a href="{{ url_for('conductor.detail', contract_id=contract_id, stage_id=active_stage.id, extend='true') }}" class="btn-detail">Extend Contract</a></li>
+            <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}" class="btn-detail">View on Scout</a></li>
+            <li><a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, transition='true') }}" class="btn-detail">Mark Complete</a></li>
+            <li><a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, extend='true') }}" class="btn-detail">Extend Contract</a></li>
           </ul>
         </div>
       {% endif %}
@@ -25,7 +26,7 @@
   <div class="row">
     <div class="col-md-12">
       <p class="text-muted">
-        <small>You are viewing an already-completed stage. To jump to the current stage ({{ current_stage.name }}), click <a href="{{ url_for('conductor.detail', contract_id=contract_id, stage_id=current_stage.id) }}">here.</a></small>
+        <small>You are viewing an already-completed stage. To jump to the current stage ({{ current_stage.name }}), click <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=current_stage.id) }}">here.</a></small>
       </p>
     </div>
   </div>

@@ -6,7 +6,10 @@ from flask_wtf.file import FileField, FileAllowed
 from wtforms.fields import (
     TextField, IntegerField, DateField, TextAreaField, HiddenField
 )
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import DataRequired, URL, Optional, ValidationError
+
+from purchasing.users.models import department_query
 
 EMAIL_REGEX = re.compile(r'^.+@([^.@][^@]+)$', re.IGNORECASE)
 
@@ -21,7 +24,9 @@ def validate_multiple_emails(form, field):
     '''
     if field.data:
         for email in field.data.split(';'):
-            if not re.match(EMAIL_REGEX, email):
+            if email == '':
+                continue
+            elif not re.match(EMAIL_REGEX, email):
                 raise ValidationError('One of the supplied emails is invalid!')
 
 class EditContractForm(Form):
@@ -41,6 +46,12 @@ class ContractMetadataForm(Form):
     expiration_date = DateField(validators=[Optional()])
     spec_number = TextField(validators=[Optional()], filters=[lambda x: x or None])
     all_blank = HiddenField(validators=[not_all_hidden])
+    department = QuerySelectField(
+        query_factory=department_query,
+        get_pk=lambda i: i.id,
+        get_label=lambda i: i.name,
+        allow_blank=True, blank_text='-----'
+    )
 
 class SendUpdateForm(Form):
     '''Form to update

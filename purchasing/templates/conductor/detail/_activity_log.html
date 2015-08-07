@@ -12,7 +12,7 @@
     wrote "<strong>{{ action.action_detail.note }}</strong>" on {{ action.taken_at.strftime('%Y-%m-%d') }}.
 
     <span class="pull-right">
-      <a href="{{ url_for('conductor.delete_note', contract_id=contract_id, stage_id=active_stage.id, note_id=action.id) }}"<i class="fa fa-trash-o"></i></a>
+      <a href="{{ url_for('conductor.delete_note', contract_id=contract.id, stage_id=active_stage.id, note_id=action.id) }}"<i class="fa fa-trash-o"></i></a>
     </span>
   {# update #}
   </div>

@@ -13,7 +13,7 @@ from purchasing.decorators import requires_roles
 from purchasing.database import db
 from purchasing.notifications import Notification
 from purchasing.data.contracts import clone_a_contract, extend_a_contract
-from purchasing.data.stages import transition_stage
+from purchasing.data.stages import transition_stage, get_contract_stages
 from purchasing.data.flows import create_contract_stages
 from purchasing.data.models import (
     ContractBase, ContractProperty, ContractStage, Stage,
@@ -27,7 +27,8 @@ from purchasing.conductor.forms import (
 )
 
 from purchasing.conductor.manager.helpers import (
-    update_contract_with_spec, handle_form, ContractMetadataObj
+    update_contract_with_spec, handle_form, ContractMetadataObj,
+    build_action_log, build_subscribers
 )
 
 blueprint = Blueprint(
@@ -131,15 +132,7 @@ def detail(contract_id, stage_id=-1):
             'conductor.detail', contract_id=contract_id, stage_id=contract_stage.id
         ))
 
-    stages = db.session.query(
-        ContractStage.contract_id, ContractStage.stage_id, ContractStage.id,
-        ContractStage.entered, ContractStage.exited, Stage.name,
-        Stage.post_opportunities, ContractBase.description
-    ).join(Stage, Stage.id == ContractStage.stage_id).join(
-        ContractBase, ContractBase.id == ContractStage.contract_id
-    ).filter(
-        ContractStage.contract_id == contract_id
-    ).order_by(ContractStage.id).all()
+    stages = get_contract_stages(contract_id)
 
     try:
         active_stage = [i for i in stages if i.id == stage_id][0]
@@ -173,21 +166,8 @@ def detail(contract_id, stage_id=-1):
         else:
             active_tab = '#' + submitted_form
 
-    actions = ContractStageActionItem.query.filter(
-        ContractStageActionItem.contract_stage_id == stage_id
-    ).order_by(db.text('taken_at asc')).all()
-
-    actions.extend([
-        ContractStageActionItem(
-            action_type='entered', action_detail=active_stage.entered,
-            taken_at=active_stage.entered
-        ),
-        ContractStageActionItem(
-            action_type='exited', action_detail=active_stage.exited,
-            taken_at=active_stage.exited
-        )
-    ])
-    actions = sorted(actions, key=lambda stage: stage.get_sort_key())
+    actions = build_action_log(stage_id, active_stage)
+    subscribers, total_subscribers = build_subscribers(contract)
 
     if len(stages) > 0:
         return render_template(
@@ -195,8 +175,10 @@ def detail(contract_id, stage_id=-1):
             stages=stages, actions=actions, active_tab=active_tab,
             note_form=note_form, update_form=update_form,
             opportunity_form=opportunity_form, metadata_form=metadata_form,
-            contract_id=contract_id, current_user=current_user,
-            active_stage=active_stage, current_stage=current_stage
+            contract=contract, current_user=current_user,
+            active_stage=active_stage, current_stage=current_stage,
+            subscribers=subscribers,
+            total_subscribers=total_subscribers
         )
     abort(404)
 

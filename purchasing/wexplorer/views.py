@@ -82,6 +82,7 @@ def filter(department_id):
             ON contract.id = contract_user_association.contract_id
         FULL OUTER JOIN users
             ON contract_starred_association.user_id = users.id
+            OR contract_user_association.user_id = users.id
         JOIN department
             ON users.department_id = department.id
         WHERE department.id = :department

@@ -1,0 +1,25 @@
+<div class="panel panel-default email-contact-well">
+  {% if total_subscribers > 0 %}
+  <div class="panel-body">
+    {% for type, followers in subscribers.items() %}
+      {% if followers|length > 0 %}
+      <p><strong>{{ type }}</strong></p>
+        <ul class="list-unstyled">
+        {% for follower in followers %}
+          <li>
+          <div class="js-email-contact-card">
+            <a><i class="fa fa-plus-square fa-pad-right"></i>
+            <span class="js-email-contact-card-content">{{ follower.email }}</span></a>
+          </div>
+          </li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="panel-body">
+  No one is currently following this contract.
+  </div>
+  {% endif %}
+</div>

@@ -55,6 +55,7 @@ def upgrade():
         {'name': 'Department of Permits, Licenses, and Inspections'},
         {'name': 'Department of Public Safety'},
         {'name': 'Department of Public Works'},
+        {'name': 'Equal Opportunity Review Commission'},
         {'name': 'Ethics Board'},
         {'name': 'Innovation and Performance'},
         {'name': 'Office of Management and Budget'},
