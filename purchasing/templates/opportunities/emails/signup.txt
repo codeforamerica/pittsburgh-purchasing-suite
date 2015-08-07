@@ -6,7 +6,7 @@ You have signed up to receive notifications about {{ categories|length }} catego
 You have signed up to receive notifications about the following categories:
 
 {% for category in categories %}
-  {{ category.subcategory }}
+  {{ category.category_friendly_name }}
 {% endfor %}
 {% endif %}
 
