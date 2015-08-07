@@ -93,19 +93,23 @@ class Opportunity(Model):
             return field
         return field
 
-    def is_published(self):
-        return self.coerce_to_date(self.planned_advertise) <= datetime.date.today()
-
+    @property
     def is_advertised(self):
-        return self.coerce_to_date(self.planned_advertise) <= datetime.date.today() and \
-            self.coerce_to_date(self.planned_open) >= datetime.date.today()
+        return self.coerce_to_date(self.planned_advertise) <= datetime.date.today() and self.is_public
 
+    @property
+    def is_upcoming(self):
+        return self.coerce_to_date(self.planned_advertise) <= datetime.date.today() and \
+            not self.is_open and not self.is_closed and self.is_public
+
+    @property
     def is_open(self):
         return self.coerce_to_date(self.planned_open) <= datetime.date.today() and \
-            not self.is_expired()
+            not self.is_closed and self.is_public
 
-    def is_expired(self):
-        return self.coerce_to_date(self.planned_deadline) < datetime.date.today()
+    @property
+    def is_closed(self):
+        return self.coerce_to_date(self.planned_deadline) <= datetime.date.today() and self.is_public
 
     def can_edit(self, user):
         '''Check if a user can edit the contract
@@ -118,15 +122,12 @@ class Opportunity(Model):
     def estimate_open(self):
         '''Returns the month/year based on planned_open
         '''
-        if self.is_published():
-            return self.planned_open.strftime('%B %d, %Y')
-        return self.planned_open.strftime('%B %Y')
+        return self.planned_open.strftime('%B %d, %Y')
 
     def estimate_deadline(self):
         '''
         '''
         return self.planned_deadline.strftime('%B %d, %Y')
-        
 
     def get_needed_documents(self):
         return RequiredBidDocument.query.filter(

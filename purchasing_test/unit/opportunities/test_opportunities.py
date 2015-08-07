@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import json
+import datetime
+from unittest import TestCase
 from flask import current_app
 
 from purchasing.extensions import mail
@@ -8,6 +10,57 @@ from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import insert_a_role, insert_a_user
 from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.models import Vendor
+from purchasing_test.unit.factories import OpportunityFactory
+
+class TestOpportunityModel(TestCase):
+    def setUp(self):
+        self.yesterday = datetime.datetime.today() - datetime.timedelta(days=1)
+        self.today = datetime.datetime.today()
+        self.tomorrow = datetime.datetime.today() + datetime.timedelta(days=1)
+
+    def test_opportunity_open(self):
+        open_opportunity = OpportunityFactory.build(
+            is_public=True, planned_advertise=self.yesterday, planned_open=self.today, planned_deadline=self.tomorrow
+        )
+        self.assertTrue(open_opportunity.is_advertised)
+        self.assertFalse(open_opportunity.is_upcoming)
+        self.assertTrue(open_opportunity.is_open)
+        self.assertFalse(open_opportunity.is_closed)
+
+    def test_opportunity_notpublic(self):
+        notpublic_opportunity = OpportunityFactory.build(
+            is_public=False, planned_advertise=self.yesterday, planned_open=self.today, planned_deadline=self.tomorrow
+        )
+        self.assertFalse(notpublic_opportunity.is_advertised)
+        self.assertFalse(notpublic_opportunity.is_upcoming)
+        self.assertFalse(notpublic_opportunity.is_open)
+        self.assertFalse(notpublic_opportunity.is_closed)
+
+    def test_opportunity_pending(self):
+        pending_opportunity = OpportunityFactory.build(
+            is_public=True, planned_advertise=self.yesterday, planned_open=self.tomorrow, planned_deadline=self.tomorrow
+        )
+        self.assertTrue(pending_opportunity.is_advertised)
+        self.assertTrue(pending_opportunity.is_upcoming)
+        self.assertFalse(pending_opportunity.is_open)
+        self.assertFalse(pending_opportunity.is_closed)
+
+    def test_opportunity_closed(self):
+        closed_opportunity = OpportunityFactory.build(
+            is_public=True, planned_advertise=self.yesterday, planned_open=self.yesterday, planned_deadline=self.yesterday
+        )
+        self.assertTrue(closed_opportunity.is_advertised)
+        self.assertFalse(closed_opportunity.is_upcoming)
+        self.assertFalse(closed_opportunity.is_open)
+        self.assertTrue(closed_opportunity.is_closed)
+
+        closed_opportunity_today_deadline = OpportunityFactory.build(
+            is_public=True, planned_advertise=self.yesterday, planned_open=self.yesterday, planned_deadline=self.today
+        )
+        self.assertTrue(closed_opportunity_today_deadline.is_advertised)
+        self.assertFalse(closed_opportunity_today_deadline.is_upcoming)
+        self.assertFalse(closed_opportunity_today_deadline.is_open)
+        self.assertTrue(closed_opportunity_today_deadline.is_closed)
 
 class TestOpportunities(BaseTestCase):
     render_templates = True
