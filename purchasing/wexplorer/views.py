@@ -94,7 +94,6 @@ def filter(department_id):
     if len(contracts) > 0:
         pagination = SimplePagination(page, pagination_per_page, len(contracts))
         results = contracts[lower_bound_result:upper_bound_result]
-
     else:
         pagination = None
         results = []
