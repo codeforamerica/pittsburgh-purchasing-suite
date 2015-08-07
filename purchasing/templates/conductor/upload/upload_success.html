@@ -41,7 +41,8 @@ var processCostars = function(filepath, filename, _delete) {
       $('.upload-success').show();
     }, error: function(xhr, status, error) {
       $('.upload-error').show();
-      $('.error-message').append(error + ': ' + JSON.parse(xhr.responseText).message);
+      $('.upload-processing').hide();
+      $('.error-message').append('"' + xhr.responseJSON.status + '"');
     }
   });
 }

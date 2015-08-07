@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import datetime
 from difflib import SequenceMatcher as SM
 
@@ -21,6 +22,8 @@ CONSTANT_FIELDS = [
     'CONTACT', 'ADDRESS1', 'ADDRESS2',
     'E-MAIL ADDRESS', 'FAX #', 'PHONE #'
 ]
+
+VALID_FILENAMES = re.compile(r'(COSTARS|costars)(-| )\d+\.csv')
 
 def convert_to_bool(field):
     if field == 'Yes' or field == 'yes':
@@ -54,6 +57,8 @@ def parse_s3(bucket):
     pass
 
 def main(filetarget, filename, access_key, access_secret, bucket):
+    if not re.match(VALID_FILENAMES, filename):
+        raise IOError('Not a valid filename. Filenames must have COSTARS with number separated by a dash (Ex. "COSTARS-3.csv").')
 
     data = extract(filetarget)
     s3_files = None
@@ -99,7 +104,7 @@ def main(filetarget, filename, access_key, access_secret, bucket):
                 expiration_date=expiration,
                 financial_id=convert_empty_to_none(row.get('CONTROLLER')),
                 description='{costars} - {company}'.format(
-                    costars=filename.replace('-', ' ').strip('.csv'),
+                    costars=filename.replace('-', ' ').rstrip('.csv').upper(),
                     company=costars_awardee
                 )
             )

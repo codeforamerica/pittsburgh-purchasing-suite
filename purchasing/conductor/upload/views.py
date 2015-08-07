@@ -38,7 +38,6 @@ def upload_costars():
         session['filepath'] = filepath
         session['filename'] = filename
 
-        flash('Uploaded successful', 'alert-success')
         return redirect(url_for(
             'conductor_uploads.process'
         ))
@@ -72,7 +71,6 @@ def process_costars_upload():
         return jsonify({'status': 'success'}), 200
 
     except Exception, e:
-        raise e
         return jsonify({'status': 'error: {}'.format(e)}), 500
 
 def upload_costars_contract(_file):
