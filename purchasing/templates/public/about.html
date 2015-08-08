@@ -3,10 +3,17 @@
 
 {% block content %}
 {{ super() }}
-<div class="body-content">
+<div class="container">
   <div class="row">
     <h2>About</h2>
-    <p>The Pittsburgh Purchasing Suite is a collection of apps to help purchasers. It includes <a href="{{ url_for('wexplorer.explore') }}">Wexplorer</a>, a tool for discovering items that are on contract right now, and <a href="{{ url_for('public.home') }}">Sherpa</a>, a tool for understanding the procurement process and helping navigate specific pieces.
+    <p>The Pittsburgh Purchasing Suite is a collection of apps to help purchasers. It includes <a href="{{ url_for('wexplorer.explore') }}">Scout</a>, a tool for discovering items that are on contract right now, and <a href="{{ url_for('sherpa.index') }}">Sherpa</a>, a tool for understanding the procurement process and helping navigate specific pieces.
+  </div>
+
+  <div class="row">
+    <h2>Attributions</h2>
+    <ul>
+      <li><a href="https://thenounproject.com/search/?q=spyglass&i=143384">Spyglass Icon</a> created by Sergey Demushkin from Noun Project.</li>
+    </ul>
   </div>
 </div>
 {% endblock %}

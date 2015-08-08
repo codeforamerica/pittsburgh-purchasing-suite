@@ -26,32 +26,32 @@
             <ul class="dropdown-menu" role="menu">
               <li><a href="{{ url_for('public.home') }}">
                 <span class="fa-stack fa-1x">
-                  <i class="fa fa-home"></i>
+                  <i class="fa fa-black fa-home"></i>
                 </span>
                 Home
               </a></li>
               <li><a href="{{ url_for('wexplorer.explore') }}">
                 <span class="fa-stack fa-1x">
-                  <i class="fa fa-search"></i>
+                  <img class="nav-dropdown" src="{{ url_for('static', filename='img/scout_logo_binoculars_black.png') }}">
                 </span>
                 Scout
               </a></li>
               <li><a href="{{ url_for('sherpa.index') }}">
                 <span class="fa-stack fa-1x">
-                  <i class="fa fa-info" style="padding-left:0.3em; padding-right:0;"></i>
+                  <i class="fa fa-black fa-info" style="padding-left:0.3em; padding-right:0;"></i>
                 </span>
                 Sherpa
               </a></li>
               <li><a href="{{ url_for('opportunities.splash') }}">
                 <span class="fa-stack fa-1x">
-                  <i class="fa fa-envelope"></i>
+                  <i class="fa fa-black fa-envelope"></i>
                 </span>
                 Beacon
               </a></li>
               {% if not _current_user.is_anonymous() and _current_user.is_conductor() %}
               <li><a href="{{ url_for('conductor.index') }}">
                 <span class="fa-stack fa-1x">
-                  <i class="fa fa-train"></i>
+                  <i class="fa fa-black fa-train"></i>
                 </span>
                 Conductor
               </a></li>
