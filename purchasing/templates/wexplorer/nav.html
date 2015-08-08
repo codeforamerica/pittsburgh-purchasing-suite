@@ -2,7 +2,7 @@
 
 {% block brandhref %}{{ url_for('wexplorer.explore') }}{% endblock %}
 
-{% block brand %}Scout{% endblock %}
+{% block brand %}<img class="nav-logo" src="{{ url_for('static', filename='img/scout_logo_binoculars.png') }}"><strong>Scout</strong>{% endblock %}
 
 {% block applinks %}
 <form id="search-box" method="GET" class="navbar-form navbar-left" action="{{ url_for('wexplorer.search') }}" role="search">
