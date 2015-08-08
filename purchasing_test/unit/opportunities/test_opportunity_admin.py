@@ -21,18 +21,17 @@ from purchasing.opportunities.admin.views import upload_document
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.factories import (
-    OpportunityFactory, OpportunityDocumentFactory, RequiredBidDocumentFactory
+    OpportunityFactory, OpportunityDocumentFactory, RequiredBidDocumentFactory,
+    CategoryFactory
 )
 from purchasing_test.unit.util import (
     insert_a_role, insert_a_user, insert_a_document,
     insert_an_opportunity
 )
 
-class TestOpportunities(BaseTestCase):
-    render_templates = True
-
+class TestOpportunitiesAdminBase(BaseTestCase):
     def setUp(self):
-        super(TestOpportunities, self).setUp()
+        super(TestOpportunitiesAdminBase, self).setUp()
 
         try:
             mkdir(current_app.config.get('UPLOAD_DESTINATION'))
@@ -75,13 +74,16 @@ class TestOpportunities(BaseTestCase):
         )
 
     def tearDown(self):
-        super(TestOpportunities, self).tearDown()
+        super(TestOpportunitiesAdminBase, self).tearDown()
         # clear out the uploads folder
         rmtree(current_app.config.get('UPLOAD_DESTINATION'))
         try:
             rmdir(current_app.config.get('UPLOAD_DESTINATION'))
         except OSError:
             pass
+
+class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
+    render_templates = True
 
     def test_document_upload(self):
         '''Test document uploads properly
@@ -350,10 +352,11 @@ class TestOpportunities(BaseTestCase):
         for row in csv_data:
             self.assertEquals(len(row.split(',')), 11)
 
-class TestPublicOpportunities(TestOpportunities):
+class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
     def setUp(self):
-        super(TestPublicOpportunities, self).setUp()
+        super(TestOpportunitiesPublic, self).setUp()
         self.opportunity3.is_public = False
+        self.opportunity3.categories = set([Category.query.all()[-1]])
         db.session.commit()
 
     def test_vendor_signup_unpublished(self):
@@ -397,8 +400,6 @@ class TestPublicOpportunities(TestOpportunities):
     def test_pending_opportunity_admin(self):
         '''Test pending opportunity works as expected for admin user
         '''
-        self.opportunity3.is_public = False
-        db.session.commit()
         self.login_user(self.admin)
         admin_pending = self.client.get('/beacon/admin/opportunities/pending')
         self.assert200(admin_pending)

@@ -6,10 +6,11 @@ from unittest import TestCase
 from flask import current_app
 
 from purchasing.extensions import mail
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import insert_a_role, insert_a_user
 from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.models import Vendor
+
+from purchasing_test.unit.test_base import BaseTestCase
+from purchasing_test.unit.util import insert_a_role, insert_a_user
 from purchasing_test.unit.factories import OpportunityFactory
 
 class TestOpportunityModel(TestCase):

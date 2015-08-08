@@ -12,7 +12,7 @@ from purchasing.data.models import (
     Company
 )
 from purchasing.opportunities.models import (
-    Opportunity, RequiredBidDocument, OpportunityDocument
+    Opportunity, RequiredBidDocument, OpportunityDocument, Category
 )
 
 class BaseFactory(SQLAlchemyModelFactory):
@@ -93,3 +93,9 @@ class RequiredBidDocumentFactory(BaseFactory):
 class OpportunityDocumentFactory(BaseFactory):
     class Meta:
         model = OpportunityDocument
+
+class CategoryFactory(BaseFactory):
+    id = factory.Sequence(lambda n: n)
+
+    class Meta:
+        model = Category
