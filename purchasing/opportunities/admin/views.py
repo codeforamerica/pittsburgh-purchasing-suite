@@ -201,19 +201,20 @@ def publish(opportunity_id):
         db.session.commit()
         flash('Opportunity successfully published!', 'alert-success')
 
-        opp_categories = [i.id for i in opportunity.categories]
+        if opportunity.is_advertised:
+            opp_categories = [i.id for i in opportunity.categories]
 
-        vendors = Vendor.query.filter(
-            Vendor.categories.any(Category.id.in_(opp_categories))
-        ).all()
+            vendors = Vendor.query.filter(
+                Vendor.categories.any(Category.id.in_(opp_categories))
+            ).all()
 
-        Notification(
-            to_email=[i.email for i in vendors],
-            subject='A new City of Pittsburgh opportunity from Beacon!',
-            html_template='opportunities/emails/newopp.html',
-            txt_template='opportunities/emails/newopp.txt',
-            opportunity=opportunity
-        ).send(multi=True)
+            Notification(
+                to_email=[i.email for i in vendors],
+                subject='A new City of Pittsburgh opportunity from Beacon!',
+                html_template='opportunities/emails/newopp.html',
+                txt_template='opportunities/emails/newopp.txt',
+                opportunity=opportunity
+            ).send(multi=True)
 
         return redirect(url_for('opportunities_admin.pending'))
     abort(404)

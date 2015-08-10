@@ -12,6 +12,7 @@ from werkzeug.datastructures import FileStorage
 from flask import current_app
 
 from purchasing.database import db
+from purchasing.extensions import mail
 from purchasing.opportunities.models import (
     Opportunity, Vendor, Category, OpportunityDocument
 )
@@ -22,7 +23,7 @@ from purchasing.opportunities.admin.views import upload_document
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.factories import (
     OpportunityFactory, OpportunityDocumentFactory, RequiredBidDocumentFactory,
-    CategoryFactory
+    CategoryFactory, VendorFactory
 )
 from purchasing_test.unit.util import (
     insert_a_role, insert_a_user, insert_a_document,
@@ -296,20 +297,23 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
     def test_signup_for_opportunity(self):
         '''Test signup for individual opportunities
         '''
-        self.assertEquals(Vendor.query.count(), 0)
-        post = self.client.post('/beacon/opportunities/{}'.format(self.opportunity1.id), data={
-            'email': 'foo@foo.com', 'business_name': 'foo'
-        })
-        # should create a new vendor
-        self.assertEquals(Vendor.query.count(), 1)
+        with mail.record_messages() as outbox:
+            self.assertEquals(Vendor.query.count(), 0)
+            post = self.client.post('/beacon/opportunities/{}'.format(self.opportunity1.id), data={
+                'email': 'foo@foo.com', 'business_name': 'foo'
+            })
+            # should create a new vendor
+            self.assertEquals(Vendor.query.count(), 1)
 
-        # should subscribe that vendor to the opportunity
-        self.assertEquals(len(Vendor.query.first().opportunities), 1)
-        self.assertTrue(self.opportunity1.id in [i.id for i in Vendor.query.first().opportunities])
+            # should subscribe that vendor to the opportunity
+            self.assertEquals(len(Vendor.query.first().opportunities), 1)
+            self.assertTrue(self.opportunity1.id in [i.id for i in Vendor.query.first().opportunities])
 
-        # should redirect and flash properly
-        self.assertEquals(post.status_code, 302)
-        self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
+            # should redirect and flash properly
+            self.assertEquals(post.status_code, 302)
+            self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
+
+            self.assertEquals(len(outbox), 1)
 
     def test_signup_download(self):
         '''Test signup downloads don't work for non-staff
@@ -357,18 +361,25 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         super(TestOpportunitiesPublic, self).setUp()
         self.opportunity3.is_public = False
         self.opportunity3.categories = set([Category.query.all()[-1]])
+        self.vendor = VendorFactory.create(
+            business_name='foobar',
+            email='foobar@foo.com',
+            categories=set([Category.query.all()[-1]])
+        )
         db.session.commit()
 
     def test_vendor_signup_unpublished(self):
         '''Test vendors can't signup for unpublished opportunities
         '''
-        # vendor should not be able to sign up for unpublished opp
-        bad_contract = self.client.post('/beacon/opportunities', data={
-            'email': 'foo@foo.com', 'business_name': 'foo',
-            'opportunity': str(self.opportunity3.id),
-        })
-        self.assertEquals(len(Vendor.query.get(1).opportunities), 0)
-        self.assertTrue('not a valid choice.' in bad_contract.data)
+        with mail.record_messages() as outbox:
+            # vendor should not be able to sign up for unpublished opp
+            bad_contract = self.client.post('/beacon/opportunities', data={
+                'email': 'foo@foo.com', 'business_name': 'foo',
+                'opportunity': str(self.opportunity3.id),
+            })
+            self.assertEquals(len(Vendor.query.get(1).opportunities), 0)
+            self.assertTrue('not a valid choice.' in bad_contract.data)
+            self.assertEquals(len(outbox), 0)
 
     def test_pending_opportunity(self):
         '''Test pending opportunity works as expected for anon user
@@ -377,7 +388,7 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.opportunity3.is_public = False
         db.session.commit()
         self.assertEquals(self.client.get('/beacon/admin/opportunities/pending').status_code, 302)
-        random_publish = self.client.get('/beacon/admin/opportunities/3/publish')
+        random_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(self.opportunity3.id))
         self.assertEquals(random_publish.status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
         self.assertFalse(self.opportunity3.is_public)
@@ -405,9 +416,37 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.assert200(admin_pending)
         self.assertEquals(len(self.get_context_variable('opportunities')), 1)
         self.assertTrue('Publish' in admin_pending.data)
-        staff_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(
+        admin_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(
             self.opportunity3.id
         ))
         self.assert_flashes('Opportunity successfully published!', 'alert-success')
-        self.assertEquals(staff_publish.status_code, 302)
+        self.assertEquals(admin_publish.status_code, 302)
         self.assertTrue(Opportunity.query.get(self.opportunity3.id).is_public)
+
+    def test_pending_notification_email_gated(self):
+        '''Test we don't send an email when the opportunity is not advertised
+        '''
+        self.login_user(self.admin)
+        self.opportunity3.planned_advertise = datetime.date.today() + datetime.timedelta(1)
+        db.session.commit()
+
+        with mail.record_messages() as outbox:
+            self.client.get('/beacon/admin/opportunities/{}/publish'.format(
+                self.opportunity3.id
+            ))
+            self.assertFalse(self.opportunity3.is_advertised)
+            self.assertTrue(self.opportunity3.is_public)
+            self.assertEquals(len(outbox), 0)
+
+    def test_pending_notification_email(self):
+        '''Test we do send an email when the opportunity is advertised
+        '''
+        self.login_user(self.admin)
+
+        with mail.record_messages() as outbox:
+            self.client.get('/beacon/admin/opportunities/{}/publish'.format(
+                self.opportunity3.id
+            ))
+            self.assertTrue(self.opportunity3.is_advertised)
+            self.assertTrue(self.opportunity3.is_public)
+            self.assertEquals(len(outbox), 1)
