@@ -34,6 +34,7 @@ class TestConductor(BaseTestCase):
         self.stage3 = insert_a_stage(name='stage3', send_notifs=False, post_opportunities=False)
 
         self.flow = insert_a_flow(stage_ids=[self.stage1.id, self.stage2.id, self.stage3.id])
+        self.flow2 = insert_a_flow(name='test2', stage_ids=[self.stage1.id, self.stage3.id, self.stage2.id])
 
         # create two contracts
         self.contract1 = insert_a_contract(
@@ -238,6 +239,76 @@ class TestConductor(BaseTestCase):
         self.assertTrue('You are viewing an already-completed stage.' in old_view.data)
         self.assert200(self.client.get(self.build_detail_view(self.contract1, old_stage=self.stage2)))
         self.assert404(self.client.get(self.build_detail_view(self.contract1, old_stage=self.stage3)))
+
+    def test_conductor_flow_switching(self):
+        '''Test flow switching back and forth in conductor
+        '''
+        self.assign_contract()
+        self.client.get(self.detail_view.format(self.contract1.id, self.stage1.id) + '?transition=true')
+        # we should have three actions -- entered, exited, entered
+        self.assertEquals(ContractStageActionItem.query.count(), 3)
+
+        self.client.get(self.detail_view.format(self.contract1.id, self.stage2.id) +
+            '?flow_switch={}'.format(self.flow2.id))
+
+        # assert that we have been updated appropriately
+        self.assertEquals(self.contract1.flow_id, self.flow2.id)
+        self.assertEquals(self.contract1.current_stage_id, self.flow2.stage_order[0])
+
+        # assert that the action log has been properly cleaned
+        new_actions = ContractStageActionItem.query.all()
+        self.assertEquals(len(new_actions), 2)
+
+        flow_switch_action, entered_action = 0, 0
+        for i in new_actions:
+            if i.action_type == 'entered':
+                entered_action += 1
+            elif i.action_type == 'flow_switch':
+                flow_switch_action += 1
+        self.assertEquals(entered_action, 1)
+        self.assertEquals(flow_switch_action, 1)
+
+        # assert that the old contract stages from the previous flow
+        # have had their enter/exit times cleared
+        old_stages = ContractStage.query.filter(
+            ContractStage.flow_id == self.flow.id,
+            ContractStage.contract_id == self.contract1.id
+        ).all()
+        for i in old_stages:
+            self.assertTrue(i.entered is None)
+            self.assertTrue(i.exited is None)
+
+        # assert that you can transition back to the original flow
+        current_stage = ContractStage.query.filter(
+            ContractStage.stage_id == self.contract1.current_stage_id,
+            ContractStage.contract_id == self.contract1.id,
+            ContractStage.flow_id == self.contract1.flow_id
+        ).first()
+
+        # switch back to the first stage
+        self.client.get(
+            self.detail_view.format(self.contract1.id, current_stage.id) +
+            '?flow_switch={}'.format(self.flow.id)
+        )
+
+        # assert that our contract properties work as expected
+        self.assertEquals(self.contract1.flow_id, self.flow.id)
+        self.assertEquals(self.contract1.current_stage_id, self.flow.stage_order[0])
+
+        # assert that the actions were logged correctly
+        new_actions = ContractStageActionItem.query.all()
+        self.assertEquals(len(new_actions), 3)
+        flow_switch_action, entered_action, restarted_action = 0, 0, 0
+        for i in new_actions:
+            if i.action_type == 'entered':
+                entered_action += 1
+            elif i.action_type == 'flow_switch':
+                flow_switch_action += 1
+            elif i.action_type == 'restarted':
+                restarted_action += 1
+        self.assertEquals(entered_action, 0)
+        self.assertEquals(flow_switch_action, 2)
+        self.assertEquals(restarted_action, 0)
 
     def test_conductor_contract_complete(self):
         '''Test completing an old and editing a new contract

@@ -285,6 +285,17 @@ class ContractStage(Model):
         self.entered = None
         self.exited = None
 
+    def strip_actions(self):
+        '''Clear out non-stage-switch actions
+
+        This will prevent duplicate actions from piling up
+        in the stream that is presented to the user
+        '''
+        for action in self.contract_stage_actions:
+            if action.action_type != 'flow_switch':
+                action.delete()
+        return None
+
     @property
     def is_current_stage(self):
         '''Checks to see if this is the current stage

@@ -40,7 +40,7 @@
 
   {%- elif action.action_type == 'reversion' -%}
   <div class="action-event action-event-reversion">
-    {{ action.action_detail.label }} on "{{ active_stage.name }}" on {{ action.action_detail.timestamp|datetimeformat }}.
+    {{ action.action_detail.label }} on "{{ action.action_detail.stage_name }}" on {{ action.action_detail.timestamp|datetimeformat }}.
   </div>
 
   {# metadata update handling #}
@@ -59,7 +59,7 @@
   {%- elif action.action_type == 'flow_switch' -%}
   <div class="action-event action-event-reversion">
     {{ pn.print_name(action, current_user) }}
-    switched the contract flow from <strong>"{{ action.action_detail.old_flow }}"</strong> to <strong>"{{ contract.flow.flow_name }}"</strong>. Here is the action log from the previous work:
+    switched the contract flow from <strong>"{{ action.action_detail.old_flow }}"</strong> to <strong>"{{ action.action_detail.new_flow }}"</strong>. Here is the action log from the previous work:
     {% for _action in action.action_detail.old_flow_actions %}
       {{ render_activity_log(_action, current_user, contract, false) }}
     {% endfor %}

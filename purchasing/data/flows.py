@@ -2,6 +2,9 @@
 
 import datetime
 
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import FlushError
+
 from purchasing.database import db
 from purchasing.data.models import (
     Flow, Stage, ContractStage, ContractBase,
@@ -75,6 +78,7 @@ def create_contract_stages(flow_id, contract_id, contract=None):
     Extracts the rows out of the given flow, and creates new rows
     in the contract_stage table for each of them.
     '''
+    revert = False
     contract = contract if contract else ContractBase.query.get(contract_id)
     stages = get_one_flow(flow_id).stage_order
     contract_stages = []
@@ -86,13 +90,26 @@ def create_contract_stages(flow_id, contract_id, contract=None):
                 stage_id=stage_id,
             ))
 
+        except (IntegrityError, FlushError):
+            revert = True
+            db.session.rollback()
+            stage = ContractStage.query.filter(
+                ContractStage.contract_id == contract_id,
+                ContractStage.flow_id == flow_id,
+                ContractStage.stage_id == stage_id
+            ).first()
+            if stage:
+                contract_stages.append(stage)
+            else:
+                raise IntegrityError
+
         except Exception:
             raise
 
     contract.flow_id = flow_id
     db.session.commit()
 
-    return stages, contract_stages
+    return stages, contract_stages, revert
 
 def switch_flow(new_flow_id, contract_id, user):
     '''Switch the contract's progress from one flow to another
@@ -103,11 +120,12 @@ def switch_flow(new_flow_id, contract_id, user):
     them to an incorrect state.
 
     There are three concrete actions here:
-        1. Rebuild our flow/stage model for the new order.
-        2. Attach the complete log of the old flow into the first stage
+        1. Fully revert all stages in the old flow
+        2. Rebuild our flow/stage model for the new order.
+        3. Attach the complete log of the old flow into the first stage
           of the new order.
-        3. Strip the contract's current stage id.
-        4. Transition into the first stage of the new order. This will
+        4. Strip the contract's current stage id.
+        5. Transition into the first stage of the new order. This will
           ensure that everything is being logged in the correct order.
     '''
     # get our contract and its complete action history
@@ -115,8 +133,19 @@ def switch_flow(new_flow_id, contract_id, user):
     old_flow = contract.flow.flow_name
     old_action_log = contract.build_complete_action_log()
 
+    # fully revert all used stages in the old flow
+    for contract_stage in ContractStage.query.filter(
+        ContractStage.contract_id == contract_id,
+        ContractStage.flow_id == contract.flow_id,
+        ContractStage.entered != None
+    ).all():
+        contract_stage.full_revert()
+        contract_stage.strip_actions()
+
+    db.session.commit()
+
     # create the new stages
-    new_stages, new_contract_stages = create_contract_stages(
+    new_stages, new_contract_stages, revert = create_contract_stages(
         new_flow_id, contract_id, contract=contract
     )
 
@@ -128,6 +157,7 @@ def switch_flow(new_flow_id, contract_id, user):
             'timestamp': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
             'date': datetime.datetime.now().strftime('%Y-%m-%d'),
             'type': 'flow_switched', 'old_flow': old_flow,
+            'new_flow': contract.flow.flow_name,
             'old_flow_actions': [i.as_dict() for i in old_action_log]
         }
     )
@@ -138,9 +168,15 @@ def switch_flow(new_flow_id, contract_id, user):
     # so we can start the new flow
     contract.current_stage_id = None
 
+    destination = None
+    if revert:
+        destination = new_stages[0]
+
     # transition into the first stage of the new flow
     new_stage, new_contract, _ = transition_stage(
-        contract.id, user, contract=contract, stages=new_stages
+        contract.id, user, contract=contract,
+        stages=new_stages, destination=destination
     )
+
     db.session.commit()
     return new_stage

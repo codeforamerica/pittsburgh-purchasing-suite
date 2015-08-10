@@ -300,7 +300,7 @@ def assign(contract_id, flow_id, user_id):
     else:
         contract = clone_a_contract(contract)
         try:
-            stages, _ = create_contract_stages(flow_id, contract.id, contract=contract)
+            stages, _, _ = create_contract_stages(flow_id, contract.id, contract=contract)
             _, new_contract, _ = transition_stage(
                 contract.id, current_user, contract=contract, stages=stages
             )
@@ -312,7 +312,7 @@ def assign(contract_id, flow_id, user_id):
             pass
         except Exception, e:
             flash('Something went wrong! {}'.format(e.message), 'alert-danger')
-            abort(403)
+            abort(500)
 
         new_contract.assigned_to = user_id
 

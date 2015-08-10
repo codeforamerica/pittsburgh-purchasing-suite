@@ -63,28 +63,36 @@ def get_all_stages():
     return Stage.query.all()
 
 def log_entered(contract_stage, user, action_type='reversion'):
-    return ContractStageActionItem(
-        contract_stage_id=contract_stage.id, action_type=action_type,
-        taken_by=user.id, taken_at=datetime.datetime.now(),
-        action_detail={
-            'timestamp': contract_stage.entered.strftime('%Y-%m-%dT%H:%M:%S'),
-            'date': contract_stage.entered.strftime('%Y-%m-%d'),
-            'type': 'entered', 'label': 'Started work',
-            'stage_name': contract_stage.stage.name
-        }
-    )
+    action = None
+    if contract_stage.entered:
+        action = ContractStageActionItem(
+            contract_stage_id=contract_stage.id, action_type=action_type,
+            taken_by=user.id, taken_at=datetime.datetime.now(),
+            action_detail={
+                'timestamp': contract_stage.entered.strftime('%Y-%m-%dT%H:%M:%S'),
+                'date': contract_stage.entered.strftime('%Y-%m-%d'),
+                'type': 'entered', 'label': 'Started work',
+                'stage_name': contract_stage.stage.name
+            }
+        )
+        db.session.add(action)
+    return action
 
 def log_exited(contract_stage, user, action_type='reversion'):
-    return ContractStageActionItem(
-        contract_stage_id=contract_stage.id, action_type=action_type,
-        taken_by=user.id, taken_at=datetime.datetime.now(),
-        action_detail={
-            'timestamp': contract_stage.exited.strftime('%Y-%m-%dT%H:%M:%S'),
-            'date': contract_stage.exited.strftime('%Y-%m-%d'),
-            'type': 'exited', 'label': 'Completed work',
-            'stage_name': contract_stage.stage.name
-        }
-    )
+    action = None
+    if contract_stage.exited:
+        action = ContractStageActionItem(
+            contract_stage_id=contract_stage.id, action_type=action_type,
+            taken_by=user.id, taken_at=datetime.datetime.now(),
+            action_detail={
+                'timestamp': contract_stage.exited.strftime('%Y-%m-%dT%H:%M:%S'),
+                'date': contract_stage.exited.strftime('%Y-%m-%d'),
+                'type': 'exited', 'label': 'Completed work',
+                'stage_name': contract_stage.stage.name
+            }
+        )
+        db.session.add(action)
+    return action
 
 def log_reopened(contract_stage, user):
     return ContractStageActionItem(
@@ -109,6 +117,7 @@ def _perform_revert(contract, stages, start_idx, end_idx, user):
     '''
     stages_to_revert = ContractStage.query.filter(
         ContractStage.contract_id == contract.id,
+        ContractStage.flow_id == contract.flow_id,
         ContractStage.stage_id.in_(stages[end_idx:start_idx + 1])
     ).order_by(ContractStage.id).all()
 
@@ -118,18 +127,18 @@ def _perform_revert(contract, stages, start_idx, end_idx, user):
 
         if stage_idx == 0:
             # this is the destination stage. keep the entered open
-            db.session.add(log_exited(contract_stage, user))
-            db.session.add(log_entered(contract_stage, user))
+            log_exited(contract_stage, user)
+            log_entered(contract_stage, user)
             contract_stage.entered = datetime.datetime.now()
             contract_stage.exited = None
 
         elif stage_idx + 1 == len(stages_to_revert):
-            contract_stage.entered = None
+            contract_stage.full_revert()
 
         else:
             # log everything, fully revert each stage
-            db.session.add(log_exited(contract_stage, user))
-            db.session.add(log_entered(contract_stage, user))
+            log_exited(contract_stage, user)
+            log_entered(contract_stage, user)
             contract_stage.full_revert()
 
     contract.current_stage_id = stages_to_revert[0].stage_id
@@ -203,7 +212,13 @@ def transition_stage(contract_id, user, destination=None, contract=None, stages=
 
     # implement the case where we have a final destination in mind
     if destination:
-        current_stage_idx = stages.index(contract.current_stage_id)
+        try:
+            # make sure we have a current stage
+            current_stage_idx = stages.index(contract.current_stage_id)
+        except ValueError:
+            # if we don't have the current one, use the first stage
+            current_stage_idx = 0
+
         destination_idx = stages.index(destination)
 
         # if its next, just transition as if it were normal
