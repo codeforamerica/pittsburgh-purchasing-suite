@@ -4,7 +4,7 @@ import os
 
 from flask import (
     Blueprint, request, current_app, render_template,
-    jsonify, redirect, url_for, flash
+    jsonify, redirect, url_for, flash, session
 )
 from werkzeug import secure_filename
 
@@ -34,12 +34,25 @@ def upload_costars():
             # if the upload folder doesn't exist, create it then save
             os.mkdir(current_app.config.get('UPLOAD_FOLDER'))
             _file.save(filepath)
-        return render_template(
-            'conductor/upload/upload_success.html',
-            filepath=filepath, filename=filename
-        )
+
+        session['filepath'] = filepath
+        session['filename'] = filename
+
+        return redirect(url_for(
+            'conductor_uploads.process'
+        ))
     else:
         return render_template('conductor/upload/upload_new.html', form=form)
+
+@blueprint.route('/costars/processing')
+@requires_roles('conductor', 'admin', 'superadmin')
+def process():
+    filepath = session.pop('filepath', None)
+    filename = session.pop('filename', None)
+
+    return render_template(
+        'conductor/upload/upload_success.html', filepath=filepath, filename=filename, _delete=True
+    )
 
 @blueprint.route('/costars/_process', methods=['POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
@@ -58,7 +71,6 @@ def process_costars_upload():
         return jsonify({'status': 'success'}), 200
 
     except Exception, e:
-        raise e
         return jsonify({'status': 'error: {}'.format(e)}), 500
 
 def upload_costars_contract(_file):

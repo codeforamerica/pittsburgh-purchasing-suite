@@ -36,3 +36,7 @@ class TestCostarsImport(BaseTestCase):
         # assert the county importer works properly
         self.assertEquals(len(props['Located in']), 2)
         self.assertEquals(len(props['List of manufacturers']), 2)
+
+    def test_raises_bad_filename(self):
+        with self.assertRaises(IOError):
+            main('', 'BADFILENAME', None, None, None)

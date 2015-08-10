@@ -3,7 +3,7 @@
 from collections import defaultdict
 from os import mkdir, rmdir
 from shutil import rmtree
-from flask import current_app
+from flask import current_app, render_template
 from werkzeug.datastructures import FileStorage, Headers
 from cStringIO import StringIO
 
@@ -66,16 +66,16 @@ class TestCostarsUpload(BaseTestCase):
     def test_upload_locked(self):
         '''Test upload doesn't work without proper role
         '''
-        test_file = self.create_file('test.csv', 'text/csv')
+        test_file = self.create_file('costars-99.csv', 'text/csv')
         upload_csv = self.client.post('/conductor/upload/costars', data=dict(upload=test_file))
         self.assertEqual(upload_csv.status_code, 302)
         self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
 
         for user in [self.conductor, self.admin, self.superadmin]:
             self.login_user(user)
-            test_file = self.create_file('test.csv', 'text/csv')
-            req = self.client.post('/conductor/upload/costars', data=dict(upload=test_file))
-            self.assert200(req)
+            test_file = self.create_file('costars-99.csv', 'text/csv')
+            req = self.client.post('/conductor/upload/costars', follow_redirects=True, data=dict(upload=test_file))
+            self.assertTrue(req.data.count('Upload processing...'), 1)
 
     def test_upload_validation(self):
         '''Test that only csv's can be uploaded
@@ -88,7 +88,7 @@ class TestCostarsUpload(BaseTestCase):
 
         csv_file = self.create_file('test.csv', 'text/csv')
         upload_csv = self.client.post('conductor/upload/costars', data=dict(upload=csv_file))
-        self.assertTrue(upload_csv.data.count('Upload successful', 1))
+        self.assertEquals(upload_csv.location, 'http://localhost/conductor/upload/costars/processing')
 
     def test_upload_success(self):
         '''Test that file upload works and updates database
