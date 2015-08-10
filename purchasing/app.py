@@ -5,6 +5,7 @@ import os
 import sys
 import datetime
 from flask import Flask, render_template
+from flask_login import current_user
 
 from purchasing.settings import ProdConfig
 from purchasing.assets import assets, test_assets
@@ -13,9 +14,9 @@ from purchasing.extensions import (
     migrate, debug_toolbar, admin, s3, mail
 )
 from purchasing.users.models import AnonymousUser
-from purchasing.utils import (
-    url_for_other_page, thispage, format_currency, current_user,
-    better_title, days_from_today
+from purchasing.filters import (
+    url_for_other_page, thispage, format_currency, better_title,
+    days_from_today, datetimeformat
 )
 from purchasing.public import views as public_views
 from purchasing.users import views as user_views
@@ -115,11 +116,12 @@ def register_blueprints(app):
 def register_jinja_extensions(app):
     app.jinja_env.globals['url_for_other_page'] = url_for_other_page
     app.jinja_env.globals['thispage'] = thispage
-    app.jinja_env.filters['currency'] = format_currency
     app.jinja_env.globals['_current_user'] = current_user
     app.jinja_env.globals['today'] = datetime.date.today()
     app.jinja_env.globals['days_from_today'] = days_from_today
+    app.jinja_env.filters['currency'] = format_currency
     app.jinja_env.filters['title'] = better_title
+    app.jinja_env.filters['datetimeformat'] = datetimeformat
     return None
 
 def register_errorhandlers(app):

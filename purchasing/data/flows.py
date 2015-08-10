@@ -112,6 +112,7 @@ def switch_flow(new_flow_id, contract_id, user):
     '''
     # get our contract and its complete action history
     contract = ContractBase.query.get(contract_id)
+    old_flow = contract.flow.flow_name
     old_action_log = contract.build_complete_action_log()
 
     # create the new stages
@@ -126,8 +127,8 @@ def switch_flow(new_flow_id, contract_id, user):
         action_detail={
             'timestamp': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
             'date': datetime.datetime.now().strftime('%Y-%m-%d'),
-            'type': 'reopened', 'label': 'Restarted work',
-            'action_detail': [i.as_dict() for i in old_action_log]
+            'type': 'flow_switched', 'old_flow': old_flow,
+            'old_flow_actions': [i.as_dict() for i in old_action_log]
         }
     )
     db.session.add(switch_log)

@@ -5,7 +5,7 @@
   <li><strong>Contract Name:</strong> {{ contract.description|title }}</li>
   {%- endif -%}
   {%- if contract.expiration_date -%}
-  <li><strong>Expiration Date:</strong> {{ contract.expiration_date.strftime('%Y-%m-%d') }}</li>
+  <li><strong>Expiration Date:</strong> {{ contract.expiration_date|datetimeformat }}</li>
   {%- endif -%}
   {%- if contract.financial_id -%}
   <li><strong>Controller Number:</strong> {{contract.financial_id }}</li>

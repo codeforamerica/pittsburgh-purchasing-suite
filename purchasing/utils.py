@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 '''Helper utilities and decorators.'''
 
+import re
 import os
 import random
 import string
 import time
-import re
 import email
 from math import ceil
 import datetime
 
-from flask import flash, request, url_for
-from flask_login import current_user
 from boto.s3.connection import S3Connection
 
 from purchasing.database import db
@@ -98,72 +96,6 @@ def _get_aggressive_cache_headers(key):
     metadata['Cache-Control'] = 'max-age=%d, public' % (3600 * 24 * 360 * 5)
 
     return metadata
-
-def flash_errors(form, category="warning"):
-    '''Flash all errors for a form.'''
-    for field, errors in form.errors.items():
-        for error in errors:
-            flash("{0} - {1}".format(
-                getattr(form, field).label.text, error), category
-            )
-
-def format_currency(value):
-    return "${:,.2f}".format(value)
-
-def url_for_other_page(page):
-    args = dict(request.view_args.items() + request.args.to_dict().items())
-    args['page'] = page
-    return url_for(request.endpoint, **args)
-
-def thispage():
-    try:
-        args = dict(request.view_args.items() + request.args.to_dict().items())
-        args['thispage'] = '{path}?{query}'.format(
-            path=request.path, query=request.query_string
-        )
-        return url_for(request.endpoint, **args)
-    # pass for favicon
-    except AttributeError:
-        pass
-
-def _current_user():
-    args = dict(request.view_args.items() + request.args.to_dict().items())
-    args['_current_user'] = current_user
-    return url_for(request.endpoint, **args)
-
-def better_title(string):
-    '''drop in replacement for jinja default title filter
-
-    modified from https://gist.github.com/bsmithgall/372de43205804a2279c9
-    '''
-    rv = []
-    for word in re.split(SPACE_SPLIT, string):
-        _cleaned_word = PUNC_REGEX.sub('', word)
-        if re.match(UC_INITIALS, word):
-            rv.append(word.upper())
-        elif re.match(SMALL_WORDS, _cleaned_word.strip()):
-            rv.append(word.lower())
-        elif word.startswith('('):
-            new_string = '('
-            new_string += better_title(word.lstrip('('))
-            rv.append(new_string)
-        elif re.match(CAP_WORDS, _cleaned_word):
-            rv.append(word.upper())
-        else:
-            rv.append(word[0].upper() + word[1:].lower())
-
-    return ' '.join(rv)
-
-def days_from_today(field):
-    '''Takes a python date object and returns days from today
-    '''
-    if isinstance(field, datetime.date) or isinstance(field, datetime.datetime):
-        return (
-            datetime.datetime(field.year, field.month, field.day) -
-            datetime.datetime.today()
-        ).days
-    else:
-        return field
 
 class SimplePagination(object):
     '''

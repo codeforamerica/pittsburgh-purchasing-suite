@@ -36,20 +36,24 @@ def update_contract_with_spec(contract, form_data):
     contract.update(**data)
     return contract, spec_number
 
-def handle_form(form, form_name, stage_id, user, contract):
+def handle_form(form, form_name, stage_id, user, contract, current_stage):
     if form.validate_on_submit():
         action = ContractStageActionItem(
             contract_stage_id=stage_id, action_type=form_name,
             taken_by=user.id, taken_at=datetime.datetime.now()
         )
         if form_name == 'activity':
-            action.action_detail = {'note': form.data.get('note', '')}
+            action.action_detail = {
+                'note': form.data.get('note', ''),
+                'stage_name': current_stage.name
+            }
 
         elif form_name == 'update':
             action.action_detail = {
                 'sent_to': form.data.get('send_to', ''),
                 'body': form.data.get('body'),
-                'subject': form.data.get('subject')
+                'subject': form.data.get('subject'),
+                'stage_name': current_stage.name
             }
             Notification(
                 to_email=[i.strip() for i in form.data.get('send_to').split(';') if i != ''],
@@ -71,7 +75,7 @@ def handle_form(form, form_name, stage_id, user, contract):
             update_contract_with_spec(contract, data)
             # get department
             data['department'] = form.data.get('department').name
-            action.action_detail = data
+            action.action_detail = data.update({'stage_name': current_stage.name})
 
         else:
             return False

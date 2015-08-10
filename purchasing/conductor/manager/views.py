@@ -175,7 +175,10 @@ def detail(contract_id, stage_id=-1):
     submitted_form = request.args.get('form', None)
 
     if submitted_form:
-        if handle_form(forms[submitted_form], submitted_form, stage_id, current_user, contract):
+        if handle_form(
+            forms[submitted_form], submitted_form, stage_id,
+            current_user, contract, active_stage
+        ):
             return redirect(url_for(
                 'conductor.detail', contract_id=contract_id, stage_id=stage_id
             ))
@@ -214,7 +217,7 @@ def delete_note(contract_id, stage_id, note_id):
             flash("That note doesn't exist!", 'alert-warning')
     except Exception, e:
         flash('Something went wrong: {}'.format(e.message), 'alert-danger')
-    return redirect(url_for('conductor.detail', contract_id=contract_id, stage_id=stage_id))
+    return redirect(url_for('conductor.detail', contract_id=contract_id))
 
 @blueprint.route('/contract/<int:contract_id>/edit', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')

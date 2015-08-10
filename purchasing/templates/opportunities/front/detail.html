@@ -108,7 +108,7 @@
 
         <div class="row">
           <h3><strong>How do I bid?</strong></h3>
-          <p>Sealed proposals (3 printed copies and 1 digital copy on a CD or USB) must be received by noon on {{ opportunity.planned_deadline.strftime('%B %d, %Y') }}. Postmarks are not sufficient. Proposals by fax and email will not be accepted.</p>
+          <p>Sealed proposals (3 printed copies and 1 digital copy on a CD or USB) must be received by noon on {{ opportunity.planned_deadline|datetimeformat('%B %d, %Y') }}. Postmarks are not sufficient. Proposals by fax and email will not be accepted.</p>
 
           {% if has_docs > 0 %}<p>Mail or deliver proposals to the address detailed in the main solicitation document (RFP, IFB, RFQ). </p>{% endif %}
           {# TODO: generate a way to determine if something is city/county, have directions in an if/else in each place. #}

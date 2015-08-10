@@ -22,7 +22,7 @@
 
 <td>
   {% if contract.stage_name %}
-  {{ contract.entered.strftime('%Y-%m-%d') }}
+  {{ contract.entered|datetimeformat }}
   {% else %}
   N/A
   {% endif %}

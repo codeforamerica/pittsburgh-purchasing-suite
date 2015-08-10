@@ -69,7 +69,8 @@ def log_entered(contract_stage, user, action_type='reversion'):
         action_detail={
             'timestamp': contract_stage.entered.strftime('%Y-%m-%dT%H:%M:%S'),
             'date': contract_stage.entered.strftime('%Y-%m-%d'),
-            'type': 'entered', 'label': 'Started work'
+            'type': 'entered', 'label': 'Started work',
+            'stage_name': contract_stage.stage.name
         }
     )
 
@@ -80,7 +81,8 @@ def log_exited(contract_stage, user, action_type='reversion'):
         action_detail={
             'timestamp': contract_stage.exited.strftime('%Y-%m-%dT%H:%M:%S'),
             'date': contract_stage.exited.strftime('%Y-%m-%d'),
-            'type': 'exited', 'label': 'Completed work'
+            'type': 'exited', 'label': 'Completed work',
+            'stage_name': contract_stage.stage.name
         }
     )
 
@@ -91,7 +93,8 @@ def log_reopened(contract_stage, user):
         action_detail={
             'timestamp': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
             'date': datetime.datetime.now().strftime('%Y-%m-%d'),
-            'type': 'reopened', 'label': 'Restarted work'
+            'type': 'reopened', 'label': 'Restarted work',
+            'stage_name': contract_stage.stage.name
         }
     )
 

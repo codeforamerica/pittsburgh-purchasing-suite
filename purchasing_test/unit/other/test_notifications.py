@@ -36,9 +36,7 @@ class TestNotification(TestCase):
         '''Test notification sender
         '''
         current_app.logger = MagicMock()
-        mail.send = MagicMock()
         notification = Notification(to_email='foobar@foo.com', from_email='foo@foo.com')
-
         self.assertTrue(notification.send())
 
     @patch('purchasing.notifications.render_template', return_value='a test')
