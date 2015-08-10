@@ -216,14 +216,15 @@ def signup_for_opp(form, user, opportunity, multi=False):
 
     db.session.commit()
 
-    Notification(
-        to_email=vendor.email,
-        subject='Subscription confirmation from Beacon',
-        html_template='opportunities/emails/oppselected.html',
-        txt_template='opportunities/emails/oppselected.txt',
-        opportunities=email_opportunities
-    ).send()
-    return True
+    if opportunity.is_advertised:
+        Notification(
+            to_email=vendor.email,
+            subject='Subscription confirmation from Beacon',
+            html_template='opportunities/emails/oppselected.html',
+            txt_template='opportunities/emails/oppselected.txt',
+            opportunities=email_opportunities
+        ).send()
+        return True
 
 @blueprint.route('/opportunities', methods=['GET', 'POST'])
 def browse():
