@@ -39,4 +39,4 @@ class TestCostarsImport(BaseTestCase):
 
     def test_raises_bad_filename(self):
         with self.assertRaises(IOError):
-            self.assertRaises(main('', 'BADFILENAME', None, None, None))
+            main('', 'BADFILENAME', None, None, None)
