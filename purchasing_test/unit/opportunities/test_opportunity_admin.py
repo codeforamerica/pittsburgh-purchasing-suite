@@ -12,6 +12,7 @@ from werkzeug.datastructures import FileStorage
 from flask import current_app
 
 from purchasing.database import db
+from purchasing.extensions import mail
 from purchasing.opportunities.models import (
     Opportunity, Vendor, Category, OpportunityDocument
 )
@@ -21,18 +22,17 @@ from purchasing.opportunities.admin.views import upload_document
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.factories import (
-    OpportunityFactory, OpportunityDocumentFactory, RequiredBidDocumentFactory
+    OpportunityFactory, OpportunityDocumentFactory, RequiredBidDocumentFactory,
+    CategoryFactory, VendorFactory
 )
 from purchasing_test.unit.util import (
     insert_a_role, insert_a_user, insert_a_document,
     insert_an_opportunity
 )
 
-class TestOpportunities(BaseTestCase):
-    render_templates = True
-
+class TestOpportunitiesAdminBase(BaseTestCase):
     def setUp(self):
-        super(TestOpportunities, self).setUp()
+        super(TestOpportunitiesAdminBase, self).setUp()
 
         try:
             mkdir(current_app.config.get('UPLOAD_DESTINATION'))
@@ -50,32 +50,41 @@ class TestOpportunities(BaseTestCase):
 
         self.document = insert_a_document()
         self.opportunity1 = insert_an_opportunity(
-            contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document]
+            contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
+            is_public=True, planned_advertise=datetime.date.today() + datetime.timedelta(1),
+            planned_open=datetime.date.today() + datetime.timedelta(2),
+            planned_deadline=datetime.date.today() + datetime.timedelta(2)
         )
         self.opportunity2 = insert_an_opportunity(
             contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
-            is_public=True, planned_advertise=datetime.date.today() + datetime.timedelta(1),
+            is_public=True, planned_advertise=datetime.date.today(),
+            planned_open=datetime.date.today() + datetime.timedelta(2),
             planned_deadline=datetime.date.today() + datetime.timedelta(2)
         )
         self.opportunity3 = insert_an_opportunity(
             contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
-            is_public=False, planned_advertise=datetime.date.today() - datetime.timedelta(2),
+            is_public=True, planned_advertise=datetime.date.today() - datetime.timedelta(2),
+            planned_open=datetime.date.today() - datetime.timedelta(2),
             planned_deadline=datetime.date.today() - datetime.timedelta(1)
         )
         self.opportunity4 = insert_an_opportunity(
             contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
-            is_public=False, planned_advertise=datetime.date.today() + datetime.timedelta(1),
+            is_public=True, planned_advertise=datetime.date.today() - datetime.timedelta(1),
+            planned_open=datetime.date.today(),
             planned_deadline=datetime.date.today() + datetime.timedelta(2), title='TEST TITLE!'
         )
 
     def tearDown(self):
-        super(TestOpportunities, self).tearDown()
+        super(TestOpportunitiesAdminBase, self).tearDown()
         # clear out the uploads folder
         rmtree(current_app.config.get('UPLOAD_DESTINATION'))
         try:
             rmdir(current_app.config.get('UPLOAD_DESTINATION'))
         except OSError:
             pass
+
+class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
+    render_templates = True
 
     def test_document_upload(self):
         '''Test document uploads properly
@@ -216,18 +225,18 @@ class TestOpportunities(BaseTestCase):
 
         self.assert200(self.client.get('/beacon/opportunities'))
 
-        self.assertEquals(len(self.get_context_variable('active')), 1)
-        self.assertEquals(len(self.get_context_variable('upcoming')), 2)
+        self.assertEquals(len(self.get_context_variable('_open')), 1)
+        self.assertEquals(len(self.get_context_variable('upcoming')), 1)
 
         self.client.post('/beacon/admin/opportunities/{}'.format(self.opportunity2.id), data={
-            'planned_advertise': datetime.date.today(), 'title': 'Updated',
+            'planned_open': datetime.date.today(), 'title': 'Updated', 'is_public': True,
             'description': 'Updated Contract!', 'save_type': 'public'
         })
         self.assert_flashes('Opportunity Successfully Updated!', 'alert-success')
 
         self.assert200(self.client.get('/beacon/opportunities'))
-        self.assertEquals(len(self.get_context_variable('active')), 2)
-        self.assertEquals(len(self.get_context_variable('upcoming')), 1)
+        self.assertEquals(len(self.get_context_variable('_open')), 2)
+        self.assertEquals(len(self.get_context_variable('upcoming')), 0)
 
     def test_delete_document(self):
         '''Test removing documents from opportunities
@@ -254,25 +263,6 @@ class TestOpportunities(BaseTestCase):
         self.client.get('/beacon/admin/opportunities/{}/document/{}/remove'.format(opp.id, opp_doc.id))
         self.assertEquals(len(opp.opportunity_documents.all()), 0)
         self.assert_flashes('Document successfully deleted', 'alert-success')
-
-    def test_browse_contract(self):
-        '''Test browse page loads properly
-        '''
-        # test admin view restrictions
-        self.logout_user()
-        no_user = self.client.get('/beacon/opportunities')
-        self.assert200(no_user)
-        self.assertEquals(len(self.get_context_variable('active')), 1)
-        self.assertEquals(len(self.get_context_variable('upcoming')), 2)
-        self.assertTrue('TEST TITLE!' not in no_user.data)
-
-        self.login_user(self.admin)
-        good_user = self.client.get('/beacon/opportunities')
-        self.assert200(good_user)
-        self.assertEquals(len(self.get_context_variable('active')), 1)
-        self.assertEquals(len(self.get_context_variable('upcoming')), 2)
-        self.assertTrue('TEST TITLE!' in good_user.data)
-        self.assertEquals(Opportunity.query.count(), 4)
 
     def test_contract_detail(self):
         '''Test individual contract opportunity pages
@@ -304,72 +294,26 @@ class TestOpportunities(BaseTestCase):
         self.assertEquals(post.status_code, 302)
         self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
 
-        # vendor should not be able to sign up for unpublished opp
-        bad_contract = self.client.post('/beacon/opportunities', data={
-            'email': 'foo@foo.com', 'business_name': 'foo',
-            'opportunity': str(self.opportunity3.id),
-            'opportunity': str(self.opportunity4.id)
-        })
-        self.assertEquals(len(Vendor.query.get(1).opportunities), 2)
-        self.assertTrue('not a valid choice.' in bad_contract.data)
-
     def test_signup_for_opportunity(self):
         '''Test signup for individual opportunities
         '''
-        self.assertEquals(Vendor.query.count(), 0)
-        post = self.client.post('/beacon/opportunities/{}'.format(self.opportunity1.id), data={
-            'email': 'foo@foo.com', 'business_name': 'foo'
-        })
-        # should create a new vendor
-        self.assertEquals(Vendor.query.count(), 1)
+        with mail.record_messages() as outbox:
+            self.assertEquals(Vendor.query.count(), 0)
+            post = self.client.post('/beacon/opportunities/{}'.format(self.opportunity1.id), data={
+                'email': 'foo@foo.com', 'business_name': 'foo'
+            })
+            # should create a new vendor
+            self.assertEquals(Vendor.query.count(), 1)
 
-        # should subscribe that vendor to the opportunity
-        self.assertEquals(len(Vendor.query.first().opportunities), 1)
-        self.assertTrue(self.opportunity1.id in [i.id for i in Vendor.query.first().opportunities])
+            # should subscribe that vendor to the opportunity
+            self.assertEquals(len(Vendor.query.first().opportunities), 1)
+            self.assertTrue(self.opportunity1.id in [i.id for i in Vendor.query.first().opportunities])
 
-        # should redirect and flash properly
-        self.assertEquals(post.status_code, 302)
-        self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
+            # should redirect and flash properly
+            self.assertEquals(post.status_code, 302)
+            self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
 
-    def test_pending_opportunity(self):
-        '''Test pending opportunity works as expected for anon user
-        '''
-        # assert randos can't
-        self.assertEquals(self.client.get('/beacon/admin/opportunities/pending').status_code, 302)
-        random_publish = self.client.get('/beacon/admin/opportunities/3/publish')
-        self.assertEquals(random_publish.status_code, 302)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
-        self.assertFalse(self.opportunity3.is_public)
-
-    def test_pending_opportunity_staff(self):
-        '''Test pending opportunity works as expected for staff user
-        '''
-        # assert staff can get to the page, see the opportunities, but can't publish
-        self.login_user(self.staff)
-        staff_pending = self.client.get('/beacon/admin/opportunities/pending')
-        self.assert200(staff_pending)
-        self.assertEquals(len(self.get_context_variable('opportunities')), 2)
-        self.assertTrue('Publish' not in staff_pending.data)
-        # make sure staff can't publish somehow
-        staff_publish = self.client.get('/beacon/admin/opportunities/3/publish')
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
-        self.assertEquals(staff_publish.status_code, 302)
-        self.assertFalse(self.opportunity3.is_public)
-
-    def test_pending_opportunity_admin(self):
-        '''Test pending opportunity works as expected for admin user
-        '''
-        self.login_user(self.admin)
-        admin_pending = self.client.get('/beacon/admin/opportunities/pending')
-        self.assert200(admin_pending)
-        self.assertEquals(len(self.get_context_variable('opportunities')), 2)
-        self.assertTrue('Publish' in admin_pending.data)
-        staff_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(
-            self.opportunity3.id
-        ))
-        self.assert_flashes('Opportunity successfully published!', 'alert-success')
-        self.assertEquals(staff_publish.status_code, 302)
-        self.assertTrue(Opportunity.query.get(self.opportunity3.id).is_public)
+            self.assertEquals(len(outbox), 1)
 
     def test_signup_download(self):
         '''Test signup downloads don't work for non-staff
@@ -411,3 +355,98 @@ class TestOpportunities(BaseTestCase):
         self.assertEquals(len(csv_data), 3)
         for row in csv_data:
             self.assertEquals(len(row.split(',')), 11)
+
+class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
+    def setUp(self):
+        super(TestOpportunitiesPublic, self).setUp()
+        self.opportunity3.is_public = False
+        self.opportunity3.categories = set([Category.query.all()[-1]])
+        self.vendor = VendorFactory.create(
+            business_name='foobar',
+            email='foobar@foo.com',
+            categories=set([Category.query.all()[-1]])
+        )
+        db.session.commit()
+
+    def test_vendor_signup_unpublished(self):
+        '''Test vendors can't signup for unpublished opportunities
+        '''
+        with mail.record_messages() as outbox:
+            # vendor should not be able to sign up for unpublished opp
+            bad_contract = self.client.post('/beacon/opportunities', data={
+                'email': 'foo@foo.com', 'business_name': 'foo',
+                'opportunity': str(self.opportunity3.id),
+            })
+            self.assertEquals(len(Vendor.query.get(1).opportunities), 0)
+            self.assertTrue('not a valid choice.' in bad_contract.data)
+            self.assertEquals(len(outbox), 0)
+
+    def test_pending_opportunity(self):
+        '''Test pending opportunity works as expected for anon user
+        '''
+        # assert randos can't
+        self.opportunity3.is_public = False
+        db.session.commit()
+        self.assertEquals(self.client.get('/beacon/admin/opportunities/pending').status_code, 302)
+        random_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(self.opportunity3.id))
+        self.assertEquals(random_publish.status_code, 302)
+        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assertFalse(self.opportunity3.is_public)
+
+    def test_pending_opportunity_staff(self):
+        '''Test pending opportunity works as expected for staff user
+        '''
+        # assert staff can get to the page, see the opportunities, but can't publish
+        self.login_user(self.staff)
+        staff_pending = self.client.get('/beacon/admin/opportunities/pending')
+        self.assert200(staff_pending)
+        self.assertEquals(len(self.get_context_variable('opportunities')), 1)
+        self.assertTrue('Publish' not in staff_pending.data)
+        # make sure staff can't publish somehow
+        staff_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(self.opportunity3.id))
+        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assertEquals(staff_publish.status_code, 302)
+        self.assertFalse(self.opportunity3.is_public)
+
+    def test_pending_opportunity_admin(self):
+        '''Test pending opportunity works as expected for admin user
+        '''
+        self.login_user(self.admin)
+        admin_pending = self.client.get('/beacon/admin/opportunities/pending')
+        self.assert200(admin_pending)
+        self.assertEquals(len(self.get_context_variable('opportunities')), 1)
+        self.assertTrue('Publish' in admin_pending.data)
+        admin_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(
+            self.opportunity3.id
+        ))
+        self.assert_flashes('Opportunity successfully published!', 'alert-success')
+        self.assertEquals(admin_publish.status_code, 302)
+        self.assertTrue(Opportunity.query.get(self.opportunity3.id).is_public)
+
+    def test_pending_notification_email_gated(self):
+        '''Test we don't send an email when the opportunity is not advertised
+        '''
+        self.login_user(self.admin)
+        self.opportunity3.planned_advertise = datetime.date.today() + datetime.timedelta(1)
+        db.session.commit()
+
+        with mail.record_messages() as outbox:
+            self.client.get('/beacon/admin/opportunities/{}/publish'.format(
+                self.opportunity3.id
+            ))
+            self.assertFalse(self.opportunity3.is_advertised)
+            self.assertTrue(self.opportunity3.is_public)
+            self.assertEquals(len(outbox), 0)
+
+    def test_pending_notification_email(self):
+        '''Test we do send an email when the opportunity is advertised
+        '''
+        self.login_user(self.admin)
+
+        with mail.record_messages() as outbox:
+            self.client.get('/beacon/admin/opportunities/{}/publish'.format(
+                self.opportunity3.id
+            ))
+            self.assertTrue(self.opportunity3.is_advertised)
+            self.assertTrue(self.opportunity3.is_public)
+            self.assertEquals(len(outbox), 1)

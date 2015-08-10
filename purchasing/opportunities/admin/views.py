@@ -23,6 +23,7 @@ from purchasing.opportunities.models import (
 )
 from purchasing.users.models import User, Role
 from purchasing.opportunities.util import get_categories, fix_form_categories
+from purchasing.notifications import Notification
 
 blueprint = Blueprint(
     'opportunities_admin', __name__, url_prefix='/beacon/admin',
@@ -199,6 +200,22 @@ def publish(opportunity_id):
         opportunity.is_public = True
         db.session.commit()
         flash('Opportunity successfully published!', 'alert-success')
+
+        if opportunity.is_advertised:
+            opp_categories = [i.id for i in opportunity.categories]
+
+            vendors = Vendor.query.filter(
+                Vendor.categories.any(Category.id.in_(opp_categories))
+            ).all()
+
+            Notification(
+                to_email=[i.email for i in vendors],
+                subject='A new City of Pittsburgh opportunity from Beacon!',
+                html_template='opportunities/emails/newopp.html',
+                txt_template='opportunities/emails/newopp.txt',
+                opportunity=opportunity
+            ).send(multi=True)
+
         return redirect(url_for('opportunities_admin.pending'))
     abort(404)
 

@@ -176,6 +176,7 @@ def init_form(form):
     return form(obj=data)
 
 def signup_for_opp(form, user, opportunity, multi=False):
+    email_opportunities = []
     if opportunity is None or (isinstance(opportunity, list) and len(opportunity) == 0):
         form.errors['opportunities'] = ['You must select at least one opportunity!']
         return False
@@ -204,22 +205,32 @@ def signup_for_opp(form, user, opportunity, multi=False):
                 form.errors['opportunities'] = ['That\'s not a valid choice.']
                 return False
             vendor.opportunities.add(_opp)
+            email_opportunities.append(_opp)
     else:
         vendor.opportunities.add(opportunity)
+        email_opportunities.append(opportunity)
 
     if form.data.get('also_categories'):
         # TODO -- add support for categories
         pass
 
     db.session.commit()
+
+    Notification(
+        to_email=vendor.email,
+        subject='Subscription confirmation from Beacon',
+        html_template='opportunities/emails/oppselected.html',
+        txt_template='opportunities/emails/oppselected.txt',
+        opportunities=email_opportunities
+    ).send()
+
     return True
 
 @blueprint.route('/opportunities', methods=['GET', 'POST'])
 def browse():
     '''Browse available opportunities
     '''
-    active, upcoming = [], []
-    visible_active, visible_upcoming = 0, 0
+    _open, upcoming = [], []
 
     signup_form = init_form(OpportunitySignupForm)
     if signup_form.validate_on_submit():
@@ -235,20 +246,15 @@ def browse():
     ).all()
 
     for opportunity in opportunities:
-        if opportunity.is_published():
-            active.append(opportunity)
-            if not current_user.is_anonymous() or opportunity.is_public:
-                visible_active += 1
-        else:
+        if opportunity.is_open:
+            _open.append(opportunity)
+        elif opportunity.is_upcoming:
             upcoming.append(opportunity)
-            if not current_user.is_anonymous() or opportunity.is_public:
-                visible_upcoming += 1
 
     return render_template(
         'opportunities/browse.html', opportunities=opportunities,
-        active=active, upcoming=upcoming, current_user=current_user,
-        signup_form=signup_form, visible_active=visible_active,
-        visible_upcoming=visible_upcoming
+        _open=_open, upcoming=upcoming, current_user=current_user,
+        signup_form=signup_form
     )
 
 @blueprint.route('/opportunities/<int:opportunity_id>', methods=['GET', 'POST'])

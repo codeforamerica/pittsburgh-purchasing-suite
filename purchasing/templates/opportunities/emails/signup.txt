@@ -1,13 +1,19 @@
-Thank you for subscribing for updates about Pittsburgh Opportunities!
+Hello and welcome to Beacon! Thanks for subscribing for updates about opportunities to do business with the City of Pittsburgh! We hope you'll find an opportunity that's right for your business.
 
 {% if categories|length > 20 %}
-You have signed up to receive notifications about {{ categories|length }} categories!
+You've signed up to receive notifications about {{ categories|length }} categories!
 {% else %}
-You have signed up to receive notifications about the following categories:
+You've signed up to receive notifications about the following categories:
 
 {% for category in categories %}
   {{ category.category_friendly_name }}
 {% endfor %}
 {% endif %}
 
-Manage your notification settings: {{ url_for('opportunities.manage', _external=True) }}
+Every 2 weeks, we’ll send a short summary of all opportunities that have been posted, so you don’t miss out on potential business. 
+
+Thanks,
+The Beacon team
+
+Manage your subscription: {{ url_for('opportunities.manage', _external=True) }}
+Questions? Email us at pittsburgh@codeforamerica.org
