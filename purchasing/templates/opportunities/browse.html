@@ -14,7 +14,7 @@
         {% if not current_user.is_anonymous() %}
            <div class="alert alert-warning alert-dismissible" role="alert">
            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              Looking for an opportunity submitted for approval? Check the <a href="">pending opportunities page</a>.
+              Looking for an opportunity submitted for approval? Check the <a href="{{ url_for('opportunities_admin.pending') }}">pending opportunities page</a>.
           </div>
         {% endif %}
 
@@ -114,3 +114,6 @@
 </div>
 
 {% endblock %}
+
+<div class="spacer-50"></div>
+
