@@ -9,7 +9,14 @@
 
       <form class="form form-horizontal" method="POST" action="#">
 
-        <div class="spacer-20"></div>
+      <div class="spacer-20"></div>
+
+        {% if not current_user.is_anonymous() %}
+           <div class="alert alert-warning alert-dismissible" role="alert">
+           <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              Looking for an opportunity submitted for approval? Check the <a href="">pending opportunities page</a>.
+          </div>
+        {% endif %}
 
         <h4>All Opportunities</h4>
 
