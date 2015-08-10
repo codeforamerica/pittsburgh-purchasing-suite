@@ -135,7 +135,7 @@ class ContractBase(Model):
     is_archived = Column(db.Boolean, default=False, nullable=False)
 
     parent_id = Column(db.Integer, db.ForeignKey('contract.id'))
-    children = db.relationship('ContractBase', backref=backref(
+    child = db.relationship('ContractBase', backref=backref(
         'parent', remote_side=[id]
     ))
 
@@ -149,6 +149,13 @@ class ContractBase(Model):
             return [i for i in self.properties if i.key.lower() == 'spec number'][0]
         except IndexError:
             return ContractProperty()
+
+    def build_complete_action_log(self):
+        '''Returns the complete action log for this contract
+        '''
+        return ContractStageActionItem.query.join(ContractStage).filter(
+            ContractStage.contract_id == self.id
+        ).order_by(db.text('taken_at asc')).all()
 
 class ContractProperty(Model):
     __tablename__ = 'contract_property'
@@ -234,7 +241,7 @@ class StageProperty(Model):
 
 class ContractStage(Model):
     __tablename__ = 'contract_stage'
-    __table_args__ = (db.Index('ix_contrage_stage_combined_id', 'contract_id', 'stage_id'), )
+    __table_args__ = (db.Index('ix_contrage_stage_combined_id', 'contract_id', 'stage_id', 'flow_id'), )
 
     id = Column(
         db.Integer, Sequence('autoincr_contract_stage_id', start=1, increment=1),
@@ -247,9 +254,13 @@ class ContractStage(Model):
     ))
 
     stage_id = ReferenceCol('stage', ondelete='CASCADE', index=True, primary_key=True)
-
     stage = db.relationship('Stage', backref=backref(
         'contracts', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+
+    flow_id = ReferenceCol('flow', ondelete='CASCADE', index=True, primary_key=True)
+    flow = db.relationship('Flow', backref=backref(
+        'contract_stages', lazy='dynamic', cascade='all, delete-orphan'
     ))
 
     created_at = Column(db.DateTime, default=datetime.datetime.now())
@@ -274,6 +285,7 @@ class ContractStage(Model):
         self.entered = None
         self.exited = None
 
+    @property
     def is_current_stage(self):
         '''Checks to see if this is the current stage
         '''
@@ -316,7 +328,6 @@ class ContractStageActionItem(Model):
     @property
     def non_null_items_count(self):
         return len(self.non_null_items)
-
 
 class Flow(Model):
     __tablename__ = 'flow'

@@ -14,7 +14,7 @@ from purchasing.database import db
 from purchasing.notifications import Notification
 from purchasing.data.contracts import clone_a_contract, extend_a_contract
 from purchasing.data.stages import transition_stage, get_contract_stages
-from purchasing.data.flows import create_contract_stages
+from purchasing.data.flows import create_contract_stages, switch_flow
 from purchasing.data.models import (
     ContractBase, ContractProperty, ContractStage, Stage,
     ContractStageActionItem, Flow
@@ -40,16 +40,20 @@ blueprint = Blueprint(
 @requires_roles('conductor', 'admin', 'superadmin')
 def index():
     in_progress = db.session.query(
-        ContractBase.id, ContractBase.description,
+        db.distinct(ContractBase.id).label('id'),
+        ContractBase.description, Flow.flow_name,
         Stage.name.label('stage_name'), ContractStage.entered,
         db.func.string.split_part(User.email, '@', 1).label('assigned'),
     ).join(
         Stage, Stage.id == ContractBase.current_stage_id
     ).join(
         ContractStage, ContractStage.stage_id == ContractBase.current_stage_id
+    ).join(
+        Flow, Flow.id == ContractBase.flow_id
     ).join(User).filter(
         ContractStage.entered != None,
-        ContractBase.assigned_to != None
+        ContractBase.assigned_to != None,
+        ContractStage.flow_id == ContractBase.flow_id
     ).all()
 
     all_contracts = db.session.query(
@@ -59,7 +63,8 @@ def index():
         ContractBase.contract_href
     ).outerjoin(ContractProperty).filter(
         db.func.lower(ContractBase.contract_type) == 'county',
-        db.func.lower(ContractProperty.key) == 'spec number'
+        db.func.lower(ContractProperty.key) == 'spec number',
+        ContractBase.child == None
     ).order_by(ContractBase.expiration_date).all()
 
     conductors = User.query.join(Role).filter(
@@ -90,7 +95,7 @@ def detail(contract_id, stage_id=-1):
 
         try:
             stage, mod_contract, complete = transition_stage(
-                contract_id, destination=clicked, user=current_user
+                contract_id, current_user, destination=clicked
             )
             db.session.commit()
         except IntegrityError:
@@ -101,11 +106,11 @@ def detail(contract_id, stage_id=-1):
             raise
 
         if complete:
-            return redirect(url_for('conductor.edit', contract_id=mod_contract.id))
+            url = url_for('conductor.edit', contract_id=mod_contract.id)
+        else:
+            url = url_for('conductor.detail', contract_id=contract_id, stage_id=stage.id)
 
-        return redirect(url_for(
-            'conductor.detail', contract_id=contract_id, stage_id=stage.id
-        ))
+        return redirect(url)
 
     elif request.args.get('extend'):
         extended_contract = extend_a_contract(child_contract_id=contract_id, delete_child=True)
@@ -119,20 +124,33 @@ def detail(contract_id, stage_id=-1):
             'conductor.edit', contract_id=extended_contract.id
         ))
 
+    elif request.args.get('flow_switch'):
+        new_contract_stage = switch_flow(
+            int(request.args.get('flow_switch')), contract_id, current_user
+        )
+        return redirect(url_for(
+            'conductor.detail', contract_id=contract_id, stage_id=new_contract_stage.id
+        ))
+
     if stage_id == -1:
         # redirect to the current stage page
         contract_stage = ContractStage.query.join(
             ContractBase, ContractBase.id == ContractStage.contract_id
         ).filter(
             ContractStage.contract_id == contract_id,
-            ContractStage.stage_id == ContractBase.current_stage_id
+            ContractStage.stage_id == ContractBase.current_stage_id,
+            ContractStage.flow_id == ContractBase.flow_id
         ).first()
 
         return redirect(url_for(
             'conductor.detail', contract_id=contract_id, stage_id=contract_stage.id
         ))
 
-    stages = get_contract_stages(contract_id)
+    contract = ContractBase.query.get(contract_id)
+    if not contract:
+        abort(404)
+
+    stages = get_contract_stages(contract)
 
     try:
         active_stage = [i for i in stages if i.id == stage_id][0]
@@ -141,8 +159,6 @@ def detail(contract_id, stage_id=-1):
             abort(404)
     except IndexError:
         abort(404)
-
-    contract = ContractBase.query.get(contract_id)
 
     note_form = NoteForm()
     update_form = SendUpdateForm()
@@ -168,6 +184,7 @@ def detail(contract_id, stage_id=-1):
 
     actions = build_action_log(stage_id, active_stage)
     subscribers, total_subscribers = build_subscribers(contract)
+    flows = Flow.query.filter(Flow.id != contract.flow_id).all()
 
     if len(stages) > 0:
         return render_template(
@@ -177,7 +194,7 @@ def detail(contract_id, stage_id=-1):
             opportunity_form=opportunity_form, metadata_form=metadata_form,
             contract=contract, current_user=current_user,
             active_stage=active_stage, current_stage=current_stage,
-            subscribers=subscribers,
+            flows=flows, subscribers=subscribers,
             total_subscribers=total_subscribers
         )
     abort(404)
@@ -280,8 +297,10 @@ def assign(contract_id, flow_id, user_id):
     else:
         contract = clone_a_contract(contract)
         try:
-            stages = create_contract_stages(flow_id, contract.id, contract=contract)
-            _, new_contract, _ = transition_stage(contract.id, contract=contract, stages=stages)
+            stages, _ = create_contract_stages(flow_id, contract.id, contract=contract)
+            _, new_contract, _ = transition_stage(
+                contract.id, current_user, contract=contract, stages=stages
+            )
             db.session.commit()
         except IntegrityError, e:
             # we already have the sequence for this, so just

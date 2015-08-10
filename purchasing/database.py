@@ -2,6 +2,8 @@
 """Database module, including the SQLAlchemy database object and DB-related
 utilities.
 """
+import datetime
+
 from sqlalchemy.sql.functions import GenericFunction
 from sqlalchemy.orm import relationship
 
@@ -50,9 +52,15 @@ class Model(CRUDMixin, db.Model):
             return field.encode('utf-8').strip()
         return u''
 
+    def serialize_dates(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        else:
+            return obj
+
     def as_dict(self):
         return {
-            c.name: getattr(self, c.name) for c in self.__table__.columns
+            c.name: self.serialize_dates(getattr(self, c.name)) for c in self.__table__.columns
         }
 
 # From Mike Bayer's "Building the app" talk

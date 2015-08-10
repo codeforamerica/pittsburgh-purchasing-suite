@@ -28,6 +28,15 @@ def upgrade():
     )
     op.create_unique_constraint('department_unique_name', 'department', ['name'])
 
+    # link contract stages to flows as well
+    op.add_column(u'contract_stage', sa.Column('flow_id', sa.Integer(), nullable=False, server_default=sa.schema.DefaultClause('1')))
+    op.create_index(op.f('ix_contract_stage_flow_id'), 'contract_stage', ['flow_id'], unique=False)
+    op.drop_index('ix_contrage_stage_combined_id', table_name='contract_stage')
+    op.create_index('ix_contrage_stage_combined_id', 'contract_stage', ['contract_id', 'stage_id', 'flow_id'], unique=False)
+    op.create_foreign_key('contract_stage_flow_id_flow_id_fkey', 'contract_stage', 'flow', ['flow_id'], ['id'])
+    op.drop_constraint('contract_stage_pkey', 'contract_stage', type_='primary')
+    op.create_primary_key('contract_stage_pkey', 'contract_stage', ['contract_id', 'stage_id', 'flow_id'])
+
     # handle departments, build foreign key relationships
     # we need to replace the current values with references to the new model
     # therefore, we build out everything, make the update, and the drop
@@ -120,6 +129,15 @@ def downgrade():
     op.add_column(u'stage', sa.Column('send_notifs', sa.BOOLEAN(), server_default=sa.text(u'false'), autoincrement=False, nullable=False))
 
     op.add_column(u'users', sa.Column('department', sa.VARCHAR(length=255), server_default=sa.text(u"'Other'::character varying"), autoincrement=False, nullable=False))
+
+    op.drop_constraint('contract_stage_flow_id_flow_id_fkey', 'contract_stage', type_='foreignkey')
+    op.drop_index('ix_contrage_stage_combined_id', table_name='contract_stage')
+    op.create_index('ix_contrage_stage_combined_id', 'contract_stage', ['contract_id', 'stage_id'], unique=False)
+    op.drop_index(op.f('ix_contract_stage_flow_id'), table_name='contract_stage')
+    op.drop_column(u'contract_stage', 'flow_id')
+    op.drop_constraint('contract_stage_pkey', 'contract_stage', type_='primary')
+    op.create_primary_key('contract_stage_pkey', 'contract_stage', ['contract_id', 'stage_id'])
+
 
     op.drop_constraint('user_id_department_user_id_fkey', 'users', type_='foreignkey')
     op.drop_column(u'users', 'department_id')

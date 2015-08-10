@@ -103,7 +103,10 @@ class ConductorContractAdmin(ContractBaseAdmin):
 
 def _stage_lookup(stage_name):
     if not isinstance(stage_name, int):
-        raise ValidationError('Must be integers')
+        try:
+            stage_name = int(stage_name)
+        except:
+            raise ValidationError('Must be integers')
     return Stage.query.filter(Stage.id == stage_name).first().id
 
 class FlowAdmin(ConductorAuthMixin, sqla.ModelView):

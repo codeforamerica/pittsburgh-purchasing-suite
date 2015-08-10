@@ -5,6 +5,23 @@
     current stage. If we have neither of those, gray it out
     because we aren't there yet.
  #}
+<strong>Current flow: </strong>
+{% if flows|length >0 %}
+  <span data-toggle="collapse" href="#flowChoices" aria-expanded="false" aria-controls="flowChoices">{{ contract.current_flow.flow_name }}<span class="caret"></span></span>
+  <div class="collapse" id="flowChoices">
+    <div class="well">
+      <strong>Switch to different flow:</strong>
+      <ul>
+      {% for flow in flows %}
+        <li><a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, flow_switch=flow.id) }}">{{ flow }}</a></li>
+      {% endfor %}
+      </ul>
+    </div>
+  </div>
+{% else %}
+  <span>{{ contract.current_flow.flow_name }}</span>
+{% endif %}
+
 {% for stage in stages %}
   {% if stage.entered and stage.exited %}
     <div class="event event-complete {% if stage.id == active_stage.id %}event-active{% endif %}">

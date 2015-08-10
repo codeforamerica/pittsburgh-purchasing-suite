@@ -138,7 +138,7 @@ class TestConductor(BaseTestCase):
             self.get_context_variable('current_stage').id,
             self.get_context_variable('active_stage').id
         )
-        self.assertEquals(len(self.get_context_variable('actions')), 2)
+        self.assertEquals(len(self.get_context_variable('actions')), 1)
 
         # make sure the redirect works
         redir = self.client.get('/conductor/contract/{}'.format(self.contract1.id))
@@ -186,7 +186,7 @@ class TestConductor(BaseTestCase):
         '''Test conductor stage transition backwards/to specific point
         '''
         self.assign_contract()
-        self.assertEquals(ContractStageActionItem.query.count(), 0)
+        self.assertEquals(ContractStageActionItem.query.count(), 1)
 
         # transition to the third stage
         transition_url = self.build_detail_view(self.contract1) + '?transition=true'
@@ -199,19 +199,19 @@ class TestConductor(BaseTestCase):
         # revert to the original stage
         self.client.get(revert_url.format(self.stage1.id))
 
-        self.assertEquals(ContractStageActionItem.query.count(), 7)
+        self.assertEquals(ContractStageActionItem.query.count(), 12)
         # there should be 3 for stage 1 & 2 (enter, exit, reopen)
         self.assertEquals(ContractStageActionItem.query.join(ContractStage).filter(
             ContractStage.stage_id == self.stage1.id
-        ).count(), 3)
+        ).count(), 5)
 
         self.assertEquals(ContractStageActionItem.query.join(ContractStage).filter(
             ContractStage.stage_id == self.stage2.id
-        ).count(), 3)
+        ).count(), 5)
 
         self.assertEquals(ContractStageActionItem.query.join(ContractStage).filter(
             ContractStage.stage_id == self.stage3.id
-        ).count(), 1)
+        ).count(), 2)
 
         self.assertEquals(self.contract1.current_stage_id, self.stage1.id)
         self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage1.id).first().entered is not None)
@@ -356,15 +356,15 @@ class TestConductor(BaseTestCase):
         '''
         self.assign_contract()
 
-        self.assertEquals(ContractStageActionItem.query.count(), 0)
+        self.assertEquals(ContractStageActionItem.query.count(), 1)
 
         detail_view_url = self.build_detail_view(self.contract1)
         self.client.post(detail_view_url + '?form=activity', data=dict(
             note='a test note!'
         ))
-        self.assertEquals(ContractStageActionItem.query.count(), 1)
+        self.assertEquals(ContractStageActionItem.query.count(), 2)
         detail_view = self.client.get(detail_view_url)
-        self.assertEquals(len(self.get_context_variable('actions')), 3)
+        self.assertEquals(len(self.get_context_variable('actions')), 2)
         self.assertTrue('a test note!' in detail_view.data)
 
         # make sure you can't post notes to an unstarted stage
@@ -383,7 +383,7 @@ class TestConductor(BaseTestCase):
         '''Test you can delete a note
         '''
         self.assign_contract()
-        self.assertEquals(ContractStageActionItem.query.count(), 0)
+        self.assertEquals(ContractStageActionItem.query.count(), 1)
         detail_view_url = self.build_detail_view(self.contract1)
         self.client.post(detail_view_url + '?form=activity', data=dict(
             note='a test note!'
@@ -392,9 +392,9 @@ class TestConductor(BaseTestCase):
             note='a second test note!'
         ))
 
-        self.assertEquals(ContractStageActionItem.query.count(), 2)
+        self.assertEquals(ContractStageActionItem.query.count(), 3)
         self.client.get('/conductor/contract/1/stage/1/note/1/delete')
-        self.assertEquals(ContractStageActionItem.query.count(), 1)
+        self.assertEquals(ContractStageActionItem.query.count(), 2)
 
         self.client.get('/conductor/contract/1/stage/1/note/100/delete')
         self.assert_flashes("That note doesn't exist!", 'alert-warning')
@@ -404,7 +404,7 @@ class TestConductor(BaseTestCase):
         self.assert200(
             self.client.get('/conductor/contract/1/stage/1/note/1/delete', follow_redirects=True)
         )
-        self.assertEquals(ContractStageActionItem.query.count(), 1)
+        self.assertEquals(ContractStageActionItem.query.count(), 2)
         self.assert_template_used('public/home.html')
 
     def test_conductor_send_update(self):
@@ -412,13 +412,13 @@ class TestConductor(BaseTestCase):
         '''
         self.assign_contract()
 
-        self.assertEquals(ContractStageActionItem.query.count(), 0)
+        self.assertEquals(ContractStageActionItem.query.count(), 1)
         detail_view_url = self.build_detail_view(self.contract1)
         # make sure the form validators work
         bad_post = self.client.post(detail_view_url + '?form=update', data=dict(
             send_to='bademail', subject='test', body='test'
         ), follow_redirects=True)
-        self.assertEquals(ContractStageActionItem.query.count(), 0)
+        self.assertEquals(ContractStageActionItem.query.count(), 1)
         self.assertEquals(bad_post.status_code, 200)
         self.assertTrue('One of the supplied emails is invalid' in bad_post.data)
 
@@ -428,7 +428,7 @@ class TestConductor(BaseTestCase):
             ), follow_redirects=True)
 
             self.assertEquals(len(outbox), 1)
-            self.assertEquals(ContractStageActionItem.query.count(), 1)
+            self.assertEquals(ContractStageActionItem.query.count(), 2)
             self.assertTrue('foo@foo.com' in outbox[0].send_to)
             self.assertTrue('foo2@foo.com' in outbox[0].send_to)
             self.assertTrue('test' in outbox[0].subject)

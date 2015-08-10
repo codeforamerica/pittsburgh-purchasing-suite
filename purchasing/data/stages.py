@@ -62,9 +62,9 @@ def get_all_stages():
     '''
     return Stage.query.all()
 
-def log_entered(contract_stage, user):
+def log_entered(contract_stage, user, action_type='reversion'):
     return ContractStageActionItem(
-        contract_stage_id=contract_stage.id, action_type='reversion',
+        contract_stage_id=contract_stage.id, action_type=action_type,
         taken_by=user.id, taken_at=datetime.datetime.now(),
         action_detail={
             'timestamp': contract_stage.entered.strftime('%Y-%m-%dT%H:%M:%S'),
@@ -73,9 +73,9 @@ def log_entered(contract_stage, user):
         }
     )
 
-def log_exited(contract_stage, user):
+def log_exited(contract_stage, user, action_type='reversion'):
     return ContractStageActionItem(
-        contract_stage_id=contract_stage.id, action_type='reversion',
+        contract_stage_id=contract_stage.id, action_type=action_type,
         taken_by=user.id, taken_at=datetime.datetime.now(),
         action_detail={
             'timestamp': contract_stage.exited.strftime('%Y-%m-%dT%H:%M:%S'),
@@ -132,7 +132,7 @@ def _perform_revert(contract, stages, start_idx, end_idx, user):
     contract.current_stage_id = stages_to_revert[0].stage_id
     return stages_to_revert[0]
 
-def _perform_transition(contract, stages=[], single_enter=True):
+def _perform_transition(contract, user, stages=[], single_enter=True):
     '''Looks up and performs the appropriate exit/enter on two stages
 
     Stages is a list of integers.
@@ -141,22 +141,40 @@ def _perform_transition(contract, stages=[], single_enter=True):
     '''
     stages_to_transition = ContractStage.query.filter(
         ContractStage.contract_id == contract.id,
+        ContractStage.flow_id == contract.flow_id,
         ContractStage.stage_id.in_(stages)
     ).order_by(ContractStage.id).all()
 
-    # exit the current stage
-    # enter the new stage
     if len(stages_to_transition) > 1:
+        # exit the current stage
         stages_to_transition[0].exit()
+        db.session.add(
+            log_exited(stages_to_transition[0], user, action_type='exited')
+        )
+        # enter the new stage
         stages_to_transition[1].enter()
+        db.session.add(
+            log_entered(stages_to_transition[1], user, action_type='entered')
+        )
+        # update the contract's current stage
         contract.current_stage_id = stages_to_transition[1].stage_id
     else:
-        stages_to_transition[0].enter() if single_enter else stages_to_transition[0].exit()
+        # only perform the exit/enter, accordingly
+        if single_enter:
+            stages_to_transition[0].enter()
+            db.session.add(
+                log_entered(stages_to_transition[0], user, action_type='entered')
+            )
+        else:
+            stages_to_transition[0].exit()
+            db.session.add(
+                log_exited(stages_to_transition[0], user, action_type='exited')
+            )
+        # update the contract's current stage
         contract.current_stage_id = stages_to_transition[0].stage_id
-    # update the contract's current stage
     return stages_to_transition
 
-def transition_stage(contract_id, destination=None, contract=None, stages=None, user=None):
+def transition_stage(contract_id, user, destination=None, contract=None, stages=None):
     '''Transitions a contract from one stage to another
 
     Stages are organized a bit like a finite state machine. The "flow"
@@ -187,7 +205,7 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None, 
 
         # if its next, just transition as if it were normal
         if destination_idx == current_stage_idx + 1:
-            return transition_stage(contract_id, contract=contract, stages=stages)
+            return transition_stage(contract_id, user, contract=contract, stages=stages)
         # if it is greater, raise an error. you can't skip stages.
         elif destination_idx > current_stage_idx:
             raise Exception('You cannot skip multiple stages')
@@ -197,15 +215,15 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None, 
                 contract, stages, current_stage_idx, destination_idx, user
             )
 
-            return reversion, contract, False
+            stage, contract, is_complete = reversion, contract, False
 
     # implement first case -- current stage is none
     elif contract.current_stage_id is None:
         transition = _perform_transition(
-            contract, stages=[stages[0]], single_enter=True
+            contract, user, stages=[stages[0]], single_enter=True
         )
 
-        return transition[0], contract, False
+        stage, contract, is_complete = transition[0], contract, False
 
     # implement the second case -- current stage is last stage
     elif contract.current_stage_id == contract.flow.stage_order[-1]:
@@ -213,32 +231,29 @@ def transition_stage(contract_id, destination=None, contract=None, stages=None, 
         current_stage_idx = stages.index(contract.current_stage_id)
 
         transition = _perform_transition(
-            contract, stages=[stages[current_stage_idx]],
+            contract, user, stages=[stages[current_stage_idx]],
             single_enter=False
         )
 
         complete_contract(contract.parent, contract)
 
-        return transition[0], contract, True
+        stage, contract, is_complete = transition[0], contract, True
 
     # implement final case -- transitioning to new stage
     else:
         current_stage_idx = stages.index(contract.current_stage_id)
 
         transition = _perform_transition(
-            contract, stages=[
+            contract, user, stages=[
                 stages[current_stage_idx], stages[current_stage_idx + 1]
             ]
         )
 
-        return transition[1], contract, False
+        stage, contract, is_complete = transition[1], contract, False
 
-def switch_flow(contract_id, new_flow, contract=None, flow=None):
-    '''
-    '''
-    pass
+    return stage, contract, is_complete
 
-def get_contract_stages(contract_id):
+def get_contract_stages(contract):
     '''Returns the appropriate stages and their metadata based on a contract id
     '''
     return db.session.query(
@@ -248,5 +263,6 @@ def get_contract_stages(contract_id):
     ).join(Stage, Stage.id == ContractStage.stage_id).join(
         ContractBase, ContractBase.id == ContractStage.contract_id
     ).filter(
-        ContractStage.contract_id == contract_id
+        ContractStage.contract_id == contract.id,
+        ContractStage.flow_id == contract.flow_id
     ).order_by(ContractStage.id).all()

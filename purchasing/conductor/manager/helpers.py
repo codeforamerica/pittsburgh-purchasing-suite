@@ -3,6 +3,7 @@
 import datetime
 
 from flask_login import current_user
+from sqlalchemy.exc import IntegrityError
 
 from purchasing.database import db
 from purchasing.notifications import Notification
@@ -12,6 +13,7 @@ from purchasing.data.models import (
 )
 
 from purchasing.users.models import User, Role, Department
+from purchasing.data.stages import transition_stage
 
 class ContractMetadataObj(object):
     def __init__(self, contract):
@@ -87,16 +89,6 @@ def build_action_log(stage_id, active_stage):
         ContractStageActionItem.contract_stage_id == stage_id
     ).order_by(db.text('taken_at asc')).all()
 
-    actions.extend([
-        ContractStageActionItem(
-            action_type='entered', action_detail=active_stage.entered,
-            taken_at=active_stage.entered
-        ),
-        ContractStageActionItem(
-            action_type='exited', action_detail=active_stage.exited,
-            taken_at=active_stage.exited
-        )
-    ])
     actions = sorted(actions, key=lambda stage: stage.get_sort_key())
 
     return actions
@@ -105,7 +97,6 @@ def build_subscribers(contract):
     department_users = User.query.filter(
         User.department_id == contract.department_id,
         db.func.lower(Department.name) != 'equal opportunity review commission'
-
     ).all()
 
     county_purchasers = User.query.join(Role).filter(
