@@ -1,5 +1,13 @@
 {% extends 'layout.html' %}
 
+{% block page_title %}
+   Beacon
+{% endblock %}
+
+{% block meta_description %}
+Information about opportunities to do business with the City of Pittsburgh, delievered to your email inbox. Beacon is a free City of Pittsburgh service for finding current and upcoming contract opportunities, understanding how to apply for them, and staying in the loop with email notifications when new opportunities are posted.
+{% endblock %}
+
 {% block assets %}
   {% assets "opportunities_less" %}
     <link rel="stylesheet" href="{{ ASSET_URL }}">
