@@ -22,7 +22,8 @@
         '<p>Document Name: </p>' +
         '<input class="form-control" id="document-' + documentUploadId +
           '-title" name="document-' + documentUploadId +
-          '-title" type="text" value="">' +
+          '-title" placeholder="A descriptive name for this file" ' +
+          'type="text" value="">' +
       '</div>' +
       '<div class="form-group">' +
         '<input class="js-upload-document-input" id="document-' + documentUploadId +
