@@ -423,6 +423,18 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.assertEquals(admin_publish.status_code, 302)
         self.assertTrue(Opportunity.query.get(self.opportunity3.id).is_public)
 
+    def test_approved_opportunity(self):
+        '''Test approved opportunities work as expected for city staff
+        '''
+        self.login_user(self.admin)
+        admin_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(
+            self.opportunity1.id
+        ))
+        self.assert_flashes('Opportunity successfully published!', 'alert-success')
+        self.assertEquals(admin_publish.status_code, 302)
+        self.assertTrue(Opportunity.query.get(self.opportunity1.id).is_public)
+        self.assertFalse(Opportunity.query.get(self.opportunity1.id).is_advertised)
+
     def test_pending_notification_email_gated(self):
         '''Test we don't send an email when the opportunity is not advertised
         '''
