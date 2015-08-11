@@ -84,7 +84,7 @@ class Opportunity(Model):
         'User', backref=backref('opportunities_created', lazy='dynamic'),
         foreign_keys='Opportunity.created_by_id'
     )
-    is_public = Column(db.Boolean(), default=True)
+    is_public = Column(db.Boolean(), default=False)
 
     def coerce_to_date(self, field):
         if isinstance(field, datetime.datetime):

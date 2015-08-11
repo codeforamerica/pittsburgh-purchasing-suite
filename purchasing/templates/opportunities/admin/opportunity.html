@@ -86,10 +86,11 @@
             If you don't have them on hand right now, don't worry. We'll email you two weeks before the publication date to remind you to upload it.
           </p>
           <p class="help-block"><strong>
-            .pdf, .doc, or .docx files only!
+            .pdf, Word (.doc/.docx), and Excel (.xls/.xlsx) documents only!
           </strong></p>
+
           {% if opportunity and opportunity.opportunity_documents.all()|length > 0 %}
-            <p><strong>Uploaded files:</strong>
+            <p><strong>Uploaded files:</strong></p>
             <ul>
               {% for document in opportunity.opportunity_documents %}
               <li>
@@ -99,10 +100,9 @@
               {% if not loop.last %}<hr class="hr-no-padding">{% endif %}
               {% endfor %}
             </ul>
-          <p><strong>Upload additional files:</strong> {{ macros.with_errors(form.document, multiple="")}}</p>
-          {% else %}
-          {{ macros.with_errors(form.document, multiple="")}}
+          <p><strong>Upload additional files:</strong>
           {% endif %}
+          {% include 'opportunities/admin/opportunity_upload.html' %}
         </div><!-- document upload -->
 
         <div class="row">
