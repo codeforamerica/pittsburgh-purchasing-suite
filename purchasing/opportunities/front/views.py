@@ -262,7 +262,7 @@ def detail(opportunity_id):
     '''View one opportunity in detail
     '''
     opportunity = Opportunity.query.get(opportunity_id)
-    if opportunity and (opportunity.is_public or not current_user.is_anonymous()):
+    if opportunity and opportunity.can_view(current_user):
         signup_form = init_form(OpportunitySignupForm)
         if signup_form.validate_on_submit():
             signup_success = signup_for_opp(signup_form, current_user, opportunity)
