@@ -60,13 +60,25 @@
 <script>
 $(document).ready(function() {
   $('#js-table-progress').dataTable({
-    // order by expiration date -- column 3
-    order: [[3, 'asc']]
+    // order by expiration date -- column 4
+    'order': [[4, 'asc']],
+    // use column 3 (actual timestamps) as a sort proxy for
+    // column 4 (formatted "days since")
+    'aoColumnDefs': [
+      { 'bVisible': false, 'aTargets': [3] },
+      { 'iDataSort': 3, 'aTargets': [4] }
+    ]
   });
 
   $('#js-table-all').dataTable({
-    // order by expiration date -- column 3
-    order: [[3, 'asc']]
+    // order by expiration date -- column 4
+    'order': [[4, 'asc']],
+    // use column 3 (actual timestamps) as a sort proxy for
+    // column 4 (formatted "days since")
+    'aoColumnDefs': [
+      { 'bVisible': false, 'aTargets': [3] },
+      { 'iDataSort': 3, 'aTargets': [4] }
+    ]
   });
 
   $('#js-loading-spinner').addClass('hidden');

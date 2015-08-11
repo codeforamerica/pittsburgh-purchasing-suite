@@ -92,6 +92,22 @@ def days_from_today(field):
     else:
         return field
 
+def format_days_from_today(field):
+    '''Uses days_from_today to build readable "X days ago"
+    '''
+    days = days_from_today(field)
+    if days == 0:
+        return 'Today'
+    elif days == 1:
+        return '{} day from now'.format(abs(days))
+    elif days > 1:
+        return '{} days from now'.format(abs(days))
+    elif days == -1:
+        return '{} day ago'.format(abs(days))
+    else:
+        return '{} days ago'.format(abs(days))
+
+
 def datetimeformat(date, fmt='%Y-%m-%d'):
     if isinstance(date, basestring):
         date = dateutil.parser.parse(date)

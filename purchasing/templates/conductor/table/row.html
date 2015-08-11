@@ -14,15 +14,26 @@
 {% if type != 'in_progress' %}
 <td>{{ contract.spec_number}}</td><!-- spec number -->
 
-<td>{{ contract.expiration_date }}</td><!-- expiration date -->
+<td>{{ contract.expiration_date }}</td>
+
+<td>
+  {% if contract.expiration_date %}
+  <strong>{{ format_days_from_today(contract.expiration_date) }}</strong><br>
+  <p class="text-muted">{{ contract.expiration_date }}</p>
+  {% else %}
+  --
+  {% endif %}
+</td><!-- expiration date -->
 {% endif %}
 
 {% if type != 'all' %}
 <td>{% if contract.stage_name %}{{ contract.stage_name }}{% else %}Not Started{% endif %}</td><!-- current stage -->
 
+<td>{{ contract.entered }}</td>
 <td>
   {% if contract.stage_name %}
-  {{ contract.entered|datetimeformat }}
+  <strong>{{ format_days_from_today(contract.entered) }}</strong><br />
+  <span class="text-muted">{{ contract.entered|datetimeformat }}</span>
   {% else %}
   N/A
   {% endif %}

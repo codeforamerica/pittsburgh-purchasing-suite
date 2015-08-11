@@ -4,7 +4,7 @@ import datetime
 from unittest import TestCase
 from purchasing.filters import (
     better_title, format_currency, days_from_today,
-    datetimeformat
+    datetimeformat, format_days_from_today
 )
 
 class TestFilters(TestCase):
@@ -37,6 +37,15 @@ class TestFilters(TestCase):
         self.assertEquals(days_from_today(datetime.date.today() + datetime.timedelta(2)), 2)
         self.assertEquals(days_from_today(datetime.date.today() - datetime.timedelta(2)), -2)
         self.assertEquals(days_from_today(datetime.datetime.today() + datetime.timedelta(2)), 2)
+
+    def test_format_days_from_today(self):
+        '''Test formatter for days from today
+        '''
+        self.assertEquals(format_days_from_today(datetime.date.today()), 'Today')
+        self.assertEquals(format_days_from_today(datetime.date.today() + datetime.timedelta(1)), '1 day from now')
+        self.assertEquals(format_days_from_today(datetime.date.today() - datetime.timedelta(1)), '1 day ago')
+        self.assertEquals(format_days_from_today(datetime.date.today() + datetime.timedelta(2)), '2 days from now')
+        self.assertEquals(format_days_from_today(datetime.date.today() - datetime.timedelta(2)), '2 days ago')
 
     def test_datetimeformat(self):
         '''Test datetime format filter

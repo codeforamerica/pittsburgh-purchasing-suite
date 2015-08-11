@@ -16,7 +16,7 @@ from purchasing.extensions import (
 from purchasing.users.models import AnonymousUser
 from purchasing.filters import (
     url_for_other_page, thispage, format_currency, better_title,
-    days_from_today, datetimeformat
+    days_from_today, datetimeformat, format_days_from_today
 )
 from purchasing.public import views as public_views
 from purchasing.users import views as user_views
@@ -119,6 +119,7 @@ def register_jinja_extensions(app):
     app.jinja_env.globals['_current_user'] = current_user
     app.jinja_env.globals['today'] = datetime.date.today()
     app.jinja_env.globals['days_from_today'] = days_from_today
+    app.jinja_env.globals['format_days_from_today'] = format_days_from_today
     app.jinja_env.filters['currency'] = format_currency
     app.jinja_env.filters['title'] = better_title
     app.jinja_env.filters['datetimeformat'] = datetimeformat
