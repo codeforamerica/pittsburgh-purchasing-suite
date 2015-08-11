@@ -5,9 +5,11 @@ import datetime
 
 from flask import current_app
 from flask_wtf import Form
-from flask_wtf.file import FileField, FileAllowed
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import widgets, fields
-from wtforms.validators import DataRequired, Email, ValidationError, Optional
+from wtforms.validators import (
+    DataRequired, Email, ValidationError, Optional, InputRequired
+)
 
 from purchasing.opportunities.models import Vendor
 
@@ -15,6 +17,23 @@ from purchasing.users.models import DEPARTMENT_CHOICES, User
 
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
+
+class RequiredIf(InputRequired):
+    # a validator which makes a field required if
+    # another field is set and has a truthy value
+    # http://stackoverflow.com/questions/8463209/how-to-make-a-field-conditionally-optional-in-wtforms
+    # thanks to Team RVA for pointing this out
+
+    def __init__(self, other_field_name, *args, **kwargs):
+        self.other_field_name = other_field_name
+        super(RequiredIf, self).__init__(*args, **kwargs)
+
+    def __call__(self, form, field):
+        other_field = form._fields.get(self.other_field_name)
+        if other_field is None:
+            raise Exception('no field named "%s" in form' % self.other_field_name)
+            if bool(other_field.data):
+                super(RequiredIf, self).__call__(form, field)
 
 def build_label_tooltip(name, description, href):
     return '''
@@ -117,7 +136,6 @@ def max_words(max=500):
     return _max_words
 
 def after_today(form, field):
-
     if isinstance(field.data, datetime.datetime):
         to_test = field.data.date()
     elif isinstance(field.data, datetime.date):
@@ -133,6 +151,15 @@ class UnsubscribeForm(Form):
     categories = MultiCheckboxField(coerce=int)
     opportunities = MultiCheckboxField(coerce=int)
 
+class OpportunityDocumentForm(Form):
+    title = fields.TextField(validators=[RequiredIf('document')])
+    document = FileField(
+        validators=[FileAllowed(
+            ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
+            '.pdf, Word (.doc/.docx), and Excel (.xls/.xlsx) documents only!')
+        ]
+    )
+
 class OpportunityForm(Form):
     department = fields.SelectField(choices=DEPARTMENT_CHOICES, validators=[DataRequired()])
     contact_email = fields.TextField(validators=[Email(), city_domain_email, DataRequired()])
@@ -142,9 +169,6 @@ class OpportunityForm(Form):
     planned_open = fields.DateField(validators=[DataRequired()])
     planned_deadline = fields.DateField(validators=[DataRequired(), after_today])
     vendor_documents_needed = fields.SelectMultipleField(widget=select_multi_checkbox, coerce=int)
-    is_public = fields.BooleanField()
-    document = FileField(
-        validators=[FileAllowed(['pdf', 'doc', 'docx'], '.pdf, .doc, or .docx documents only!')]
-    )
     categories = fields.SelectField(choices=[], validators=[Optional()])
     subcategories = MultiCheckboxField(coerce=int, validators=[Optional()], choices=[])
+    documents = fields.FieldList(fields.FormField(OpportunityDocumentForm), min_entries=1)

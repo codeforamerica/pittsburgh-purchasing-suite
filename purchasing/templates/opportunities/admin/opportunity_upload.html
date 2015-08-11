@@ -1,0 +1,19 @@
+{% for document in form.documents %}
+{{ document.csrf_token() }}
+<div class="form-group js-document-container">
+  <div class="form-group">
+    <p>Document Name: </p></label>
+    {{ macros.with_errors(document.title, class="form-control", placeholder="A descriptive name for this file.")}}
+  </div>
+  <div class="form-group">
+    {{ macros.with_errors(document.document, class="js-upload-document-input")}}
+  </div>
+</div>
+{% endfor %}
+<div class="form-group" id="js-add-another-document">
+  <div class="row">
+    <div class="col-sm-6">
+      <button type="button" class="form-control btn btn-primary" id="js-add-document">Add another document</button>
+    </div>
+  </div>
+</div>

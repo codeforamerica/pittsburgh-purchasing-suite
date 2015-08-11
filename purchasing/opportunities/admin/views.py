@@ -66,7 +66,7 @@ def upload_document(document, _id):
 
         filepath = os.path.join(current_app.config['UPLOAD_DESTINATION'], _filename)
         document.save(filepath)
-        return filename, filepath
+        return filepath
 
 def build_opportunity(data, publish=None, opportunity=None):
     '''Create/edit a new opportunity
@@ -78,6 +78,10 @@ def build_opportunity(data, publish=None, opportunity=None):
     '''
     contact_email = data.pop('contact_email')
     contact = User.query.filter(User.email == contact_email).first()
+
+    # pop off our documents so they don't
+    # get passed to the Opportunity constructor
+    documents = data.pop('documents')
 
     if contact is None:
         contact = User().create(
@@ -98,18 +102,20 @@ def build_opportunity(data, publish=None, opportunity=None):
 
     opp_documents = opportunity.opportunity_documents.all()
 
-    for _file in request.files.getlist('document'):
+    for document in documents.entries:
+        if document.title.data == '':
+            continue
 
         _id = _id if _id else random_id(6)
 
+        _file = document.document.data
         if _file.filename in [i.name for i in opp_documents]:
             continue
 
-        filename, filepath = upload_document(_file, _id)
-
-        if filename and filepath:
+        filepath = upload_document(_file, _id)
+        if filepath:
             opportunity.opportunity_documents.append(OpportunityDocument(
-                name=filename, href=filepath
+                name=document.title.data, href=filepath
             ))
 
     if not opportunity.is_public:
@@ -141,6 +147,9 @@ def new():
         form_data = fix_form_categories(request, form, Opportunity, None)
         # add the contact email back on because it was stripped by the cleaning
         form_data['contact_email'] = form.data.get('contact_email')
+        form_data['documents'] = form.documents
+        # strip the is_public field from the form data, it's not part of the form
+        form_data.pop('is_public')
         opportunity = build_opportunity(form_data, publish=request.form.get('save_type'))
         flash('Opportunity Successfully Created!', 'alert-success')
         return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
@@ -162,8 +171,11 @@ def edit(opportunity_id):
 
         if form.validate_on_submit():
             form_data = fix_form_categories(request, form, Opportunity, opportunity)
-            # add the contact email back on because it was stripped by the cleaning
+            # add the contact email, documents back on because it was stripped by the cleaning
             form_data['contact_email'] = form.data.get('contact_email')
+            form_data['documents'] = form.documents
+            # strip the is_public field from the form data, it's not part of the form
+            form_data.pop('is_public')
             build_opportunity(form_data, publish=request.form.get('save_type'), opportunity=opportunity)
             flash('Opportunity Successfully Updated!', 'alert-success')
             return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
