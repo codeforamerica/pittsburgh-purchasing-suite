@@ -500,8 +500,6 @@ class TestConductor(BaseTestCase):
 
             self.assertEquals(len(outbox), 1)
             self.assertEquals(ContractStageActionItem.query.count(), 2)
-            self.assertTrue('foo@foo.com' in outbox[0].send_to)
-            self.assertTrue('foo2@foo.com' in outbox[0].send_to)
             self.assertTrue('test' in outbox[0].subject)
             self.assertTrue('with the subject' in good_post.data)
 

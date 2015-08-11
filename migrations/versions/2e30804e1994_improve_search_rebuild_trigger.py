@@ -34,7 +34,10 @@ def upgrade():
     op.drop_index('ix_contrage_stage_combined_id', table_name='contract_stage')
     op.create_index('ix_contrage_stage_combined_id', 'contract_stage', ['contract_id', 'stage_id', 'flow_id'], unique=False)
     op.create_foreign_key('contract_stage_flow_id_flow_id_fkey', 'contract_stage', 'flow', ['flow_id'], ['id'])
-    op.drop_constraint('contract_stage_pkey', 'contract_stage', type_='primary')
+
+    op.execute(sa.sql.text(
+        'ALTER TABLE contract_stage DROP CONSTRAINT IF EXISTS contract_stage_pkey'
+    ))
     op.create_primary_key('contract_stage_pkey', 'contract_stage', ['contract_id', 'stage_id', 'flow_id'])
 
     # handle departments, build foreign key relationships
@@ -134,10 +137,9 @@ def downgrade():
     op.drop_index('ix_contrage_stage_combined_id', table_name='contract_stage')
     op.create_index('ix_contrage_stage_combined_id', 'contract_stage', ['contract_id', 'stage_id'], unique=False)
     op.drop_index(op.f('ix_contract_stage_flow_id'), table_name='contract_stage')
-    op.drop_column(u'contract_stage', 'flow_id')
-    op.drop_constraint('contract_stage_pkey', 'contract_stage', type_='primary')
-    op.create_primary_key('contract_stage_pkey', 'contract_stage', ['contract_id', 'stage_id'])
 
+    op.drop_constraint('contract_stage_pkey', 'contract_stage', type_='primary')
+    op.drop_column(u'contract_stage', 'flow_id')
 
     op.drop_constraint('user_id_department_user_id_fkey', 'users', type_='foreignkey')
     op.drop_column(u'users', 'department_id')

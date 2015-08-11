@@ -5,6 +5,7 @@ import collections
 from flask import render_template, current_app
 from flask_mail import Message
 
+from purchasing.compat import basestring
 from purchasing.extensions import mail
 
 class Notification(object):
