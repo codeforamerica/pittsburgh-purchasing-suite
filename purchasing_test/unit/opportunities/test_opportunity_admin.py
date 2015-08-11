@@ -267,8 +267,8 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
     def test_contract_detail(self):
         '''Test individual contract opportunity pages
         '''
-        self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity1.id)))
-        self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity2.id)))
+        self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity3.id)))
+        self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity4.id)))
         self.assert404(self.client.get('/beacon/opportunities/999'))
 
     def test_signup_for_multiple_opportunities(self):
@@ -278,9 +278,9 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         # duplicates should get filtered out
         post = self.client.post('/beacon/opportunities', data=MultiDict([
             ('email', 'foo@foo.com'), ('business_name', 'foo'),
-            ('opportunity', str(self.opportunity1.id)),
-            ('opportunity', str(self.opportunity2.id)),
-            ('opportunity', str(self.opportunity1.id))
+            ('opportunity', str(self.opportunity3.id)),
+            ('opportunity', str(self.opportunity4.id)),
+            ('opportunity', str(self.opportunity3.id))
         ]))
 
         self.assertEquals(Vendor.query.count(), 1)
@@ -288,7 +288,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         # should subscribe that vendor to the opportunity
         self.assertEquals(len(Vendor.query.get(1).opportunities), 2)
         for i in Vendor.query.get(1).opportunities:
-            self.assertTrue(i.id in [self.opportunity1.id, self.opportunity2.id])
+            self.assertTrue(i.id in [self.opportunity3.id, self.opportunity4.id])
 
         # should redirect and flash properly
         self.assertEquals(post.status_code, 302)
@@ -299,7 +299,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         '''
         with mail.record_messages() as outbox:
             self.assertEquals(Vendor.query.count(), 0)
-            post = self.client.post('/beacon/opportunities/{}'.format(self.opportunity1.id), data={
+            post = self.client.post('/beacon/opportunities/{}'.format(self.opportunity3.id), data={
                 'email': 'foo@foo.com', 'business_name': 'foo'
             })
             # should create a new vendor
@@ -307,7 +307,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
 
             # should subscribe that vendor to the opportunity
             self.assertEquals(len(Vendor.query.first().opportunities), 1)
-            self.assertTrue(self.opportunity1.id in [i.id for i in Vendor.query.first().opportunities])
+            self.assertTrue(self.opportunity3.id in [i.id for i in Vendor.query.first().opportunities])
 
             # should redirect and flash properly
             self.assertEquals(post.status_code, 302)
@@ -400,7 +400,7 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.login_user(self.staff)
         staff_pending = self.client.get('/beacon/admin/opportunities/pending')
         self.assert200(staff_pending)
-        self.assertEquals(len(self.get_context_variable('opportunities')), 1)
+        self.assertEquals(len(self.get_context_variable('pending')), 1)
         self.assertTrue('Publish' not in staff_pending.data)
         # make sure staff can't publish somehow
         staff_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(self.opportunity3.id))
@@ -414,7 +414,7 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.login_user(self.admin)
         admin_pending = self.client.get('/beacon/admin/opportunities/pending')
         self.assert200(admin_pending)
-        self.assertEquals(len(self.get_context_variable('opportunities')), 1)
+        self.assertEquals(len(self.get_context_variable('pending')), 1)
         self.assertTrue('Publish' in admin_pending.data)
         admin_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(
             self.opportunity3.id
