@@ -236,13 +236,18 @@ def publish(opportunity_id):
 def pending():
     '''View which contracts are currently pending approval
     '''
-    opportunities = Opportunity.query.filter(
+    pending = Opportunity.query.filter(
         Opportunity.is_public == False
     ).all()
 
+    approved = Opportunity.query.filter(
+        Opportunity.planned_advertise > datetime.date.today(),
+        Opportunity.is_public == True
+    ).all()
+
     return render_template(
-        'opportunities/admin/pending.html', opportunities=opportunities,
-        current_user=current_user
+        'opportunities/admin/pending.html', pending=pending,
+        approved=approved, current_user=current_user
     )
 
 def build_downloadable_groups(val, iterable):
