@@ -60,7 +60,7 @@
       <div class="col-sm-8">
 
         {% if not opportunity.is_advertised %}
-           <div class="alert alert-warning" role="alert">
+           <div class="alert alert-warning beacon-detail" role="alert">
               This opportunity will not be viewable by the general public until advertised on {{ opportunity.planned_advertise.strftime('%B %d, %Y') }}
           </div>
         {% endif %}
