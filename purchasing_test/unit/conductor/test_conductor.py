@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import json
-import unittest
 import datetime
 import urllib2
 from mock import Mock, patch
@@ -9,6 +8,7 @@ from mock import Mock, patch
 from purchasing.data.models import (
     ContractStage, ContractBase, ContractStageActionItem
 )
+from purchasing.opportunities.models import Opportunity
 from purchasing.extensions import mail
 
 from purchasing_test.unit.test_base import BaseTestCase
@@ -25,7 +25,7 @@ class TestConductor(BaseTestCase):
         # create a conductor and general staff person
         self.conductor_role_id = insert_a_role('conductor')
         self.staff_role_id = insert_a_role('staff')
-        self.conductor = insert_a_user(role=self.conductor_role_id)
+        self.conductor = insert_a_user(email='foo@foo.com', role=self.conductor_role_id)
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role_id)
 
         # create three stages, and set up a flow between them
@@ -503,8 +503,21 @@ class TestConductor(BaseTestCase):
             self.assertTrue('test' in outbox[0].subject)
             self.assertTrue('with the subject' in good_post.data)
 
-    @unittest.skip('scout posting not supported yet')
     def test_conductor_post_to_scout(self):
-        '''Test posting to scout from Conductor
+        '''Test posting to beacon from Conductor
         '''
-        pass
+        self.assign_contract()
+
+        detail_view_url = self.build_detail_view(self.contract1, self.stage1)
+        self.client.post(detail_view_url + '?form=post', data=dict(
+            contact_email=self.conductor.email, title='foobar', description='barbaz',
+            planned_advertise=datetime.date.today() + datetime.timedelta(1),
+            planned_open=datetime.date.today() + datetime.timedelta(2),
+            planned_deadline=datetime.date.today() + datetime.timedelta(2)
+        ))
+
+        self.assertEquals(Opportunity.query.count(), 1)
+        self.assertEquals(ContractStageActionItem.query.count(), 2)
+        detail_view = self.client.get(detail_view_url)
+        self.assertEquals(len(self.get_context_variable('actions')), 2)
+        self.assertTrue('barbaz' in detail_view.data)

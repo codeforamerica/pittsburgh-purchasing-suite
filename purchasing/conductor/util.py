@@ -29,14 +29,12 @@ class OpportunityFormObj(object):
         self.title = title
         self.contact_email = contact_email
 
-def create_opp_form_obj(contract):
+def create_opp_form_obj(contract, contact_email=None):
     if contract.opportunity:
         obj = contract.opportunity
         obj.contact_email = contract.opportunity.contact.email
     else:
-        obj = OpportunityFormObj(
-            contract.department, contract.title, contract.contact_email
-        )
+        obj = OpportunityFormObj(contract.department, contract.description, contact_email)
     return obj
 
 def update_contract_with_spec(contract, form_data):
