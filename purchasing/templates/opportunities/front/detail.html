@@ -19,7 +19,7 @@
         {% if opportunity.categories|length > 0 %}
 
         <div class="status status-complete">
-          {% if opportunity.is_pending %}
+          {% if opportunity.is_upcoming %}
           <p class="status-date"><strong>Opening soon!</strong> Accepting proposals starting {{ opportunity.estimate_open() }}</p>
           {% elif opportunity.is_open %}
           <h3>Open: accepting proposals</h3>
