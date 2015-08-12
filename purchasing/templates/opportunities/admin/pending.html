@@ -83,7 +83,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for opportunity in approved %}
+              {% for opportunity in approved|sort(attribute='planned_advertise') %}
               <tr>
                 <td class="col-md-5"><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
                 <td class="col-md-3">{{ opportunity.department }}</td>
