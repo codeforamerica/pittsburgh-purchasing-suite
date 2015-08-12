@@ -23,7 +23,7 @@
 
   {# opportunity #}
   {%- elif action.action_type == 'post' -%}
-  <div class="action-event">
+  <div class="action-event action-event-post">
     {{ pn.print_name(action, current_user) }}
     <strong>{{ action.action_detail.label }}</strong> the <strong>{{ action.action_detail.title }}</strong> opportunity on {{ action.taken_at|datetimeformat }}. <a href="{{ url_for('opportunities.detail', opportunity_id=action.action_detail.opportunity_id) }}">View it on Beacon</a>.
   </div>

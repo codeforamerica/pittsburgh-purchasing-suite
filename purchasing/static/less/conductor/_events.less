@@ -64,16 +64,19 @@
   margin-bottom: 15px;
   border-left: 3px solid darken(@gray-lighter, 10%);
   border-radius: 1px;
-}
 
-.action-event-date {
-  border-left: 3px solid darken(@brand-info, 10%);
-}
+  &.action-event-date {
+    border-left: 3px solid darken(@brand-info, 10%);
+  }
 
-.action-event-reversion {
-  border-left: 3px solid darken(@brand-warning, 10%);
-}
+  &.action-event-reversion {
+    border-left: 3px solid darken(@brand-warning, 10%);
+  }
 
+  &.action-event-post {
+    border-left: 3px solid @brand-beacon;
+  }
+}
 .less-padding-container {
   width: 95%;
 }
