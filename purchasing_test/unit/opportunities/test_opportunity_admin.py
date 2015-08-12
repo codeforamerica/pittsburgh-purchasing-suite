@@ -434,6 +434,10 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.assertEquals(admin_publish.status_code, 302)
         self.assertTrue(Opportunity.query.get(self.opportunity1.id).is_public)
         self.assertFalse(Opportunity.query.get(self.opportunity1.id).is_advertised)
+        self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity1.id)))
+
+        self.logout_user()
+        self.assert404(self.client.get('/beacon/opportunities/{}'.format(self.opportunity1.id)))
 
     def test_pending_notification_email_gated(self):
         '''Test we don't send an email when the opportunity is not advertised
