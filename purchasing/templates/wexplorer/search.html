@@ -46,9 +46,6 @@
       <table class="table table-striped" id="js-sort-results">
         <thead>
           <tr>
-            {% if current_user.is_anonymous() == False %}
-            <th>Star</th>
-            {% endif %}
             <th class="js-sortable-th">Contract Discription</th>
             <th class="js-sortable-th">Company</th>
             <th class="js-sortable-th">Expiration Date</th>
@@ -61,24 +58,6 @@
         <tbody>
           {% for result in results %}
           <tr>
-            {% if current_user.is_anonymous() %}
-            {% elif result.contract_id in user_starred %}
-            <td>
-              <a href="{{ url_for('wexplorer.unstar', contract_id=result.contract_id, next=path) }}">
-                <span class="fa-stack text-center fa-1x">
-                  <i class="fa fa-star"></i>
-                </span>
-              </a>
-            </td>
-            {% else %}
-            <td>
-              <a href="{{ url_for('wexplorer.star', contract_id=result.contract_id, next=path) }}">
-                <span class="fa-stack text-center fa-1x">
-                  <i class="fa fa-star-o"></i>
-                </span>
-              </a>
-            </td>
-            {% endif %}
             <td>
               {% if result.contract_id %}
               <a href="{{ url_for('wexplorer.contract', contract_id=result.contract_id) }}">

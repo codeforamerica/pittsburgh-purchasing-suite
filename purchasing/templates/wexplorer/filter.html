@@ -5,18 +5,22 @@
 {{ super() }}
 
 <div class="container">
+  {% if results %}
   <div class="row">
+    <div class="col-md-10 col-md-offset-1">
 
-    <div class="col-md-12">
-    {% if results %}
       <div class="col-md-9"><h4>{{ department }} subscribes to:</h4></div>
       <div class="col-md-3">{% include "wexplorer/choices.html" %}</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1">
       <table class="table wexplorer-table table-striped table-condensed" id="js-sort-results">
         <thead>
           <tr>
             <th>Contract</th>
             <th class="js-sortable-th">Number of Subscribers</th>
-            <th class="js-sortable-th">Number Starred</th>
           </tr>
         </thead>
         <tbody>
@@ -26,7 +30,6 @@
               {{ result.description|title }}
             </a></td>
             <td>{{ result.cnt }}</td>
-            <td>{{ result.cnt2 }}</td>
           </tr>
         {% endfor %}
         </tbody>
@@ -36,16 +39,27 @@
       {% if pagination.pages > 1 %}
         {{ macros.render_pagination(pagination) }}
       {% endif %}
-    {% elif department %}
+    </div>
+  </div>
+  {% elif department %}
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1">
       <h4>No one from this department has subscribed to any contracts yet!</h4>
       <p>Is this your department? Help compile a list of contracts by <a href="{{ url_for('users.profile') }}">updating your profile</a> and subscribing to contracts that you use!</p>
 
       {% include "wexplorer/choices.html" %}
-    {% else %}
-      <h4>Choose a department to get started!</h4>
-      {% include "wexplorer/choices.html" %}
-    {% endif %}
     </div>
   </div>
+
+  {% else %}
+
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1">
+      <h4>Choose a department to get started!</h4>
+      {% include "wexplorer/choices.html" %}
+    </div>
+  </div>
+
+  {% endif %}
 </div>
 {% endblock %}
