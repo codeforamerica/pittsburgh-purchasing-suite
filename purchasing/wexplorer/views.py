@@ -20,6 +20,7 @@ from purchasing.data.models import (
     ContractBase, contract_user_association_table,
     contract_starred_association_table, SearchView, ContractNote
 )
+from purchasing.users.models import User, Role
 from purchasing.users.models import DEPARTMENT_CHOICES
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
@@ -59,17 +60,14 @@ def filter(department=None):
 
     contracts = db.session.query(
         ContractBase.id, ContractBase.description,
-        db.func.count(contract_user_association_table.c.user_id).label('cnt'),
-        db.func.count(contract_starred_association_table.c.user_id).label('cnt2')
+        db.func.count(contract_user_association_table.c.user_id).label('cnt')
     ).outerjoin(contract_user_association_table).outerjoin(
         contract_starred_association_table
-    ).filter(db.or_(
-        ContractBase.followers.any(department=department),
-        ContractBase.starred.any(department=department)
-    )).group_by(ContractBase).having(db.or_(
-        db.func.count(contract_user_association_table.c.user_id) > 0,
-        db.func.count(contract_starred_association_table.c.user_id) > 0
-    )).order_by(db.text('cnt DESC')).all()
+    ).filter(
+        ContractBase.followers.any(department=department)
+    ).group_by(ContractBase).having(db.or_(
+        db.func.count(contract_user_association_table.c.user_id) > 0
+    )).order_by(db.text('cnt DESC, description ASC')).all()
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
 
@@ -276,7 +274,9 @@ def feedback(contract_id):
             ))
 
             feedback_sent = Notification(
-                to_email=current_app.config['ADMIN_EMAIL'],
+                to_email=db.session.query(User.email).join(Role).filter(
+                    Role.name.in_(['admin', 'superadmin'])
+                ).all(),
                 subject='Wexplorer contract feedback - ID: {id}, Description: {description}'.format(
                     id=contract.id,
                     description=contract.description

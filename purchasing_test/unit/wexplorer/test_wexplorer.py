@@ -266,7 +266,7 @@ class TestWexplorer(BaseTestCase):
             # the mail sent
             self.assertEquals(len(outbox), 1)
             # it went to the right place
-            self.assertTrue(current_app.config['ADMIN_EMAIL'] in outbox[0].send_to)
+            self.assertTrue(self.admin_user.email in outbox[0].send_to)
             # assert the subject is right
             self.assertTrue(str(contract.id) in outbox[0].subject)
             self.assertTrue(contract.description in outbox[0].subject)
