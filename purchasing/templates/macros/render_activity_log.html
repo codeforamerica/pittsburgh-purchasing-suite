@@ -25,7 +25,7 @@
   {%- elif action.action_type == 'post' -%}
   <div class="action-event">
     {{ pn.print_name(action, current_user) }}
-    created an opportunity named <strong>{{ action.action_detail.title }}</strong> on {{ action.taken_at|datetimeformat }}. <a href="{{ url_for('opportunities.detail', opportunity_id=action.action_detail.opportunity_id) }}">View it on Beacon</a>.
+    <strong>{{ action.action_detail.label }}</strong> the <strong>{{ action.action_detail.title }}</strong> opportunity on {{ action.taken_at|datetimeformat }}. <a href="{{ url_for('opportunities.detail', opportunity_id=action.action_detail.opportunity_id) }}">View it on Beacon</a>.
   </div>
 
   {# date handling #}

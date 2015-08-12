@@ -29,7 +29,7 @@ from purchasing.conductor.forms import (
 
 from purchasing.conductor.util import (
     update_contract_with_spec, handle_form, ContractMetadataObj,
-    build_action_log, build_subscribers, OpportunityFormObj
+    build_action_log, build_subscribers, create_opp_form_obj
 )
 
 from purchasing.opportunities.util import generate_opportunity_form
@@ -166,7 +166,7 @@ def detail(contract_id, stage_id=-1):
     note_form = NoteForm()
     update_form = SendUpdateForm()
     opportunity_form, categories, subcategories = generate_opportunity_form(
-        obj=OpportunityFormObj(contract.department, better_title(contract.description)),
+        obj=create_opp_form_obj(contract),
         form=PostOpportunityForm
     )
     metadata_form = ContractMetadataForm(obj=ContractMetadataObj(contract))

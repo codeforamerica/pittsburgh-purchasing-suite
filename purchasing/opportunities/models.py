@@ -75,9 +75,6 @@ class Opportunity(Model):
     planned_deadline = Column(db.DateTime, nullable=False)
     # Created from contract
     created_from_id = ReferenceCol('contract', ondelete='cascade', nullable=True)
-    created_from = db.relationship('ContractBase', backref=backref(
-        'opportunities', lazy='dynamic'
-    ))
 
     # documents needed from the vendors
     vendor_documents_needed = Column(ARRAY(db.Integer()))

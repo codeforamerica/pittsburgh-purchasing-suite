@@ -134,6 +134,8 @@ class ContractBase(Model):
     is_visible = Column(db.Boolean, default=False, nullable=False)
     is_archived = Column(db.Boolean, default=False, nullable=False)
 
+    opportunity = db.relationship('Opportunity', uselist=False, backref='opportunity')
+
     parent_id = Column(db.Integer, db.ForeignKey('contract.id'))
     child = db.relationship('ContractBase', backref=backref(
         'parent', remote_side=[id]

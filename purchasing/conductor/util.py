@@ -29,6 +29,16 @@ class OpportunityFormObj(object):
         self.title = title
         self.contact_email = contact_email
 
+def create_opp_form_obj(contract):
+    if contract.opportunity:
+        obj = contract.opportunity
+        obj.contact_email = contract.opportunity.contact.email
+    else:
+        obj = OpportunityFormObj(
+            contract.department, contract.title, contract.contact_email
+        )
+    return obj
+
 def update_contract_with_spec(contract, form_data):
     spec_number = contract.get_spec_number()
 
@@ -72,6 +82,10 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
             ).send()
 
         elif form_name == 'post':
+            label = 'created'
+            if contract.opportunity:
+                label = 'updated'
+
             form_data = fix_form_categories(request, form, Opportunity, None)
             # add the contact email, documents back on because it was stripped by the cleaning
             form_data['contact_email'] = form.data.get('contact_email')
@@ -80,9 +94,14 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
             form_data['created_from_id'] = contract.id
             # strip the is_public field from the form data, it's not part of the form
             form_data.pop('is_public')
-            opportunity = build_opportunity(form_data, publish=request.form.get('save_type'))
+            opportunity = build_opportunity(
+                form_data, publish=request.form.get('save_type'), opportunity=contract.opportunity
+            )
 
-            action.action_detail = {'opportunity_id': opportunity.id, 'title': opportunity.title}
+            action.action_detail = {
+                'opportunity_id': opportunity.id, 'title': opportunity.title,
+                'label': label
+            }
 
         elif form_name == 'update-metadata':
             # remove the blank hidden field -- we don't need it
