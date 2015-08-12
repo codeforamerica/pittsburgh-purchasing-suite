@@ -11,6 +11,8 @@ from wtforms.validators import DataRequired, URL, Optional, ValidationError
 
 from purchasing.users.models import department_query
 
+from purchasing.opportunities.forms import OpportunityForm
+
 EMAIL_REGEX = re.compile(r'^.+@([^.@][^@]+)$', re.IGNORECASE)
 
 def not_all_hidden(form, field):
@@ -61,9 +63,7 @@ class SendUpdateForm(Form):
     subject = TextField(validators=[DataRequired()])
     body = TextAreaField(validators=[DataRequired()])
 
-class PostOpportunityForm(Form):
-    '''
-    '''
+class PostOpportunityForm(OpportunityForm):
     pass
 
 class NoteForm(Form):

@@ -9,6 +9,7 @@ from flask import (
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
 
+from purchasing.filters import better_title
 from purchasing.decorators import requires_roles
 from purchasing.database import db
 from purchasing.notifications import Notification
@@ -26,10 +27,12 @@ from purchasing.conductor.forms import (
     SendUpdateForm, NoteForm, ContractMetadataForm
 )
 
-from purchasing.conductor.manager.helpers import (
+from purchasing.conductor.util import (
     update_contract_with_spec, handle_form, ContractMetadataObj,
-    build_action_log, build_subscribers
+    build_action_log, build_subscribers, OpportunityFormObj
 )
+
+from purchasing.opportunities.util import generate_opportunity_form
 
 blueprint = Blueprint(
     'conductor', __name__, url_prefix='/conductor',
@@ -162,7 +165,10 @@ def detail(contract_id, stage_id=-1):
 
     note_form = NoteForm()
     update_form = SendUpdateForm()
-    opportunity_form = PostOpportunityForm()
+    opportunity_form, categories, subcategories = generate_opportunity_form(
+        obj=OpportunityFormObj(contract.department, better_title(contract.description)),
+        form=PostOpportunityForm
+    )
     metadata_form = ContractMetadataForm(obj=ContractMetadataObj(contract))
 
     forms = {
@@ -198,7 +204,8 @@ def detail(contract_id, stage_id=-1):
             contract=contract, current_user=current_user,
             active_stage=active_stage, current_stage=current_stage,
             flows=flows, subscribers=subscribers,
-            total_subscribers=total_subscribers
+            total_subscribers=total_subscribers, categories=categories,
+            subcategories=subcategories
         )
     abort(404)
 

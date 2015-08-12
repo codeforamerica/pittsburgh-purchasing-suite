@@ -1,28 +1,24 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-import os
-import json
 
 from flask import (
-    render_template, url_for, current_app, Response, stream_with_context,
+    render_template, url_for, Response, stream_with_context,
     redirect, flash, abort, request, Blueprint
 )
 from flask_login import current_user
-from werkzeug import secure_filename
 
-from purchasing.utils import (
-    connect_to_s3, _get_aggressive_cache_headers, random_id
-)
 from purchasing.database import db
 from purchasing.extensions import login_manager
 from purchasing.decorators import requires_roles
-from purchasing.opportunities.forms import OpportunityForm
 from purchasing.opportunities.models import (
-    Opportunity, RequiredBidDocument, Category, Vendor, OpportunityDocument
+    Opportunity, Category, Vendor, OpportunityDocument
 )
-from purchasing.users.models import User, Role
-from purchasing.opportunities.util import get_categories, fix_form_categories
+from purchasing.users.models import User
+from purchasing.opportunities.util import (
+    fix_form_categories, generate_opportunity_form, build_opportunity,
+    build_vendor_row
+)
 from purchasing.notifications import Notification
 
 blueprint = Blueprint(
@@ -33,108 +29,6 @@ blueprint = Blueprint(
 @login_manager.user_loader
 def load_user(userid):
     return User.get_by_id(int(userid))
-
-def upload_document(document, _id):
-    if document is None or document == '':
-        return None, None
-
-    filename = secure_filename(document.filename)
-
-    if filename == '':
-        return None, None
-
-    _filename = 'opportunity-{}-{}'.format(_id, filename)
-
-    if current_app.config.get('UPLOAD_S3') is True:
-        # upload file to s3
-        conn, bucket = connect_to_s3(
-            current_app.config['AWS_ACCESS_KEY_ID'],
-            current_app.config['AWS_SECRET_ACCESS_KEY'],
-            current_app.config['UPLOAD_DESTINATION']
-        )
-        _document = bucket.new_key(_filename)
-        aggressive_headers = _get_aggressive_cache_headers(_document)
-        _document.set_contents_from_file(document, headers=aggressive_headers, replace=True)
-        _document.set_acl('public-read')
-        return _document.name, _document.generate_url(expires_in=0, query_auth=False)
-
-    else:
-        try:
-            os.mkdir(current_app.config['UPLOAD_DESTINATION'])
-        except:
-            pass
-
-        filepath = os.path.join(current_app.config['UPLOAD_DESTINATION'], _filename)
-        document.save(filepath)
-        return filepath
-
-def build_opportunity(data, publish=None, opportunity=None):
-    '''Create/edit a new opportunity
-
-    data - the form data from the request
-    publish - either 'publish' or 'save':
-      determines if the opportunity should be made public
-    opportunity - the actual opportunity object
-    '''
-    contact_email = data.pop('contact_email')
-    contact = User.query.filter(User.email == contact_email).first()
-
-    # pop off our documents so they don't
-    # get passed to the Opportunity constructor
-    documents = data.pop('documents')
-
-    if contact is None:
-        contact = User().create(
-            email=contact_email,
-            role=Role.query.filter(Role.name == 'staff').first(),
-            department=data.get('department')
-        )
-
-    _id = opportunity.id if opportunity else None
-
-    data.update(dict(contact_id=contact.id))
-
-    if opportunity:
-        opportunity = opportunity.update(**data)
-    else:
-        data.update(dict(created_by_id=current_user.id))
-        opportunity = Opportunity.create(**data)
-
-    opp_documents = opportunity.opportunity_documents.all()
-
-    for document in documents.entries:
-        if document.title.data == '':
-            continue
-
-        _id = _id if _id else random_id(6)
-
-        _file = document.document.data
-        if _file.filename in [i.name for i in opp_documents]:
-            continue
-
-        filepath = upload_document(_file, _id)
-        if filepath:
-            opportunity.opportunity_documents.append(OpportunityDocument(
-                name=document.title.data, href=filepath
-            ))
-
-    if not opportunity.is_public:
-        opportunity.is_public = True if publish == 'publish' else False
-
-    db.session.commit()
-    return opportunity
-
-def generate_opportunity_form(obj=None):
-    all_categories = Category.query.all()
-    form = OpportunityForm(obj=obj)
-
-    categories, subcategories, form = get_categories(all_categories, form)
-    display_categories = subcategories.keys()
-    display_categories.remove('Select All')
-
-    form.vendor_documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
-
-    return form, json.dumps(sorted(display_categories) + ['Select All']), json.dumps(subcategories)
 
 @blueprint.route('/opportunities/new', methods=['GET', 'POST'])
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
@@ -177,7 +71,7 @@ def edit(opportunity_id):
             # strip the is_public field from the form data, it's not part of the form
             form_data.pop('is_public')
             build_opportunity(form_data, publish=request.form.get('save_type'), opportunity=opportunity)
-            flash('Opportunity Successfully Updated!', 'alert-success')
+            flash('Opportunity Successfully Created!', 'alert-success')
             return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
 
         return render_template(
@@ -249,28 +143,6 @@ def pending():
         'opportunities/admin/pending.html', pending=pending,
         approved=approved, current_user=current_user
     )
-
-def build_downloadable_groups(val, iterable):
-    '''Sorts and dedupes related lists
-
-    Handles quoting, deduping, and sorting
-    '''
-    return '"' + '; '.join(
-        sorted(list(set([i.__dict__[val] for i in iterable])))
-    ) + '"'
-
-def build_vendor_row(vendor):
-    '''Takes in a vendor and returns a list of that vendor's properties
-
-    Used to build the signup csv download
-    '''
-    return [
-        vendor.first_name, vendor.last_name, vendor.business_name,
-        vendor.email, vendor.phone_number, vendor.minority_owned,
-        vendor.woman_owned, vendor.veteran_owned, vendor.disadvantaged_owned,
-        build_downloadable_groups('category_friendly_name', vendor.categories),
-        build_downloadable_groups('title', vendor.opportunities)
-    ]
 
 @blueprint.route('/signups')
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')

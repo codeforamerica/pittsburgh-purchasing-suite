@@ -2,18 +2,19 @@
 
 import datetime
 
+from flask import request
 from flask_login import current_user
-from sqlalchemy.exc import IntegrityError
 
 from purchasing.database import db
 from purchasing.notifications import Notification
 
-from purchasing.data.models import (
-    ContractStageActionItem
-)
-
+from purchasing.data.models import ContractStageActionItem
+from purchasing.opportunities.models import Opportunity
 from purchasing.users.models import User, Role, Department
-from purchasing.data.stages import transition_stage
+
+from purchasing.opportunities.util import (
+    build_opportunity, upload_document, fix_form_categories
+)
 
 class ContractMetadataObj(object):
     def __init__(self, contract):
@@ -21,6 +22,12 @@ class ContractMetadataObj(object):
         self.financial_id = contract.financial_id
         self.spec_number = contract.get_spec_number().value
         self.department = contract.department
+
+class OpportunityFormObj(object):
+    def __init__(self, department, title, contact_email=None):
+        self.department = department
+        self.title = title
+        self.contact_email = contact_email
 
 def update_contract_with_spec(contract, form_data):
     spec_number = contract.get_spec_number()
@@ -64,8 +71,18 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
                 body=form.data.get('body')
             ).send()
 
-        elif form_name == 'opportunity':
-            pass
+        elif form_name == 'post':
+            form_data = fix_form_categories(request, form, Opportunity, None)
+            # add the contact email, documents back on because it was stripped by the cleaning
+            form_data['contact_email'] = form.data.get('contact_email')
+            form_data['documents'] = form.documents
+            # add the created_by_id
+            form_data['created_from_id'] = contract.id
+            # strip the is_public field from the form data, it's not part of the form
+            form_data.pop('is_public')
+            opportunity = build_opportunity(form_data, publish=request.form.get('save_type'))
+
+            action.action_detail = {'opportunity_id': opportunity.id, 'title': opportunity.title}
 
         elif form_name == 'update-metadata':
             # remove the blank hidden field -- we don't need it

@@ -18,7 +18,7 @@ from purchasing.opportunities.models import (
 )
 from purchasing.users.models import User
 from purchasing.data.importer.nigp import main as import_nigp
-from purchasing.opportunities.admin.views import upload_document
+from purchasing.opportunities.util import upload_document
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.factories import (
@@ -235,8 +235,6 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
             'planned_open': datetime.date.today(), 'title': 'Updated', 'is_public': True,
             'description': 'Updated Contract!', 'save_type': 'public'
         })
-
-        self.assert_flashes('Opportunity Successfully Updated!', 'alert-success')
 
         self.assert200(self.client.get('/beacon/opportunities'))
         self.assertEquals(len(self.get_context_variable('_open')), 2)

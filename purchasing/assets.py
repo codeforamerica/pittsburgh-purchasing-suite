@@ -54,6 +54,7 @@ vendorjs = Bundle(
 )
 
 opportunitiesjs = Bundle(
+    'js/shared/categories.js',
     'js/opportunities/*.js',
     filters='uglifyjs',
     output='public/js/beacon.js'
@@ -66,6 +67,7 @@ wexplorerjs = Bundle(
 )
 
 conductorjs = Bundle(
+    'js/shared/categories.js',
     'js/conductor/*.js',
     'libs/datatables/media/js/jquery.dataTables.js',
     filters='uglifyjs',

@@ -5,7 +5,7 @@ import datetime
 
 from flask import current_app
 from flask_wtf import Form
-from flask_wtf.file import FileField, FileAllowed, FileRequired
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import widgets, fields
 from wtforms.validators import (
     DataRequired, Email, ValidationError, Optional, InputRequired
