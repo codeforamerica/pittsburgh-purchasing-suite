@@ -1,5 +1,9 @@
 {% extends "opportunities/layout.html" %}
 
+{% block page_title %}
+   {{ super() }} - Details about {{ opportunity.title }}
+{% endblock %}
+
 {% block content %}
 
 <div class="container-fluid detail-title">
