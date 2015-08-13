@@ -35,13 +35,13 @@ TRIGGER_TUPLES = [
 def disable_triggers():
     for table, column in TRIGGER_TUPLES:
         db.session.execute(db.text('''
-            ALTER TABLE {table} DISABLE TRIGGER ALL
+            ALTER TABLE {table} DISABLE TRIGGER USER
         '''.format(table=table, column=column)))
 
 def enable_triggers():
     for table, column in TRIGGER_TUPLES:
         db.session.execute(db.text('''
-            ALTER TABLE {table} ENABLE TRIGGER ALL
+            ALTER TABLE {table} ENABLE TRIGGER USER
         '''.format(table=table, column=column)))
 
 def refresh_search_view():
