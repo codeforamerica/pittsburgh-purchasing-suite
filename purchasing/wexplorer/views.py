@@ -12,17 +12,14 @@ from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import Notification
-from purchasing.users.models import get_department_choices, Department
+from purchasing.users.models import get_department_choices, Department, User, Role
 from purchasing.wexplorer.forms import (
     SearchForm, FeedbackForm, FilterForm, NoteForm
 )
 from purchasing.data.searches import find_contract_metadata, return_all_contracts
 from purchasing.data.models import (
-    ContractBase, contract_user_association_table,
-    contract_starred_association_table, SearchView, ContractNote
+    SearchView, ContractNote
 )
-from purchasing.users.models import User, Role
-from purchasing.users.models import DEPARTMENT_CHOICES
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
     get_one_contract, follow_a_contract, unfollow_a_contract
@@ -73,21 +70,17 @@ def filter(department_id):
         '''
         SELECT
             contract.id, description,
-            count(contract_starred_association.user_id) AS stars,
             count(contract_user_association.user_id) AS follows
         FROM contract
-        LEFT OUTER JOIN contract_starred_association
-            ON contract.id = contract_starred_association.contract_id
         LEFT OUTER JOIN contract_user_association
             ON contract.id = contract_user_association.contract_id
         FULL OUTER JOIN users
-            ON contract_starred_association.user_id = users.id
-            OR contract_user_association.user_id = users.id
+            ON contract_user_association.user_id = users.id
         JOIN department
             ON users.department_id = department.id
         WHERE department.id = :department
         GROUP BY 1,2
-        ORDER BY 3 DESC, 4 DESC, 1 ASC
+        ORDER BY 3 DESC, 1 ASC
         ''', {'department': int(department_id)}
     ).fetchall()
 

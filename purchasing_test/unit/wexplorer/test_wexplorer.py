@@ -184,18 +184,18 @@ class TestWexplorer(BaseTestCase):
         '''Test that filter page works properly and shows the error where appropriate
         '''
         self.login_user(self.admin_user)
-        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
-        self.client.get('/scout/contracts/{}/star'.format(self.contract2.id))
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract2.id))
 
         self.login_user(self.superadmin_user)
-        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
 
         # filter by contracts associated with Other department
         self.client.get('/scout/filter/{}'.format(self.admin_user.department_id))
         self.assertEquals(len(self.get_context_variable('results')), 2)
         # assert that contract 1 is first
         self.assertEquals(self.get_context_variable('results')[0].id, self.contract1.id)
-        self.assertEquals(self.get_context_variable('results')[0].stars, 2)
+        self.assertEquals(self.get_context_variable('results')[0].follows, 2)
 
         # assert that the department must be a real department
         request = self.client.get('/scout/filter/FAKEFAKEFAKE')
@@ -263,11 +263,6 @@ class TestWexplorer(BaseTestCase):
             self.assertEquals(len(outbox), 1)
             # it went to the right place
             self.assertTrue(self.admin_user.email in outbox[0].send_to)
-            # assert the subject is right
-            self.assertTrue(str(contract.id) in outbox[0].subject)
-            self.assertTrue(contract.description in outbox[0].subject)
-            # the message body contains the right email address
-            self.assertTrue(self.admin_user.email in outbox[0].html)
             # it redirects and flashes correctly
             self.assertEquals(success_post.status_code, 302)
             self.assertEquals(success_post.location, 'http://localhost/scout/contracts/{}'.format(self.contract1.id))
