@@ -23,7 +23,8 @@ CONSTANT_FIELDS = [
     'E-MAIL ADDRESS', 'FAX #', 'PHONE #'
 ]
 
-VALID_FILENAMES = re.compile(r'(COSTARS|costars)(-| )\d+\.csv')
+VALID_FILENAMES = re.compile(r'^(COSTARS|costars)(-| )\d+\.csv$')
+JUNK_STRING = re.compile(r'((\, )?(LLC|llc))|(\(.+\))|((\, )?[Ii]nc\.?)|( ?[Cc]o\.?)|( ?d\.?b\.?a\.?)')
 
 def convert_to_bool(field):
     if field == 'Yes' or field == 'yes':
@@ -125,7 +126,7 @@ def main(filetarget, filename, access_key, access_secret, bucket):
                     _file_awardee = _filename.split('-')[2]
 
                     # check for absolute matches
-                    match_ratio = SM(None, costars_awardee, _file_awardee).ratio()
+                    match_ratio = SM(lambda x: bool(re.match(JUNK_STRING, x)), costars_awardee, _file_awardee).ratio()
                     if match_ratio == 1:
                         # this is an absolute match, insert it into the db and break
                         max_ratio = (_file.generate_url(expires_in=0, query_auth=False), match_ratio)
@@ -140,7 +141,9 @@ def main(filetarget, filename, access_key, access_secret, bucket):
                         continue
 
                 # use the best match that we have
-                contract.contract_href = max_ratio[0]
+                print contract.description, max_ratio
+                if max_ratio[1] > 0.8:
+                    contract.contract_href = max_ratio[0]
 
             for k, v in row.iteritems():
                 if k in CONSTANT_FIELDS:
