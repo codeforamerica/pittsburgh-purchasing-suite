@@ -24,7 +24,7 @@ CONSTANT_FIELDS = [
 ]
 
 VALID_FILENAMES = re.compile(r'^(COSTARS|costars)(-| )\d+\.csv$')
-JUNK_STRING = re.compile(r'((\, )?(LLC|llc))|(\(.+\))|((\, )?[Ii]nc\.?)|( ?[Cc]o\.?)|( ?d\.?b\.?a\.?)')
+JUNK_STRING = re.compile(r'((\, )?(LLC|llc))|(\(.+\))|((\, )?[Ii]nc\.?)|( ?d\.?b\.?a\.?)')
 
 def convert_to_bool(field):
     if field == 'Yes' or field == 'yes':
@@ -142,7 +142,7 @@ def main(filetarget, filename, access_key, access_secret, bucket):
 
                 # use the best match that we have
                 print contract.description, max_ratio
-                if max_ratio[1] > 0.8:
+                if max_ratio[1] > 0.7:
                     contract.contract_href = max_ratio[0]
 
             for k, v in row.iteritems():
