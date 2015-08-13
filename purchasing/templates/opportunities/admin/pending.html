@@ -11,7 +11,7 @@
       <h3><strong>Opportunities awaiting OMB approval</strong></h3>
       <div class="spacer-20"></div>
 
-      {% for opportunity in opportunities %}
+      {% for opportunity in pending %}
       <div class="pending-opportunity">
         <div class="row">
           <div class="col-xs-12">
@@ -28,7 +28,7 @@
                 </a>
                 {% endif %}
                 {% if not current_user.is_anonymous() and current_user.is_conductor() %}
-                  <a href="{{ url_for('opportunities_admin.publish', opportunity_id=opportunity.id) }}" class="btn btn-primary">Publish on {{ opportunity.planned_open.strftime('%m/%d/%y') }}</a>
+                  <a href="{{ url_for('opportunities_admin.publish', opportunity_id=opportunity.id) }}" class="btn btn-primary">Publish on {{ opportunity.planned_advertise.strftime('%m/%d/%y') }}</a>
                 {% endif %}
                 </div>
               </div>
@@ -41,11 +41,11 @@
             <div class="row">
               <div class="col-xs-4">
                 <h4>Planned Advertise Date</h4>
-                <p>{{ opportunity.planned_open.strftime('%m/%d/%y') }}</p>
+                <p>{{ opportunity.planned_advertise.strftime('%m/%d/%y') }}</p>
               </div>
               <div class="col-xs-4">
                 <h4>Planned Open Date</h4>
-                <p>{{ opportunity.planned_deadline.strftime('%m/%d/%y') }}</p>
+                <p>{{ opportunity.planned_open.strftime('%m/%d/%y') }}</p>
               </div>
               <div class="col-xs-4">
                 <h4>Planned Deadline</h4>
@@ -59,10 +59,45 @@
       </div><!-- pending opportunity card -->
       {% endfor %}
 
-      {% if opportunities|length == 0 %}
+      {% if pending|length == 0 %}
       <p class="lead">
         There are no currently pending opportunities. You can <a href="{{ url_for('opportunities_admin.new') }}">create a new one</a> and it will appear here!
       </p>
+      {% endif %}
+
+      {% if approved|length > 0 %}
+      <h3><strong>Opportunities approved and scheduled to publish</strong></h3>
+      <div class="spacer-20"></div>
+
+      <div class="table-responsive">
+        <table class="table table-striped table-beacon">
+          <thead>
+            <tr>
+              <th>Opportunity</th>
+              <th>Department</th>
+              <th>Public on</th>
+              {% if not current_user.is_anonymous() %}
+              <th>Edit </th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for opportunity in approved|sort(attribute='planned_advertise') %}
+            <tr>
+              <td class="col-md-5"><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
+              <td class="col-md-3">{{ opportunity.department }}</td>
+              <td class="col-md-2">{{ opportunity.planned_advertise.strftime('%m/%d/%y') }}</td>
+              {% if opportunity.can_edit(current_user) %}
+              <td class="col-md-2"><a href="{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
+              {% elif not current_user.is_anonymous() %}
+              <td><i class="fa fa-minus"></i></td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
       {% endif %}
 
     </div>

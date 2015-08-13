@@ -19,7 +19,7 @@
         {% if opportunity.categories|length > 0 %}
 
         <div class="status status-complete">
-          {% if opportunity.is_pending %}
+          {% if opportunity.is_upcoming %}
           <p class="status-date"><strong>Opening soon!</strong> Accepting proposals starting {{ opportunity.estimate_open() }}</p>
           {% elif opportunity.is_open %}
           <h3>Open: accepting proposals</h3>
@@ -58,6 +58,12 @@
     <div class="col-md-12">
       {% include 'includes/flashes.html' %}
       <div class="col-sm-8">
+
+        {% if not opportunity.is_advertised %}
+           <div class="alert alert-warning beacon-detail" role="alert">
+              This opportunity will not be viewable by the general public until advertised on {{ opportunity.planned_advertise.strftime('%B %d, %Y') }}
+          </div>
+        {% endif %}
 
         <div class="row">
           <div class="detail-description">

@@ -111,6 +111,11 @@ class Opportunity(Model):
     def is_closed(self):
         return self.coerce_to_date(self.planned_deadline) <= datetime.date.today() and self.is_public
 
+    def can_view(self, user):
+        '''Check if a user can see opportunity detail
+        '''
+        return False if user.is_anonymous() and not self.is_advertised else True
+
     def can_edit(self, user):
         '''Check if a user can edit the contract
         '''
