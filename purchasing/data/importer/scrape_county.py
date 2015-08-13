@@ -11,7 +11,7 @@ from urlparse import urlparse
 
 from sqlalchemy import or_
 from purchasing.database import db
-from purchasing.data.models import ContractBase, ContractProperty, LineItem, Company
+from purchasing.data.models import ContractBase, ContractProperty, LineItem
 from purchasing.public.models import AppStatus
 
 from purchasing.data.importer import get_or_create
@@ -251,7 +251,9 @@ def save_line_item(_line_items, contract):
         SELECT id, company_name
         FROM company
         WHERE company_name ilike '%' || :name || '%'
-        OR :name ~* company_name
+        OR (select count(*) from (
+                select regexp_matches(lower(company_name), lower(:name))
+        ) x ) > 0
         ''', {
             'name': item.get('company')
         }
