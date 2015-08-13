@@ -10,7 +10,10 @@ from flask.ext.assets import ManageAssets
 from purchasing.app import create_app
 from purchasing.settings import DevConfig, ProdConfig
 from purchasing.database import db
-from purchasing.utils import connect_to_s3, upload_file
+from purchasing.utils import (
+    connect_to_s3, upload_file, disable_triggers, enable_triggers,
+    refresh_search_view
+)
 
 from purchasing.public.models import AppStatus
 
@@ -59,16 +62,21 @@ def seed_user(email, role, dept):
 
 @manager.option(
     '-f', '--file', dest='filepath',
-    default='./purchasing/data/importer/files/2015-05-22-contractlist.csv'
+    default='./purchasing/data/importer/files/2015-08-13-contractlist.csv'
 )
 def import_old_contracts(filepath):
     '''
     Takes a csv of old contracts and imports them into the DB
     '''
+    print 'Disabling triggers...'
+    disable_triggers()
     from purchasing.data.importer.old_contracts import main
     print 'Importing data from {filepath}\n'.format(filepath=filepath)
     main(filepath)
     print 'Import finished!'
+    print 'Enabling triggers...'
+    enable_triggers()
+    refresh_search_view()
     return
 
 @manager.option('-u', '--user_id', dest='user', default=os.environ.get('AWS_ACCESS_KEY_ID'))
@@ -83,12 +91,17 @@ def import_costars(user=None, secret=None, bucket=None, directory=None):
     Takes a directory which contains a number of csv files with the
     costars data, and then important them into the DB
     '''
+    print 'Disabling triggers...'
+    disable_triggers()
     from purchasing.data.importer.costars import main
     for file in os.listdir(directory):
         if file.endswith('.csv'):
             print 'Importing data from {file}'.format(file=file)
             main(os.path.join(directory, file), file, user, secret, bucket)
     print 'Import finished!'
+    print 'Enabling triggers...'
+    enable_triggers()
+    refresh_search_view()
     return
 
 @manager.option(
@@ -111,20 +124,30 @@ def import_nigp(filepath, replace=False):
 
 @manager.option('-a', '--all', dest='_all', default=None)
 def scrape(_all):
+    print 'Disabling triggers...'
+    disable_triggers()
     from purchasing.data.importer.scrape_county import main
     print 'Scraping County'
     main(_all)
     print 'Scraping Finished'
+    print 'Enabling triggers...'
+    enable_triggers()
+    refresh_search_view()
     return
 
 @manager.command
 def delete_contracts():
     if prompt_bool("Are you sure you want to lose all contracts & companies?"):
+        print 'Disabling triggers...'
+        disable_triggers()
         print 'Deleting!'
         from purchasing.data.models import ContractBase, Company
         ContractBase.query.delete()
         Company.query.delete()
         db.session.commit()
+        print 'Enabling triggers...'
+        enable_triggers()
+        refresh_search_view()
     return
 
 @manager.option('-u', '--user_id', dest='user')
@@ -209,6 +232,7 @@ def seed(user=None, secret=None, bucket=None):
     import_costars(user, secret, 'costars', './purchasing/data/importer/seed/costars')
     # import seed nigp
     import_nigp('./purchasing/data/importer/seed/2015-07-01-seed-nigp-cleaned.csv')
+    print ''
 
 @manager.command
 def reset_conductor():

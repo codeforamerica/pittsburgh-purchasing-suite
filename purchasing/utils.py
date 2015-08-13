@@ -14,6 +14,8 @@ from flask import flash, request, url_for
 from flask_login import current_user
 from boto.s3.connection import S3Connection
 
+from purchasing.database import db
+
 # modified from https://gist.github.com/bsmithgall/372de43205804a2279c9
 SMALL_WORDS = re.compile(r'^(a|an|and|as|at|but|by|en|etc|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$', re.I)
 SPACE_SPLIT = re.compile(r'[\t ]')
@@ -22,6 +24,30 @@ CAP_WORDS = re.compile(r'^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})
 PUNC_REGEX = re.compile(r'[{}]'.format(re.escape(string.punctuation)))
 # taken from python-titlecase: https://github.com/ppannuto/python-titlecase/blob/master/titlecase/__init__.py#L27
 UC_INITIALS = re.compile(r'^(?:[A-Z]{1}\.{1}|[A-Z]{1}\.{1}[A-Z]{1})+$', re.I)
+
+TRIGGER_TUPLES = [
+    ('contract', 'description'),
+    ('company', 'company_name'),
+    ('contract_property', 'value'),
+    ('line_item', 'description'),
+]
+
+def disable_triggers():
+    for table, column in TRIGGER_TUPLES:
+        db.session.execute(db.text('''
+            ALTER TABLE {table} DISABLE TRIGGER ALL
+        '''.format(table=table, column=column)))
+
+def enable_triggers():
+    for table, column in TRIGGER_TUPLES:
+        db.session.execute(db.text('''
+            ALTER TABLE {table} ENABLE TRIGGER ALL
+        '''.format(table=table, column=column)))
+
+def refresh_search_view():
+    db.session.execute(db.text('''
+        REFRESH MATERIALIZED VIEW CONCURRENTLY search_view
+    '''))
 
 def random_id(n):
     '''Returns random id of length n
