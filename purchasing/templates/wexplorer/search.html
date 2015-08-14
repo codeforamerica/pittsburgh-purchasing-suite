@@ -85,7 +85,7 @@
                 Stop receiving updates
               </a>
             </td>
-            {% elif current_user.role.name %}
+            {% else %}
             <td>
               <a href="{{ url_for('wexplorer.subscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-primary">
                 Subscribe for updates
