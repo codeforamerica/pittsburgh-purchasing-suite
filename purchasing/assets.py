@@ -70,6 +70,7 @@ conductorjs = Bundle(
     'js/shared/categories.js',
     'js/conductor/*.js',
     'libs/datatables/media/js/jquery.dataTables.js',
+    'libs/select2/dist/js/select2.full.js',
     filters='uglifyjs',
     output='public/js/conductor.js'
 )

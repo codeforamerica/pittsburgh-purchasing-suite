@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import json
 
 from flask import request
 from flask_login import current_user
@@ -13,7 +14,7 @@ from purchasing.opportunities.models import Opportunity
 from purchasing.users.models import User, Role, Department
 
 from purchasing.opportunities.util import (
-    build_opportunity, upload_document, fix_form_categories
+    build_opportunity, fix_form_categories
 )
 
 class ContractMetadataObj(object):
@@ -29,6 +30,10 @@ class OpportunityFormObj(object):
         self.title = title
         self.contact_email = contact_email
 
+def json_serial(obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()
+
 def create_opp_form_obj(contract, contact_email=None):
     if contract.opportunity:
         obj = contract.opportunity
@@ -37,7 +42,7 @@ def create_opp_form_obj(contract, contact_email=None):
         obj = OpportunityFormObj(contract.department, contract.description, contact_email)
     return obj
 
-def update_contract_with_spec(contract, form_data):
+def update_contract_with_spec(contract, form_data, company=None):
     spec_number = contract.get_spec_number()
 
     data = form_data
@@ -48,8 +53,15 @@ def update_contract_with_spec(contract, form_data):
         spec_number.value = new_spec
         contract.properties.append(spec_number)
 
+    if company:
+        contract.companies.append(company)
+
     contract.update(**data)
+
     return contract, spec_number
+
+def get_or_create_company_contact(form_data):
+    pass
 
 def handle_form(form, form_name, stage_id, user, contract, current_stage):
     if form.validate_on_submit():

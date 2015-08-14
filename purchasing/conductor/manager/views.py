@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import urllib2
+import json
 
 from flask import (
     Blueprint, render_template, flash, redirect,
-    url_for, abort, request, jsonify
+    url_for, abort, request, jsonify, session
 )
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
 
-from purchasing.filters import better_title
 from purchasing.decorators import requires_roles
 from purchasing.database import db
 from purchasing.notifications import Notification
@@ -24,12 +24,13 @@ from purchasing.data.models import (
 from purchasing.users.models import User, Role
 from purchasing.conductor.forms import (
     EditContractForm, PostOpportunityForm,
-    SendUpdateForm, NoteForm, ContractMetadataForm
+    SendUpdateForm, NoteForm, ContractMetadataForm, CompanyForm
 )
 
 from purchasing.conductor.util import (
     update_contract_with_spec, handle_form, ContractMetadataObj,
-    build_action_log, build_subscribers, create_opp_form_obj
+    build_action_log, build_subscribers, create_opp_form_obj,
+    get_or_create_company_contact, json_serial
 )
 
 from purchasing.opportunities.util import generate_opportunity_form
@@ -226,19 +227,37 @@ def delete_note(contract_id, stage_id, note_id):
         flash('Something went wrong: {}'.format(e.message), 'alert-danger')
     return redirect(url_for('conductor.detail', contract_id=contract_id))
 
-@blueprint.route('/contract/<int:contract_id>/edit', methods=['GET', 'POST'])
+@blueprint.route('/contract/<int:contract_id>/edit/contract', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def edit(contract_id):
     '''Update information about a contract
     '''
     contract = ContractBase.query.get(contract_id)
-    spec_number = None
+
+    # clear the contract from our session
+    session.pop('contract', None)
 
     if contract:
         form = EditContractForm(obj=contract)
+        if form.validate_on_submit():
+            session['contract'] = json.dumps(form.data, default=json_serial)
+            return redirect(url_for('conductor.edit_company', contract_id=contract.id))
+        form.spec_number.data = contract.get_spec_number().value
+        return render_template('conductor/edit.html', form=form, contract=contract)
+    abort(404)
+
+@blueprint.route('/contract/<int:contract_id>/edit/company', methods=['GET', 'POST'])
+@requires_roles('conductor', 'admin', 'superadmin')
+def edit_company(contract_id):
+    contract = ContractBase.query.get(contract_id)
+
+    if contract and session.get('contract', None):
+        form = CompanyForm()
 
         if form.validate_on_submit():
-            _, spec_number = update_contract_with_spec(contract, form.data)
+            company, contact = get_or_create_company_contact(form.data)
+            contract, _ = update_contract_with_spec(contract, session['contract'])
+
             flash('Contract Successfully Updated!', 'alert-success')
             Notification(
                 to_email=[i.email for i in contract.followers],
@@ -247,11 +266,9 @@ def edit(contract_id):
                 html_template='conductor/emails/new_contract.html',
                 contract=contract
             ).send(multi=True)
-
-            return redirect(url_for('conductor.edit', contract_id=contract.id))
-
-        form.spec_number.data = spec_number if spec_number else contract.get_spec_number().value
-        return render_template('conductor/edit.html', form=form, contract=contract)
+        return render_template('conductor/edit_company.html', form=form, contract=contract)
+    elif not session.get('contract', None):
+        return redirect(url_for('conductor.edit', contract_id=contract_id))
     abort(404)
 
 # @blueprint.route('')

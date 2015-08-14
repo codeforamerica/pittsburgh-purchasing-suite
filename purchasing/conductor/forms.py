@@ -4,12 +4,18 @@ import re
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.fields import (
-    TextField, IntegerField, DateField, TextAreaField, HiddenField
+    TextField, IntegerField, DateField, TextAreaField, HiddenField,
+    FieldList, FormField
 )
-from wtforms.ext.sqlalchemy.fields import QuerySelectField
-from wtforms.validators import DataRequired, URL, Optional, ValidationError
+from wtforms.ext.sqlalchemy.fields import QuerySelectField, QuerySelectMultipleField
+from wtforms.validators import (
+    DataRequired, URL, Optional, ValidationError, Email,
+)
+
+from purchasing.filters import better_title
 
 from purchasing.users.models import department_query
+from purchasing.data.companies import get_all_companies_query
 
 from purchasing.opportunities.forms import OpportunityForm
 
@@ -81,3 +87,24 @@ class ContractUploadForm(Form):
     upload = FileField('datafile', validators=[
         FileAllowed(['pdf'], message='.pdf files only')
     ])
+
+class CompanyContactForm(Form):
+    first_name = TextField(validators=[DataRequired()])
+    last_name = TextField(validators=[DataRequired()])
+    addr1 = TextField(validators=[DataRequired()])
+    addr2 = TextField()
+    city = TextField(validators=[DataRequired()])
+    state = TextField(validators=[DataRequired()])
+    zip_code = IntegerField(validators=[DataRequired()])
+    phone_number = IntegerField(validators=[DataRequired()])
+    fax_number = IntegerField()
+    email = TextField(validators=[Email(), DataRequired()])
+
+class CompanyForm(Form):
+    name = QuerySelectMultipleField(
+        query_factory=get_all_companies_query,
+        get_pk=lambda i: i.id,
+        get_label=lambda i: better_title(i.company_name),
+        allow_blank=True, blank_text='Choose One or Create a New One'
+    )
+    contact = FieldList(FormField(CompanyContactForm))

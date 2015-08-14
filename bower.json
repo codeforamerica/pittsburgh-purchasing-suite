@@ -6,6 +6,7 @@
     "bootstrap-datepicker": "~1.4.0",
     "datatables": "~1.10.7",
     "html5shiv": "~3.7.3",
-    "respond": "~1.4.2"
+    "respond": "~1.4.2",
+    "select2": "~4.0.0"
   }
 }
