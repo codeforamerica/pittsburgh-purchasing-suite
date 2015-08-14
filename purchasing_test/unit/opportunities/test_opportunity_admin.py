@@ -162,7 +162,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         '''
         self.assertEquals(Opportunity.query.count(), 4)
         self.assertEquals(self.client.get('/beacon/admin/opportunities/new').status_code, 302)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         self.login_user(self.admin)
         self.assert200(self.client.get('/beacon/admin/opportunities/new'))
@@ -216,7 +216,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.assertEquals(self.client.get('/beacon/admin/opportunities/{}'.format(
             self.opportunity2.id
         )).status_code, 302)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         self.login_user(self.admin)
         self.assert200(self.client.get('/beacon/admin/opportunities/{}'.format(
@@ -252,7 +252,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         opp_doc = OpportunityDocument.query.filter(OpportunityDocument.name == 'the_test_document').first()
         self.client.get('/beacon/admin/opportunities/{}/document/{}/remove'.format(opp.id, opp_doc.id))
         self.assertEquals(len(opp.opportunity_documents.all()), 1)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         self.login_user(self.admin)
 
@@ -320,7 +320,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         '''
         request = self.client.get('/beacon/admin/signups')
         self.assertEquals(request.status_code, 302)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
     def test_signup_download_staff(self):
         '''Test signup downloads work properly
@@ -390,7 +390,7 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.assertEquals(self.client.get('/beacon/admin/opportunities/pending').status_code, 302)
         random_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(self.opportunity3.id))
         self.assertEquals(random_publish.status_code, 302)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
         self.assertFalse(self.opportunity3.is_public)
 
     def test_pending_opportunity_staff(self):

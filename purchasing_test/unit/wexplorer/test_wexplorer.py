@@ -78,7 +78,7 @@ class TestWexplorer(BaseTestCase):
         # test that you can't subscribe to a contract unless you are signed in
         request = self.client.get('/scout/contracts/1/subscribe')
         self.assertEquals(request.status_code, 302)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         self.login_user(self.admin_user)
         request = self.client.get('/scout/contracts/1/subscribe')
@@ -101,7 +101,7 @@ class TestWexplorer(BaseTestCase):
         # test that you can't subscribe to a contract unless you are signed in
         request = self.client.get('/scout/contracts/1/unsubscribe')
         self.assertEquals(request.status_code, 302)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         # two followers
         self.login_user(self.admin_user)
@@ -128,7 +128,7 @@ class TestWexplorer(BaseTestCase):
         '''
         request = self.client.get('/scout/contracts/1/star')
         self.assertEquals(request.status_code, 302)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         self.login_user(self.admin_user)
         request = self.client.get('/scout/contracts/1/star')
@@ -151,7 +151,7 @@ class TestWexplorer(BaseTestCase):
         # test that you can't unstar to a contract unless you are signed in
         request = self.client.get('/scout/contracts/1/unstar')
         self.assertEquals(request.status_code, 302)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         # two followers
         self.login_user(self.admin_user)
