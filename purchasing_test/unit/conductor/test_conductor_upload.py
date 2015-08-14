@@ -57,7 +57,7 @@ class TestCostarsUpload(BaseTestCase):
         '''
         # test that you can't access upload page unless you are signed in with proper role
         self.assertEqual(self.client.get('/conductor/upload/costars').status_code, 302)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         for user in [self.conductor, self.admin, self.superadmin]:
             self.login_user(user)
@@ -69,7 +69,7 @@ class TestCostarsUpload(BaseTestCase):
         test_file = self.create_file('costars-99.csv', 'text/csv')
         upload_csv = self.client.post('/conductor/upload/costars', data=dict(upload=test_file))
         self.assertEqual(upload_csv.status_code, 302)
-        self.assert_flashes('You do not have sufficent permissions to do that!', 'alert-danger')
+        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         for user in [self.conductor, self.admin, self.superadmin]:
             self.login_user(user)

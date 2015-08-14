@@ -10,22 +10,17 @@
 
       <div class="well wexplorer-well">
         <div class="row">
-          {% if current_user.role.name == 'anonymous' %}
-          <div class="col-sm-12"><h3><strong>
-            {{ contract.description|title }}
-          </strong></h3></div>
-          {% else %}
           <div class="col-sm-9"><h3><strong>
               {{ contract.description|title }}
           </strong></h3></div>
           <div class="col-sm-3">
             {% if current_user in contract.followers %}
               <a href="{{ url_for('wexplorer.unsubscribe', contract_id=contract.id, next=path) }}" class="btn btn-danger pull-right btn-header">Stop receiving updates</a>
-            {% elif current_user.role.name != 'anonymous' %}
+            {% else %}
               <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}" class="btn btn-primary pull-right btn-header">Subscribe for updates</a>
             {% endif %}
           </div>
-          {% endif %}
+
         </div>
 
         {% if current_user.role.name in ['admin', 'superadmin'] %}
@@ -44,6 +39,7 @@
         <p>
           See something wrong? <a href="{{ url_for('wexplorer.feedback', contract_id=contract.id) }}" target="_blank">Send your feedback.</a>
         </p>
+
 
       <hr>
 
