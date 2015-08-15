@@ -8,33 +8,17 @@ from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import widgets, fields
 from wtforms.validators import (
-    DataRequired, Email, ValidationError, Optional, InputRequired
+    DataRequired, Email, ValidationError, Optional
 )
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 from purchasing.opportunities.models import Vendor
 
+from purchasing.utils import RequiredIf
 from purchasing.users.models import User, department_query
 
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
-
-class RequiredIf(InputRequired):
-    # a validator which makes a field required if
-    # another field is set and has a truthy value
-    # http://stackoverflow.com/questions/8463209/how-to-make-a-field-conditionally-optional-in-wtforms
-    # thanks to Team RVA for pointing this out
-
-    def __init__(self, other_field_name, *args, **kwargs):
-        self.other_field_name = other_field_name
-        super(RequiredIf, self).__init__(*args, **kwargs)
-
-    def __call__(self, form, field):
-        other_field = form._fields.get(self.other_field_name)
-        if other_field is None:
-            raise Exception('no field named "%s" in form' % self.other_field_name)
-            if bool(other_field.data):
-                super(RequiredIf, self).__call__(form, field)
 
 def build_label_tooltip(name, description, href):
     return '''

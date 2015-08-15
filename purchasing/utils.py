@@ -14,6 +14,8 @@ from boto.s3.connection import S3Connection
 
 from purchasing.database import db
 
+from wtforms.validators import InputRequired, StopValidation
+
 # modified from https://gist.github.com/bsmithgall/372de43205804a2279c9
 SMALL_WORDS = re.compile(r'^(a|an|and|as|at|but|by|en|etc|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$', re.I)
 SPACE_SPLIT = re.compile(r'[\t ]')
@@ -128,3 +130,64 @@ class SimplePagination(object):
                     yield None
                 yield num
                 last = num
+
+class RequiredIf(InputRequired):
+    # a validator which makes a field required if
+    # another field is set and has a truthy value
+    # http://stackoverflow.com/questions/8463209/how-to-make-a-field-conditionally-optional-in-wtforms
+    # thanks to Team RVA for pointing this out
+
+    def __init__(self, other_field_name, *args, **kwargs):
+        self.other_field_name = other_field_name
+        super(RequiredIf, self).__init__(*args, **kwargs)
+
+    def __call__(self, form, field):
+        other_field = form._fields.get(self.other_field_name)
+        if other_field is None:
+            raise Exception(
+                'no field named "%s" in form' %
+                other_field.label.text if other_field.label else self.other_field_name
+            )
+        if bool(other_field.data) and not bool(field.data):
+            raise StopValidation(
+                'You must also fill out "%s" if you want to fill this out.' %
+                other_field.label.text if other_field.label else self.other_field_name
+            )
+
+class RequiredNotBoth(InputRequired):
+    # a validator which makes forces only one between two choices
+    def __init__(self, other_field_name, *args, **kwargs):
+        self.other_field_name = other_field_name
+        super(RequiredNotBoth, self).__init__(*args, **kwargs)
+
+    def __call__(self, form, field):
+        other_field = form._fields.get(self.other_field_name)
+        if other_field is None:
+            raise Exception(
+                'no field named "%s" in form' %
+                other_field.label.text if other_field.label else self.other_field_name
+            )
+        if bool(other_field.data) and bool(field.data):
+            raise StopValidation(
+                'You cannot choose both this and "%s"' %
+                other_field.label.text if other_field.label else self.other_field_name
+            )
+
+class RequiredOne(InputRequired):
+    # a validator that forces you to choose at least one
+    def __init__(self, other_field_name, *args, **kwargs):
+        self.other_field_name = other_field_name
+        super(RequiredOne, self).__init__(*args, **kwargs)
+
+    def __call__(self, form, field):
+        other_field = form._fields.get(self.other_field_name)
+        if other_field is None:
+            raise Exception(
+                'no field named "%s" in form' %
+                other_field.label.text if other_field.label else self.other_field_name
+            )
+        if not bool(other_field.data) and not bool(field.data):
+            raise StopValidation(
+                'You must fill out either this or "%s"' %
+                other_field.label.text if other_field.label else self.other_field_name
+            )

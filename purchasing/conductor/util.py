@@ -60,8 +60,22 @@ def update_contract_with_spec(contract, form_data, company=None):
 
     return contract, spec_number
 
-def get_or_create_company_contact(form_data):
-    pass
+def parse_companies(companies):
+    cleaned = []
+    for company in companies.get('companies'):
+        if company.get('company_name'):
+            cleaned.append({
+                'company_name': company.get('company_name')[1],
+                'company_id': company.get('company_name')[0],
+                'financial_id': company.get('controller_number')
+            })
+        else:
+            cleaned.append({
+                'company_name': company.get('new_company_name'),
+                'company_id': -1,
+                'financial_id': company.get('new_company_controller_number')
+            })
+    return cleaned
 
 def handle_form(form, form_name, stage_id, user, contract, current_stage):
     if form.validate_on_submit():

@@ -5,19 +5,21 @@ from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.fields import (
     TextField, IntegerField, DateField, TextAreaField, HiddenField,
-    FieldList, FormField
+    FieldList, FormField, SelectField
 )
-from wtforms.ext.sqlalchemy.fields import QuerySelectField, QuerySelectMultipleField
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import (
-    DataRequired, URL, Optional, ValidationError, Email,
+    DataRequired, URL, Optional, ValidationError, Email
 )
 
 from purchasing.filters import better_title
 
 from purchasing.users.models import department_query
+from purchasing.data.models import Company
 from purchasing.data.companies import get_all_companies_query
 
 from purchasing.opportunities.forms import OpportunityForm
+from purchasing.utils import RequiredIf, RequiredOne, RequiredNotBoth
 
 EMAIL_REGEX = re.compile(r'^.+@([^.@][^@]+)$', re.IGNORECASE)
 
@@ -89,6 +91,7 @@ class ContractUploadForm(Form):
     ])
 
 class CompanyContactForm(Form):
+    company_name = HiddenField()
     first_name = TextField(validators=[DataRequired()])
     last_name = TextField(validators=[DataRequired()])
     addr1 = TextField(validators=[DataRequired()])
@@ -100,11 +103,44 @@ class CompanyContactForm(Form):
     fax_number = IntegerField()
     email = TextField(validators=[Email(), DataRequired()])
 
+def validate_integer(form, field):
+    if field.data:
+        try:
+            int(field.data)
+        except:
+            raise ValidationError('This must be an integer!')
+
 class CompanyForm(Form):
-    name = QuerySelectMultipleField(
-        query_factory=get_all_companies_query,
-        get_pk=lambda i: i.id,
+    new_company_controller_number = TextField('New Company Controller Number', validators=[
+        RequiredOne('controller_number'),
+        RequiredNotBoth('controller_number'), RequiredIf('new_company_name'),
+        validate_integer
+    ])
+    new_company_name = TextField('New Company Name', validators=[
+        RequiredOne('company_name'),
+        RequiredNotBoth('company_name'), RequiredIf('new_company_controller_number'),
+    ])
+
+    controller_number = TextField('Existing Company Controller Number', validators=[
+        RequiredOne('new_company_controller_number'),
+        RequiredNotBoth('new_company_controller_number'),
+        RequiredIf('company_name'), validate_integer
+    ])
+    company_name = QuerySelectField(
+        'Existing Company Name', query_factory=get_all_companies_query, get_pk=lambda i: i.id,
         get_label=lambda i: better_title(i.company_name),
-        allow_blank=True, blank_text='Choose One or Create a New One'
+        allow_blank=True, blank_text='-----',
+        validators=[
+            RequiredOne('new_company_name'),
+            RequiredNotBoth('new_company_name'), RequiredIf('controller_number'),
+       ]
     )
-    contact = FieldList(FormField(CompanyContactForm))
+
+class CompanyListForm(Form):
+    companies = FieldList(FormField(CompanyForm), min_entries=1)
+
+class CompanyContactList(Form):
+    contacts = FieldList(FormField(CompanyContactForm), min_entries=1)
+
+class CompanyContactListForm(Form):
+    companies = FieldList(FormField(CompanyContactList))

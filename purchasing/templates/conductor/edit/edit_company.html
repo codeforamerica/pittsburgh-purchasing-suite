@@ -1,0 +1,77 @@
+{% extends 'conductor/layout.html' %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <h3>Editing Awarded Companies for {{ contract.description|title }}</h3>
+
+      {# archived contract notice #}
+      {% if contract.is_archived %}
+      <div class="alert alert-warning alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Notice!</strong> This contract is <strong>archived</strong>, which means it won't show up in the search by default.
+      </div>
+      {% endif %}
+
+      {% if contract.parent %}
+      <p class="text-muted">
+        <small>This is a renewed contract. View the old contract on <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}">Wexplorer</a>, or edit it in <a href="{{ url_for('conductor.edit', contract_id=contract.parent.id) }}">Conductor</a>.</small>
+      </p>
+      {% endif %}
+
+      <form class="form" method="POST" action="{{ url_for('conductor.edit_company', contract_id=contract.id) }}">
+        {{ form.csrf_token() }}
+
+          <div id="company-name-form">
+          {% for company in form.companies.entries %}
+            {{ company.csrf_token() }}
+
+            <div class="company-form-container">
+              <div class="row well">
+                <strong>Choose an existing company or add a new one.</strong>
+                <span class="pull-right"><a class="js-multiform-remove hidden" data-parent-elem-class="company-form-container"><i class="fa fa-times text-danger"></i></a></span>
+
+                <div class="form-group">
+                  <label>Existing Company <span class="form-required">*</span></label>
+                  {{ macros.with_errors(company.company_name, class_="form-control js-company-name-select2 js-select2") }}
+                </div>
+
+                <div class="form-group">
+                  <label>Exist Company Controller Number <span class="form-required">*</span></label>
+                  {{ macros.with_errors(company.controller_number, class_='form-control', placeholder="Controller Number") }}
+                </div>
+
+                <hr>
+
+                <div class="form-group">
+                  <label>New Company Name <span class="form-required">*</span></label>
+                  {{ macros.with_errors(company.new_company_name, class_="form-control", placeholder="New company name") }}
+                </div>
+
+                <div class="form-group">
+                  <label>New Company Controller Number <span class="form-required">*</span></label>
+                  {{ macros.with_errors(company.new_company_controller_number, class_='form-control', placeholder="Controller Number") }}
+                </div>
+
+              </div>
+            </div>
+          {% endfor %}
+          </div>
+
+        <button type="button" class="btn btn-primary js-multiform-add" data-clone-id="company-name-form">Add another</button>
+
+        <hr>
+
+        <button type="submit" class="btn btn-success">Next</button>
+
+        <div class="spacer-20"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -24,13 +24,14 @@ from purchasing.data.models import (
 from purchasing.users.models import User, Role
 from purchasing.conductor.forms import (
     EditContractForm, PostOpportunityForm,
-    SendUpdateForm, NoteForm, ContractMetadataForm, CompanyForm
+    SendUpdateForm, NoteForm, ContractMetadataForm, CompanyListForm,
+    CompanyContactListForm
 )
 
 from purchasing.conductor.util import (
     update_contract_with_spec, handle_form, ContractMetadataObj,
     build_action_log, build_subscribers, create_opp_form_obj,
-    get_or_create_company_contact, json_serial
+    json_serial, parse_companies
 )
 
 from purchasing.opportunities.util import generate_opportunity_form
@@ -243,7 +244,7 @@ def edit(contract_id):
             session['contract'] = json.dumps(form.data, default=json_serial)
             return redirect(url_for('conductor.edit_company', contract_id=contract.id))
         form.spec_number.data = contract.get_spec_number().value
-        return render_template('conductor/edit.html', form=form, contract=contract)
+        return render_template('conductor/edit/edit.html', form=form, contract=contract)
     abort(404)
 
 @blueprint.route('/contract/<int:contract_id>/edit/company', methods=['GET', 'POST'])
@@ -251,13 +252,26 @@ def edit(contract_id):
 def edit_company(contract_id):
     contract = ContractBase.query.get(contract_id)
 
-    if contract and session.get('contract', None):
-        form = CompanyForm()
-
+    if contract and session.get('contract') is not None:
+        form = CompanyListForm()
         if form.validate_on_submit():
-            company, contact = get_or_create_company_contact(form.data)
-            contract, _ = update_contract_with_spec(contract, session['contract'])
+            cleaned = parse_companies(form.data)
+            session['companies'] = json.dumps(cleaned, default=json_serial)
+            return redirect(url_for('conductor.edit_company_contacts', contract_id=contract.id))
+        return render_template('conductor/edit/edit_company.html', form=form, contract=contract)
+    elif session.get('contract') is None:
+        return redirect(url_for('conductor.edit', contract_id=contract_id))
+    abort(404)
 
+@blueprint.route('/contract/<int:contract_id>/edit/contacts', methods=['GET', 'POST'])
+@requires_roles('conductor', 'admin', 'superadmin')
+def edit_company_contacts(contract_id):
+    contract = ContractBase.query.get(contract_id)
+
+    if contract and session.get('contract') is not None and session.get('companies') is not None:
+        form = CompanyContactListForm()
+        companies = json.loads(session['companies'])
+        if form.validate_on_submit():
             flash('Contract Successfully Updated!', 'alert-success')
             Notification(
                 to_email=[i.email for i in contract.followers],
@@ -266,10 +280,20 @@ def edit_company(contract_id):
                 html_template='conductor/emails/new_contract.html',
                 contract=contract
             ).send(multi=True)
-        return render_template('conductor/edit_company.html', form=form, contract=contract)
-    elif not session.get('contract', None):
+
+        for company in companies:
+            form.companies.append_entry(data=company['company_name'])
+
+        return render_template(
+            'conductor/edit/edit_company_contacts.html', form=form, contract=contract,
+            companies=companies
+        )
+    elif session.get('contract') is None:
         return redirect(url_for('conductor.edit', contract_id=contract_id))
+    elif session.get('companies') is None:
+        return redirect(url_for('conductor.edit_company', contract_id=contract_id))
     abort(404)
+
 
 # @blueprint.route('')
 # @requires_roles('conductor', 'admin', 'superadmin')

@@ -54,7 +54,7 @@ vendorjs = Bundle(
 )
 
 opportunitiesjs = Bundle(
-    'js/shared/categories.js',
+    'js/shared/*.js',
     'js/opportunities/*.js',
     filters='uglifyjs',
     output='public/js/beacon.js'
@@ -67,10 +67,10 @@ wexplorerjs = Bundle(
 )
 
 conductorjs = Bundle(
-    'js/shared/categories.js',
-    'js/conductor/*.js',
     'libs/datatables/media/js/jquery.dataTables.js',
-    'libs/select2/dist/js/select2.full.js',
+    'libs/select2/dist/js/select2.js',
+    'js/shared/*.js',
+    'js/conductor/*.js',
     filters='uglifyjs',
     output='public/js/conductor.js'
 )
