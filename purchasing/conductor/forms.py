@@ -9,7 +9,7 @@ from wtforms.fields import (
 )
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import (
-    DataRequired, URL, Optional, ValidationError, Email
+    DataRequired, URL, Optional, ValidationError, Email, Length, Regexp
 )
 
 from purchasing.filters import better_title
@@ -22,6 +22,13 @@ from purchasing.opportunities.forms import OpportunityForm
 from purchasing.utils import RequiredIf, RequiredOne, RequiredNotBoth
 
 EMAIL_REGEX = re.compile(r'^.+@([^.@][^@]+)$', re.IGNORECASE)
+US_PHONE_REGEX = re.compile(r'^(\d{3})-(\d{3})-(\d{4})$')
+
+STATE_ABBREV = ('AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+                'HI', 'ID', 'IL', 'IN', 'IO', 'KS', 'KY', 'LA', 'ME', 'MD',
+                'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+                'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+                'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY')
 
 def not_all_hidden(form, field):
     '''Makes sure that every field isn't blank
@@ -91,16 +98,21 @@ class ContractUploadForm(Form):
     ])
 
 class CompanyContactForm(Form):
-    company_name = HiddenField()
     first_name = TextField(validators=[DataRequired()])
     last_name = TextField(validators=[DataRequired()])
-    addr1 = TextField(validators=[DataRequired()])
-    addr2 = TextField()
-    city = TextField(validators=[DataRequired()])
-    state = TextField(validators=[DataRequired()])
-    zip_code = IntegerField(validators=[DataRequired()])
-    phone_number = IntegerField(validators=[DataRequired()])
-    fax_number = IntegerField()
+    addr1 = TextField(validators=[Optional()])
+    addr2 = TextField(validators=[Optional()])
+    city = TextField(validators=[Optional()])
+    state = SelectField(validators=[Optional(), RequiredIf('city')], choices=[('', '---')] +
+        [(state, state) for state in STATE_ABBREV]
+    )
+    zip_code = IntegerField(validators=[Optional(), RequiredIf('city'), Length(min=5, max=5)])
+    phone_number = TextField(validators=[DataRequired(), Regexp(
+        US_PHONE_REGEX, message='Please enter numbers in XXX-XXX-XXXX format'
+    )])
+    fax_number = TextField(validators=[Optional(), Regexp(
+        US_PHONE_REGEX, message='Please enter numbers in XXX-XXX-XXXX format'
+    )])
     email = TextField(validators=[Email(), DataRequired()])
 
 def validate_integer(form, field):

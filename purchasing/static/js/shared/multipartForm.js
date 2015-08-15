@@ -19,9 +19,10 @@
         matched++;
         if (matched === nestedDepth) elemNum = +elemExec[1] + 1;
       }
+      var elemRe = new RegExp('-' + (elemNum - 1) + '-', 'g');
+      formClone.find('.alert').remove();
       formClone.find(':input').each(function() {
         var inputId = $(this).attr('id');
-        var elemRe = new RegExp('-' + (elemNum - 1) + '-', 'g');
         var matched = -1;
         var newElemId;
         if (inputId.match(elemRe)[nestedDepth]) {
@@ -34,7 +35,6 @@
         }
         $(this).attr('name', newElemId).attr('id', newElemId).val('').removeAttr("checked");
       });
-      formClone.find('.alert').remove();
       formToClone.after(formClone);
       return;
     }

@@ -11,14 +11,14 @@ from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
 
 from purchasing.decorators import requires_roles
-from purchasing.database import db
+from purchasing.database import db, get_or_create
 from purchasing.notifications import Notification
 from purchasing.data.contracts import clone_a_contract, extend_a_contract
 from purchasing.data.stages import transition_stage, get_contract_stages
 from purchasing.data.flows import create_contract_stages, switch_flow
 from purchasing.data.models import (
     ContractBase, ContractProperty, ContractStage, Stage,
-    ContractStageActionItem, Flow
+    ContractStageActionItem, Flow, Company, CompanyContact
 )
 
 from purchasing.users.models import User, Role
@@ -270,19 +270,50 @@ def edit_company_contacts(contract_id):
 
     if contract and session.get('contract') is not None and session.get('companies') is not None:
         form = CompanyContactListForm()
+
         companies = json.loads(session['companies'])
+        contract_data = json.loads(session['contract'])
+
         if form.validate_on_submit():
-            flash('Contract Successfully Updated!', 'alert-success')
+            main_contract = contract
+            for ix, _company in enumerate(companies):
+                # because multiple companies can have the same name, don't use
+                # get_or_create because it can create multiples
+                if _company.get('company_id') > 0:
+                    company = Company.query.get(_company.get('company_id'))
+                else:
+                    company = Company.create(company_name=_company.get('company_name'))
+                # contacts should be unique to companies, though
+                for _contact in form.data.get('companies')[ix].get('contacts'):
+                    _contact['company_id'] = company.id
+                    contact, _ = get_or_create(db.session, CompanyContact, **_contact)
+
+                contract_data['financial_id'] = _company['financial_id']
+                contract, _ = update_contract_with_spec(
+                    contract, contract_data,
+                    company=company, clone=(ix > 0),
+                )
+
+                contract.is_visible = True
+                contract.parent.is_archived = True
+                contract.parent.description += ' [Archived]'
+                db.session.commit()
+
             Notification(
                 to_email=[i.email for i in contract.followers],
                 from_email=current_user.email,
                 subject='A contract you follow has been updated!',
                 html_template='conductor/emails/new_contract.html',
-                contract=contract
+                contract=main_contract
             ).send(multi=True)
+            session.pop('contract')
+            session.pop('companies')
+            session['success'] = True
+            return redirect(url_for('conductor.success', contract_id=main_contract.id))
 
-        for company in companies:
-            form.companies.append_entry(data=company['company_name'])
+        if len(form.companies.entries) == 0:
+            for company in companies:
+                form.companies.append_entry()
 
         return render_template(
             'conductor/edit/edit_company_contacts.html', form=form, contract=contract,
@@ -294,6 +325,13 @@ def edit_company_contacts(contract_id):
         return redirect(url_for('conductor.edit_company', contract_id=contract_id))
     abort(404)
 
+@blueprint.route('/contract/<int:contract_id>/edit/success', methods=['GET', 'POST'])
+@requires_roles('conductor', 'admin', 'superadmin')
+def success(contract_id):
+    # if session.pop('success', None):
+    contract = ContractBase.query.get(contract_id)
+    return render_template('conductor/edit/success.html', contract=contract)
+    # return redirect(url_for('conductor.edit_company_contacts', contract_id=contract_id))
 
 # @blueprint.route('')
 # @requires_roles('conductor', 'admin', 'superadmin')

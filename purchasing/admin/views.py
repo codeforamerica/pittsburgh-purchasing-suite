@@ -2,7 +2,7 @@
 from flask import url_for, request
 
 from wtforms.validators import ValidationError
-from wtforms.fields import SelectField
+from wtforms.fields import SelectField, HiddenField
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
@@ -33,7 +33,8 @@ class CompanyAdmin(AuthMixin, sqla.ModelView):
 class CompanyContractAdmin(AuthMixin, sqla.ModelView):
     inline_models = (CompanyContact,)
 
-    form_columns = ['company_name']
+    form_columns = ['id', 'company_name']
+    form_overrides = dict(id=HiddenField)
 
 class ContractBaseAdmin(AuthMixin, sqla.ModelView):
     '''Base model for different representations of contracts

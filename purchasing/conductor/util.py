@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-import json
 
 from flask import request
 from flask_login import current_user
@@ -10,6 +9,7 @@ from purchasing.database import db
 from purchasing.notifications import Notification
 
 from purchasing.data.models import ContractStageActionItem
+from purchasing.data.contracts import clone_a_contract
 from purchasing.opportunities.models import Opportunity
 from purchasing.users.models import User, Role, Department
 
@@ -42,7 +42,10 @@ def create_opp_form_obj(contract, contact_email=None):
         obj = OpportunityFormObj(contract.department, contract.description, contact_email)
     return obj
 
-def update_contract_with_spec(contract, form_data, company=None):
+def update_contract_with_spec(contract, form_data, company=None, clone=False):
+    if clone:
+        contract = clone_a_contract(contract, parent_id=contract.parent_id, strip=False)
+
     spec_number = contract.get_spec_number()
 
     data = form_data
@@ -55,6 +58,8 @@ def update_contract_with_spec(contract, form_data, company=None):
 
     if company:
         contract.companies.append(company)
+
+    import pdb; pdb.set_trace()
 
     contract.update(**data)
 

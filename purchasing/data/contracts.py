@@ -148,15 +148,17 @@ def complete_contract(parent_contract, child_contract):
 
     return child_contract
 
-def clone_a_contract(contract):
+def clone_a_contract(contract, parent_id=None, strip=True):
     '''Takes a contract object and clones it
 
-    The clone strips the following properties:
-        + Financial ID
-        + Expiration Date
+    The clone always strips the following properties:
         + Assigned To
         + Current Stage
+
+    If the strip flag is set to true, the following are also stripped
         + Contract HREF
+        + Financial ID
+        + Expiration Date
 
     Relationships are handled as follows:
         + Stage, Flow - Duplicated
@@ -168,14 +170,19 @@ def clone_a_contract(contract):
     make_transient(contract)
 
     contract.id = None
-    contract.financial_id = None
-    contract.expiration_date = None
     contract.assigned_to = None
     contract.current_stage = None
     contract.contract_href = None
 
+    if strip:
+        contract.financial_id = None
+        contract.expiration_date = None
+
     # set the parent
-    contract.parent_id = old_contract_id
+    if parent_id:
+        contract.parent_id = parent_id
+    else:
+        contract.parent_id = old_contract_id
 
     db.session.add(contract)
     db.session.commit()

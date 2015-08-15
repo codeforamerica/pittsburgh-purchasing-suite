@@ -1,0 +1,20 @@
+{% extends 'conductor/layout.html' %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+    <h4><strong>Contract Successfully Updated!</strong></h4>
+
+    <ul>
+      <li>View it <a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">on Scout.</a></li>
+      <li>Edit it <a href="{{ url_for('contract.edit_view', id=contract.id) }}">in the Admin.</a></li>
+    </ul>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

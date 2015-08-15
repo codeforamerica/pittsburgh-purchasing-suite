@@ -2,8 +2,6 @@
 
   'use strict';
 
-  var formId = $('js-multiform-add').length;
-
   function initUi() {
     $('.js-company-name-select2').select2({
       placeholder: 'Pick one'
@@ -20,7 +18,7 @@
   initUi();
 
   function showHideClose() {
-    if ($('.company-form-container').length > 1) {
+    if ($('.js-multiform-remove').length > 1) {
       $('.js-multiform-remove').removeClass('hidden');
     } else {
       $('.js-multiform-remove').addClass('hidden');
@@ -29,6 +27,7 @@
 
   function removeForm(elems) {
     $(elems).on('click', function() {
+      console.log('click!')
       $(this).multiFormHandler('remove');
 
       initUi();
@@ -37,8 +36,7 @@
   }
 
   $('.js-multiform-add').on('click', function(e) {
-    $(this).multiFormHandler('add', formId);
-    formId++;
+    $(this).multiFormHandler('add');
 
     initUi();
     showHideClose();
