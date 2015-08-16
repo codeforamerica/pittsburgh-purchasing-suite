@@ -5,8 +5,11 @@ import datetime
 import urllib2
 from mock import Mock, patch
 
+from flask import session
+from werkzeug.datastructures import ImmutableMultiDict
+
 from purchasing.data.models import (
-    ContractStage, ContractBase, ContractStageActionItem
+    ContractStage, ContractStageActionItem, ContractBase
 )
 from purchasing.opportunities.models import Opportunity
 from purchasing.extensions import mail
@@ -35,6 +38,7 @@ class TestConductor(BaseTestCase):
 
         self.flow = insert_a_flow(stage_ids=[self.stage1.id, self.stage2.id, self.stage3.id])
         self.flow2 = insert_a_flow(name='test2', stage_ids=[self.stage1.id, self.stage3.id, self.stage2.id])
+        self.simple_flow = insert_a_flow(name='simple', stage_ids=[self.stage1.id])
 
         # create two contracts
         self.contract1 = insert_a_contract(
@@ -52,14 +56,16 @@ class TestConductor(BaseTestCase):
 
     def tearDown(self):
         super(TestConductor, self).tearDown()
+        session.clear()
 
-    def assign_contract(self):
+    def assign_contract(self, flow=None):
+        flow = flow if flow else self.flow
         return self.client.get('/conductor/contract/{}/assign/{}/flow/{}'.format(
-            self.contract1.id, self.conductor.id, self.flow.id
+            self.contract1.id, self.conductor.id, flow.id
         ))
 
     def get_current_contract_stage_id(self, contract, old_stage=None):
-        if not contract.current_stage_id:
+        if contract.current_stage_id is None:
             return -1
 
         if not old_stage:
@@ -310,90 +316,6 @@ class TestConductor(BaseTestCase):
         self.assertEquals(flow_switch_action, 2)
         self.assertEquals(restarted_action, 0)
 
-    def test_conductor_contract_complete(self):
-        '''Test completing an old and editing a new contract
-        '''
-        self.assertEquals(ContractBase.query.count(), 2)
-        old_id = self.contract1.id
-
-        # star and follow the contracts
-        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
-        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
-
-        # transition through the stages
-        self.assign_contract()
-        self.client.get(self.detail_view.format(self.contract1.id, self.stage1.id) + '?transition=true')
-        self.client.get(self.detail_view.format(self.contract1.id, self.stage2.id) + '?transition=true')
-        complete = self.client.get(self.detail_view.format(self.contract1.id, self.stage3.id) + '?transition=true')
-
-        for stage in ContractStage.query.all():
-            self.assertTrue(stage.entered is not None and stage.exited is not None)
-
-        self.assertEquals(ContractBase.query.count(), 3)
-        new_contract = ContractBase.query.all()[-1]
-
-        self.assertEquals(complete.status_code, 302)
-        self.assertEquals(complete.location, 'http://localhost/conductor/contract/{}/edit'.format(new_contract.id))
-
-        # assert that the stars/follows were transferred over
-        # refresh our old contract, which has gone stale
-        old_contract = ContractBase.query.get(old_id)
-
-        self.assertEquals(len(new_contract.followers), 1)
-        self.assertEquals(len(new_contract.starred), 1)
-        self.assertEquals(len(old_contract.followers), 0)
-        self.assertEquals(len(old_contract.starred), 0)
-
-        # assert the parent/child relationship works
-        self.assertEquals(new_contract.parent.id, old_contract.id)
-        # assert our old contract is archived
-        self.assertEquals(old_contract.is_archived, True)
-        self.assertEquals(old_contract.description.lower(), self.contract1.description + ' [archived]')
-
-    def test_edit_contract(self):
-        '''Test edit metadata for contracts
-        '''
-        # subscribe to this contract
-        self.login_user(self.conductor)
-        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
-
-        edit_contract_url = '/conductor/contract/{}/edit'.format(self.contract1.id)
-        self.assert200(self.client.get(edit_contract_url))
-        self.assert404(self.client.get('/conductor/contract/999/edit'))
-
-        # test a form with malformed url
-        bad_url = self.client.post(edit_contract_url, data={
-            'contract_href': 'does not work!', 'description': 'this is a test',
-            'expiration_date': datetime.date(2015, 9, 30),
-            'financial_id': 1234, 'spec_number': 'test'
-        }, follow_redirects=True)
-        self.assertEquals(self.contract1.financial_id, self.contract1.financial_id)
-        self.assert200(bad_url)
-        self.assertTrue("That URL doesn&#39;t work!" in bad_url.data)
-
-        # test a form with missing data
-        missing_data = self.client.post(edit_contract_url, data={
-            'contract_href': 'http://www.example.com', 'description': 'a different description!',
-            'financial_id': 1234
-        }, follow_redirects=True)
-        self.assertEquals(self.contract1.financial_id, self.contract1.financial_id)
-        self.assertEquals(self.contract1, self.contract1)
-        self.assertTrue("This field is required." in missing_data.data)
-
-        # test a good form
-        with mail.record_messages() as outbox:
-            good_post = self.client.post(edit_contract_url, data={
-                'contract_href': 'http://www.example.com',
-                'description': 'a different description!',
-                'expiration_date': datetime.date(2015, 9, 30),
-                'financial_id': 1234, 'spec_number': '1234'
-            }, follow_redirects=True)
-            self.assertEquals(self.contract1.contract_href, 'http://www.example.com')
-            self.assertEquals(self.contract1.description, 'a different description!')
-            self.assertEquals(len(outbox), 1)
-            self.assertTrue('A contract you follow has been updated!' in outbox[0].subject)
-            self.assertTrue('Successfully Updated' in good_post.data)
-
     @patch('urllib2.urlopen')
     def test_url_validation(self, urlopen):
         '''Test url validation HEAD requests work as expected
@@ -503,12 +425,12 @@ class TestConductor(BaseTestCase):
             self.assertTrue('test' in outbox[0].subject)
             self.assertTrue('with the subject' in good_post.data)
 
-    def test_conductor_post_to_scout(self):
+    def test_conductor_post_to_beacon(self):
         '''Test posting to beacon from Conductor
         '''
         self.assign_contract()
 
-        detail_view_url = self.build_detail_view(self.contract1, self.stage1)
+        detail_view_url = self.build_detail_view(self.contract1)
         self.client.post(detail_view_url + '?form=post', data=dict(
             contact_email=self.conductor.email, title='foobar', description='barbaz',
             planned_advertise=datetime.date.today() + datetime.timedelta(1),
@@ -521,3 +443,237 @@ class TestConductor(BaseTestCase):
         detail_view = self.client.get(detail_view_url)
         self.assertEquals(len(self.get_context_variable('actions')), 2)
         self.assertTrue('barbaz' in detail_view.data)
+
+    def test_edit_contract_metadata(self):
+        '''Test editing a contract's metadata from the conductor detail form
+        '''
+        self.assign_contract()
+
+        detail_view_url = self.build_detail_view(self.contract1, self.stage1)
+        self.client.post(detail_view_url + '?form=update-metadata', data=dict(
+            financial_id=999
+        ))
+
+        self.assertEquals(ContractStageActionItem.query.count(), 2)
+        self.assertEquals(self.contract1.financial_id, 999)
+
+    def test_edit_contract_complete(self):
+        '''Test the completion views are locked until a contract is in its last stage
+        '''
+        self.assign_contract(flow=self.simple_flow)
+        should_redir = self.client.get('/conductor/contract/{}/edit/contract'.format(self.contract1.id))
+        self.assertEquals(should_redir.status_code, 302)
+        self.assertEquals(
+            should_redir.location,
+            'http://localhost/conductor/contract/{}'.format(self.contract1.id)
+        )
+
+        should_redir = self.client.get('/conductor/contract/{}/edit/company'.format(self.contract1.id))
+        self.assertEquals(should_redir.status_code, 302)
+        self.assertEquals(
+            should_redir.location,
+            'http://localhost/conductor/contract/{}/edit/contract'.format(self.contract1.id)
+        )
+
+        should_redir = self.client.get('/conductor/contract/{}/edit/contacts'.format(self.contract1.id))
+        self.assertEquals(should_redir.status_code, 302)
+        self.assertEquals(
+            should_redir.location,
+            'http://localhost/conductor/contract/{}/edit/contract'.format(self.contract1.id)
+        )
+
+    def test_contract_completion_session_set(self):
+        '''Test we set the proper session variables on contract completion
+        '''
+        with self.client as c:
+            self.assign_contract(flow=self.simple_flow)
+
+            transition_url = self.build_detail_view(self.contract1) + '?transition=true'
+            self.client.get(transition_url)
+
+            self.assertTrue(self.contract1.completed_last_stage())
+            self.assert200(c.get('/conductor/contract/{}/edit/contract'.format(self.contract1.id)))
+            c.post('conductor/contract/{}/edit/contract'.format(self.contract1.id), data=dict(
+                expiration_date=datetime.date(2020, 1, 1), spec_number='abcd',
+                description='foo'
+            ))
+
+            self.assertTrue(session['contract'] is not None)
+
+            self.assert200(c.get('/conductor/contract/{}/edit/company'.format(self.contract1.id)))
+
+            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+                ('companies-0-new_company_controller_number', u'1234'),
+                ('companies-0-company_name', u'__None'),
+                ('companies-0-controller_number', u''),
+                ('companies-0-new_company_name', u'test')
+            ]))
+
+            self.assertTrue(session['companies'] is not None)
+            self.assert200(c.get('/conductor/contract/{}/edit/contacts'.format(self.contract1.id)))
+
+    def test_edit_contract_form_validators(self):
+        with self.client as c:
+
+            self.assign_contract(flow=self.simple_flow)
+
+            transition_url = self.build_detail_view(self.contract1) + '?transition=true'
+            self.client.get(transition_url)
+
+
+            # set contract session variable so we can post to the company endpoint
+            c.post('conductor/contract/{}/edit/contract'.format(self.contract1.id), data=dict(
+                expiration_date=datetime.date(2020, 1, 1), spec_number='abcd',
+                description='foo'
+            ))
+            self.assertTrue('companies' not in session.keys())
+
+            # assert you can't set both controller numbers
+            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+                ('companies-0-new_company_controller_number', u'1234'),
+                ('companies-0-company_name', u'__None'),
+                ('companies-0-controller_number', u'1234'),
+                ('companies-0-new_company_name', u'')
+            ]))
+            self.assertTrue('companies' not in session.keys())
+
+            # assert you can't set both company names
+            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+                ('companies-0-new_company_controller_number', u''),
+                ('companies-0-company_name', u'foobar'),
+                ('companies-0-controller_number', u''),
+                ('companies-0-new_company_name', u'foobar')
+            ]))
+            self.assertTrue('companies' not in session.keys())
+
+            # assert you can't set mismatched names/numbers
+            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+                ('companies-0-new_company_controller_number', u''),
+                ('companies-0-company_name', u''),
+                ('companies-0-controller_number', u'1234'),
+                ('companies-0-new_company_name', u'foobar')
+            ]))
+            self.assertTrue('companies' not in session.keys())
+
+            # assert new works
+            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+                ('companies-0-new_company_controller_number', u'1234'),
+                ('companies-0-company_name', u''),
+                ('companies-0-controller_number', u''),
+                ('companies-0-new_company_name', u'foobar')
+            ]))
+            self.assertTrue(session['companies'] is not None)
+            session.pop('companies')
+
+            # assert old works
+            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+                ('companies-0-new_company_controller_number', u''),
+                ('companies-0-company_name', u'foobar'),
+                ('companies-0-controller_number', u'1234'),
+                ('companies-0-new_company_name', u'')
+            ]))
+            self.assertTrue(session['companies'] is not None)
+            session.pop('companies')
+
+            # assert multiple companies work
+            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+                ('companies-0-new_company_controller_number', u''),
+                ('companies-0-company_name', u'foobar'),
+                ('companies-0-controller_number', u'1234'),
+                ('companies-0-new_company_name', u''),
+                ('companies-1-new_company_controller_number', u'1234'),
+                ('companies-1-company_name', u''),
+                ('companies-1-controller_number', u''),
+                ('companies-1-new_company_name', u'foobar2')
+            ]))
+
+            self.assertTrue(session['companies'] is not None)
+            session.pop('companies')
+
+    def test_actual_contract_completion(self):
+        '''Test the flow of completing a contract with one company
+        '''
+        with self.client as c:
+            self.assertFalse(self.contract1.is_visible)
+
+            self.assign_contract(flow=self.simple_flow)
+
+            transition_url = self.build_detail_view(self.contract1) + '?transition=true'
+            self.client.get(transition_url)
+
+            c.post('conductor/contract/{}/edit/contract'.format(self.contract1.id), data=dict(
+                expiration_date=datetime.date(2020, 1, 1), spec_number='abcd',
+                description='foo'
+            ))
+
+            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+                ('companies-0-new_company_controller_number', u'1234'),
+                ('companies-0-company_name', u''),
+                ('companies-0-controller_number', u''),
+                ('companies-0-new_company_name', u'foobar')
+            ]))
+
+            c.post('/conductor/contract/{}/edit/contacts'.format(self.contract1.id), data=ImmutableMultiDict([
+                ('companies-0-contacts-0-first_name', 'foo'),
+                ('companies-0-contacts-0-last_name', 'bar'),
+                ('companies-0-contacts-0-phone_number', '123-456-7890'),
+                ('companies-0-contacts-0-email', 'foo@foo.com'),
+            ]))
+
+            self.assertTrue(self.contract1.parent.is_archived)
+            self.assertTrue(self.contract1.is_visible)
+            self.assertEquals(ContractBase.query.count(), 3)
+            self.assertEquals(self.contract1.description, 'foo')
+            self.assertEquals(self.contract1.parent.description, 'scuba supplies [Archived]')
+
+    def test_actual_contract_completion_multi_company(self):
+        '''Test the flow of completing a contract with multiple companies
+        '''
+        with self.client as c:
+            self.assertFalse(self.contract1.is_visible)
+
+            self.assign_contract(flow=self.simple_flow)
+
+            transition_url = self.build_detail_view(self.contract1) + '?transition=true'
+            self.client.get(transition_url)
+
+            c.post('conductor/contract/{}/edit/contract'.format(self.contract1.id), data=dict(
+                expiration_date=datetime.date(2020, 1, 1), spec_number='abcd',
+                description='foo'
+            ))
+
+            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+                ('companies-0-new_company_controller_number', u'1234'),
+                ('companies-0-company_name', u''),
+                ('companies-0-controller_number', u''),
+                ('companies-0-new_company_name', u'foobar'),
+                ('companies-1-new_company_controller_number', u'1234'),
+                ('companies-1-company_name', u''),
+                ('companies-1-controller_number', u''),
+                ('companies-1-new_company_name', u'foobar2')
+            ]))
+
+            c.post('/conductor/contract/{}/edit/contacts'.format(self.contract1.id), data=ImmutableMultiDict([
+                ('companies-0-contacts-0-first_name', 'foo'),
+                ('companies-0-contacts-0-last_name', 'bar'),
+                ('companies-0-contacts-0-phone_number', '123-456-7890'),
+                ('companies-0-contacts-0-email', 'foo@foo.com'),
+                ('companies-1-contacts-0-first_name', 'foo'),
+                ('companies-1-contacts-0-last_name', 'bar'),
+                ('companies-1-contacts-0-phone_number', '123-456-7890'),
+                ('companies-1-contacts-0-email', 'foo@foo.com'),
+
+            ]))
+
+            # we should create two new contract objects
+            self.assertEquals(ContractBase.query.count(), 4)
+            self.assertTrue(self.contract1.parent.is_archived)
+
+            # two of the contracts should be children of our parent contract
+            children = self.contract1.parent.children
+            self.assertEquals(len(children), 2)
+
+            for child in children:
+                self.assertTrue(child.is_visible)
+                self.assertEquals(child.description, 'foo')
+                self.assertEquals(child.parent.description, 'scuba supplies [Archived]')

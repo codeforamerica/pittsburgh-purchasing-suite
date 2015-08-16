@@ -69,7 +69,7 @@ def index():
     ).outerjoin(ContractProperty).filter(
         db.func.lower(ContractBase.contract_type) == 'county',
         db.func.lower(ContractProperty.key) == 'spec number',
-        ContractBase.child == None
+        ContractBase.children == None
     ).order_by(ContractBase.expiration_date).all()
 
     conductors = User.query.join(Role).filter(
@@ -234,17 +234,20 @@ def edit(contract_id):
     '''Update information about a contract
     '''
     contract = ContractBase.query.get(contract_id)
+    completed_last_stage = contract.completed_last_stage()
 
     # clear the contract from our session
     session.pop('contract', None)
 
-    if contract:
+    if contract and completed_last_stage:
         form = EditContractForm(obj=contract)
         if form.validate_on_submit():
             session['contract'] = json.dumps(form.data, default=json_serial)
             return redirect(url_for('conductor.edit_company', contract_id=contract.id))
         form.spec_number.data = contract.get_spec_number().value
         return render_template('conductor/edit/edit.html', form=form, contract=contract)
+    elif not completed_last_stage:
+        return redirect(url_for('conductor.detail', contract_id=contract.id))
     abort(404)
 
 @blueprint.route('/contract/<int:contract_id>/edit/company', methods=['GET', 'POST'])
@@ -296,7 +299,9 @@ def edit_company_contacts(contract_id):
 
                 contract.is_visible = True
                 contract.parent.is_archived = True
-                contract.parent.description += ' [Archived]'
+                if not contract.parent.description.endswith('[Archived]'):
+                    contract.parent.description += ' [Archived]'
+
                 db.session.commit()
 
             Notification(
@@ -306,6 +311,7 @@ def edit_company_contacts(contract_id):
                 html_template='conductor/emails/new_contract.html',
                 contract=main_contract
             ).send(multi=True)
+
             session.pop('contract')
             session.pop('companies')
             session['success'] = True

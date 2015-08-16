@@ -50,7 +50,6 @@ class EditContractForm(Form):
     '''
 
     description = TextField(validators=[DataRequired()])
-    financial_id = IntegerField(validators=[DataRequired(message="A number is required.")])
     expiration_date = DateField(validators=[DataRequired()])
     spec_number = TextField(validators=[DataRequired()])
     contract_href = TextField(validators=[Optional(), URL(message="That URL doesn't work!")])

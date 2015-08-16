@@ -137,7 +137,7 @@ class ContractBase(Model):
     opportunity = db.relationship('Opportunity', uselist=False, backref='opportunity')
 
     parent_id = Column(db.Integer, db.ForeignKey('contract.id'))
-    child = db.relationship('ContractBase', backref=backref(
+    children = db.relationship('ContractBase', backref=backref(
         'parent', remote_side=[id]
     ))
 
@@ -158,6 +158,21 @@ class ContractBase(Model):
         return ContractStageActionItem.query.join(ContractStage).filter(
             ContractStage.contract_id == self.id
         ).order_by(db.text('taken_at asc')).all()
+
+    def get_current_stage(self):
+        '''Returns the details for the current contract stage
+        '''
+        return ContractStage.query.filter(
+            ContractStage.contract_id == self.id,
+            ContractStage.stage_id == self.current_stage_id,
+            ContractStage.flow_id == self.flow_id
+        ).first()
+
+    def completed_last_stage(self):
+        '''Boolean to check if we have completed the last stage of our flow
+        '''
+        return self.current_stage_id == self.flow.stage_order[-1] and \
+            self.get_current_stage().exited is not None
 
 class ContractProperty(Model):
     __tablename__ = 'contract_property'

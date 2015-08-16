@@ -137,8 +137,9 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
 
             update_contract_with_spec(contract, data)
             # get department
-            data['department'] = form.data.get('department').name
-            action.action_detail = data.update({'stage_name': current_stage.name})
+            if form.data.get('department', None):
+                data['department'] = form.data.get('department').name
+                action.action_detail = data.update({'stage_name': current_stage.name})
 
         else:
             return False
