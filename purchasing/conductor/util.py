@@ -31,7 +31,7 @@ class OpportunityFormObj(object):
         self.contact_email = contact_email
 
 def json_serial(obj):
-    if isinstance(obj, datetime.datetime):
+    if isinstance(obj, datetime.datetime) or isinstance(obj, datetime.date):
         return obj.isoformat()
 
 def create_opp_form_obj(contract, contact_email=None):
@@ -58,8 +58,6 @@ def update_contract_with_spec(contract, form_data, company=None, clone=False):
 
     if company:
         contract.companies.append(company)
-
-    import pdb; pdb.set_trace()
 
     contract.update(**data)
 

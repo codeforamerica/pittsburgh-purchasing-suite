@@ -26,7 +26,7 @@
       <form class="form" method="POST" action="{{ url_for('conductor.edit_company', contract_id=contract.id) }}">
         {{ form.csrf_token() }}
 
-          <div id="company-name-form">
+          <div class="company-name-form">
           {% for company in form.companies.entries %}
             {{ company.csrf_token() }}
 
@@ -62,7 +62,7 @@
           {% endfor %}
           </div>
 
-        <button type="button" class="btn btn-primary js-multiform-add" data-clone-id="company-name-form">Add another</button>
+        <button type="button" class="btn btn-primary js-multiform-add" data-clone-class="company-name-form">Add another</button>
 
         <hr>
 

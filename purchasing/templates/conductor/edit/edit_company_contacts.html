@@ -16,8 +16,8 @@
           <h4><strong>{{ companies[loop.index - 1].company_name }}</strong></h4>
           {{ company.csrf_token() }}
 
+          <div class="company-{{ loop.index - 1 }}-contact-form">
           {% for contact in company.contacts.entries %}
-            <div class="company-{{ loop.index - 1 }}-contact-form">
             {{ contact.csrf_token() }}
             <div class="contact-container well">
 
@@ -100,8 +100,8 @@
               </div>
             </div>
 
-            </div>
           {% endfor %}
+          </div>
 
           <button type="button" class="btn btn-primary js-multiform-add" data-clone-class="company-{{ loop.index - 1 }}-contact-form" data-nested="1">Add another contact for {{ companies[loop.index - 1].company_name }}</button>
 

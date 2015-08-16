@@ -15,7 +15,6 @@ from wtforms.validators import (
 from purchasing.filters import better_title
 
 from purchasing.users.models import department_query
-from purchasing.data.models import Company
 from purchasing.data.companies import get_all_companies_query
 
 from purchasing.opportunities.forms import OpportunityForm
