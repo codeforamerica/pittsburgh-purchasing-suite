@@ -118,6 +118,11 @@ def extend_a_contract(child_contract_id=None, delete_child=True):
 
     parent_contract.expiration_date = None
 
+    # strip the flow -- this will serve as the flag that
+    # the contract is extended
+    parent_contract.flow = None
+    parent_contract.flow_id = None
+
     delete_contract(child_contract_id)
 
     return parent_contract

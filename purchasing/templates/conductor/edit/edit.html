@@ -70,7 +70,13 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-success">Next</button>
+        <button type="submit" class="btn btn-success">
+          {% if contract.flow %}
+          Next
+          {% else %}
+          Submit
+          {% endif %}
+        </button>
       </form>
     </div>
   </div>

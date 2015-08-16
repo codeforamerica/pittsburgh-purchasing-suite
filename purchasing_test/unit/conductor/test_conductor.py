@@ -677,3 +677,31 @@ class TestConductor(BaseTestCase):
                 self.assertTrue(child.is_visible)
                 self.assertEquals(child.description, 'foo')
                 self.assertEquals(child.parent.description, 'scuba supplies [Archived]')
+
+    def test_contract_extension(self):
+        '''Test our flow works with contract extensions
+        '''
+        self.assign_contract()
+        detail_view_url = self.build_detail_view(self.contract1)
+        extend = self.client.get(detail_view_url + '?extend=true')
+
+        self.assertEquals(extend.status_code, 302)
+        self.assertEquals(
+            extend.location,
+            'http://localhost/conductor/contract/{}/edit/contract'.format(self.contract1.parent.id)
+        )
+
+        extend_post = self.client.post('conductor/contract/{}/edit/contract'.format(self.contract1.parent.id), data=dict(
+            expiration_date=datetime.date.today(), spec_number='1234',
+            description=self.contract1.parent.description
+        ))
+
+        self.assertEquals(extend_post.status_code, 302)
+        self.assertEquals(
+            extend_post.location,
+            'http://localhost/conductor/'
+        )
+
+        self.assertEquals(self.contract1.parent.expiration_date, datetime.date.today())
+        # we should have deleted our child contract
+        self.assertEquals(ContractBase.query.count(), 2)

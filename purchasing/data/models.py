@@ -171,7 +171,8 @@ class ContractBase(Model):
     def completed_last_stage(self):
         '''Boolean to check if we have completed the last stage of our flow
         '''
-        return self.current_stage_id == self.flow.stage_order[-1] and \
+        return self.flow is None or \
+            self.current_stage_id == self.flow.stage_order[-1] and \
             self.get_current_stage().exited is not None
 
 class ContractProperty(Model):

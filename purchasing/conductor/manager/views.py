@@ -50,15 +50,20 @@ def index():
         Stage.name.label('stage_name'), ContractStage.entered,
         db.func.string.split_part(User.email, '@', 1).label('assigned'),
     ).join(
-        Stage, Stage.id == ContractBase.current_stage_id
+        ContractStage, db.and_(
+            ContractStage.stage_id == ContractBase.current_stage_id,
+            ContractStage.contract_id == ContractBase.id,
+            ContractStage.flow_id == ContractBase.flow_id
+        )
     ).join(
-        ContractStage, ContractStage.stage_id == ContractBase.current_stage_id
+        Stage, Stage.id == ContractBase.current_stage_id
     ).join(
         Flow, Flow.id == ContractBase.flow_id
     ).join(User).filter(
         ContractStage.entered != None,
         ContractBase.assigned_to != None,
-        ContractStage.flow_id == ContractBase.flow_id
+        ContractStage.flow_id == ContractBase.flow_id,
+        ContractBase.is_visible == False
     ).all()
 
     all_contracts = db.session.query(
@@ -155,6 +160,9 @@ def detail(contract_id, stage_id=-1):
     if not contract:
         abort(404)
 
+    if contract.completed_last_stage():
+        return redirect(url_for('conductor.edit', contract_id=contract.id))
+
     stages = get_contract_stages(contract)
 
     try:
@@ -236,14 +244,21 @@ def edit(contract_id):
     contract = ContractBase.query.get(contract_id)
     completed_last_stage = contract.completed_last_stage()
 
-    # clear the contract from our session
+    # clear the contract/companies from our session
     session.pop('contract', None)
+    session.pop('companies', None)
 
     if contract and completed_last_stage:
         form = EditContractForm(obj=contract)
         if form.validate_on_submit():
-            session['contract'] = json.dumps(form.data, default=json_serial)
-            return redirect(url_for('conductor.edit_company', contract_id=contract.id))
+            if contract.flow:
+                session['contract'] = json.dumps(form.data, default=json_serial)
+                return redirect(url_for('conductor.edit_company', contract_id=contract.id))
+            else:
+                # if there is no flow, that means that it is an extended contract
+                # so we will save it and return back to the conductor home page
+                contract, _ = update_contract_with_spec(contract, form.data)
+                return redirect(url_for('conductor.index'))
         form.spec_number.data = contract.get_spec_number().value
         return render_template('conductor/edit/edit.html', form=form, contract=contract)
     elif not completed_last_stage:
