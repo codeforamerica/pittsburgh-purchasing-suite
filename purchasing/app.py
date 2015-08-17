@@ -49,6 +49,8 @@ def create_app(config_object=ProdConfig):
     register_jinja_extensions(app)
     register_errorhandlers(app)
 
+    make_celery(app)
+
     @app.before_first_request
     def before_first_request():
         if app.debug and not app.testing:
