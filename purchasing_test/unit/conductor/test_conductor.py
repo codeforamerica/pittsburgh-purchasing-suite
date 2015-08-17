@@ -425,12 +425,29 @@ class TestConductor(BaseTestCase):
             self.assertTrue('test' in outbox[0].subject)
             self.assertTrue('with the subject' in good_post.data)
 
-    def test_conductor_post_to_beacon(self):
-        '''Test posting to beacon from Conductor
+    def test_conductor_post_to_beacon_validation(self):
+        '''Test failure posting to beacon from Conductor
         '''
         self.assign_contract()
 
         detail_view_url = self.build_detail_view(self.contract1)
+
+        bad1 = self.client.post(detail_view_url + '?form=post', data=dict(contact_email='foo'))
+        self.assertTrue('Invalid email address.' in bad1.data)
+
+        bad2 = self.client.post(detail_view_url + '?form=post', data=dict(contact_email='foo@BADDOMAIN.com'))
+        self.assertTrue('not a valid contact!' in bad2.data)
+
+        self.assertEquals(Opportunity.query.count(), 0)
+        self.assertEquals(ContractStageActionItem.query.count(), 1)
+
+    def test_conductor_post_to_beacon(self):
+        '''Test successful posting to beacon from Conductor
+        '''
+        self.assign_contract()
+
+        detail_view_url = self.build_detail_view(self.contract1)
+
         self.client.post(detail_view_url + '?form=post', data=dict(
             contact_email=self.conductor.email, title='foobar', description='barbaz',
             planned_advertise=datetime.date.today() + datetime.timedelta(1),
