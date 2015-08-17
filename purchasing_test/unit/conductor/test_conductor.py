@@ -455,6 +455,8 @@ class TestConductor(BaseTestCase):
         ))
 
         self.assertEquals(ContractStageActionItem.query.count(), 2)
+        for i in ContractStageActionItem.query.all():
+            self.assertTrue(i.action_detail is not None)
         self.assertEquals(self.contract1.financial_id, 999)
 
     def test_edit_contract_complete(self):

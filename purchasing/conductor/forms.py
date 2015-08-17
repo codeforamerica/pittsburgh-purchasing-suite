@@ -58,7 +58,6 @@ class ContractMetadataForm(Form):
     '''Edit a contract's metadata during the renewal process
     '''
     financial_id = IntegerField(validators=[Optional()])
-    expiration_date = DateField(validators=[Optional()])
     spec_number = TextField(validators=[Optional()], filters=[lambda x: x or None])
     all_blank = HiddenField(validators=[not_all_hidden])
     department = QuerySelectField(
