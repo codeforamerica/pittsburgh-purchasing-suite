@@ -76,7 +76,9 @@ def import_old_contracts(filepath):
     print 'Import finished!'
     print 'Enabling triggers...'
     enable_triggers()
+    print 'Refreshing search_view...'
     refresh_search_view()
+    print 'Done!'
     return
 
 @manager.option('-u', '--user_id', dest='user', default=os.environ.get('AWS_ACCESS_KEY_ID'))
