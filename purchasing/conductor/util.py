@@ -175,7 +175,7 @@ def build_subscribers(contract):
         db.func.lower(Department.name) == 'equal opportunity review commission'
     ).all()
 
-    if contract.parent:
+    if contract.parent is None:
         followers = []
     else:
         followers = [i for i in contract.parent.followers if i not in department_users]

@@ -6,7 +6,7 @@ from wtforms.fields import SelectField, HiddenField
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
-from flask.ext.admin.form.fields import Select2TagsField
+from flask_admin.form.fields import Select2TagsField
 from flask_login import current_user
 from purchasing.data.models import (
     Stage, StageProperty, Flow, ContractBase, ContractProperty,
@@ -15,7 +15,7 @@ from purchasing.data.models import (
 from purchasing.opportunities.models import RequiredBidDocument
 from purchasing.extensions import login_manager
 from purchasing.users.models import User, Role
-from purchasing.opportunities.models import Opportunity, Category
+from purchasing.opportunities.models import Opportunity
 
 @login_manager.user_loader
 def load_user(userid):
@@ -30,21 +30,14 @@ class CompanyAdmin(AuthMixin, sqla.ModelView):
         'company_name', 'contracts'
     ]
 
-class CompanyContractAdmin(AuthMixin, sqla.ModelView):
-    inline_models = (CompanyContact,)
-
-    form_columns = ['id', 'company_name']
-    form_overrides = dict(id=HiddenField)
-
 class ContractBaseAdmin(AuthMixin, sqla.ModelView):
     '''Base model for different representations of contracts
     '''
     column_labels = dict(financial_id='Controller Number')
     column_searchable_list = ('description', 'contract_type')
 
-
 class ScoutContractAdmin(ContractBaseAdmin):
-    inline_models = (ContractProperty, LineItem, CompanyContractAdmin(Company, db.session))
+    inline_models = (ContractProperty, LineItem,)
 
     form_columns = [
         'contract_type', 'description', 'properties',
@@ -60,7 +53,7 @@ class ScoutContractAdmin(ContractBaseAdmin):
     ]
 
 class ConductorContractAdmin(ContractBaseAdmin):
-    inline_models = (ContractProperty, CompanyContractAdmin(Company, db.session))
+    inline_models = (ContractProperty,)
 
     column_list = [
         'description', 'expiration_date', 'current_stage', 'current_flow', 'assigned'
@@ -100,7 +93,7 @@ class ConductorContractAdmin(ContractBaseAdmin):
     def _get_filtered_users(self):
         return self.session.query(User).join(Role).filter(
             Role.name.in_(['conductor', 'admin', 'superadmin'])
-        ).all()
+        )
 
 def _stage_lookup(stage_name):
     if not isinstance(stage_name, int):
