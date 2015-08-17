@@ -349,10 +349,10 @@ def edit_company_contacts(contract_id):
 @blueprint.route('/contract/<int:contract_id>/edit/success', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def success(contract_id):
-    # if session.pop('success', None):
-    contract = ContractBase.query.get(contract_id)
-    return render_template('conductor/edit/success.html', contract=contract)
-    # return redirect(url_for('conductor.edit_company_contacts', contract_id=contract_id))
+    if session.pop('success', None):
+        contract = ContractBase.query.get(contract_id)
+        return render_template('conductor/edit/success.html', contract=contract)
+    return redirect(url_for('conductor.edit_company_contacts', contract_id=contract_id))
 
 # @blueprint.route('')
 # @requires_roles('conductor', 'admin', 'superadmin')
