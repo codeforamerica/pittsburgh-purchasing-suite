@@ -6,12 +6,23 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-    <h4><strong>Contract Successfully Updated!</strong></h4>
+    <h4><strong>Successfully Updated! Newly available contracts:</strong></h4>
 
-    <ul>
-      <li>View it <a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">on Scout.</a></li>
-      <li>Edit it <a href="{{ url_for('contract.edit_view', id=contract.id) }}">in the Admin.</a></li>
+    {% if contract.parent.children|length > 0 %}
+    {% for _contract in contract.parent.children %}
+      {% include 'conductor/edit/success_contract.html' %}
+    {% endfor %}
+
+    {% elif contract.children|length > 0 %}
+    {% for _contract in contract.children %}
+      {% include 'conductor/edit/success_contract.html' %}
+    {% endfor %}
     </ul>
+
+    {% else %}
+      {% set _contract = contract %}
+      {% include 'conductor/edit/success_contract.html' %}
+    {% endif %}
 
     </div>
   </div>
