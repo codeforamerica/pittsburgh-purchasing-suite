@@ -153,7 +153,7 @@ def complete_contract(parent_contract, child_contract):
 
     return child_contract
 
-def clone_a_contract(contract, parent_id=None, strip=True):
+def clone_a_contract(contract, parent_id=None, strip=True, new_conductor_contract=True):
     '''Takes a contract object and clones it
 
     The clone always strips the following properties:
@@ -164,6 +164,10 @@ def clone_a_contract(contract, parent_id=None, strip=True):
         + Contract HREF
         + Financial ID
         + Expiration Date
+
+    If the new_conductor_contract flag is set to true, the following are set:
+        + is_visible set to False
+        + is_archived set to False
 
     Relationships are handled as follows:
         + Stage, Flow - Duplicated
@@ -182,6 +186,10 @@ def clone_a_contract(contract, parent_id=None, strip=True):
     if strip:
         contract.financial_id = None
         contract.expiration_date = None
+
+    if new_conductor_contract:
+        contract.is_archived = False
+        contract.is_visible = False
 
     # set the parent
     if parent_id:

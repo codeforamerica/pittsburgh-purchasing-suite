@@ -149,7 +149,7 @@ class CompanyForm(NoCSRFForm):
 class CompanyListForm(Form):
     companies = FieldList(FormField(CompanyForm), min_entries=1)
 
-class CompanyContactList(Form):
+class CompanyContactList(NoCSRFForm):
     contacts = FieldList(FormField(CompanyContactForm), min_entries=1)
 
 class CompanyContactListForm(Form):
