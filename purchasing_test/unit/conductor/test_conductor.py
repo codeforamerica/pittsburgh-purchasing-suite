@@ -43,12 +43,14 @@ class TestConductor(BaseTestCase):
         # create two contracts
         self.contract1 = insert_a_contract(
             contract_type='County', description='scuba supplies', financial_id=123,
-            expiration_date=datetime.date.today(), properties=[{'key': 'Spec Number', 'value': '123'}]
+            expiration_date=datetime.date.today(), properties=[{'key': 'Spec Number', 'value': '123'}],
+            is_visible=True
         )
         self.contract2 = insert_a_contract(
             contract_type='County', description='scuba repair', financial_id=456,
             expiration_date=datetime.date.today() + datetime.timedelta(120),
-            properties=[{'key': 'Spec Number', 'value': '456'}]
+            properties=[{'key': 'Spec Number', 'value': '456'}],
+            is_visible=True
         )
 
         self.login_user(self.conductor)
@@ -613,7 +615,7 @@ class TestConductor(BaseTestCase):
         '''Test the flow of completing a contract with one company
         '''
         with self.client as c:
-            self.assertFalse(self.contract1.is_visible)
+            self.assertTrue(self.contract1.is_visible)
 
             self.assign_contract(flow=self.simple_flow)
 
@@ -640,7 +642,9 @@ class TestConductor(BaseTestCase):
             ]))
 
             self.assertTrue(self.contract1.parent.is_archived)
+            self.assertFalse(self.contract1.parent.is_visible)
             self.assertTrue(self.contract1.is_visible)
+
             self.assertEquals(ContractBase.query.count(), 3)
             self.assertEquals(self.contract1.description, 'foo')
             self.assertEquals(self.contract1.parent.description, 'scuba supplies [Archived]')
@@ -649,7 +653,7 @@ class TestConductor(BaseTestCase):
         '''Test the flow of completing a contract with multiple companies
         '''
         with self.client as c:
-            self.assertFalse(self.contract1.is_visible)
+            self.assertTrue(self.contract1.is_visible)
 
             self.assign_contract(flow=self.simple_flow)
 
@@ -687,6 +691,7 @@ class TestConductor(BaseTestCase):
             # we should create two new contract objects
             self.assertEquals(ContractBase.query.count(), 4)
             self.assertTrue(self.contract1.parent.is_archived)
+            self.assertFalse(self.contract1.parent.is_visible)
 
             # two of the contracts should be children of our parent contract
             children = self.contract1.parent.children

@@ -131,7 +131,7 @@ class ContractBase(Model):
         'contracts', lazy='dynamic', cascade='none'
     ))
 
-    is_visible = Column(db.Boolean, default=False, nullable=False)
+    is_visible = Column(db.Boolean, default=True, nullable=False)
     is_archived = Column(db.Boolean, default=False, nullable=False)
 
     opportunity = db.relationship('Opportunity', uselist=False, backref='opportunity')

@@ -147,8 +147,12 @@ def complete_contract(parent_contract, child_contract):
     transfer_contract_relationships(parent_contract, child_contract)
 
     parent_contract.is_archived = True
+    parent_contract.is_visible = False
+
     if not parent_contract.description.endswith(' [Archived'):
         parent_contract.description += ' [Archived]'
+
+    child_contract.is_archived = False
     child_contract.is_visible = True
 
     return child_contract
