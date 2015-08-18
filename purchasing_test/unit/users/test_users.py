@@ -6,6 +6,7 @@ from flask.ext.login import login_user
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import insert_a_user, insert_a_role
 from purchasing.users.models import User
+from purchasing_test.unit.factories import DepartmentFactory
 
 class TestUserAuth(BaseTestCase):
     render_template = True
@@ -13,11 +14,14 @@ class TestUserAuth(BaseTestCase):
     def setUp(self):
         super(TestUserAuth, self).setUp()
         self.email = 'foo@foo.com'
-        insert_a_user(email=self.email)
+        user = insert_a_user(email=self.email)
+        user.save()
+        DepartmentFactory.create(name='New User').save()
+        self.department1 = DepartmentFactory.create(name='Test').save()
 
     def test_login_route(self):
         '''
-        Test the login route works propertly
+        Test the login route works properly
         '''
         request = self.client.get('/users/login')
         self.assert200(request)
@@ -126,7 +130,7 @@ class TestUserAuth(BaseTestCase):
 
         # update the user successfully
         update = self.client.post('/users/profile', data=dict(
-            first_name='foo', last_name='bar', department='Other'
+            first_name='foo', last_name='bar', department=str(self.department1.id)
         ))
 
         # assert we successfully update

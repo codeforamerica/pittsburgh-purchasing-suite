@@ -2,8 +2,13 @@
 """Database module, including the SQLAlchemy database object and DB-related
 utilities.
 """
+import datetime
+
 from sqlalchemy.sql.functions import GenericFunction
 from sqlalchemy.orm import relationship
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
 
 from .extensions import db
 from .compat import basestring
@@ -45,9 +50,20 @@ class Model(CRUDMixin, db.Model):
     """Base model class that includes CRUD convenience methods."""
     __abstract__ = True
 
+    def unicode_helper(self, field):
+        if field:
+            return field.encode('utf-8').strip()
+        return u''
+
+    def serialize_dates(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        else:
+            return obj
+
     def as_dict(self):
         return {
-            c.name: getattr(self, c.name) for c in self.__table__.columns
+            c.name: self.serialize_dates(getattr(self, c.name)) for c in self.__table__.columns
         }
 
 # From Mike Bayer's "Building the app" talk
@@ -81,6 +97,21 @@ def ReferenceCol(tablename, nullable=False, ondelete=None, pk_name='id', **kwarg
     return db.Column(
         db.ForeignKey("{0}.{1}".format(tablename, pk_name), ondelete=ondelete),
         nullable=nullable, **kwargs)
+
+# for details, see http://skien.cc/blog/2014/01/15/sqlalchemy-and-race-conditions-implementing/
+def get_or_create(session, model, create_method='', create_method_kwargs=None, **kwargs):
+    try:
+        return session.query(model).filter_by(**kwargs).one(), True
+    except NoResultFound:
+        kwargs.update(create_method_kwargs or {})
+        created = getattr(model, create_method, model)(**kwargs)
+        try:
+            session.add(created)
+            session.flush()
+            return created, False
+        except IntegrityError:
+            session.rollback()
+            return session.query(model).filter_by(**kwargs).one(), True
 
 class TSRank(GenericFunction):
     package = 'full_text'

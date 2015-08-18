@@ -13,12 +13,7 @@ down_revision = '37b62c1b2866'
 from alembic import op
 import sqlalchemy as sa
 
-trigger_tuples = [
-    ('contract', 'description'),
-    ('company', 'company_name'),
-    ('contract_property', 'value'),
-    ('line_item', 'description'),
-]
+from purchasing.data.models import TRIGGER_TUPLES
 
 index_set = [
     'tsv_contract_description',
@@ -74,7 +69,7 @@ def upgrade():
         $$
         LANGUAGE plpgsql ;
     '''))
-    for table, column in trigger_tuples:
+    for table, column, _ in TRIGGER_TUPLES:
         conn.execute(sa.sql.text('''
             DROP TRIGGER IF EXISTS tsv_{table}_{column}_trigger ON {table}
         '''.format(table=table, column=column)))
@@ -93,7 +88,7 @@ def downgrade():
     conn.execute(sa.sql.text('''
         DROP MATERIALIZED VIEW search_view
     '''))
-    for table, column in trigger_tuples:
+    for table, column, _ in TRIGGER_TUPLES:
         conn.execute(sa.sql.text('''
             DROP TRIGGER IF EXISTS tsv_{table}_{column}_trigger ON {table}
         '''.format(table=table, column=column)))

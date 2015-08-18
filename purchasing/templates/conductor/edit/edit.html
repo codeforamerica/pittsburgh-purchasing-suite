@@ -27,7 +27,7 @@
 
       {% if contract.parent %}
       <p class="text-muted">
-        <small>This is a renewed contract. View the old contract on <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}">Wexplorer</a>, or edit it in <a href="{{ url_for('conductor.edit', contract_id=contract.parent.id) }}">Conductor</a>.</small>
+        <small>This is a renewed contract. View the old contract on <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}">Scout</a>, or edit it in <a href="{{ url_for('conductor.edit', contract_id=contract.parent.id) }}">Conductor</a>.</small>
       </p>
       {% endif %}
 
@@ -56,19 +56,13 @@
         </div>
 
         <div class="row">
-          <div class="col-md-4">
+          <div class="col-md-6">
             <div class="form-group">
               <label for="spec_number">Spec Number <span class="form-required">*</span></label>
               {{ macros.with_errors(form.spec_number, class_='form-control', placeholder='Ex: 1234') }}
             </div>
           </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              <label for="financial_id">Controller Number <span class="form-required">*</span></label>
-              {{ macros.with_errors(form.financial_id, class_='form-control', placeholder='Ex: 1234') }}
-            </div>
-          </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <div class="form-group">
               <label for="Expiration Date">Expiration Date <span class="form-required">*</span></label>
               {{ macros.with_errors(form.expiration_date, class_='form-control datepicker', placeholder='Ex: 2015-12-31') }}
@@ -76,7 +70,13 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-success">Submit</button>
+        <button type="submit" class="btn btn-success">
+          {% if contract.flow %}
+          Next
+          {% else %}
+          Submit
+          {% endif %}
+        </button>
       </form>
     </div>
   </div>

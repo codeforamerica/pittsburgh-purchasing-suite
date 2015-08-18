@@ -1,6 +1,6 @@
 {% if current_user.email %}
 <ul class="nav navbar-nav navbar-right">
-  {% if current_user.role.name in ['admin', 'superadmin'] %}
+  {% if current_user.is_conductor() %}
   <li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('admin.index') }}">Admin</a></p></li>
   {% endif %}
   <li><p class="navbar-text"><a class="navbar-link" href="{{ url_for('users.profile') }}">Profile</a></p></li>

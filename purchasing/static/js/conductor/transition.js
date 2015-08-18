@@ -1,8 +1,6 @@
 (function() {
   'use strict';
 
-  var activeTab;
-
   // format a date to YYYY-MM-DD
   function formatDate(datestr) {
     var _date = new Date(datestr);
@@ -48,7 +46,8 @@
 
   var detailBtns = $('.btn-detail');
   detailBtns.on('click', function() {
-    var btn = $(this);
+    var btn = $(this).closest('.dropdown').find('.btn-detail-target');
+    if (btn.length === 0) { btn = $(this); }
     btn.addClass('disabled');
     btn.append('<span style="padding-left:5px;"><i class="fa fa-refresh fa-spin"></i></span>');
   });

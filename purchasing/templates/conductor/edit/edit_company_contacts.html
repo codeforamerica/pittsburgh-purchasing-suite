@@ -1,0 +1,116 @@
+{% extends 'conductor/layout.html' %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <h3>Editing Company Contacts for {{ contract.description|title }}</h3>
+
+      <form class="form" method="POST" action="{{ url_for('conductor.edit_company_contacts', contract_id=contract.id) }}">
+        {{ form.csrf_token() }}
+
+        {% for company in form.companies.entries %}
+          <h4><strong>{{ companies[loop.index - 1].company_name }}</strong></h4>
+
+          <div class="company-{{ loop.index - 1 }}-contact-form">
+          {% for contact in company.contacts.entries %}
+            <div class="contact-container well">
+
+              <strong>Edit contact information</strong>
+              <span class="pull-right"><a class="js-multiform-remove hidden" data-parent-elem-class="company-{{ loop.index - 1 }}-contact-form"><i class="fa fa-times text-danger"></i></a></span>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="description">First Name <span class="form-required">*</span></label>
+                    {{ macros.with_errors(contact.first_name, class_='form-control', placeholder='First Name') }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="description">Last Name <span class="form-required">*</span></label>
+                    {{ macros.with_errors(contact.last_name, class_='form-control', placeholder='Last Name') }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="description">Address 1</label>
+                    {{ macros.with_errors(contact.addr1, class_='form-control', placeholder='Address 1') }}
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="description">Address 2</label>
+                    {{ macros.with_errors(contact.addr2, class_='form-control', placeholder='Address 2') }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="description">City</label>
+                    {{ macros.with_errors(contact.city, class_='form-control', placeholder='City') }}
+                  </div>
+                </div>
+
+                <div class="col-md-2">
+                  <div class="form-group">
+                    <label for="description">State</label>
+                    {{ macros.with_errors(contact.state, class_='form-control') }}
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="description">ZIP</label>
+                    {{ macros.with_errors(contact.zip_code, class_='form-control', placeholder='5-digit ZIP') }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="description">Phone Number <span class="form-required">*</span></label>
+                    {{ macros.with_errors(contact.phone_number, class_='form-control', placeholder='Ex: 000-000-0000') }}
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="description">Fax Number</label>
+                    {{ macros.with_errors(contact.fax_number, class_='form-control', placeholder='Ex: 000-000-0000') }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="description">Email Address <span class="form-required">*</span></label>
+                {{ macros.with_errors(contact.email, class_='form-control', placeholder='Email address') }}
+              </div>
+            </div>
+
+          {% endfor %}
+          </div>
+
+          <button type="button" class="btn btn-primary js-multiform-add" data-clone-class="company-{{ loop.index - 1 }}-contact-form" data-nested="1">Add another contact for {{ companies[loop.index - 1].company_name }}</button>
+
+          <hr>
+
+        {% endfor %}
+
+        <button type="submit" class="btn btn-success">Submit</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

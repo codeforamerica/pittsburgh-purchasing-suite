@@ -1,0 +1,48 @@
+{# Check if there is an entered and exited
+    value. This means that we've already been
+    through this stage entirely. Otherwise,
+    check for an entered value only. This means that it's the
+    current stage. If we have neither of those, gray it out
+    because we aren't there yet.
+ #}
+<h4>Current Flow</h4>
+<p class="text-bigger"><strong>{{ contract.current_flow.flow_name }}</strong></p>
+{% if flows|length >0 %}
+<div class="dropdown">
+  <button class="btn btn-default btn-detail-target" id="btnActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Change Flow <span class="caret"></span></button>
+  <ul class="dropdown-menu" aria-labelledby="btnActions">
+  {% for flow in flows %}
+      <li><a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, flow_switch=flow.id) }}">{{ flow }}</a></li>
+  {% endfor %}
+  </ul>
+</div>
+<div class="spacer-20"></div>
+{% endif %}
+
+{% for stage in stages %}
+  {% if stage.entered and stage.exited %}
+    <div class="event event-complete {% if stage.id == active_stage.id %}event-active{% endif %}">
+      <p><a href="{{ url_for('conductor.detail', contract_id=stage.contract_id, stage_id=stage.id) }}">{{ stage.name }}</a></p>
+      <p class="event-date">
+        {{ stage.exited|datetimeformat }}
+      </p>
+    </div>
+  {% elif stage.entered %}
+    <div class="event event-current {% if stage.id == active_stage.id %}event-active{% endif %}">
+      <p>
+        <a href="{{ url_for('conductor.detail', contract_id=stage.contract_id, stage_id=stage.id) }}">{{ stage.name }}</a>
+      </p>
+      <p class="event-date">
+        {{ stage.entered|datetimeformat }}
+      </p>
+    </div>
+  {% else %}
+    <div class="event {% if stage.id == active_stage.id %}event-active{% endif %}">
+      <p class="text-muted">
+        {{ stage.name }}
+      </p>
+      <p class="event-date">
+      </p>
+    </div>
+  {% endif %}
+{% endfor %}

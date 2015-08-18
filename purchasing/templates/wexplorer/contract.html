@@ -94,8 +94,8 @@
         <ul>
         {% for department in departments %}
           <li>
-            <a href="{{ url_for('wexplorer.filter', department=department) }}">
-              {{ department }}
+            <a href="{{ url_for('wexplorer.filter', department=department.id) }}">
+              {{ department.name }}
             </a>
           </li>
         {% endfor %}

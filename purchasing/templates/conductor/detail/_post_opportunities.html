@@ -1,0 +1,119 @@
+{% import "macros/with_errors.html" as macros %}
+
+<div class="row">
+  <div class="col-md-12">
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, form='post') }}">
+
+      {% set form = opportunity_form %}
+      {{ form.csrf_token() }}
+
+      <h4>Post opportunity to Beacon</h4>
+
+      <div class="form-group">
+        <label for="department" class="control-label">Department <span class="form-required">*</span></label>
+        <p class="help-block">Who is the using department for this opportunity?</p>
+        {{ macros.with_errors(form.department, class_="form-control")}}
+      </div><!-- department -->
+
+      <div class="form-group">
+        <label for="contact_email" class="control-label">Contact Email <span class="form-required">*</span></label>
+        <p class="help-block">What is the email of the primary contact for this opportunity?</p>
+        {{ macros.with_errors(form.contact_email, class_="form-control", placeholder="ex: example@pittsburghpa.gov")}}
+      </div><!-- email -->
+
+      <div class="form-group">
+        <label for="title" class="control-label">Title <span class="form-required">*</span></label>
+        <p class="help-block">What should the title of this opportunity be?</p>
+        {{ macros.with_errors(form.title, class_="form-control", placeholder="ex: What you need")}}
+      </div><!-- title -->
+
+      <div class="form-group">
+        <label for="description" class="control-label">Description <span class="form-required">*</span></label>
+        <p class="help-block">Please describe this opportunity (no more than 500 words).</p>
+        {{ macros.with_errors(form.description, class_="form-control", rows=4, placeholder="ex: The City of Pittsburgh will need to purchase...")}}
+      </div><!-- description -->
+
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="form-group">
+            <label for="planned_advertise" class="control-label">Advertise Date <span class="form-required">*</span></label>
+            <p class="help-block">
+              When do you want this opportunity to be made public? If you are uncertain, use an approximate date.
+            </p>
+            {{ macros.with_errors(form.planned_advertise, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
+          </div><!-- publication date -->
+        </div>
+
+        <div class="col-sm-4">
+          <div class="form-group">
+            <label for="planned_open" class="control-label">Open Date <span class="form-required">*</span></label>
+            <p class="help-block">
+              When do you want to start receiving responses to this opportunity? If you are uncertain, use an approximate date.
+            </p>
+            {{ macros.with_errors(form.planned_open, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
+          </div><!-- opportunity open date -->
+        </div>
+
+        <div class="col-sm-4">
+          <div class="form-group">
+            <label for="planned_deadline" class="control-label">Planned Deadline <span class="form-required">*</span></label>
+            <p class="help-block">
+              When is the deadline for vendors to respond to this opportunity? If you are uncertain, use an approximate date.
+            </p>
+            {{ macros.with_errors(form.planned_deadline, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
+          </div><!-- opp deadline -->
+        </div>
+      </div><!-- dates -->
+
+      <div class="form-group">
+        <label for="vendor_documents_needed" class="control-label">Documents the vendor will need</label>
+          <p class="help-block">
+            Choose the documents that vendor will need to include in order to successfully respond to the opportunity.
+          </p>
+          {{ form.vendor_documents_needed }}
+      </div><!-- documents needed -->
+
+      <div class="form-group">
+        <label for="document" class="control-label">Upload your solicitation documents.</label>
+        <p class="help-block">
+          If you don't have them on hand right now, don't worry. We'll email you two weeks before the publication date to remind you to upload it.
+        </p>
+        <p class="help-block"><strong>
+          .pdf, Word (.doc/.docx), and Excel (.xls/.xlsx) documents only!
+        </strong></p>
+
+        {% include 'opportunities/admin/opportunity_upload.html' %}
+      </div><!-- document upload -->
+
+      <div class="row">
+        <div class="col-sm-12">
+          <label>Which categories would you use to describe this opportunity?</label>
+          <p class="help-block">Feel free to choose as many categories as you would like.</p>
+        </div>
+
+        {% include 'opportunities/_categories.html' %}
+
+      </div>
+
+      <div class="spacer-20"></div>
+
+      <div class="row">
+        <div class="col-xs-6">
+          <button type="submit" class="btn btn-primary col-sm-12">Save
+          </button>
+        </div>
+      </div>
+
+      <div class="spacer-20"></div>
+
+    </form>
+
+  </div><!-- form wrapper -->
+</div>
+
+{% block jsvars %}
+<script type="text/javascript">
+  var subcategories = {{ subcategories|safe }};
+  var categories = {{ categories|safe }};
+</script>
+{% endblock %}

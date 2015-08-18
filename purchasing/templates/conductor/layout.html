@@ -10,6 +10,12 @@
 {% include "conductor/nav.html" %}
 {% endblock %}
 
+{% block jsvars %}
+<script type="text/javascript">
+var contractId, activeTab;
+</script>
+{% endblock %}
+
 {% block js %}
   {{ super() }}
   {% assets "conductorjs" %}

@@ -1,15 +1,73 @@
 # -*- coding: utf-8 -*-
 
+import datetime
+
 from purchasing.data.models import ContractBase, ContractProperty
 from purchasing.data.contracts import (
     create_new_contract, update_contract, update_contract_property,
-    delete_contract, get_all_contracts
+    delete_contract, get_all_contracts, extend_a_contract,
+    complete_contract, transfer_contract_relationships, clone_a_contract
 )
 
-from purchasing_test.unit.test_base import BaseTestCase
+from purchasing_test.unit.test_base import BaseTestCase, db
 from purchasing_test.unit.util import (
     insert_a_contract, get_a_property
 )
+from purchasing_test.unit.factories import ContractBaseFactory, UserFactory
+
+class ContractRenewalTest(BaseTestCase):
+    def setUp(self):
+        db.create_all()
+        user = UserFactory.create()
+        self.contract1 = ContractBaseFactory.create(
+            financial_id=1234, expiration_date=datetime.date(2015, 1, 1),
+            description='foobarbaz', followers=[user], starred=[user]
+        )
+        self.contract2 = ContractBaseFactory.create()
+        self.contract2.parent = self.contract1
+        db.session.commit()
+
+    def test_extend_a_contract(self):
+        '''Test extend contract sets properties, financial ids, deletes
+        '''
+        extend_a_contract(self.contract2.id, delete_child=True)
+
+        self.assertTrue(self.contract1.expiration_date is None)
+        self.assertEquals(self.contract1.financial_id, 1234)
+
+        self.assertTrue(ContractBase.query.count(), 1)
+
+    def test_complete_contract(self):
+        '''Test visibility for completed contracts
+        '''
+        old_description = self.contract1.description
+        child = complete_contract(self.contract1, self.contract2)
+
+        self.assertTrue(child.is_visible)
+        self.assertFalse(child.is_archived)
+        self.assertTrue(self.contract1.is_archived)
+        self.assertEquals(self.contract1.description, old_description + ' [Archived]')
+
+    def test_transfer_contract_relationships(self):
+        '''Test transfer followers, stars properly
+        '''
+        transfer_contract_relationships(self.contract1, self.contract2)
+
+        self.assertEquals(len(self.contract1.followers), 0)
+        self.assertEquals(len(self.contract2.followers), 1)
+
+        self.assertEquals(len(self.contract1.starred), 0)
+        self.assertEquals(len(self.contract2.starred), 1)
+
+    def test_clone_a_contract(self):
+        '''Test contract clones proper fields, doesn't clone improper fields
+        '''
+        clone = clone_a_contract(self.contract1)
+
+        self.assertEquals(clone.description, self.contract1.description)
+        self.assertTrue(clone.financial_id is None)
+        self.assertTrue(clone.expiration_date is None)
+        self.assertEquals(len(clone.followers), 0)
 
 class ContractsTest(BaseTestCase):
     def test_create_new_contract(self):

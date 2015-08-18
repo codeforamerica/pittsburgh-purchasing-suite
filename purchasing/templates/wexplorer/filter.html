@@ -26,10 +26,12 @@
         <tbody>
         {% for result in results %}
           <tr>
-            <td><a href="{{ url_for('wexplorer.contract', contract_id=result.id) }}">
+            <td>
+              <a href="{{ url_for('wexplorer.contract', contract_id=result.id) }}">
               {{ result.description|title }}
-            </a></td>
-            <td>{{ result.cnt }}</td>
+              </a>
+            </td>
+            <td>{{ result.follows }}</td>
           </tr>
         {% endfor %}
         </tbody>

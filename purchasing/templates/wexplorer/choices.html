@@ -4,7 +4,7 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     {% for choice in choices %}
-    <li><a href="{{ url_for('wexplorer.filter', department=choice[0]) }}">{{ choice[1] }}</a></li>
+    <li><a href="{{ url_for('wexplorer.filter', department_id=choice[0]) }}">{{ choice[1] }}</a></li>
     {% endfor %}
   </ul>
 </div>

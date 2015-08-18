@@ -36,9 +36,7 @@ class TestNotification(TestCase):
         '''Test notification sender
         '''
         current_app.logger = MagicMock()
-        mail.send = MagicMock()
         notification = Notification(to_email='foobar@foo.com', from_email='foo@foo.com')
-
         self.assertTrue(notification.send())
 
     @patch('purchasing.notifications.render_template', return_value='a test')
@@ -50,4 +48,10 @@ class TestNotification(TestCase):
         self.assertEquals(
             ['a', 'multi', 'nested', 'thing'],
             notification.flatten(test_recips)
+        )
+
+        test_recips_complex = ['a', ['b', ['c', 'd']], ['e']]
+        self.assertEquals(
+            ['a', 'b', 'c', 'd', 'e'],
+            notification.flatten(test_recips_complex)
         )

@@ -54,6 +54,7 @@ vendorjs = Bundle(
 )
 
 opportunitiesjs = Bundle(
+    'js/shared/*.js',
     'js/opportunities/*.js',
     filters='uglifyjs',
     output='public/js/beacon.js'
@@ -66,10 +67,28 @@ wexplorerjs = Bundle(
 )
 
 conductorjs = Bundle(
-    'js/conductor/*.js',
     'libs/datatables/media/js/jquery.dataTables.js',
+    'libs/select2/dist/js/select2.js',
+    'js/shared/*.js',
+    'js/conductor/*.js',
     filters='uglifyjs',
     output='public/js/conductor.js'
+)
+
+adminjs = Bundle(
+    'libs/jquery/dist/jquery.js',
+    'libs/bootstrap/dist/js/bootstrap.js',
+    'libs/bootstrap-datepicker/js/bootstrap-datepicker.js',
+    'libs/select2/dist/js/select2.full.js',
+    filters='uglifyjs',
+    output='public/js/admin.js'
+)
+
+admin_less = Bundle(
+    'less/admin_main.less',
+    filters='less',
+    output='public/css/admin.css',
+    depends=('less/*.less', 'less/**/*.less')
 )
 
 assets = Environment()
@@ -78,12 +97,14 @@ test_assets = Environment()
 # register our javascript bundles
 assets.register('ie8', ie8)
 assets.register('vendorjs', vendorjs)
+assets.register('adminjs', adminjs)
 assets.register('opportunitiesjs', opportunitiesjs)
 assets.register('wexplorerjs', wexplorerjs)
 assets.register('conductorjs', conductorjs)
 
 # register our css bundles
 assets.register('css_all', less)
+assets.register('admin_less', admin_less)
 assets.register('wexplorer_less', wexplorer_less)
 assets.register('sherpa_less', sherpa_less)
 assets.register('opportunities_less', opportunities_less)

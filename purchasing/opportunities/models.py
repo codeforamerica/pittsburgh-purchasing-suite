@@ -50,7 +50,10 @@ class Opportunity(Model):
 
     id = Column(db.Integer, primary_key=True)
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
-    department = Column(db.String(255))
+    department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True)
+    department = db.relationship(
+        'Department', backref=backref('opportunities', lazy='dynamic')
+    )
     contact_id = ReferenceCol('users', ondelete='SET NULL')
     contact = db.relationship(
         'User', backref=backref('opportunities', lazy='dynamic'),
@@ -72,9 +75,6 @@ class Opportunity(Model):
     planned_deadline = Column(db.DateTime, nullable=False)
     # Created from contract
     created_from_id = ReferenceCol('contract', ondelete='cascade', nullable=True)
-    created_from = db.relationship('ContractBase', backref=backref(
-        'opportunities', lazy='dynamic'
-    ))
 
     # documents needed from the vendors
     vendor_documents_needed = Column(ARRAY(db.Integer()))

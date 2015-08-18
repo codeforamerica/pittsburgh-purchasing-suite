@@ -7,13 +7,12 @@ from purchasing.data.models import (
     ContractBase, ContractProperty,
     Stage, StageProperty, Flow, Company
 )
-from purchasing.users.models import Role
+from purchasing.users.models import Role, User
 from purchasing_test.unit.factories import (
-    UserFactory, RoleFactory, StageFactory, FlowFactory,
+    UserFactory, RoleFactory, StageFactory, FlowFactory, DepartmentFactory,
     StagePropertyFactory, ContractBaseFactory, ContractPropertyFactory,
     CompanyFactory, OpportunityFactory, RequiredBidDocumentFactory
 )
-from purchasing.opportunities.models import Opportunity, RequiredBidDocument
 
 def insert_a_contract(properties=None, **kwargs):
     contract_data = dict(
@@ -44,7 +43,7 @@ def get_a_property():
 
 def insert_a_stage(name='foo', send_notifs=False, post_opportunities=False):
     stage = StageFactory.create(**{
-        'name': name, 'send_notifs': send_notifs,
+        'name': name,
         'post_opportunities': post_opportunities
     })
 
@@ -76,7 +75,6 @@ def insert_a_flow(name='test', stage_ids=None):
         db.session.rollback()
         return Flow.query.filter(Flow.name == name).first()
 
-
 def insert_a_company(name='test company', insert_contract=True):
     if insert_contract:
         contract = insert_a_contract()
@@ -90,19 +88,22 @@ def insert_a_company(name='test company', insert_contract=True):
     return company
 
 def create_a_user(email='foo@foo.com', department='Other', role=None):
-    return UserFactory(email=email, first_name='foo', last_name='foo', department=department, role=role)
+    return UserFactory(
+        email=email, first_name='foo', last_name='foo',
+        department=DepartmentFactory.create(name=department), role=role
+    )
 
-def insert_a_user(email='foo@foo.com', department='Other', role=None):
+def insert_a_user(email=None, department=None, role=None):
+    role = role if role else RoleFactory.create()
     try:
-        user = UserFactory(
-            email=email, first_name='foo', last_name='foo',
-            department=department, role=role
-        )
-        user.save()
+        if email:
+            user = UserFactory.create(email=email, role=role, department=department)
+        else:
+            user = UserFactory.create(role=role, department=department)
         return user
     except IntegrityError:
         db.session.rollback()
-        pass
+        return User.query.filter(User.email == email).first()
 
 def insert_a_role(name):
     try:
@@ -111,7 +112,7 @@ def insert_a_role(name):
         return role
     except IntegrityError:
         db.session.rollback()
-        pass
+        return Role.query.filter(Role.name == name).first()
 
 def get_a_role(name):
     return Role.query.filter(Role.name == name).first()
@@ -124,7 +125,7 @@ def insert_a_document(name='Foo', description='Bar'):
     return document
 
 def insert_an_opportunity(
-    department='Other', contact_id=None,
+    contact_id=None, department=None,
     title='Test', description='Test',
     planned_advertise=datetime.datetime.today(),
     planned_open=datetime.datetime.today(),
@@ -132,8 +133,9 @@ def insert_an_opportunity(
     required_documents=[],
     created_from_id=None, created_by_id=None, is_public=True
 ):
+    department = department if department else DepartmentFactory()
     opportunity = OpportunityFactory.create(**dict(
-        department=department, contact_id=contact_id, title=title,
+        department_id=department.id, contact_id=contact_id, title=title,
         description=description, planned_advertise=planned_advertise,
         planned_open=planned_open, planned_deadline=planned_deadline,
         created_from_id=created_from_id, created_by_id=created_by_id,

@@ -241,7 +241,7 @@ def reset_conductor():
     '''Totally resets conductor, unassigns all contracts/flows/stages
     '''
     db.session.execute(
-        '''update contract set assigned_to = null, flow_id = null, current_stage_id = null'''
+        '''update contract set assigned_to = null, flow_id = null, current_stage_id = null, parent_id = null'''
     )
     db.session.execute(
         '''delete from contract_stage'''

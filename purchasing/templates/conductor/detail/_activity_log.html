@@ -1,0 +1,6 @@
+{% import "macros/comma_separated_loop.html" as macros %}
+{% import 'macros/render_activity_log.html' as ral %}
+
+{%- for action in actions -%}
+  {{ ral.render_activity_log(action, current_user, contract, true) }}
+{%- endfor -%}

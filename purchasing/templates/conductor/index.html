@@ -8,16 +8,26 @@
   </div>
 
   <div id="js-table-container-progress" class="row hidden">
-  <h3>In progress <i class="fa fa-question-circle" aria-hidden="true" data-toggle="tooltip" data-placement="right" data-title="Contracts that have not moved in seven days are marked yellow. Contracts that have not moved in fourteen days are marked red."></i></h3>
+  <h3>
+    In progress <i class="fa fa-question-circle" aria-hidden="true" data-toggle="tooltip" data-placement="right" data-title="Contracts that have not moved in seven days are marked yellow. Contracts that have not moved in fourteen days are marked red."></i>
+  </h3>
+
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" checked id="js-show-only-mine"><strong>Show only my contracts</strong>
+      </label>
+    </div>
 
     <table class="display" id="js-table-progress">
       <thead>
+        {% set type = 'in_progress' %}
         {% include 'conductor/table/header.html' %}
+
       </thead>
       <tbody>
         {% for contract in in_progress %}
-        <tr class="{%- if days_from_today(contract.entered) < 7 -%}contract-row-expiring-warning
-        {%- elif days_from_today(contract.entered) < 14 -%}contract-row-expiring-danger
+        <tr class="{%- if days_from_today(contract.entered) > 14 -%}contract-row-expiring-danger
+        {%- elif days_from_today(contract.entered) > 7 -%}contract-row-expiring-warning
         {%- endif -%}">
           {% include 'conductor/table/row.html' %}
         </tr>
@@ -33,6 +43,7 @@
 
     <table class="display" id="js-table-all">
       <thead>
+        {% set type = 'all' %}
         {% include 'conductor/table/header.html' %}
       </thead>
       <tbody>
@@ -52,25 +63,3 @@
 </div>
 {% endblock %}
 
-{% block js %}
-{{ super() }}
-<script>
-$(document).ready(function() {
-  $('#js-table-progress').dataTable({
-    // order by expiration date -- column 3
-    order: [[3, 'asc']]
-  });
-
-  $('#js-table-all').dataTable({
-    // order by expiration date -- column 3
-    order: [[3, 'asc']]
-  });
-
-  $('#js-loading-spinner').addClass('hidden');
-  $('#js-table-container-progress').removeClass('hidden');
-  $('#js-table-container-upcoming').removeClass('hidden');
-  $('#js-table-container-all').removeClass('hidden');
-
-});
-</script>
-{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'conductor/layout.html' %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+    <h4><strong>Successfully Updated! Newly available contracts:</strong></h4>
+
+    {% if contract.parent.children|length > 0 %}
+    {% for _contract in contract.parent.children %}
+      {% include 'conductor/edit/success_contract.html' %}
+    {% endfor %}
+
+    {% elif contract.children|length > 0 %}
+    {% for _contract in contract.children %}
+      {% include 'conductor/edit/success_contract.html' %}
+    {% endfor %}
+    </ul>
+
+    {% else %}
+      {% set _contract = contract %}
+      {% include 'conductor/edit/success_contract.html' %}
+    {% endif %}
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

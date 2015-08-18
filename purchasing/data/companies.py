@@ -47,6 +47,9 @@ def get_all_companies():
     '''
     return Company.query.all()
 
+def get_all_companies_query():
+    return db.session.query(db.distinct(Company.id).label('id'), Company.company_name).order_by(Company.company_name)
+
 def assign_contract_to_company(contracts_list):
     for ix, contract in enumerate(contracts_list):
         if isinstance(contract, ContractBase):

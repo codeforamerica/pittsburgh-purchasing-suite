@@ -2,6 +2,7 @@
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import insert_a_user, insert_a_role
+from purchasing_test.unit.factories import UserFactory
 
 class TestAdmin(BaseTestCase):
     render_templates = False
@@ -18,13 +19,10 @@ class TestAdmin(BaseTestCase):
     def test_no_role_access(self):
         # test that it properly redirects to the login page for anonymous users
         request = self.client.get('/admin/')
-        self.assertEquals(request.status_code, 302)
-        self.assertEquals(request.location, 'http://localhost/users/login?next=%2Fadmin%2F')
-
+        self.assertEquals(request.status_code, 403)
         # test that a specific view renders properly
         request = (self.client.get('/admin/user/'))
-        self.assertEquals(request.status_code, 302)
-        self.assertEquals(request.location, 'http://localhost/users/login?next=%2Fadmin%2Fuser%2F')
+        self.assertEquals(request.status_code, 403)
 
     def test_admin_role_access(self):
         # test that it works properly for admin users
@@ -34,14 +32,11 @@ class TestAdmin(BaseTestCase):
 
         # test that admins can't access the roles admin view
         request = self.client.get('/admin/role/')
-        self.assertEquals(request.status_code, 302)
-        self.assertEquals(request.location, 'http://localhost/admin/')
+        self.assertEquals(request.status_code, 403)
 
     def test_superadmin_role_access(self):
         # test that it works properly for superadmin users
         self.login_user(self.superadmin_user)
-        request = self.client.get('/admin/')
-        self.assert200(request)
-
+        self.assert200(self.client.get('/admin/'))
         self.assert200(self.client.get('/admin/role/'))
         self.assert200(self.client.get('/admin/user-roles/'))

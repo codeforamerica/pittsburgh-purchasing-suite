@@ -1,0 +1,34 @@
+<div class="contract-card panel panel-default">
+  <div class="panel-heading">
+    <h4 class="panel-title"><strong>{{ _contract.description|title }}</strong></h4>
+  </div>
+
+  <div class="panel-body">
+    <div class="row">
+      <div class="col-md-4">
+        <ul>
+          <li>Controller number: {{ _contract.financial_id }}</li>
+          {% if _contract.get_spec_number().value != none %}
+          <li>{{ _contract.get_spec_number() }}</li>
+          {% endif %}
+          <li>Expiration Date: {{ _contract.expiration_date }}</li>
+        </ul>
+      </div>
+      <div class="col-md-4">
+        <ul>
+          <li>View it <a href="{{ url_for('wexplorer.contract', contract_id=_contract.id) }}">on Scout.</a></li>
+          <li>Edit it <a href="{{ url_for('contract.edit_view', id=_contract.id) }}">in the Admin.</a></li>
+        </ul>
+      </div>
+      <div class="col-md-4">
+        Companies:
+        <ul>
+        {% for company in _contract.companies %}
+          <li><a href="{{ url_for('wexplorer.company', company_id=company.id) }}">{{ company.company_name }}</a></li>
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>

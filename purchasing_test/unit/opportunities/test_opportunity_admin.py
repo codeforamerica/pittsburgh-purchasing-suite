@@ -18,12 +18,12 @@ from purchasing.opportunities.models import (
 )
 from purchasing.users.models import User
 from purchasing.data.importer.nigp import main as import_nigp
-from purchasing.opportunities.admin.views import upload_document
+from purchasing.opportunities.util import upload_document
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.factories import (
     OpportunityFactory, OpportunityDocumentFactory, RequiredBidDocumentFactory,
-    CategoryFactory, VendorFactory
+    CategoryFactory, VendorFactory, DepartmentFactory
 )
 from purchasing_test.unit.util import (
     insert_a_role, insert_a_user, insert_a_document,
@@ -44,8 +44,9 @@ class TestOpportunitiesAdminBase(BaseTestCase):
 
         self.admin_role = insert_a_role('admin')
         self.staff_role = insert_a_role('staff')
+        self.department1 = DepartmentFactory(name='test')
 
-        self.admin = insert_a_user(role=self.admin_role)
+        self.admin = insert_a_user(email='foo@foo.com', role=self.admin_role)
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role)
 
         self.document = insert_a_document()
@@ -103,7 +104,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         '''
         self.login_user(self.admin)
         data = {
-            'department': 'Other', 'contact_email': self.admin.email,
+            'department': str(self.department1.id), 'contact_email': self.admin.email,
             'title': 'NEW_OPPORTUNITY', 'description': 'test',
             'planned_advertise': datetime.date.today(),
             'planned_open': datetime.date.today(),
@@ -144,7 +145,8 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         '''
         self.login_user(self.admin)
         data = {
-            'department': 'Other', 'contact_email': 'new_email@foo.com',
+            'department': str(self.department1.id),
+            'contact_email': 'new_email@foo.com',
             'title': 'test', 'description': 'test',
             'planned_advertise': datetime.date.today(),
             'planned_open': datetime.date.today(),
@@ -169,7 +171,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
 
         # build data dictionaries
         bad_data = {
-            'department': 'Other', 'contact_email': self.staff.email,
+            'department': str(self.department1.id), 'contact_email': self.staff.email,
             'title': None, 'description': None,
             'planned_advertise': datetime.date.today(),
             'planned_open': datetime.date.today(),
@@ -203,6 +205,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         bad_data['planned_deadline'] = datetime.date.today() + datetime.timedelta(1)
 
         new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
+
         self.assertEquals(Opportunity.query.count(), 5)
         self.assert_flashes('Opportunity Successfully Created!', 'alert-success')
 
@@ -232,7 +235,6 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
             'planned_open': datetime.date.today(), 'title': 'Updated', 'is_public': True,
             'description': 'Updated Contract!', 'save_type': 'public'
         })
-        self.assert_flashes('Opportunity Successfully Updated!', 'alert-success')
 
         self.assert200(self.client.get('/beacon/opportunities'))
         self.assertEquals(len(self.get_context_variable('_open')), 2)

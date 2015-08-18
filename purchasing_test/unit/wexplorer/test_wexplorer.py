@@ -2,12 +2,13 @@
 
 from flask import current_app
 from flask_login import current_user
-from purchasing.extensions import mail
+from purchasing.extensions import mail, db
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
     insert_a_company, insert_a_contract,
     insert_a_user, insert_a_role
 )
+from purchasing_test.unit.factories import DepartmentFactory
 
 from purchasing.data.models import ContractBase, LineItem, ContractNote
 from purchasing.data.contracts import get_one_contract
@@ -17,24 +18,30 @@ class TestWexplorer(BaseTestCase):
 
     def setUp(self):
         super(TestWexplorer, self).setUp()
+        # insert departments
+        self.department1 = DepartmentFactory()
 
         # insert the users/roles
         self.admin_role = insert_a_role('admin')
         self.superadmin_role = insert_a_role('superadmin')
-        self.admin_user = insert_a_user(email='foo@foo.com', role=self.admin_role)
-        self.superadmin_user = insert_a_user(email='bar@foo.com', role=self.superadmin_role)
+        self.admin_user = insert_a_user(
+            email='foo@foo.com', role=self.admin_role, department=self.department1
+        )
+        self.superadmin_user = insert_a_user(
+            email='bar@foo.com', role=self.superadmin_role, department=self.department1
+        )
 
         # insert the companies/contracts
-        company_1 = insert_a_company(name='ship', insert_contract=False)
-        company_2 = insert_a_company(name='boat', insert_contract=False)
+        self.company1 = insert_a_company(name='ship', insert_contract=False)
+        self.company2 = insert_a_company(name='boat', insert_contract=False)
         insert_a_contract(
-            description='vessel', companies=[company_2], line_items=[LineItem(description='NAVY')]
+            description='vessel', companies=[self.company2], line_items=[LineItem(description='NAVY')]
         )
-        insert_a_contract(
-            description='sail', financial_id=123, companies=[company_1],
+        self.contract1 = insert_a_contract(
+            description='sail', financial_id=123, companies=[self.company1],
             line_items=[LineItem(description='sunfish')]
         )
-        insert_a_contract(
+        self.contract2 = insert_a_contract(
             description='sunfish', financial_id=456, properties=[dict(key='foo', value='engine')]
         )
 
@@ -50,7 +57,7 @@ class TestWexplorer(BaseTestCase):
     def test_companies(self):
         '''Test that the companies page works as expected, including throwing 404s where appropriate
         '''
-        request = self.client.get('/scout/companies/1')
+        request = self.client.get('/scout/companies/{}'.format(self.company1.id))
         # test that this works
         self.assert200(request)
         # test that we have the wrapped form and the company object
@@ -63,7 +70,7 @@ class TestWexplorer(BaseTestCase):
     def test_contracts(self):
         '''Test that the contracts page works as expected, including throwing 404s where appropriate
         '''
-        request = self.client.get('/scout/contracts/1')
+        request = self.client.get('/scout/contracts/{}'.format(self.contract1.id))
         self.assert200(request)
         # test that we have the wrapped form and the company object
         self.assertTrue(self.get_context_variable('search_form') is not None)
@@ -76,21 +83,21 @@ class TestWexplorer(BaseTestCase):
         '''Test all possible combinations of subscribing to a contract
         '''
         # test that you can't subscribe to a contract unless you are signed in
-        request = self.client.get('/scout/contracts/1/subscribe')
+        request = self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         self.login_user(self.admin_user)
-        request = self.client.get('/scout/contracts/1/subscribe')
-        self.assertEquals(len(ContractBase.query.get(1).followers), 1)
+        request = self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).followers), 1)
 
         self.login_user(self.superadmin_user)
-        self.client.get('/scout/contracts/1/subscribe')
-        self.assertEquals(len(ContractBase.query.get(1).followers), 2)
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).followers), 2)
 
         # test you can't subscribe more than once
-        self.client.get('/scout/contracts/1/subscribe')
-        self.assertEquals(len(ContractBase.query.get(1).followers), 2)
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).followers), 2)
 
         # test you can't subscribe to a nonexistant contract
         self.assert404(self.client.get('/scout/contracts/999/subscribe'))
@@ -99,26 +106,26 @@ class TestWexplorer(BaseTestCase):
         '''Test ability to unsubscribe from a contract
         '''
         # test that you can't subscribe to a contract unless you are signed in
-        request = self.client.get('/scout/contracts/1/unsubscribe')
+        request = self.client.get('/scout/contracts/{}/unsubscribe'.format(self.contract1.id))
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         # two followers
         self.login_user(self.admin_user)
-        self.client.get('/scout/contracts/1/subscribe')
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
         self.login_user(self.superadmin_user)
-        self.client.get('/scout/contracts/1/subscribe')
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
 
-        self.assertEquals(len(ContractBase.query.get(1).followers), 2)
-        self.client.get('/scout/contracts/1/unsubscribe')
-        self.assertEquals(len(ContractBase.query.get(1).followers), 1)
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).followers), 2)
+        self.client.get('/scout/contracts/{}/unsubscribe'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).followers), 1)
         # test you can't unsubscribe more than once
-        self.client.get('/scout/contracts/1/unsubscribe')
-        self.assertEquals(len(ContractBase.query.get(1).followers), 1)
+        self.client.get('/scout/contracts/{}/unsubscribe'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).followers), 1)
 
         self.login_user(self.admin_user)
-        self.client.get('/scout/contracts/1/unsubscribe')
-        self.assertEquals(len(ContractBase.query.get(1).followers), 0)
+        self.client.get('/scout/contracts/{}/unsubscribe'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).followers), 0)
 
         # test you can't unsubscribe from a nonexistant contract
         self.assert404(self.client.get('/scout/contracts/999/unsubscribe'))
@@ -126,21 +133,21 @@ class TestWexplorer(BaseTestCase):
     def test_star(self):
         '''Test starring contracts works as expected
         '''
-        request = self.client.get('/scout/contracts/1/star')
+        request = self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         self.login_user(self.admin_user)
-        request = self.client.get('/scout/contracts/1/star')
-        self.assertEquals(len(ContractBase.query.get(1).starred), 1)
+        request = self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 1)
 
         self.login_user(self.superadmin_user)
-        self.client.get('/scout/contracts/1/star')
-        self.assertEquals(len(ContractBase.query.get(1).starred), 2)
+        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 2)
 
         # test you can't star more than once
-        self.client.get('/scout/contracts/1/star')
-        self.assertEquals(len(ContractBase.query.get(1).starred), 2)
+        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 2)
 
         # test you can't star to a nonexistant contract
         self.assert404(self.client.get('/scout/contracts/999/star'))
@@ -149,26 +156,26 @@ class TestWexplorer(BaseTestCase):
         '''Test unstarring contracts works as expected
         '''
         # test that you can't unstar to a contract unless you are signed in
-        request = self.client.get('/scout/contracts/1/unstar')
+        request = self.client.get('/scout/contracts/{}/unstar'.format(self.contract1.id))
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
         # two followers
         self.login_user(self.admin_user)
-        self.client.get('/scout/contracts/1/star')
+        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
         self.login_user(self.superadmin_user)
-        self.client.get('/scout/contracts/1/star')
+        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
 
-        self.assertEquals(len(ContractBase.query.get(1).starred), 2)
-        self.client.get('/scout/contracts/1/unstar')
-        self.assertEquals(len(ContractBase.query.get(1).starred), 1)
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 2)
+        self.client.get('/scout/contracts/{}/unstar'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 1)
         # test you can't unstar more than once
-        self.client.get('/scout/contracts/1/unstar')
-        self.assertEquals(len(ContractBase.query.get(1).starred), 1)
+        self.client.get('/scout/contracts/{}/unstar'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 1)
 
         self.login_user(self.admin_user)
-        self.client.get('/scout/contracts/1/unstar')
-        self.assertEquals(len(ContractBase.query.get(1).starred), 0)
+        self.client.get('/scout/contracts/{}/unstar'.format(self.contract1.id))
+        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 0)
 
         # test you can't unstar from a nonexistant contract
         self.assert404(self.client.get('/scout/contracts/999/unstar'))
@@ -176,72 +183,60 @@ class TestWexplorer(BaseTestCase):
     def test_department_filter(self):
         '''Test that filter page works properly and shows the error where appropriate
         '''
-        # login as admin user and subscribe to two contracts
         self.login_user(self.admin_user)
-        self.client.get('/scout/contracts/1/subscribe')
-        self.client.get('/scout/contracts/2/subscribe')
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract2.id))
 
-        # login as superadmin user and subscribe to one contract
         self.login_user(self.superadmin_user)
-        self.client.get('/scout/contracts/1/subscribe')
-
-        # filter base page successfully returns
-        self.assert200(self.client.get('/scout/filter'))
+        self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
 
         # filter by contracts associated with Other department
-        self.client.get('/scout/filter/Other')
+        self.client.get('/scout/filter/{}'.format(self.admin_user.department_id))
         self.assertEquals(len(self.get_context_variable('results')), 2)
         # assert that contract 1 is first
-        self.assertEquals(self.get_context_variable('results')[0].id, 1)
-        self.assertEquals(self.get_context_variable('results')[0].cnt, 2)
-
-        # assert innovation and performance has no results
-        self.client.get('/scout/filter/Innovation and Performance')
-        self.assertEquals(len(self.get_context_variable('results')), 0)
+        self.assertEquals(self.get_context_variable('results')[0].id, self.contract1.id)
+        self.assertEquals(self.get_context_variable('results')[0].follows, 2)
 
         # assert that the department must be a real department
         request = self.client.get('/scout/filter/FAKEFAKEFAKE')
-        self.assertEquals(request.status_code, 302)
-        self.assert_flashes('You must choose a valid department!', 'alert-danger')
+        self.assertEquals(request.status_code, 404)
 
     def test_notes(self):
         '''Test taking notes on scout
         '''
         # assert you can't take a note on a contract
         self.assertEquals(ContractNote.query.count(), 0)
-        self.client.post('/scout/contracts/1', data=dict(note='test', user=current_user.id))
+        self.client.post('/scout/contracts/{}'.format(self.contract1.id), data=dict(note='test', user=current_user.id))
         self.assertEquals(ContractNote.query.count(), 0)
 
         self.login_user(self.admin_user)
-        self.client.post('/scout/contracts/1', data={
+        self.client.post('/scout/contracts/{}'.format(self.contract1.id), data={
             'note': 'NOTENOTENOTE', 'user': self.admin_user.id
         })
         self.assertEquals(ContractNote.query.count(), 1)
 
-        has_note = self.client.get('/scout/contracts/1')
+        has_note = self.client.get('/scout/contracts/{}'.format(self.contract1.id))
         self.assertTrue('NOTENOTENOTE' in has_note.data)
 
         # make sure the note doesn't show up for other people
         self.login_user(self.superadmin_user)
-        no_note = self.client.get('/scout/contracts/1')
+        no_note = self.client.get('/scout/contracts/{}'.format(self.contract1.id))
         self.assertTrue('NOTENOTENOTE' not in no_note.data)
 
         self.logout_user()
-        no_note_two = self.client.get('/scout/contracts/1')
+        no_note_two = self.client.get('/scout/contracts/{}'.format(self.contract1.id))
         self.assertTrue('NOTENOTENOTE' not in no_note_two.data)
 
     def test_feedback(self):
         '''Test scout contract feedback mechanism
         '''
-        self.assert200(self.client.get('/scout/contracts/1/feedback'))
+        self.assert200(self.client.get('/scout/contracts/{}/feedback'.format(self.contract1.id)))
         self.assert_template_used('wexplorer/feedback.html')
 
         self.assert404(self.client.get('/scout/contracts/1000/feedback'))
 
-        contract = get_one_contract(1)
-
         # assert data validation
-        bad_post = self.client.post('/scout/contracts/1/feedback', data=dict(
+        bad_post = self.client.post('/scout/contracts/{}/feedback'.format(self.contract1.id), data=dict(
             sender='JUNK'
         ))
 
@@ -257,9 +252,10 @@ class TestWexplorer(BaseTestCase):
 
         # assert email works properly
         self.login_user(self.admin_user)
+        self.admin_user.email = 'foo@foo.com'
 
         with mail.record_messages() as outbox:
-            success_post = self.client.post('/scout/contracts/1/feedback', data=dict(
+            success_post = self.client.post('/scout/contracts/{}/feedback'.format(self.contract1.id), data=dict(
                 body='test'
             ))
 
@@ -267,12 +263,7 @@ class TestWexplorer(BaseTestCase):
             self.assertEquals(len(outbox), 1)
             # it went to the right place
             self.assertTrue(self.admin_user.email in outbox[0].send_to)
-            # assert the subject is right
-            self.assertTrue(str(contract.id) in outbox[0].subject)
-            self.assertTrue(contract.description in outbox[0].subject)
-            # the message body contains the right email address
-            self.assertTrue(self.admin_user.email in outbox[0].html)
             # it redirects and flashes correctly
             self.assertEquals(success_post.status_code, 302)
-            self.assertEquals(success_post.location, 'http://localhost/scout/contracts/1')
+            self.assertEquals(success_post.location, 'http://localhost/scout/contracts/{}'.format(self.contract1.id))
             self.assert_flashes('Thank you for your feedback!', 'alert-success')

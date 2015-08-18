@@ -5,35 +5,20 @@ import datetime
 
 from flask import current_app
 from flask_wtf import Form
-from flask_wtf.file import FileField, FileAllowed, FileRequired
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import widgets, fields
 from wtforms.validators import (
-    DataRequired, Email, ValidationError, Optional, InputRequired
+    DataRequired, Email, ValidationError, Optional
 )
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 from purchasing.opportunities.models import Vendor
 
-from purchasing.users.models import DEPARTMENT_CHOICES, User
+from purchasing.utils import RequiredIf
+from purchasing.users.models import User, department_query
 
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
-
-class RequiredIf(InputRequired):
-    # a validator which makes a field required if
-    # another field is set and has a truthy value
-    # http://stackoverflow.com/questions/8463209/how-to-make-a-field-conditionally-optional-in-wtforms
-    # thanks to Team RVA for pointing this out
-
-    def __init__(self, other_field_name, *args, **kwargs):
-        self.other_field_name = other_field_name
-        super(RequiredIf, self).__init__(*args, **kwargs)
-
-    def __call__(self, form, field):
-        other_field = form._fields.get(self.other_field_name)
-        if other_field is None:
-            raise Exception('no field named "%s" in form' % self.other_field_name)
-            if bool(other_field.data):
-                super(RequiredIf, self).__call__(form, field)
 
 def build_label_tooltip(name, description, href):
     return '''
@@ -122,7 +107,7 @@ def city_domain_email(form, field):
         user = User.query.filter(User.email == field.data).first()
         if user is None:
             domain = re.search(DOMAINS, field.data)
-            if domain.group().lstrip('@') != current_app.config.get('CITY_DOMAIN'):
+            if domain and domain.group().lstrip('@') != current_app.config.get('CITY_DOMAIN'):
                 raise ValidationError("That's not a valid contact!")
 
 def max_words(max=500):
@@ -161,7 +146,12 @@ class OpportunityDocumentForm(Form):
     )
 
 class OpportunityForm(Form):
-    department = fields.SelectField(choices=DEPARTMENT_CHOICES, validators=[DataRequired()])
+    department = QuerySelectField(
+        query_factory=department_query,
+        get_pk=lambda i: i.id,
+        get_label=lambda i: i.name,
+        allow_blank=True, blank_text='-----'
+    )
     contact_email = fields.TextField(validators=[Email(), city_domain_email, DataRequired()])
     title = fields.TextField(validators=[DataRequired()])
     description = fields.TextAreaField(validators=[max_words(), DataRequired()])

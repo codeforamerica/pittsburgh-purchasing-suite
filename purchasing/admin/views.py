@@ -1,29 +1,32 @@
 # -*- coding: utf-8 -*-
-from flask import url_for, request
 
+from wtforms.validators import ValidationError
 from wtforms.fields import SelectField
 from purchasing.extensions import admin, db
-from purchasing.decorators import AuthMixin, SuperAdminMixin
+from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
-from flask.ext.admin.form.fields import Select2TagsField
-from flask_login import current_user
+from flask_admin.form.widgets import Select2Widget
 from purchasing.data.models import (
     Stage, StageProperty, Flow, ContractBase, ContractProperty,
     Company, CompanyContact, LineItem
 )
 from purchasing.opportunities.models import RequiredBidDocument
 from purchasing.extensions import login_manager
-from purchasing.users.models import User, Role, DEPARTMENT_CHOICES
-from purchasing.opportunities.models import Opportunity, Category
+from purchasing.users.models import User, Role
+from purchasing.opportunities.models import Opportunity
 
 @login_manager.user_loader
 def load_user(userid):
     return User.get_by_id(int(userid))
 
-class StageAdmin(AuthMixin, sqla.ModelView):
-    inline_models = (StageProperty, )
+class CompanyAdmin(AuthMixin, sqla.ModelView):
+    inline_models = (CompanyContact,)
 
-    form_columns = ['name', 'send_notifs', 'post_opportunities']
+    column_searchable_list = ('company_name',)
+
+    form_columns = [
+        'company_name', 'contracts'
+    ]
 
 class ContractBaseAdmin(AuthMixin, sqla.ModelView):
     '''Base model for different representations of contracts
@@ -88,51 +91,57 @@ class ConductorContractAdmin(ContractBaseAdmin):
     def _get_filtered_users(self):
         return self.session.query(User).join(Role).filter(
             Role.name.in_(['conductor', 'admin', 'superadmin'])
-        ).all()
+        )
 
-class CompanyAdmin(AuthMixin, sqla.ModelView):
-    inline_models = (CompanyContact,)
+def get_stages():
+    return Stage.query.order_by(Stage.name)
 
-    column_searchable_list = ('company_name',)
+class QuerySelect2TagsWidget(Select2Widget):
+    def __init__(self, *args, **kwargs):
+        super(QuerySelect2TagsWidget, self).__init__(*args, **kwargs)
 
-    form_columns = [
-        'company_name', 'contracts'
-    ]
+    def __call__(self, field, **kwargs):
+        field.data = Stage.query.filter(Stage.id.in_(field.data)).all()
+        kwargs.setdefault('data-role', u'select2-tags')
+        kwargs.setdefault('multiple', 'multiple')
+        return super(QuerySelect2TagsWidget, self).__call__(field, **kwargs)
 
-def _stage_lookup(stage_name):
-    return Stage.query.filter(Stage.id == stage_name).first().id
+class FlowAdmin(ConductorAuthMixin, sqla.ModelView):
+    edit_template = 'admin/purchasing_edit.html'
+    create_template = 'admin/purchasing_create.html'
 
-class FlowAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['flow_name', 'stage_order']
 
     form_extra_fields = {
-        'stage_order': Select2TagsField(
-            'Stage Order', coerce=_stage_lookup,
-            save_as_list=True
+        'stage_order': sqla.fields.QuerySelectMultipleField(
+            'Stage Order', widget=QuerySelect2TagsWidget(),
+            query_factory=get_stages,
+            get_pk=lambda i: i.id,
+            get_label=lambda i: i.name,
+            allow_blank=True, blank_text='-----'
         )
     }
 
+    def create_model(self, form, model):
+        form.stage_order.data = [i.id for i in form.stage_order.data]
+        super(FlowAdmin, self).create_model(form, model)
+
+    def update_model(self, form, model):
+        form.stage_order.data = [i.id for i in form.stage_order.data]
+        super(FlowAdmin, self).update_model(form, model)
+
+class StageAdmin(ConductorAuthMixin, sqla.ModelView):
+    inline_models = (StageProperty, )
+
+    form_columns = ['name', 'post_opportunities']
+
 class UserAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['email', 'first_name', 'last_name', 'department']
-
-    form_overrides = dict(department=SelectField)
-    form_args = dict(department={
-        'choices': DEPARTMENT_CHOICES
-    })
-
-    def is_accessible(self):
-        if current_user.is_anonymous():
-            return url_for('users.login', next=request.path)
-        if current_user.role.name == 'admin':
-            return True
 
 class UserRoleAdmin(SuperAdminMixin, sqla.ModelView):
     form_columns = ['email', 'first_name', 'last_name', 'department', 'role']
 
     form_overrides = dict(department=SelectField)
-    form_args = dict(department={
-        'choices': DEPARTMENT_CHOICES
-    })
 
 class RoleAdmin(SuperAdminMixin, sqla.ModelView):
     pass

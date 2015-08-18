@@ -6,7 +6,7 @@
 
   {{ super() }}
 
-  {% if user.department == 'New User' %}
+  {% if user.department.name == 'New User' %}
     Welcome to the Pittsbugh Purchasing Suite! Please update your information from the list below. You must select your department.
   {% endif %}
 

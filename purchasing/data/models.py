@@ -12,6 +12,13 @@ from sqlalchemy.dialects.postgresql import TSVECTOR, JSON
 from sqlalchemy.schema import Table, Sequence
 from sqlalchemy.orm import backref
 
+TRIGGER_TUPLES = [
+    ('contract', 'description', 'WHEN (NEW.is_visible != False)'),
+    ('company', 'company_name', ''),
+    ('contract_property', 'value', ''),
+    ('line_item', 'description', ''),
+]
+
 company_contract_association_table = Table(
     'company_contract_association', Model.metadata,
     Column('company_id', db.Integer, db.ForeignKey('company.id', ondelete='SET NULL'), index=True),
@@ -85,9 +92,8 @@ class CompanyContact(Model):
     email = Column(db.String(255))
 
     def __unicode__(self):
-        return '{first} {last} - {email}'.format(
-            first=self.first_name, last=self.last_name,
-            email=self.email
+        return '{first} {last}'.format(
+            first=self.first_name, last=self.last_name
         )
 
 class ContractBase(Model):
@@ -119,7 +125,17 @@ class ContractBase(Model):
     assigned = db.relationship('User', backref=backref(
         'assignments', lazy='dynamic', cascade='none'
     ))
+
+    department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True)
+    department = db.relationship('Department', backref=backref(
+        'contracts', lazy='dynamic', cascade='none'
+    ))
+
+    is_visible = Column(db.Boolean, default=True, nullable=False)
     is_archived = Column(db.Boolean, default=False, nullable=False)
+
+    opportunity = db.relationship('Opportunity', uselist=False, backref='opportunity')
+
     parent_id = Column(db.Integer, db.ForeignKey('contract.id'))
     children = db.relationship('ContractBase', backref=backref(
         'parent', remote_side=[id]
@@ -135,6 +151,29 @@ class ContractBase(Model):
             return [i for i in self.properties if i.key.lower() == 'spec number'][0]
         except IndexError:
             return ContractProperty()
+
+    def build_complete_action_log(self):
+        '''Returns the complete action log for this contract
+        '''
+        return ContractStageActionItem.query.join(ContractStage).filter(
+            ContractStage.contract_id == self.id
+        ).order_by(db.text('taken_at asc')).all()
+
+    def get_current_stage(self):
+        '''Returns the details for the current contract stage
+        '''
+        return ContractStage.query.filter(
+            ContractStage.contract_id == self.id,
+            ContractStage.stage_id == self.current_stage_id,
+            ContractStage.flow_id == self.flow_id
+        ).first()
+
+    def completed_last_stage(self):
+        '''Boolean to check if we have completed the last stage of our flow
+        '''
+        return self.flow is None or \
+            self.current_stage_id == self.flow.stage_order[-1] and \
+            self.get_current_stage().exited is not None
 
 class ContractProperty(Model):
     __tablename__ = 'contract_property'
@@ -199,7 +238,6 @@ class Stage(Model):
 
     id = Column(db.Integer, primary_key=True, index=True)
     name = Column(db.String(255))
-    send_notifs = Column(db.Boolean, default=False, nullable=False)
     post_opportunities = Column(db.Boolean, default=False, nullable=False)
 
     def __unicode__(self):
@@ -221,7 +259,7 @@ class StageProperty(Model):
 
 class ContractStage(Model):
     __tablename__ = 'contract_stage'
-    __table_args__ = (db.Index('ix_contrage_stage_combined_id', 'contract_id', 'stage_id'), )
+    __table_args__ = (db.Index('ix_contrage_stage_combined_id', 'contract_id', 'stage_id', 'flow_id'), )
 
     id = Column(
         db.Integer, Sequence('autoincr_contract_stage_id', start=1, increment=1),
@@ -234,9 +272,13 @@ class ContractStage(Model):
     ))
 
     stage_id = ReferenceCol('stage', ondelete='CASCADE', index=True, primary_key=True)
-
     stage = db.relationship('Stage', backref=backref(
         'contracts', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+
+    flow_id = ReferenceCol('flow', ondelete='CASCADE', index=True, primary_key=True)
+    flow = db.relationship('Flow', backref=backref(
+        'contract_stages', lazy='dynamic', cascade='all, delete-orphan'
     ))
 
     created_at = Column(db.DateTime, default=datetime.datetime.now())
@@ -261,6 +303,18 @@ class ContractStage(Model):
         self.entered = None
         self.exited = None
 
+    def strip_actions(self):
+        '''Clear out non-stage-switch actions
+
+        This will prevent duplicate actions from piling up
+        in the stream that is presented to the user
+        '''
+        for action in self.contract_stage_actions:
+            if action.action_type != 'flow_switch':
+                action.delete()
+        return None
+
+    @property
     def is_current_stage(self):
         '''Checks to see if this is the current stage
         '''
@@ -278,6 +332,9 @@ class ContractStageActionItem(Model):
     action_detail = Column(JSON)
     taken_at = Column(db.DateTime, default=datetime.datetime.now())
     taken_by = ReferenceCol('users', ondelete='SET NULL', nullable=True)
+    taken_by_user = db.relationship('User', backref=backref(
+        'contract_stage_actions', lazy='dynamic'
+    ))
 
     def __unicode__(self):
         return self.action
@@ -292,6 +349,16 @@ class ContractStageActionItem(Model):
         # otherwise, return the taken_at time
         else:
             return self.taken_at if self.taken_at else datetime.datetime(1970, 1, 1)
+
+    @property
+    def non_null_items(self):
+        import pdb; pdb.set_trace()
+        return dict((k, v) for (k, v) in self.action_detail.items() if v is not None)
+
+    @property
+    def non_null_items_count(self):
+        import pdb; pdb.set_trace()
+        return len(self.non_null_items)
 
 class Flow(Model):
     __tablename__ = 'flow'

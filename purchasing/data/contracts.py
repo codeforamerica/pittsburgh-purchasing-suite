@@ -64,13 +64,13 @@ def get_all_contracts():
 
 def follow_a_contract(contract_id, user, field):
     '''
-    Takes in a contract_id and a user model, and
-    associates the user model with the relevant
-    contract. This makes the user "follow" the
-    contract for notification purposes. NOTE -
-    normally we would just use the UPDATE method above,
-    but because the user lives on an array, this would
-    prevent multiple users from following one contract
+    Takes in a contract_id and a user model, and associates the
+    user model with the relevant contract. This makes the user
+    "follow" the contract for notification purposes.
+
+    NOTE - normally we would just use the UPDATE method above,
+    but because the user lives on an array, this would prevent
+    multiple users from following one contract
     '''
     contract = get_one_contract(contract_id)
     if contract:
@@ -105,56 +105,102 @@ def unfollow_a_contract(contract_id, user, field):
             return ('You haven\'t starred this contract!', 'alert-warning'), contract
     return None, None
 
-def clone_a_contract(contract):
-    '''Takes a contract object and clones it
+def extend_a_contract(child_contract_id=None, delete_child=True):
+    '''Extends a contract.
 
-    The clone strips the following properties:
-        + Financial ID
-        + Expiration Date
-        + Assigned To
-        + Current Stage
-        + Contract HREF
-
-    Relationships are handled as follows:
-        + Stars, Follows - moved to new contract (dropped from old)
-        + Stage, Flow - Duplicated
-        + Properties, Notes, Line Items, Companies kept on old
+    Because conductor clones existing contracts when work begins,
+    when we get an "extend" signal, we actually want to extend the
+    parent conract of the clone. Optionally (by default), we also
+    want to delete the child (cloned) contract.
     '''
-    old_contract_id = int(contract.id)
+    child_contract = get_one_contract(child_contract_id)
+    parent_contract = child_contract.parent
+
+    parent_contract.expiration_date = None
+
+    # strip the flow -- this will serve as the flag that
+    # the contract is extended
+    parent_contract.flow = None
+    parent_contract.flow_id = None
+
+    delete_contract(child_contract_id)
+
+    return parent_contract
+
+def transfer_contract_relationships(parent_contract, child_contract):
+    '''Transfers stars/follows from parent to child contract
+    '''
 
     subscribers = [
-        ('follow', list(contract.followers)),
-        ('star', list(contract.starred))
+        ('follow', list(parent_contract.followers)),
+        ('star', list(parent_contract.starred))
     ]
+
+    for interaction, users in subscribers:
+        for i in users:
+            unfollow_a_contract(parent_contract.id, i, interaction)
+            follow_a_contract(child_contract.id, i, interaction)
+
+    return child_contract
+
+def complete_contract(parent_contract, child_contract):
+    transfer_contract_relationships(parent_contract, child_contract)
+
+    parent_contract.is_archived = True
+    parent_contract.is_visible = False
+
+    if not parent_contract.description.endswith(' [Archived'):
+        parent_contract.description += ' [Archived]'
+
+    child_contract.is_archived = False
+    child_contract.is_visible = True
+
+    return child_contract
+
+def clone_a_contract(contract, parent_id=None, strip=True, new_conductor_contract=True):
+    '''Takes a contract object and clones it
+
+    The clone always strips the following properties:
+        + Assigned To
+        + Current Stage
+
+    If the strip flag is set to true, the following are also stripped
+        + Contract HREF
+        + Financial ID
+        + Expiration Date
+
+    If the new_conductor_contract flag is set to true, the following are set:
+        + is_visible set to False
+        + is_archived set to False
+
+    Relationships are handled as follows:
+        + Stage, Flow - Duplicated
+        + Properties, Notes, Line Items, Companies, Stars, Follows kept on old
+    '''
+    old_contract_id = int(contract.id)
 
     db.session.expunge(contract)
     make_transient(contract)
 
     contract.id = None
-    contract.financial_id = None
-    contract.expiration_date = None
     contract.assigned_to = None
     contract.current_stage = None
     contract.contract_href = None
 
-    old_contract = get_one_contract(old_contract_id)
-    # group everything that will rebuild the trigger
-    # into one flush
-    db.session.add(contract)
-    old_contract.is_archived = True
-    old_contract.description = old_contract.description + ' [Archived]'
+    if strip:
+        contract.financial_id = None
+        contract.expiration_date = None
 
-    # we have to commit here in order to manage the relationships
-    db.session.commit()
-
-    for interaction, users in subscribers:
-        for i in users:
-            unfollow_a_contract(old_contract_id, i, interaction)
-            follow_a_contract(contract.id, i, interaction)
-            db.session.commit()
+    if new_conductor_contract:
+        contract.is_archived = False
+        contract.is_visible = False
 
     # set the parent
-    contract.parent_id = old_contract_id
+    if parent_id:
+        contract.parent_id = parent_id
+    else:
+        contract.parent_id = old_contract_id
 
+    db.session.add(contract)
     db.session.commit()
     return contract

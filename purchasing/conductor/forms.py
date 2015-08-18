@@ -1,32 +1,82 @@
 # -*- coding: utf-8 -*-
 
+import re
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
+from wtforms import Form as NoCSRFForm
 from wtforms.fields import (
-    TextField, IntegerField, DateField, TextAreaField, HiddenField
+    TextField, IntegerField, DateField, TextAreaField, HiddenField,
+    FieldList, FormField, SelectField
 )
-from wtforms.validators import DataRequired, URL, Email, Optional
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
+from wtforms.validators import (
+    DataRequired, URL, Optional, ValidationError, Email, Length, Regexp
+)
+
+from purchasing.filters import better_title
+
+from purchasing.users.models import department_query
+from purchasing.data.companies import get_all_companies_query
+
+from purchasing.opportunities.forms import OpportunityForm
+from purchasing.utils import RequiredIf, RequiredOne, RequiredNotBoth
+
+EMAIL_REGEX = re.compile(r'^.+@([^.@][^@]+)$', re.IGNORECASE)
+US_PHONE_REGEX = re.compile(r'^(\d{3})-(\d{3})-(\d{4})$')
+
+STATE_ABBREV = ('AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+                'HI', 'ID', 'IL', 'IN', 'IO', 'KS', 'KY', 'LA', 'ME', 'MD',
+                'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+                'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+                'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY')
+
+def not_all_hidden(form, field):
+    '''Makes sure that every field isn't blank
+    '''
+    if not any([v for (k, v) in form.data.items() if k != field.name]):
+        raise ValidationError('You must update at least one field!')
+
+def validate_multiple_emails(form, field):
+    '''Parses a semicolon-delimited list of emails, validating each
+    '''
+    if field.data:
+        for email in field.data.split(';'):
+            if email == '':
+                continue
+            elif not re.match(EMAIL_REGEX, email):
+                raise ValidationError('One of the supplied emails is invalid!')
 
 class EditContractForm(Form):
-    '''Form to control details needed for new contract
+    '''Form to control details needed to finalize a new/renewed contract
     '''
 
     description = TextField(validators=[DataRequired()])
-    financial_id = IntegerField(validators=[DataRequired(message="A number is required.")])
     expiration_date = DateField(validators=[DataRequired()])
     spec_number = TextField(validators=[DataRequired()])
     contract_href = TextField(validators=[Optional(), URL(message="That URL doesn't work!")])
 
+class ContractMetadataForm(Form):
+    '''Edit a contract's metadata during the renewal process
+    '''
+    financial_id = IntegerField(validators=[Optional()])
+    spec_number = TextField(validators=[Optional()], filters=[lambda x: x or None])
+    all_blank = HiddenField(validators=[not_all_hidden])
+    department = QuerySelectField(
+        query_factory=department_query,
+        get_pk=lambda i: i.id,
+        get_label=lambda i: i.name,
+        allow_blank=True, blank_text='-----'
+    )
+
 class SendUpdateForm(Form):
     '''Form to update
     '''
-    send_to = TextField(validators=[DataRequired(), Email()])
+    send_to = TextField(validators=[DataRequired(), validate_multiple_emails])
+    send_to_cc = TextField(validators=[Optional(), validate_multiple_emails])
     subject = TextField(validators=[DataRequired()])
     body = TextAreaField(validators=[DataRequired()])
 
-class PostOpportunityForm(Form):
-    '''
-    '''
+class PostOpportunityForm(OpportunityForm):
     pass
 
 class NoteForm(Form):
@@ -44,3 +94,63 @@ class ContractUploadForm(Form):
     upload = FileField('datafile', validators=[
         FileAllowed(['pdf'], message='.pdf files only')
     ])
+
+class CompanyContactForm(NoCSRFForm):
+    first_name = TextField(validators=[DataRequired()])
+    last_name = TextField(validators=[DataRequired()])
+    addr1 = TextField(validators=[Optional()])
+    addr2 = TextField(validators=[Optional()])
+    city = TextField(validators=[Optional()])
+    state = SelectField(validators=[Optional(), RequiredIf('city')], choices=[('', '---')] +
+        [(state, state) for state in STATE_ABBREV]
+    )
+    zip_code = IntegerField(validators=[Optional(), RequiredIf('city'), Length(min=5, max=5)])
+    phone_number = TextField(validators=[DataRequired(), Regexp(
+        US_PHONE_REGEX, message='Please enter numbers in XXX-XXX-XXXX format'
+    )])
+    fax_number = TextField(validators=[Optional(), Regexp(
+        US_PHONE_REGEX, message='Please enter numbers in XXX-XXX-XXXX format'
+    )])
+    email = TextField(validators=[Email(), DataRequired()])
+
+def validate_integer(form, field):
+    if field.data:
+        try:
+            int(field.data)
+        except:
+            raise ValidationError('This must be an integer!')
+
+class CompanyForm(NoCSRFForm):
+    new_company_controller_number = TextField('New Company Controller Number', validators=[
+        RequiredOne('controller_number'),
+        RequiredNotBoth('controller_number'), RequiredIf('new_company_name'),
+        validate_integer
+    ])
+    new_company_name = TextField('New Company Name', validators=[
+        RequiredOne('company_name'),
+        RequiredNotBoth('company_name'), RequiredIf('new_company_controller_number'),
+    ])
+
+    controller_number = TextField('Existing Company Controller Number', validators=[
+        RequiredOne('new_company_controller_number'),
+        RequiredNotBoth('new_company_controller_number'),
+        RequiredIf('company_name'), validate_integer
+    ])
+    company_name = QuerySelectField(
+        'Existing Company Name', query_factory=get_all_companies_query, get_pk=lambda i: i.id,
+        get_label=lambda i: better_title(i.company_name),
+        allow_blank=True, blank_text='-----',
+        validators=[
+            RequiredOne('new_company_name'),
+            RequiredNotBoth('new_company_name'), RequiredIf('controller_number'),
+       ]
+    )
+
+class CompanyListForm(Form):
+    companies = FieldList(FormField(CompanyForm), min_entries=1)
+
+class CompanyContactList(NoCSRFForm):
+    contacts = FieldList(FormField(CompanyContactForm), min_entries=1)
+
+class CompanyContactListForm(Form):
+    companies = FieldList(FormField(CompanyContactList))
