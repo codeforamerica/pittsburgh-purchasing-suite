@@ -47,16 +47,14 @@
 
   {# metadata update handling #}
   {%- elif action.action_type == 'update-metadata' -%}
-  {% if action.non_null_items_count > 0 %}
   <div class="action-event action-event-metadata">
     {{ pn.print_name(action, current_user) }} set
-    {% for field, value in action.non_null_items.items() %}
-    <strong>{{ field.replace('_', ' ')|title }}</strong> to <strong>"{{ value }}"</strong>
-    {{- csl.comma_separated_loop(loop) -}}
+    {% for field, value in action['action_detail'].items() if value is not none %}
+      <strong>{{ field.replace('_', ' ')|title }}</strong> to <strong>"{{ value }}"</strong>
+      {{- csl.comma_separated_loop(loop) -}}
     {% endfor %}
     on {{ action.taken_at|datetimeformat }}
   </div>
-  {% endif %}
 
   {%- elif action.action_type == 'flow_switch' -%}
   <div class="action-event action-event-reversion">

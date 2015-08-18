@@ -352,10 +352,12 @@ class ContractStageActionItem(Model):
 
     @property
     def non_null_items(self):
+        import pdb; pdb.set_trace()
         return dict((k, v) for (k, v) in self.action_detail.items() if v is not None)
 
     @property
     def non_null_items_count(self):
+        import pdb; pdb.set_trace()
         return len(self.non_null_items)
 
 class Flow(Model):
