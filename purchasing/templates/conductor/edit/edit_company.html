@@ -19,7 +19,7 @@
 
       {% if contract.parent %}
       <p class="text-muted">
-        <small>This is a renewed contract. View the old contract on <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}">Wexplorer</a>, or edit it in <a href="{{ url_for('conductor.edit', contract_id=contract.parent.id) }}">Conductor</a>.</small>
+        <small>This is a renewed contract. View the old contract on <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}">Scout</a>, or edit it in <a href="{{ url_for('conductor.edit', contract_id=contract.parent.id) }}">Conductor</a>.</small>
       </p>
       {% endif %}
 

@@ -1,10 +1,10 @@
 <td>{{ contract.id }}</td>
 
 <td>
-  <span>{{ contract.description|title|truncate(40) }}</span>
+  <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>{{ contract.description|title|truncate(40) }}</span>
   {% if contract.stage_name %}
   <span class="pull-right">
-    <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}" class="btn btn-default">
+    <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}" class="btn btn-primary btn-sm">
       Update
     </a>
   </span>
