@@ -1,13 +1,13 @@
 <td>{{ contract.id }}</td>
 
 <td>
-  <span>{{ contract.description|title|truncate(40) }}</span>
+  <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>{{ contract.description|title|truncate(40) }}</span>
   {% if contract.stage_name %}
-  <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
-    <span class="pull-right">
-      <i class="fa fa-search-plus"></i>
-    </span>
-  </a>
+  <span class="pull-right">
+    <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}" class="btn btn-primary btn-sm">
+      Update
+    </a>
+  </span>
   {% endif %}
 </td>
 
@@ -41,7 +41,7 @@
 
 <td>
   <div class="dropdown">
-    <button id="dLabel-{{ contract.id }}" class="btn btn-sm" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <button id="dLabel-{{ contract.id }}" class="btn btn-default btn-sm btn-assigned" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       {% if contract.assigned %}
         {{ contract.assigned }}
       {% else %}
@@ -55,7 +55,8 @@
       {% endfor %}
     </ul>
   </div>
-</td><!-- assigned to -->
+</td><!-- assigned to visible -->
+<td>{{ contract.assigned }}</td><!-- assigned to filter flag -->
 
 <td>
 <div class="dropdown">

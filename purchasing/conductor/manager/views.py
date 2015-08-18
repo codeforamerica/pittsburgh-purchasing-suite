@@ -74,7 +74,8 @@ def index():
     ).outerjoin(ContractProperty).filter(
         db.func.lower(ContractBase.contract_type) == 'county',
         db.func.lower(ContractProperty.key) == 'spec number',
-        ContractBase.children == None
+        ContractBase.children == None,
+        ContractBase.is_visible == True
     ).order_by(ContractBase.expiration_date).all()
 
     conductors = User.query.join(Role).filter(
@@ -397,7 +398,7 @@ def assign(contract_id, flow_id, user_id):
 
     # if the contract is already assigned,
     # resassign it and continue on
-    if contract.assigned_to:
+    if contract.assigned_to and not contract.completed_last_stage():
         contract.assigned_to = user_id
     # otherwise, it's new work. perform the following:
     # 1. create a cloned version of the contract

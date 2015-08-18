@@ -5,21 +5,18 @@
     current stage. If we have neither of those, gray it out
     because we aren't there yet.
  #}
-<strong>Current flow: </strong>
+<h4>Current Flow</h4>
+<p class="text-bigger"><strong>{{ contract.current_flow.flow_name }}</strong></p>
 {% if flows|length >0 %}
-  <span data-toggle="collapse" href="#flowChoices" aria-expanded="false" aria-controls="flowChoices">{{ contract.current_flow.flow_name }}<span class="caret"></span></span>
-  <div class="collapse" id="flowChoices">
-    <div class="well">
-      <strong>Switch to different flow:</strong>
-      <ul>
-      {% for flow in flows %}
-        <li><a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, flow_switch=flow.id) }}">{{ flow }}</a></li>
-      {% endfor %}
-      </ul>
-    </div>
-  </div>
-{% else %}
-  <span>{{ contract.current_flow.flow_name }}</span>
+<div class="dropdown">
+  <button class="btn btn-default btn-detail-target" id="btnActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Change Flow <span class="caret"></span></button>
+  <ul class="dropdown-menu" aria-labelledby="btnActions">
+  {% for flow in flows %}
+      <li><a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, flow_switch=flow.id) }}">{{ flow }}</a></li>
+  {% endfor %}
+  </ul>
+</div>
+<div class="spacer-20"></div>
 {% endif %}
 
 {% for stage in stages %}
@@ -34,7 +31,6 @@
     <div class="event event-current {% if stage.id == active_stage.id %}event-active{% endif %}">
       <p>
         <a href="{{ url_for('conductor.detail', contract_id=stage.contract_id, stage_id=stage.id) }}">{{ stage.name }}</a>
-        <a href="{{ url_for('conductor.detail', contract_id=stage.contract_id, stage_id=stage.id, transition='true') }}" id="stage-{{ stage.id }}" data-current="true" class="btn btn-detail btn-sm btn-success js-transition">Mark complete!</a>
       </p>
       <p class="event-date">
         {{ stage.entered|datetimeformat }}

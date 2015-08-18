@@ -131,7 +131,7 @@ class ContractBase(Model):
         'contracts', lazy='dynamic', cascade='none'
     ))
 
-    is_visible = Column(db.Boolean, default=False, nullable=False)
+    is_visible = Column(db.Boolean, default=True, nullable=False)
     is_archived = Column(db.Boolean, default=False, nullable=False)
 
     opportunity = db.relationship('Opportunity', uselist=False, backref='opportunity')
@@ -352,10 +352,12 @@ class ContractStageActionItem(Model):
 
     @property
     def non_null_items(self):
+        import pdb; pdb.set_trace()
         return dict((k, v) for (k, v) in self.action_detail.items() if v is not None)
 
     @property
     def non_null_items_count(self):
+        import pdb; pdb.set_trace()
         return len(self.non_null_items)
 
 class Flow(Model):

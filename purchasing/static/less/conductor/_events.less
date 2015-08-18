@@ -1,9 +1,7 @@
-
-
 .event-well {
   background: @body-bg;
   overflow-y: scroll;
-  max-height: 550px;
+  max-height: @event-well-height;
 }
 
 .event {
@@ -33,7 +31,7 @@
   }
 
   &.event-active {
-    background: darken(@body-bg, 15%);
+    background: @well-bg;
     padding: 5px;
   }
 

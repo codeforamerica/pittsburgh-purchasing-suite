@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-from flask import url_for, request
 
 from wtforms.validators import ValidationError
-from wtforms.fields import SelectField, HiddenField
+from wtforms.fields import SelectField
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
-from flask_admin.form.fields import Select2TagsField
-from flask_login import current_user
+from flask_admin.form.widgets import Select2Widget
 from purchasing.data.models import (
     Stage, StageProperty, Flow, ContractBase, ContractProperty,
     Company, CompanyContact, LineItem
@@ -95,23 +93,42 @@ class ConductorContractAdmin(ContractBaseAdmin):
             Role.name.in_(['conductor', 'admin', 'superadmin'])
         )
 
-def _stage_lookup(stage_name):
-    if not isinstance(stage_name, int):
-        try:
-            stage_name = int(stage_name)
-        except:
-            raise ValidationError('Must be integers')
-    return Stage.query.filter(Stage.id == stage_name).first().id
+def get_stages():
+    return Stage.query.order_by(Stage.name)
+
+class QuerySelect2TagsWidget(Select2Widget):
+    def __init__(self, *args, **kwargs):
+        super(QuerySelect2TagsWidget, self).__init__(*args, **kwargs)
+
+    def __call__(self, field, **kwargs):
+        field.data = Stage.query.filter(Stage.id.in_(field.data)).all()
+        kwargs.setdefault('data-role', u'select2-tags')
+        kwargs.setdefault('multiple', 'multiple')
+        return super(QuerySelect2TagsWidget, self).__call__(field, **kwargs)
 
 class FlowAdmin(ConductorAuthMixin, sqla.ModelView):
+    edit_template = 'admin/purchasing_edit.html'
+    create_template = 'admin/purchasing_create.html'
+
     form_columns = ['flow_name', 'stage_order']
 
     form_extra_fields = {
-        'stage_order': Select2TagsField(
-            'Stage Order', coerce=_stage_lookup,
-            save_as_list=True
+        'stage_order': sqla.fields.QuerySelectMultipleField(
+            'Stage Order', widget=QuerySelect2TagsWidget(),
+            query_factory=get_stages,
+            get_pk=lambda i: i.id,
+            get_label=lambda i: i.name,
+            allow_blank=True, blank_text='-----'
         )
     }
+
+    def create_model(self, form, model):
+        form.stage_order.data = [i.id for i in form.stage_order.data]
+        super(FlowAdmin, self).create_model(form, model)
+
+    def update_model(self, form, model):
+        form.stage_order.data = [i.id for i in form.stage_order.data]
+        super(FlowAdmin, self).update_model(form, model)
 
 class StageAdmin(ConductorAuthMixin, sqla.ModelView):
     inline_models = (StageProperty, )

@@ -54,7 +54,10 @@ def update_contract_with_spec(contract, form_data, company=None, clone=False):
     if new_spec:
         spec_number.key = 'Spec Number'
         spec_number.value = new_spec
-        contract.properties.append(spec_number)
+    else:
+        spec_number.key = 'Spec Number'
+        spec_number.value = None
+    contract.properties.append(spec_number)
 
     if company:
         contract.companies.append(company)
@@ -135,11 +138,15 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
             data = form.data
             del data['all_blank']
 
-            update_contract_with_spec(contract, data)
+            _, _ = update_contract_with_spec(contract, data)
+            # this process pops off the spec number, so get it back
+            data['spec_number'] = form.data.get('spec_number')
+
             # get department
             if form.data.get('department', None):
                 data['department'] = form.data.get('department').name
-                action.action_detail = data.update({'stage_name': current_stage.name})
+
+            action.action_detail = data
 
         else:
             return False

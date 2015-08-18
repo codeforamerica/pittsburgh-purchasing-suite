@@ -1,9 +1,22 @@
 {% extends 'admin/base.html' %}
 
+{% block head_css %}
+{{ super() }}
+{% assets "admin_less" %}
+  <link rel="stylesheet" href="{{ ASSET_URL }}">
+{% endassets %}
+{% endblock %}
+
 {% block access_control %}
 <ul class="nav navbar-nav pull-right">
 <li>
   <a href="{{ url_for('public.home') }}">Leave Admin</a>
 </li>
 </ul>
+{% endblock %}
+
+{% block tail_js %}
+{% assets "adminjs" %}
+  <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+{% endassets %}
 {% endblock %}

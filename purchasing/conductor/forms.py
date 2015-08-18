@@ -3,6 +3,7 @@
 import re
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
+from wtforms import Form as NoCSRFForm
 from wtforms.fields import (
     TextField, IntegerField, DateField, TextAreaField, HiddenField,
     FieldList, FormField, SelectField
@@ -58,7 +59,6 @@ class ContractMetadataForm(Form):
     '''Edit a contract's metadata during the renewal process
     '''
     financial_id = IntegerField(validators=[Optional()])
-    expiration_date = DateField(validators=[Optional()])
     spec_number = TextField(validators=[Optional()], filters=[lambda x: x or None])
     all_blank = HiddenField(validators=[not_all_hidden])
     department = QuerySelectField(
@@ -95,7 +95,7 @@ class ContractUploadForm(Form):
         FileAllowed(['pdf'], message='.pdf files only')
     ])
 
-class CompanyContactForm(Form):
+class CompanyContactForm(NoCSRFForm):
     first_name = TextField(validators=[DataRequired()])
     last_name = TextField(validators=[DataRequired()])
     addr1 = TextField(validators=[Optional()])
@@ -120,7 +120,7 @@ def validate_integer(form, field):
         except:
             raise ValidationError('This must be an integer!')
 
-class CompanyForm(Form):
+class CompanyForm(NoCSRFForm):
     new_company_controller_number = TextField('New Company Controller Number', validators=[
         RequiredOne('controller_number'),
         RequiredNotBoth('controller_number'), RequiredIf('new_company_name'),
@@ -149,7 +149,7 @@ class CompanyForm(Form):
 class CompanyListForm(Form):
     companies = FieldList(FormField(CompanyForm), min_entries=1)
 
-class CompanyContactList(Form):
+class CompanyContactList(NoCSRFForm):
     contacts = FieldList(FormField(CompanyContactForm), min_entries=1)
 
 class CompanyContactListForm(Form):

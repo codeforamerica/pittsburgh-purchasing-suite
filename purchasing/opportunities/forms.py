@@ -107,7 +107,7 @@ def city_domain_email(form, field):
         user = User.query.filter(User.email == field.data).first()
         if user is None:
             domain = re.search(DOMAINS, field.data)
-            if domain.group().lstrip('@') != current_app.config.get('CITY_DOMAIN'):
+            if domain and domain.group().lstrip('@') != current_app.config.get('CITY_DOMAIN'):
                 raise ValidationError("That's not a valid contact!")
 
 def max_words(max=500):

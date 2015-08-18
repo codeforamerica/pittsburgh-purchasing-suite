@@ -13,7 +13,7 @@
         formToClone.find('.js-select2').select2('destroy').end();
       }
       var formClone = formToClone.clone();
-      var elemId = formClone.find(':input')[0].id;
+      var elemId = formClone.find('input')[0].id;
       var elemExec, elemNum, matched = -1;
       while ((elemExec = elemRegex.exec(elemId)) !== null) {
         matched++;
