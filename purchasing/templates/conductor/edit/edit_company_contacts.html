@@ -14,11 +14,9 @@
 
         {% for company in form.companies.entries %}
           <h4><strong>{{ companies[loop.index - 1].company_name }}</strong></h4>
-          {{ company.csrf_token() }}
 
           <div class="company-{{ loop.index - 1 }}-contact-form">
           {% for contact in company.contacts.entries %}
-            {{ contact.csrf_token() }}
             <div class="contact-container well">
 
               <strong>Edit contact information</strong>

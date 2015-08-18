@@ -30,31 +30,31 @@
           {% for company in form.companies.entries %}
             <div class="company-form-container">
 
-            {{ company.csrf_token() }}
               <div class="row well">
-                <strong>Choose an existing company or add a new one.</strong>
-                <span class="pull-right"><a class="js-multiform-remove hidden" data-parent-elem-class="company-name-form"><i class="fa fa-times text-danger"></i></a></span>
+                <span class="pull-right"><a class="js-multiform-remove hidden" data-parent-elem-class="company-form-container"><i class="fa fa-times text-danger"></i></a></span>
 
-                <div class="form-group">
-                  <label>Existing Company <span class="form-required">*</span></label>
-                  {{ macros.with_errors(company.company_name, class_="form-control js-company-name-select2 js-select2") }}
+                <div class="existing-company-row">
+                  <div class="form-group">
+                    <label>Company Name <span class="form-required">*</span></label>
+                    {{ macros.with_errors(company.company_name, class_="form-control js-company-name-select2 js-select2") }}
+                  </div>
+
+                  <div class="form-group">
+                    <label>Controller Number <span class="form-required">*</span></label>
+                    {{ macros.with_errors(company.controller_number, class_='form-control', placeholder="Controller Number") }}
+                  </div>
                 </div>
 
-                <div class="form-group">
-                  <label>Exist Company Controller Number <span class="form-required">*</span></label>
-                  {{ macros.with_errors(company.controller_number, class_='form-control', placeholder="Controller Number") }}
-                </div>
+                <div class="new-company-row" style="display: none;">
+                  <div class="form-group">
+                    <label>Company Name <span class="form-required">*</span></label>
+                    {{ macros.with_errors(company.new_company_name, class_="form-control", placeholder="New company name") }}
+                  </div>
 
-                <hr>
-
-                <div class="form-group">
-                  <label>New Company Name <span class="form-required">*</span></label>
-                  {{ macros.with_errors(company.new_company_name, class_="form-control", placeholder="New company name") }}
-                </div>
-
-                <div class="form-group">
-                  <label>New Company Controller Number <span class="form-required">*</span></label>
-                  {{ macros.with_errors(company.new_company_controller_number, class_='form-control', placeholder="Controller Number") }}
+                  <div class="form-group">
+                    <label>Controller Number <span class="form-required">*</span></label>
+                    {{ macros.with_errors(company.new_company_controller_number, class_='form-control', placeholder="Controller Number") }}
+                  </div>
                 </div>
 
               </div>
@@ -62,7 +62,9 @@
           {% endfor %}
           </div>
 
-        <button type="button" class="btn btn-primary js-multiform-add" data-clone-class="company-name-form">Add another</button>
+        <button type="button" class="btn btn-primary js-multiform-add" data-show-row="existing-company-row" data-hide-row="new-company-row" data-clone-class="company-form-container">Add an existing company</button>
+        <button type="button" class="btn btn-primary js-multiform-add" data-show-row="new-company-row" data-hide-row="existing-company-row" data-clone-class="company-form-container">Add a new company</button>
+
 
         <hr>
 

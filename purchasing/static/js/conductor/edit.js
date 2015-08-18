@@ -27,7 +27,6 @@
 
   function removeForm(elems) {
     $(elems).on('click', function() {
-      console.log('click!')
       $(this).multiFormHandler('remove');
 
       initUi();
@@ -36,11 +35,24 @@
   }
 
   $('.js-multiform-add').on('click', function(e) {
+    var _this = $(this);
     $(this).multiFormHandler('add');
+
+    $('.' + _this.attr('data-hide-row')).last().hide();
+    $('.' + _this.attr('data-show-row')).last().show();
 
     initUi();
     showHideClose();
     removeForm($('.js-multiform-remove'));
+  });
+
+  // render the proper field (wherever data is)
+  $('.company-form-container').each(function() {
+    var _this = $(this);
+    if (_this.find('input[value!=""]').length > 0 && _this.find('input[value!=""]')[0].id.indexOf('new') >= 0) {
+      _this.find('.new-company-row').show();
+      _this.find('.existing-company-row').hide();
+    }
   });
 
   showHideClose();

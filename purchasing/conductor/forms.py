@@ -3,6 +3,7 @@
 import re
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
+from wtforms import Form as NoCSRFForm
 from wtforms.fields import (
     TextField, IntegerField, DateField, TextAreaField, HiddenField,
     FieldList, FormField, SelectField
@@ -94,7 +95,7 @@ class ContractUploadForm(Form):
         FileAllowed(['pdf'], message='.pdf files only')
     ])
 
-class CompanyContactForm(Form):
+class CompanyContactForm(NoCSRFForm):
     first_name = TextField(validators=[DataRequired()])
     last_name = TextField(validators=[DataRequired()])
     addr1 = TextField(validators=[Optional()])
@@ -119,7 +120,7 @@ def validate_integer(form, field):
         except:
             raise ValidationError('This must be an integer!')
 
-class CompanyForm(Form):
+class CompanyForm(NoCSRFForm):
     new_company_controller_number = TextField('New Company Controller Number', validators=[
         RequiredOne('controller_number'),
         RequiredNotBoth('controller_number'), RequiredIf('new_company_name'),
