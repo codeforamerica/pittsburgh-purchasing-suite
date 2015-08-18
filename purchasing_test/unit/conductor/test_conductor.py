@@ -244,7 +244,7 @@ class TestConductor(BaseTestCase):
         # assert we can/can't go the correct locations
         old_view = self.client.get(self.build_detail_view(self.contract1, old_stage=self.stage1))
         self.assert200(old_view)
-        self.assertTrue('You are viewing an already-completed stage.' in old_view.data)
+        self.assertTrue('This stage has been completed.' in old_view.data)
         self.assert200(self.client.get(self.build_detail_view(self.contract1, old_stage=self.stage2)))
         self.assert404(self.client.get(self.build_detail_view(self.contract1, old_stage=self.stage3)))
 
