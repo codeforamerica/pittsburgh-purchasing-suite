@@ -9,7 +9,8 @@ def add_archived_filter(contracts, archived):
 
     contracts = contracts.filter(
         ContractBase.financial_id != None,
-        ContractBase.expiration_date != None
+        ContractBase.expiration_date != None,
+        SearchView.expiration_date != None
     )
 
     if not archived:
