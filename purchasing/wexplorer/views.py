@@ -80,6 +80,7 @@ def filter(department_id):
             ON users.department_id = department.id
         WHERE department.id = :department
         GROUP BY 1,2
+        HAVING count(contract_user_association.user_id) > 0
         ORDER BY 3 DESC, 1 ASC
         ''', {'department': int(department_id)}
     ).fetchall()

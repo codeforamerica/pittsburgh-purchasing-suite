@@ -184,13 +184,20 @@ class TestWexplorer(BaseTestCase):
         '''Test that filter page works properly and shows the error where appropriate
         '''
         self.login_user(self.admin_user)
+        # assert it works with no subscriptions
+        self.assert200(self.client.get('/scout/filter/{}'.format(self.admin_user.department_id)))
+
         self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
         self.client.get('/scout/contracts/{}/subscribe'.format(self.contract2.id))
 
         self.login_user(self.superadmin_user)
         self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
 
+        # ensure that when we have a follower, the contract page loads as expected
+        self.assert200(self.client.get('/scout/contracts/{}'.format(self.contract1.id)))
+
         # filter by contracts associated with Other department
+        # assert it works with multiple subscriptions
         self.client.get('/scout/filter/{}'.format(self.admin_user.department_id))
         self.assertEquals(len(self.get_context_variable('results')), 2)
         # assert that contract 1 is first
