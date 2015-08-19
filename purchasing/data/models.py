@@ -141,6 +141,8 @@ class ContractBase(Model):
                 return 'expired'
             elif self.children and self.is_archived:
                 return 'replaced'
+            elif self.is_archived:
+                return 'archived'
         elif self.children and self.is_archived:
             return 'replaced'
         elif self.is_archived:
