@@ -80,6 +80,7 @@ adminjs = Bundle(
     'libs/bootstrap/dist/js/bootstrap.js',
     'libs/bootstrap-datepicker/js/bootstrap-datepicker.js',
     'libs/select2/dist/js/select2.full.js',
+    'libs/moment/moment.js',
     filters='uglifyjs',
     output='public/js/admin.js'
 )

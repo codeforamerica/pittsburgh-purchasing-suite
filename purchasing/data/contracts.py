@@ -2,6 +2,7 @@
 
 from purchasing.database import db
 from purchasing.data.models import ContractBase, ContractProperty
+from purchasing.opportunities.models import Opportunity
 
 from sqlalchemy.orm.session import make_transient
 

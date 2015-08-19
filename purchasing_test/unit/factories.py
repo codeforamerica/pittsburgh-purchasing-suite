@@ -85,6 +85,7 @@ class ContractBaseFactory(BaseFactory):
         model = ContractBase
 
 class ContractPropertyFactory(BaseFactory):
+    id = factory.Sequence(lambda n: n + 10)
     contract = factory.SubFactory(ContractBase)
 
     class Meta:

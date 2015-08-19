@@ -180,7 +180,7 @@ class ContractProperty(Model):
 
     id = Column(db.Integer, primary_key=True, index=True)
     contract = db.relationship('ContractBase', backref=backref(
-        'properties', lazy='dynamic', cascade='all, delete-orphan'
+        'properties', lazy='subquery', cascade='all, delete-orphan'
     ))
     contract_id = ReferenceCol('contract', ondelete='CASCADE')
     key = Column(db.String(255), nullable=False)
