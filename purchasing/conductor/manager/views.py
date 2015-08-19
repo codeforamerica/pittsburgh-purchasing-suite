@@ -124,13 +124,15 @@ def detail(contract_id, stage_id=-1):
         return redirect(url)
 
     elif request.args.get('extend'):
-        extended_contract = extend_a_contract(child_contract_id=contract_id, delete_child=True)
+        extended_contract = extend_a_contract(child_contract_id=contract_id, delete_child=False)
+        db.session.commit()
 
         flash(
             'Contract Successfully extended! Please update it with a new expiration date',
             'alert-success'
         )
 
+        session['extend'] = True
         return redirect(url_for(
             'conductor.edit', contract_id=extended_contract.id
         ))
@@ -249,16 +251,19 @@ def edit(contract_id):
     session.pop('contract', None)
     session.pop('companies', None)
 
-    if contract and completed_last_stage:
+    extend = session.get('extend', None)
+
+    if contract and completed_last_stage or extend:
         form = EditContractForm(obj=contract)
         if form.validate_on_submit():
-            if contract.flow:
+            if not extend:
                 session['contract'] = json.dumps(form.data, default=json_serial)
                 return redirect(url_for('conductor.edit_company', contract_id=contract.id))
             else:
                 # if there is no flow, that means that it is an extended contract
                 # so we will save it and return back to the conductor home page
                 contract, _ = update_contract_with_spec(contract, form.data)
+                session.pop('extend')
                 return redirect(url_for('conductor.index'))
         form.spec_number.data = contract.get_spec_number().value
         return render_template('conductor/edit/edit.html', form=form, contract=contract)

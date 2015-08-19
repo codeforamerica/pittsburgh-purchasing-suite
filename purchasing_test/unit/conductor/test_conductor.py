@@ -727,5 +727,7 @@ class TestConductor(BaseTestCase):
         )
 
         self.assertEquals(self.contract1.parent.expiration_date, datetime.date.today())
-        # we should have deleted our child contract
-        self.assertEquals(ContractBase.query.count(), 2)
+        # our child contract should be untouched
+        self.assertEquals(self.contract1.current_stage_id, self.flow.stage_order[0])
+        self.assertTrue(self.contract1.parent.is_visible)
+        self.assertFalse(self.contract1.is_visible)
