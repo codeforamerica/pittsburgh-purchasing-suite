@@ -1,14 +1,29 @@
-.wexplorer-explore {
+.scout-explore {
   padding: 45px 15px 15px;
   margin: 0 -15px 15px;
 }
 
-.wexplorer-table > tbody > tr > td,
-.wexplorer-table > thead > tr > th {
-  padding: 15px;
+.scout-table > tbody > tr > td,
+.scout-table > thead > tr > th {
+  vertical-align: middle;
 }
 
-.wexplorer-column-header {
+.inactive-search-result {
+  a {
+    color: @gray-light;
+  }
+  color: @gray-light;
+}
+
+.inactive-search-result .btn-primary {
+  color: @btn-primary-color;
+}
+.inactive-search-result .btn-danger {
+  color: @btn-danger-color;
+}
+
+
+.scout-column-header {
   font-size: @font-size-base;
   text-transform: uppercase;
   font-weight: bold;
@@ -18,7 +33,7 @@
   font-size: @font-size-large;
 }
 
-.wexplorer-well {
+.scout-well {
   background-color: darken(@body-bg, 2%);
   padding-left: 25px;
   padding-right: 25px;
