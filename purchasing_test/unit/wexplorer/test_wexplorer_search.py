@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import datetime
+
 from purchasing.app import db
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
@@ -25,15 +27,24 @@ class TestWexplorerSearch(BaseTestCase):
         # insert the companies/contracts
         company_1 = insert_a_company(name='ship', insert_contract=False)
         company_2 = insert_a_company(name='boat', insert_contract=False)
+
         insert_a_contract(
-            description='vessel', companies=[company_2], line_items=[LineItem(description='NAVY')]
+            description='vessel', companies=[company_2], line_items=[LineItem(description='NAVY')],
+            expiration_date=datetime.datetime.today() + datetime.timedelta(1), is_archived=False,
+            financial_id='123'
         )
         insert_a_contract(
-            description='sail', financial_id=123, companies=[company_1],
-            line_items=[LineItem(description='sunfish')]
+            description='sail', financial_id='456', companies=[company_1],
+            line_items=[LineItem(description='sunfish')], is_archived=False,
+            expiration_date=datetime.datetime.today() + datetime.timedelta(1)
         )
         insert_a_contract(
-            description='sunfish', financial_id=456, properties=[dict(key='foo', value='engine')]
+            description='sunfish', financial_id='789', properties=[dict(key='foo', value='engine')],
+            expiration_date=datetime.datetime.today() + datetime.timedelta(1), is_archived=False
+        )
+        insert_a_contract(
+            description='sunfish', financial_id='012', properties=[dict(key='foo', value='engine')],
+            expiration_date=datetime.datetime.today() - datetime.timedelta(1), is_archived=False
         )
 
     def tearDown(self):
@@ -79,3 +90,7 @@ class TestWexplorerSearch(BaseTestCase):
         # make sure that crazy input still returns a 200
         self.assert200(self.client.get('/scout/search?q=fj02jf,/fj20j8**#*U!?JX&&'))
         self.assert200(self.client.get('/scout/search?q=super+man'))
+
+        # make sure that archived contracts are properly handled
+        self.assert200(self.client.get('/scout/search?archived=y&q='))
+        self.assertEquals(len(self.get_context_variable('results')), 4)
