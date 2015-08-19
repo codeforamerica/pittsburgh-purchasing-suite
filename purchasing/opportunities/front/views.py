@@ -14,7 +14,9 @@ from purchasing.notifications import Notification
 from purchasing.opportunities.forms import UnsubscribeForm, VendorSignupForm, OpportunitySignupForm
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
+from purchasing.opportunities.front import blueprint
 from purchasing.opportunities.util import get_categories, fix_form_categories
+from purchasing.opportunities.tasks import something
 
 from purchasing.users.models import User, Role
 
@@ -24,6 +26,8 @@ from purchasing.opportunities.front import blueprint
 def splash():
     '''Landing page for opportunities site
     '''
+    # test = something.delay()
+    # test.wait()
     return render_template(
         'opportunities/front/splash.html'
     )

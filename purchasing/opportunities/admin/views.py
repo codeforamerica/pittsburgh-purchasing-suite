@@ -17,13 +17,14 @@ from purchasing.opportunities.models import (
 from purchasing.users.models import (
     User, Role
 )
+
 from purchasing.opportunities.util import (
     fix_form_categories, generate_opportunity_form, build_opportunity,
     build_vendor_row
 )
-from purchasing.notifications import Notification
 
 from purchasing.opportunities.admin import blueprint
+from purchasing.notifications import Notification
 
 @login_manager.user_loader
 def load_user(userid):

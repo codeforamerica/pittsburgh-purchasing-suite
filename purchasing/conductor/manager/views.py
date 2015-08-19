@@ -36,7 +36,6 @@ from purchasing.conductor.util import (
 )
 
 from purchasing.opportunities.util import generate_opportunity_form
-
 from purchasing.conductor.manager import blueprint
 
 @blueprint.route('/')

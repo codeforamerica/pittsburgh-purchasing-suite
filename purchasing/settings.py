@@ -54,6 +54,7 @@ class DevConfig(Config):
     UPLOAD_S3 = False
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'uploads'))
     MAIL_SUPPRESS_SEND = False
+    CELERY_BROKER_URL = 'sqla+{}'.format(SQLALCHEMY_DATABASE_URI)
 
 class TestConfig(Config):
     ADMIN_EMAIL = 'foo@foo.com'
