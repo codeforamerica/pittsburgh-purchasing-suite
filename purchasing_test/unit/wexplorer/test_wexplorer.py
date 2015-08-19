@@ -193,6 +193,9 @@ class TestWexplorer(BaseTestCase):
         self.login_user(self.superadmin_user)
         self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
 
+        # ensure that when we have a follower, the contract page loads as expected
+        self.assert200(self.client.get('/scout/contracts/{}').format(self.contract1.id))
+
         # filter by contracts associated with Other department
         # assert it works with multiple subscriptions
         self.client.get('/scout/filter/{}'.format(self.admin_user.department_id))
