@@ -73,7 +73,7 @@ def main(file_target='./files/2015-05-05-contractlist.csv'):
                 expiration = None
 
             try:
-                _financial_id = convert_empty_to_none(int(row.get('CONTROLLER')))
+                _financial_id = convert_empty_to_none(row.get('CONTROLLER'))
             except ValueError:
                 _financial_id = None
 

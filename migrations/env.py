@@ -24,7 +24,7 @@ target_metadata = current_app.extensions['migrate'].db.metadata
 def exclude_tables_from_config(config_):
     tables_ = config_.get('tables', None)
     if tables_ is not None:
-        tables = tables_.split(',')
+        tables = [i.strip() for i in tables_.split(',')]
     return tables
 
 exclude_tables = exclude_tables_from_config(config.get_section('alembic:exclude'))

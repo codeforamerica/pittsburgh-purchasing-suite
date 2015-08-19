@@ -21,7 +21,7 @@ class ContractRenewalTest(BaseTestCase):
         user = UserFactory.create()
         self.contract1 = ContractBaseFactory.create(
             financial_id=1234, expiration_date=datetime.date(2015, 1, 1),
-            description='foobarbaz', followers=[user], starred=[user]
+            description='foobarbaz', followers=[user]
         )
         self.contract2 = ContractBaseFactory.create()
         self.contract2.parent = self.contract1
@@ -33,7 +33,7 @@ class ContractRenewalTest(BaseTestCase):
         extend_a_contract(self.contract2.id, delete_child=True)
 
         self.assertTrue(self.contract1.expiration_date is None)
-        self.assertEquals(self.contract1.financial_id, 1234)
+        self.assertEquals(self.contract1.financial_id, '1234')
 
         self.assertTrue(ContractBase.query.count(), 1)
 
@@ -55,9 +55,6 @@ class ContractRenewalTest(BaseTestCase):
 
         self.assertEquals(len(self.contract1.followers), 0)
         self.assertEquals(len(self.contract2.followers), 1)
-
-        self.assertEquals(len(self.contract1.starred), 0)
-        self.assertEquals(len(self.contract2.starred), 1)
 
     def test_clone_a_contract(self):
         '''Test contract clones proper fields, doesn't clone improper fields

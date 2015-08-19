@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from wtforms.validators import ValidationError
-from wtforms.fields import SelectField
+from wtforms.validators import ValidationError, DataRequired
+from wtforms.fields import SelectField, IntegerField
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
@@ -49,6 +49,10 @@ class ContractBaseAdmin(AuthMixin, sqla.ModelView):
         properties='Contract Properties', expiration_date='Expiration', is_archived='Archived'
     )
 
+    form_extra_fields = {
+        'financial_id': IntegerField()
+    }
+
     def init_search(self):
         r = super(ContractBaseAdmin, self).init_search()
         self._search_joins.append(company_contract_association_table)
@@ -80,7 +84,8 @@ class ConductorContractAdmin(ContractBaseAdmin):
     ]
 
     form_columns = [
-        'contract_type', 'description', 'properties', 'expiration_date',
+        'contract_type', 'description', 'properties',
+        'financial_id', 'expiration_date', 'contract_href',
         'companies', 'followers', 'is_archived', 'assigned'
     ]
 
