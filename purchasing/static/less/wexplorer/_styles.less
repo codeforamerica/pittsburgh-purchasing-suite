@@ -61,3 +61,32 @@
   max-width: 28px;
   margin-top: -2px;
 }
+
+.alert-success a {
+  color: @alert-success-text;
+  font-weight: bold;
+}
+.alert-success a:hover {
+  color: darken(@alert-success-text, 10%);
+  font-weight: bold;
+}
+
+.alert-danger a,
+.alert-error a {
+  color: @alert-danger-text;
+  font-weight: bold;
+}
+.alert-danger a:hover,
+.alert-error a:hover {
+  color: darken(@alert-danger-text, 10%);
+  font-weight: bold;
+}
+
+.alert-info a {
+  color: @alert-info-text;
+  font-weight: bold;
+}
+.alert-info a:hover {
+  color: darken(@alert-info-text, 10%);
+  font-weight: bold;
+}

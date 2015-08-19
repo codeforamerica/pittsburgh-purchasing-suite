@@ -40,7 +40,6 @@
           See something wrong? <a href="{{ url_for('wexplorer.feedback', contract_id=contract.id) }}" target="_blank">Send your feedback.</a>
         </p>
 
-
       <hr>
 
       <div class="row spacer-10">
@@ -61,7 +60,9 @@
         {% endif %}
       </div>
 
-    </div>
+    </div><!-- header/title -->
+
+    {% include 'wexplorer/contract_alerts.html' %}
 
     <div class="row row-well-padding">
       <div class="col-sm-4">
@@ -145,16 +146,15 @@
                   -
                 {% endif %}
               </td>
-              <!-- <td class="col-md-2">-</td> -->
             </tr>
           {% endfor %}
           </tbody>
-        </table>
+        </table><!-- line item table -->
       {% endif %}
 
       {% include "wexplorer/note.html" %}
 
-      </div>
+      </div><!-- body -->
     </div>
   </div>
 </div>

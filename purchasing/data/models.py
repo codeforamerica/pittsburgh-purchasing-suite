@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from purchasing.database import (
-    Column,
-    Model,
-    db,
-    ReferenceCol
-)
+
 from sqlalchemy.dialects.postgres import ARRAY
 from sqlalchemy.dialects.postgresql import TSVECTOR, JSON
 from sqlalchemy.schema import Table, Sequence
 from sqlalchemy.orm import backref
+
+from purchasing.database import Column, Model, db, ReferenceCol
+from purchasing.filters import days_from_today
 
 TRIGGER_TUPLES = [
     ('contract', 'description', 'WHEN (NEW.is_visible != False)'),
@@ -133,6 +131,21 @@ class ContractBase(Model):
 
     def __unicode__(self):
         return self.description
+
+    @property
+    def scout_contract_status(self):
+        if self.expiration_date:
+            if days_from_today(self.expiration_date) <= 0 and self.children and self.is_archived:
+                return 'expired_replaced'
+            elif days_from_today(self.expiration_date) <= 0:
+                return 'expired'
+            elif self.children and self.is_archived:
+                return 'replaced'
+        elif self.children and self.is_archived:
+            return 'replaced'
+        elif self.is_archived:
+            return 'archived'
+        return 'active'
 
     def get_spec_number(self):
         '''Returns the spec number for a given contract
