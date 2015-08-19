@@ -31,8 +31,29 @@ class CompanyAdmin(AuthMixin, sqla.ModelView):
 class ContractBaseAdmin(AuthMixin, sqla.ModelView):
     '''Base model for different representations of contracts
     '''
+    column_auto_select_related = True
     column_labels = dict(financial_id='Controller Number')
-    column_searchable_list = ('description', 'contract_type')
+    column_searchable_list = (ContractBase.description, ContractBase.contract_type, ContractProperty.value)
+
+    column_list = [
+        'contract_type', 'description', 'financial_id', 'expiration_date',
+        'is_archived', 'properties'
+    ]
+
+    column_labels = dict(
+        contract_href='Link to Contract PDF', financial_id='Controller #',
+        properties='Spec #', expiration_date='Expiration', is_archived='Archived'
+    )
+
+    def get_query(self):
+        return super(ContractBaseAdmin, self).get_query().outerjoin(ContractProperty).filter(
+            db.func.lower(ContractProperty.key) == 'spec number'
+        )
+
+    def get_count_query(self):
+        return super(ContractBaseAdmin, self).get_count_query().outerjoin(ContractProperty).filter(
+            db.func.lower(ContractProperty.key) == 'spec number'
+        )
 
 class ScoutContractAdmin(ContractBaseAdmin):
     inline_models = (ContractProperty, LineItem,)
@@ -43,12 +64,7 @@ class ScoutContractAdmin(ContractBaseAdmin):
         'companies', 'followers', 'starred', 'is_archived'
     ]
 
-    column_labels = dict(contract_href='Link to Contract PDF')
-
-    column_list = [
-        'contract_type', 'description', 'financial_id', 'expiration_date',
-        'is_archived'
-    ]
+    column_labels = dict(contract_href='Link to Contract PDF', financial_id='Controller #')
 
 class ConductorContractAdmin(ContractBaseAdmin):
     inline_models = (ContractProperty,)

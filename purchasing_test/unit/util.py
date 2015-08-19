@@ -39,7 +39,7 @@ def get_a_property():
     if not contract:
         contract = insert_a_contract()
 
-    return contract.properties.first()
+    return contract.properties[0]
 
 def insert_a_stage(name='foo', send_notifs=False, post_opportunities=False):
     stage = StageFactory.create(**{
