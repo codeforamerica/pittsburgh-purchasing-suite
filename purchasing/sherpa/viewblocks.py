@@ -11,7 +11,7 @@ from flask.views import View
 
 from purchasing.decorators import logview
 
-URL_PREFIX = '/sherpa'
+from purchasing.sherpa import URL_PREFIX
 
 class SherpaView(View):
     '''A generic sherpa view.

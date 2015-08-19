@@ -4,7 +4,7 @@ import urllib2
 import json
 
 from flask import (
-    Blueprint, render_template, flash, redirect,
+    render_template, flash, redirect,
     url_for, abort, request, jsonify, session
 )
 from flask_login import current_user
@@ -36,10 +36,7 @@ from purchasing.conductor.util import (
 
 from purchasing.opportunities.util import generate_opportunity_form
 
-blueprint = Blueprint(
-    'conductor', __name__, url_prefix='/conductor',
-    template_folder='../templates'
-)
+from purchasing.conductor.manager import blueprint
 
 @blueprint.route('/')
 @requires_roles('conductor', 'admin', 'superadmin')

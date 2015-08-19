@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 '''The app module, containing the app factory function.'''
+
 import logging
 import os
+import types
 import sys
 import datetime
-from flask import Flask, render_template
+
+from pkgutil import iter_modules
+from importlib import import_module
+
+from flask import Flask, render_template, Blueprint
 from flask_login import current_user
 
 from purchasing.settings import ProdConfig
@@ -18,14 +24,7 @@ from purchasing.filters import (
     url_for_other_page, thispage, format_currency, better_title,
     days_from_today, datetimeformat, format_days_from_today
 )
-from purchasing.public import views as public_views
-from purchasing.users import views as user_views
-from purchasing.wexplorer import views as wexplorer_views
-from purchasing.sherpa import routes as sherpa_views
-from purchasing.conductor.manager import views as conductor_views
-from purchasing.conductor.upload import views as conductor_upload_views
-from purchasing.opportunities.front import views as opportunities_views
-from purchasing.opportunities.admin import views as opportunities_admin_views
+
 # import models so that flask-migrate can auto-detect
 from purchasing.public.models import AppStatus
 
@@ -100,18 +99,20 @@ def register_extensions(app):
     SSLify(app)
     return None
 
-def register_blueprints(app):
-    app.register_blueprint(public_views.blueprint)
-    app.register_blueprint(user_views.blueprint)
-    app.register_blueprint(wexplorer_views.blueprint)
-    app.register_blueprint(sherpa_views.blueprint)
-    app.register_blueprint(opportunities_views.blueprint)
-    app.register_blueprint(opportunities_admin_views.blueprint)
-    app.register_blueprint(conductor_views.blueprint)
-    app.register_blueprint(conductor_upload_views.blueprint)
-    # import admin views
+def register_blueprints(app, package_name='purchasing', package_path=None):
     from purchasing.admin import views
-    return None
+    package_path = package_path if package_path else app.config['APP_DIR']
+    rv = []
+    for _, name, _ in iter_modules([package_path]):
+        m_name = '{}.{}'.format(package_name, name)
+        m = import_module(m_name)
+        for item in dir(m):
+            item = getattr(m, item)
+            if isinstance(item, Blueprint):
+                app.register_blueprint(item)
+            rv.append(item)
+
+    return rv
 
 def register_jinja_extensions(app):
     app.jinja_env.globals['url_for_other_page'] = url_for_other_page

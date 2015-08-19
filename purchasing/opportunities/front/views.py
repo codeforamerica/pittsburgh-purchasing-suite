@@ -5,7 +5,7 @@ import datetime
 
 from flask import (
     render_template, request, current_app, flash,
-    redirect, url_for, session, abort, Blueprint
+    redirect, url_for, session, abort
 )
 from flask_login import current_user
 
@@ -18,10 +18,7 @@ from purchasing.opportunities.util import get_categories, fix_form_categories
 
 from purchasing.users.models import User, Role
 
-blueprint = Blueprint(
-    'opportunities', __name__, url_prefix='/beacon',
-    static_folder='../static', template_folder='../templates'
-)
+from purchasing.opportunities.front import blueprint
 
 @blueprint.route('/')
 def splash():

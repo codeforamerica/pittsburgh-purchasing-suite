@@ -8,8 +8,7 @@
 <li><a href="{{ url_for('conductor.index') }}">Contract List</a></li>
 <li class="dropdown">
   <a class="btn nav-dropdown-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-    COSTARS Upload
-    <span class="caret"></span>
+    COSTARS Upload <span class="caret"></span>
     <span class="sr-only">Toggle dropdown</span>
   </a>
   <ul class="dropdown-menu" role="menu">
@@ -17,6 +16,7 @@
     <li><a href="{{ url_for('conductor_uploads.costars_contract_upload') }}">Upload Contract PDFs</a></li>
   </ul>
 </li>
+<li><a href="{{ url_for('conductor_metrics.index') }}">Metrics</a></li>
 
 {% endblock %}
 

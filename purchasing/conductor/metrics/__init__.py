@@ -3,7 +3,7 @@
 from flask import Blueprint
 
 blueprint = Blueprint(
-    'conductor_uploads', __name__, url_prefix='/conductor/upload',
+    'conductor_metrics', __name__, url_prefix='/conductor/metrics',
     template_folder='../templates'
 )
 

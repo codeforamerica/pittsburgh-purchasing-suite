@@ -4,7 +4,7 @@ import datetime
 
 from flask import (
     render_template, url_for, Response, stream_with_context,
-    redirect, flash, abort, request, Blueprint
+    redirect, flash, abort, request
 )
 from flask_login import current_user
 
@@ -21,10 +21,7 @@ from purchasing.opportunities.util import (
 )
 from purchasing.notifications import Notification
 
-blueprint = Blueprint(
-    'opportunities_admin', __name__, url_prefix='/beacon/admin',
-    static_folder='../static', template_folder='../templates'
-)
+from purchasing.opportunities.admin import blueprint
 
 @login_manager.user_loader
 def load_user(userid):
