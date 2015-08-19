@@ -8,7 +8,7 @@ from flask_admin.contrib import sqla
 from flask_admin.form.widgets import Select2Widget
 from purchasing.data.models import (
     Stage, StageProperty, Flow, ContractBase, ContractProperty,
-    Company, CompanyContact, LineItem
+    Company, CompanyContact, LineItem, company_contract_association_table
 )
 from purchasing.opportunities.models import RequiredBidDocument
 from purchasing.extensions import login_manager
@@ -34,17 +34,34 @@ class ContractBaseAdmin(AuthMixin, sqla.ModelView):
     edit_template = 'admin/purchasing_edit.html'
     create_template = 'admin/purchasing_create.html'
 
-    column_searchable_list = (ContractBase.description, ContractBase.contract_type, ContractProperty.value)
+    column_searchable_list = (
+        ContractBase.description, ContractBase.contract_type,
+        ContractProperty.value, Company.company_name
+    )
 
     column_list = [
         'contract_type', 'description', 'financial_id', 'expiration_date',
-        'is_archived', 'properties'
+        'properties', 'companies', 'is_archived'
     ]
 
     column_labels = dict(
         contract_href='Link to Contract PDF', financial_id='Controller #',
         properties='Contract Properties', expiration_date='Expiration', is_archived='Archived'
     )
+
+    def init_search(self):
+        r = super(ContractBaseAdmin, self).init_search()
+        self._search_joins.append(company_contract_association_table)
+        self._search_joins.reverse()
+        return r
+
+    def scaffold_filters(self, name):
+        filters = super(ContractBaseAdmin, self).scaffold_filters(name)
+        if 'company_name' in self._filter_joins:
+            self._filter_joins['company_name'].append(company_contract_association_table)
+            self._filter_joins.reverse()
+
+        return filters
 
 class ScoutContractAdmin(ContractBaseAdmin):
     inline_models = (ContractProperty, LineItem,)
