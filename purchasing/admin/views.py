@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from wtforms.validators import ValidationError, DataRequired
-from wtforms.fields import SelectField, IntegerField
+from wtforms.fields import SelectField
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
@@ -11,6 +10,7 @@ from purchasing.data.models import (
     Company, CompanyContact, LineItem, company_contract_association_table
 )
 from purchasing.opportunities.models import RequiredBidDocument
+from purchasing.conductor.forms import validate_integer
 from purchasing.extensions import login_manager
 from purchasing.users.models import User, Role
 from purchasing.opportunities.models import Opportunity
@@ -49,9 +49,12 @@ class ContractBaseAdmin(AuthMixin, sqla.ModelView):
         properties='Contract Properties', expiration_date='Expiration', is_archived='Archived'
     )
 
-    form_extra_fields = {
-        'financial_id': IntegerField()
+    form_args = {
+        'financial_id': {
+            'validators': [validate_integer]
+        }
     }
+
 
     def init_search(self):
         r = super(ContractBaseAdmin, self).init_search()
