@@ -130,56 +130,6 @@ class TestWexplorer(BaseTestCase):
         # test you can't unsubscribe from a nonexistant contract
         self.assert404(self.client.get('/scout/contracts/999/unsubscribe'))
 
-    def test_star(self):
-        '''Test starring contracts works as expected
-        '''
-        request = self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
-        self.assertEquals(request.status_code, 302)
-        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
-
-        self.login_user(self.admin_user)
-        request = self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
-        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 1)
-
-        self.login_user(self.superadmin_user)
-        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
-        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 2)
-
-        # test you can't star more than once
-        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
-        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 2)
-
-        # test you can't star to a nonexistant contract
-        self.assert404(self.client.get('/scout/contracts/999/star'))
-
-    def test_unstar(self):
-        '''Test unstarring contracts works as expected
-        '''
-        # test that you can't unstar to a contract unless you are signed in
-        request = self.client.get('/scout/contracts/{}/unstar'.format(self.contract1.id))
-        self.assertEquals(request.status_code, 302)
-        self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
-
-        # two followers
-        self.login_user(self.admin_user)
-        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
-        self.login_user(self.superadmin_user)
-        self.client.get('/scout/contracts/{}/star'.format(self.contract1.id))
-
-        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 2)
-        self.client.get('/scout/contracts/{}/unstar'.format(self.contract1.id))
-        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 1)
-        # test you can't unstar more than once
-        self.client.get('/scout/contracts/{}/unstar'.format(self.contract1.id))
-        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 1)
-
-        self.login_user(self.admin_user)
-        self.client.get('/scout/contracts/{}/unstar'.format(self.contract1.id))
-        self.assertEquals(len(ContractBase.query.get(self.contract1.id).starred), 0)
-
-        # test you can't unstar from a nonexistant contract
-        self.assert404(self.client.get('/scout/contracts/999/unstar'))
-
     def test_department_filter(self):
         '''Test that filter page works properly and shows the error where appropriate
         '''

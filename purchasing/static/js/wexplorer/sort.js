@@ -28,4 +28,6 @@
     return $(row).children('td').eq(index).text();
   }
 
+  $('[data-toggle="tooltip"]').tooltip();
+
 })();

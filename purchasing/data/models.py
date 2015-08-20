@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from purchasing.database import (
-    Column,
-    Model,
-    db,
-    ReferenceCol
-)
+
 from sqlalchemy.dialects.postgres import ARRAY
 from sqlalchemy.dialects.postgresql import TSVECTOR, JSON
 from sqlalchemy.schema import Table, Sequence
 from sqlalchemy.orm import backref
+
+from purchasing.database import Column, Model, db, ReferenceCol
+from purchasing.filters import days_from_today
 
 TRIGGER_TUPLES = [
     ('contract', 'description', 'WHEN (NEW.is_visible != False)'),
@@ -31,12 +29,6 @@ contract_user_association_table = Table(
     Column('contract_id', db.Integer, db.ForeignKey('contract.id'), index=True),
 )
 
-contract_starred_association_table = Table(
-    'contract_starred_association', Model.metadata,
-    Column('user_id', db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True),
-    Column('contract_id', db.Integer, db.ForeignKey('contract.id', ondelete='SET NULL'), index=True),
-)
-
 class SearchView(Model):
     '''search_view is a materialized view with all of our text columns
     '''
@@ -45,7 +37,7 @@ class SearchView(Model):
     id = Column(db.Text, primary_key=True, index=True)
     contract_id = Column(db.Integer)
     company_id = Column(db.Integer)
-    financial_id = Column(db.Integer)
+    financial_id = Column(db.String(255))
     expiration_date = Column(db.Date)
     contract_description = Column(db.Text)
     tsv_contract_description = Column(TSVECTOR)
@@ -100,7 +92,7 @@ class ContractBase(Model):
     __tablename__ = 'contract'
 
     id = Column(db.Integer, primary_key=True)
-    financial_id = Column(db.Integer)
+    financial_id = Column(db.String(255))
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
     contract_type = Column(db.String(255))
@@ -116,11 +108,7 @@ class ContractBase(Model):
         secondary=contract_user_association_table,
         backref='contracts_following',
     )
-    starred = db.relationship(
-        'User',
-        secondary=contract_starred_association_table,
-        backref='contracts_starred',
-    )
+
     assigned_to = ReferenceCol('users', ondelete='SET NULL', nullable=True)
     assigned = db.relationship('User', backref=backref(
         'assignments', lazy='dynamic', cascade='none'
@@ -143,6 +131,23 @@ class ContractBase(Model):
 
     def __unicode__(self):
         return self.description
+
+    @property
+    def scout_contract_status(self):
+        if self.expiration_date:
+            if days_from_today(self.expiration_date) <= 0 and self.children and self.is_archived:
+                return 'expired_replaced'
+            elif days_from_today(self.expiration_date) <= 0:
+                return 'expired'
+            elif self.children and self.is_archived:
+                return 'replaced'
+            elif self.is_archived:
+                return 'archived'
+        elif self.children and self.is_archived:
+            return 'replaced'
+        elif self.is_archived:
+            return 'archived'
+        return 'active'
 
     def get_spec_number(self):
         '''Returns the spec number for a given contract
@@ -352,12 +357,10 @@ class ContractStageActionItem(Model):
 
     @property
     def non_null_items(self):
-        import pdb; pdb.set_trace()
         return dict((k, v) for (k, v) in self.action_detail.items() if v is not None)
 
     @property
     def non_null_items_count(self):
-        import pdb; pdb.set_trace()
         return len(self.non_null_items)
 
 class Flow(Model):

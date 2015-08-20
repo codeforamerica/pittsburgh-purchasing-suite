@@ -201,14 +201,12 @@ def search():
         user=current_user.email if not current_user.is_anonymous() else 'anonymous'
     ))
 
-    user_starred = [] if current_user.is_anonymous() else current_user.get_starred()
     user_follows = [] if current_user.is_anonymous() else current_user.get_following()
 
     return render_template(
         'wexplorer/search.html',
         current_user=current_user,
         filter_form=filter_form,
-        user_starred=user_starred,
         user_follows=user_follows,
         search_for=search_for,
         results=contracts[lower_bound_result:upper_bound_result],
@@ -322,54 +320,12 @@ def feedback(contract_id):
         )
     abort(404)
 
-@blueprint.route('/contracts/<int:contract_id>/star')
-@requires_roles('staff', 'admin', 'superadmin', 'conductor')
-def star(contract_id):
-    '''Star a contract
-    '''
-    message, contract = follow_a_contract(contract_id, current_user, 'star')
-    next_url = request.args.get('next', '/wexplorer')
-
-    if contract:
-        db.session.commit()
-        flash(message[0], message[1])
-
-        'STAR: {user} starred {contract}'.format(user=current_user.email, contract=contract_id)
-        return redirect(next_url)
-
-    elif contract is None:
-        db.session.rollback()
-        abort(404)
-
-    abort(403)
-
-@blueprint.route('/contracts/<int:contract_id>/unstar')
-@requires_roles('staff', 'admin', 'superadmin', 'conductor')
-def unstar(contract_id):
-    '''Unstar a contract
-    '''
-    message, contract = unfollow_a_contract(contract_id, current_user, 'star')
-    next_url = request.args.get('next', '/wexplorer')
-
-    if contract:
-        db.session.commit()
-        flash(message[0], message[1])
-
-        'STAR: {user} starred {contract}'.format(user=current_user.email, contract=contract_id)
-        return redirect(next_url)
-
-    elif contract is None:
-        db.session.rollback()
-        abort(404)
-
-    abort(403)
-
 @blueprint.route('/contracts/<int:contract_id>/subscribe')
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def subscribe(contract_id):
     '''Subscribes a user to receive updates about a particular contract
     '''
-    message, contract = follow_a_contract(contract_id, current_user, 'follow')
+    message, contract = follow_a_contract(contract_id, current_user)
     next_url = request.args.get('next', '/wexplorer')
 
     if contract:
@@ -389,7 +345,7 @@ def subscribe(contract_id):
 def unsubscribe(contract_id):
     '''Unsubscribes a user from receiving updates about a particular contract
     '''
-    message, contract = unfollow_a_contract(contract_id, current_user, 'follow')
+    message, contract = unfollow_a_contract(contract_id, current_user)
     next_url = request.args.get('next', '/wexplorer')
 
     if contract:

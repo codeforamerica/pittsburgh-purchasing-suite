@@ -1,0 +1,38 @@
+{% if contract.scout_contract_status != 'active' %}
+
+  {% if contract.scout_contract_status == 'expired_replaced' %}
+  <div class="alert alert-danger">
+    <p>
+      This contract is expired, and has been replaced with the following:
+      <ul>
+        {% for child in contract.children %}
+          <li><a href="{{ url_for('wexplorer.contract', contract_id=child.id) }}">{{ child.description|title }} - {{ child.companies }}</a></li>
+        {% endfor %}
+      </ul>
+    </p>
+  </div>
+
+  {% elif contract.scout_contract_status == 'replaced' %}
+  <div class="alert alert-danger">
+    <p>
+      This contract has been replaced with the following:
+      <ul>
+        {% for child in contract.children %}
+          <li><a href="{{ url_for('wexplorer.contract', contract_id=child.id) }}">{{ child.description|title }} - {{ child.companies|join(',') }}</a></li>
+        {% endfor %}
+      </ul>
+    </p>
+  </div>
+
+  {% elif contract.scout_contract_status == 'expired' %}
+  <div class="alert alert-danger">
+    </strong> This contract is expired and is not usable anymore.</p>
+  </div>
+
+  {% elif contract.scout_contract_status == 'archived' %}
+  <div class="alert alert-danger">
+    </strong> This contract has been removed from use.</p>
+  </div>
+
+  {% endif %}
+{% endif %}
