@@ -40,15 +40,15 @@
 
             <div class="row">
               <div class="col-xs-4">
-                <h4>Planned Advertise Date</h4>
+                <h4>Planned publish date</h4>
+                <p>{{ opportunity.planned_advertise|datetimeformat('%m/%d/%y') }}</p>
+              </div>
+              <div class="col-xs-4">
+                <h4>Submission start date</h4>
                 <p>{{ opportunity.planned_open|datetimeformat('%m/%d/%y') }}</p>
               </div>
               <div class="col-xs-4">
-                <h4>Planned Open Date</h4>
-                <p>{{ opportunity.planned_deadline|datetimeformat('%m/%d/%y') }}</p>
-              </div>
-              <div class="col-xs-4">
-                <h4>Planned Deadline</h4>
+                <h4>Submission end date</h4>
                 <p>{{ opportunity.planned_deadline|datetimeformat('%m/%d/%y') }}</p>
               </div>
             </div><!-- dates -->

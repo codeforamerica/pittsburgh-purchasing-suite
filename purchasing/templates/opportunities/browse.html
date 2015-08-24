@@ -24,7 +24,7 @@
 
         <h4>All Opportunities</h4>
 
-        <h3><strong>Currently accepting proposals</strong></h3>
+        <h3><strong>Current opportunities</strong></h3>
 
         {% if _open|length > 0 %}
         <div class="table-responsive">
@@ -34,7 +34,7 @@
                 <th>Select</th>
                 <th>Opportunity</th>
                 <th>Department</th>
-                <th>Deadline</th>
+                <th>Submissions close</th>
                 {% if not current_user.is_anonymous() %}
                 <th>Edit </th>
                 {% endif %}
@@ -60,7 +60,7 @@
 
         {% else %}
 
-        <p>There aren't any opportunities accepting proposals right now. <a href="{{ url_for('opportunities.signup') }}">Subscribe to our mailing list</a> and be among the first to know when upcoming opportunities become active ones.</p>
+        <p>There aren't any opportunities accepting submissions right now. <a href="{{ url_for('opportunities.signup') }}">Subscribe to our mailing list</a> and be among the first to know when upcoming opportunities become active ones.</p>
 
         {% endif %}
 
@@ -74,7 +74,7 @@
                 <th>Select</th>
                 <th>Opportunity</th>
                 <th>Department</th>
-                <th>Estimated open</th>
+                <th>Submissions start</th>
                 {% if not current_user.is_anonymous() %}
                 <th>Edit</th>
                 {% endif %}
