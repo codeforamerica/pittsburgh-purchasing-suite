@@ -28,6 +28,8 @@ class TestFilters(TestCase):
             'The Roman Numeral String III'
         )
         self.assertEquals(better_title('costars pq llc'), 'COSTARS PQ LLC')
+        self.assertEquals(better_title('I3456'), 'i3456')
+        self.assertEquals(better_title('i3456'), 'i3456')
 
     def test_days_from_today(self):
         '''Test days from today filter
@@ -53,3 +55,4 @@ class TestFilters(TestCase):
         self.assertEquals(datetimeformat('2015-01-01T00:00:00'), '2015-01-01')
         self.assertEquals(datetimeformat('2015-01-01T00:00:00', '%B %d, %Y'), 'January 01, 2015')
         self.assertEquals(datetimeformat(datetime.date(2015, 1, 1)), '2015-01-01')
+        self.assertEquals(datetimeformat(None), '')
