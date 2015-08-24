@@ -20,11 +20,9 @@ from purchasing_test.unit.util import (
     insert_a_role, insert_a_user
 )
 
-class TestConductor(BaseTestCase):
-    render_templates = True
-
+class TestConductorSetup(BaseTestCase):
     def setUp(self):
-        super(TestConductor, self).setUp()
+        super(TestConductorSetup, self).setUp()
         # create a conductor and general staff person
         self.conductor_role_id = insert_a_role('conductor')
         self.staff_role_id = insert_a_role('staff')
@@ -56,14 +54,11 @@ class TestConductor(BaseTestCase):
         self.login_user(self.conductor)
         self.detail_view = '/conductor/contract/{}/stage/{}'
 
-    def tearDown(self):
-        super(TestConductor, self).tearDown()
-        session.clear()
-
-    def assign_contract(self, flow=None):
+    def assign_contract(self, flow=None, contract=None):
         flow = flow if flow else self.flow
+        contract = contract if contract else self.contract1
         return self.client.get('/conductor/contract/{}/assign/{}/flow/{}'.format(
-            self.contract1.id, self.conductor.id, flow.id
+            contract.id, self.conductor.id, flow.id
         ))
 
     def get_current_contract_stage_id(self, contract, old_stage=None):
@@ -87,6 +82,13 @@ class TestConductor(BaseTestCase):
         return self.detail_view.format(
             contract.id, self.get_current_contract_stage_id(contract, old_stage)
         )
+
+    def tearDown(self):
+        super(TestConductorSetup, self).tearDown()
+        session.clear()
+
+class TestConductor(TestConductorSetup):
+    render_templates = True
 
     def test_conductor_contract_list(self):
         '''Test basic conductor list view
