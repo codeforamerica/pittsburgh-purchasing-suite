@@ -36,7 +36,7 @@
 
   $('.js-multiform-add').on('click', function(e) {
     var _this = $(this);
-    $(this).multiFormHandler('add');
+    _this.multiFormHandler('add');
 
     $('.' + _this.attr('data-hide-row')).last().hide();
     $('.' + _this.attr('data-show-row')).last().show();

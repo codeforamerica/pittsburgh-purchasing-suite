@@ -109,7 +109,7 @@ def upload_document(document, _id):
 
         filepath = os.path.join(current_app.config['UPLOAD_DESTINATION'], _filename)
         document.save(filepath)
-        return filepath
+        return _filename, filepath
 
 def build_opportunity(data, publish=None, opportunity=None):
     '''Create/edit a new opportunity
@@ -155,7 +155,7 @@ def build_opportunity(data, publish=None, opportunity=None):
         if _file.filename in [i.name for i in opp_documents]:
             continue
 
-        filepath = upload_document(_file, _id)
+        filename, filepath = upload_document(_file, _id)
         if filepath:
             opportunity.opportunity_documents.append(OpportunityDocument(
                 name=document.title.data, href=filepath
