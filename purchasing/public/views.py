@@ -6,13 +6,13 @@ import urllib2
 import json
 
 from flask import (
-    Blueprint, render_template, jsonify, current_app
+    render_template, jsonify, current_app
 )
 from purchasing.extensions import login_manager
 from purchasing.users.models import User
 from purchasing.public.models import AppStatus
 
-blueprint = Blueprint('public', __name__, static_folder="../static")
+from purchasing.public import blueprint
 
 @login_manager.user_loader
 def load_user(userid):

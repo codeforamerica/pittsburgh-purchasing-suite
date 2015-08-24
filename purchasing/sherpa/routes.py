@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import Blueprint
-from purchasing.sherpa.viewblocks import register_endpoint, URL_PREFIX
+from purchasing.sherpa.viewblocks import register_endpoint
 from purchasing.sherpa.views import (
     Index, StartPSA, BuySomething, UseIt, Sourcing, Construction,
     EmergencyProfessionalServices, WallaceActProfessionalServices,
@@ -12,10 +11,7 @@ from purchasing.sherpa.views import (
     BBid
 )
 
-blueprint = Blueprint(
-    URL_PREFIX.lstrip('/'), __name__, url_prefix=URL_PREFIX,
-    static_folder='../static', template_folder='../templates'
-)
+from purchasing.sherpa import blueprint
 
 register_endpoint(blueprint, Index('/'))
 register_endpoint(blueprint, StartPSA())

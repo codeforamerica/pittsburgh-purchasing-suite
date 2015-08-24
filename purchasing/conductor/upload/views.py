@@ -3,7 +3,7 @@
 import os
 
 from flask import (
-    Blueprint, request, current_app, render_template,
+    request, current_app, render_template,
     jsonify, redirect, url_for, flash, session
 )
 from werkzeug import secure_filename
@@ -15,10 +15,7 @@ from purchasing.data.importer.costars import main as import_costars
 from purchasing.decorators import requires_roles
 from purchasing.conductor.forms import FileUploadForm, ContractUploadForm
 
-blueprint = Blueprint(
-    'conductor_uploads', __name__, url_prefix='/conductor/upload',
-    template_folder='../templates'
-)
+from purchasing.conductor.upload import blueprint
 
 @blueprint.route('/costars', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')

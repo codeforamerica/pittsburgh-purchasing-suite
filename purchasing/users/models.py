@@ -11,7 +11,6 @@ from purchasing.database import (
     SurrogatePK,
 )
 
-
 class Role(SurrogatePK, Model):
     __tablename__ = 'roles'
     name = Column(db.String(80), unique=True, nullable=False)

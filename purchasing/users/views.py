@@ -4,7 +4,7 @@ import json
 import urllib
 import urllib2
 from flask import (
-    Blueprint, render_template, request, flash,
+    render_template, request, flash,
     current_app, abort, url_for, redirect
 )
 
@@ -12,12 +12,9 @@ from flask.ext.login import current_user, login_user, logout_user, login_require
 
 from purchasing.database import db
 from purchasing.users.forms import DepartmentForm
-from purchasing.users.models import User, Role, Department, get_department_choices
+from purchasing.users.models import User, Role, Department
 
-blueprint = Blueprint(
-    'users', __name__, url_prefix='/users',
-    template_folder='../templates'
-)
+from purchasing.users import blueprint
 
 @blueprint.route("/login", methods=["GET"])
 def login():

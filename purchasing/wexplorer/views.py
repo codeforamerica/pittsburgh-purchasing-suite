@@ -3,7 +3,7 @@
 import re
 
 from flask import (
-    Blueprint, render_template, current_app,
+    render_template, current_app,
     request, abort, flash, redirect, url_for
 )
 from flask_login import current_user
@@ -25,10 +25,7 @@ from purchasing.data.contracts import (
     get_one_contract, follow_a_contract, unfollow_a_contract
 )
 
-blueprint = Blueprint(
-    'wexplorer', __name__, url_prefix='/scout',
-    template_folder='../templates'
-)
+from purchasing.wexplorer import blueprint
 
 CRAZY_CHARS = re.compile('[^A-Za-z0-9 ]')
 

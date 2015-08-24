@@ -22,8 +22,7 @@ from purchasing.opportunities.util import upload_document
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.factories import (
-    OpportunityFactory, OpportunityDocumentFactory, RequiredBidDocumentFactory,
-    CategoryFactory, VendorFactory, DepartmentFactory
+    OpportunityDocumentFactory, VendorFactory, DepartmentFactory
 )
 from purchasing_test.unit.util import (
     insert_a_role, insert_a_user, insert_a_document,
