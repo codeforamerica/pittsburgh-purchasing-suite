@@ -26,8 +26,8 @@
       </thead>
       <tbody>
         {% for contract in in_progress %}
-        <tr class="{%- if days_from_today(contract.entered) > 14 -%}contract-row-expiring-danger
-        {%- elif days_from_today(contract.entered) > 7 -%}contract-row-expiring-warning
+        <tr class="{%- if days_from_today(contract.entered) < -14 -%}contract-row-expiring-danger
+        {%- elif days_from_today(contract.entered) < -7 -%}contract-row-expiring-warning
         {%- endif -%}">
           {% include 'conductor/table/row.html' %}
         </tr>
