@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from wtforms.fields import SelectField
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
@@ -12,7 +12,7 @@ from purchasing.data.models import (
 from purchasing.opportunities.models import RequiredBidDocument
 from purchasing.conductor.forms import validate_integer
 from purchasing.extensions import login_manager
-from purchasing.users.models import User, Role
+from purchasing.users.models import User, Role, department_query, role_query
 from purchasing.opportunities.models import Opportunity
 
 @login_manager.user_loader
@@ -54,7 +54,6 @@ class ContractBaseAdmin(AuthMixin, sqla.ModelView):
             'validators': [validate_integer]
         }
     }
-
 
     def init_search(self):
         r = super(ContractBaseAdmin, self).init_search()
@@ -168,13 +167,29 @@ class StageAdmin(ConductorAuthMixin, sqla.ModelView):
 class UserAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['email', 'first_name', 'last_name', 'department']
 
+    form_extra_fields = {
+        'department': sqla.fields.QuerySelectField(
+            'Department', query_factory=department_query,
+            allow_blank=True, blank_text='-----'
+        )
+    }
+
 class UserRoleAdmin(SuperAdminMixin, sqla.ModelView):
     form_columns = ['email', 'first_name', 'last_name', 'department', 'role']
 
-    form_overrides = dict(department=SelectField)
+    form_extra_fields = {
+        'department': sqla.fields.QuerySelectField(
+            'Department', query_factory=department_query,
+            allow_blank=True, blank_text='-----'
+        ),
+        'role': sqla.fields.QuerySelectField(
+            'Role', query_factory=role_query,
+            allow_blank=True, blank_text='-----'
+        )
+    }
 
 class RoleAdmin(SuperAdminMixin, sqla.ModelView):
-    pass
+    form_columns = ['name']
 
 class DocumentAdmin(AuthMixin, sqla.ModelView):
     pass

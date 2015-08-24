@@ -73,6 +73,9 @@ class AnonymousUser(AnonymousUserMixin):
 def department_query():
     return Department.query.filter(Department.name != 'New User')
 
+def role_query():
+    return Role.query
+
 def get_department_choices(blank=False):
     departments = [(i.id, i.name) for i in department_query().all()]
     if blank:
