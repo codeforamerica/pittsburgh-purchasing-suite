@@ -13,7 +13,8 @@ from purchasing.conductor.metrics import blueprint
 @blueprint.route('/')
 @requires_roles('conductor', 'admin', 'superadmin')
 def index():
-    return render_template('conductor/metrics/index.html')
+    flows = Flow.query.all()
+    return render_template('conductor/metrics/index.html', flows=flows)
 
 @blueprint.route('/download/<int:flow_id>')
 @requires_roles('conductor', 'admin', 'superadmin')

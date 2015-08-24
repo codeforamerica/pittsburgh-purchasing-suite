@@ -1,1 +1,18 @@
 {% extends 'conductor/layout.html' %}
+
+{% block content %}
+
+{{ super() }}
+
+<div class="container">
+
+  <h3>Choose a flow to download metrics:</h3>
+  <ul>
+    {% for flow in flows %}
+    <li><a href="{{ url_for('conductor_metrics.download_csv_flow', flow_id=flow.id) }}">{{ flow.flow_name }}</a></li>
+    {% endfor %}
+  </ul>
+
+</div>
+
+{% endblock %}
