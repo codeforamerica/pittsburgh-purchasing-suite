@@ -13,12 +13,13 @@ from purchasing.compat import basestring
 
 # modified from https://gist.github.com/bsmithgall/372de43205804a2279c9
 SMALL_WORDS = re.compile(r'^(a|an|and|as|at|but|by|en|etc|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$', re.I)
-SPACE_SPLIT = re.compile(r'[\t ]')
+SPACE_SPLIT = re.compile(r'\s+')
 # taken from http://stackoverflow.com/a/267405
 CAP_WORDS = re.compile(r'^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$|(^COSTARS$)|(^PA$)|(^PQ$)|(^LLC$)', re.I)
 PUNC_REGEX = re.compile(r'[{}]'.format(re.escape(string.punctuation)))
 # taken from python-titlecase: https://github.com/ppannuto/python-titlecase/blob/master/titlecase/__init__.py#L27
 UC_INITIALS = re.compile(r'^(?:[A-Z]{1}\.{1}|[A-Z]{1}\.{1}[A-Z]{1})+$', re.I)
+ONE_LETTER_NUMBERS = re.compile(r'^[A-Za-z]{1}\d+$')
 
 def flash_errors(form, category="warning"):
     '''Flash all errors for a form.'''
@@ -70,6 +71,8 @@ def better_title(string):
             rv.append(new_string)
         elif re.match(CAP_WORDS, _cleaned_word):
             rv.append(word.upper())
+        elif re.match(ONE_LETTER_NUMBERS, _cleaned_word):
+            rv.append(word.lower())
         else:
             rv.append(word[0].upper() + word[1:].lower())
 
@@ -107,8 +110,10 @@ def format_days_from_today(field):
     else:
         return '{} days ago'.format(abs(days))
 
-
 def datetimeformat(date, fmt='%Y-%m-%d'):
+    if date is None:
+        return ''
+
     if isinstance(date, basestring):
         date = dateutil.parser.parse(date)
     elif isinstance(date, datetime.datetime):

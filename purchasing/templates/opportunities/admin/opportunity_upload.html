@@ -1,6 +1,7 @@
 {% for document in form.documents %}
 {{ document.csrf_token() }}
 <div class="form-group js-document-container">
+  <span class="pull-right"><a class="js-multiform-remove hidden" data-parent-elem-class="js-document-container"><i class="fa fa-times text-danger"></i></a></span>
   <div class="form-group">
     <p>Document Name: </p></label>
     {{ macros.with_errors(document.title, class="form-control", placeholder="A descriptive name for this file")}}
@@ -13,7 +14,7 @@
 <div class="form-group" id="js-add-another-document">
   <div class="row">
     <div class="col-sm-6">
-      <button type="button" class="form-control btn btn-primary" id="js-add-document">Add another document</button>
+      <button type="button" class="form-control btn btn-primary js-multiform-add" data-clone-class="js-document-container">Add another document</button>
     </div>
   </div>
 </div>

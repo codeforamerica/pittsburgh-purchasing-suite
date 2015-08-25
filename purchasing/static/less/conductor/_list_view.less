@@ -22,15 +22,6 @@ table.dataTable thead .sorting_desc_disabled {
   background-image: url("../img/sort_desc_disabled.png");
 }
 
-// Other styles for list page
-table.dataTable.display tbody tr.contract-row-expiring-danger {
-  color: @contract-expiring-danger;
-  font-weight: bold;
-}
-table.dataTable.display tbody tr.contract-row-expiring-danger .btn {
-  background-color: @contract-expiring-danger;
-  color: @btn-danger-color;
-}
 
 table.dataTable.stripe tbody tr.odd,
 table.dataTable.display tbody tr.odd,
@@ -45,7 +36,26 @@ table.dataTable.display tbody tr.contract-row-expiring-warning {
 table.dataTable.display tbody tr.contract-row-expiring-warning .btn {
   background-color: @contract-expiring-warning;
   color: @btn-warning-color;
+  border-color: darken(@contract-expiring-warning, 5%);
 }
+
+// Other styles for list page
+table.dataTable.display tbody tr.contract-row-expiring-danger {
+  color: @contract-expiring-danger;
+  font-weight: bold;
+}
+table.dataTable.display tbody tr.contract-row-expiring-danger .btn {
+  background-color: @contract-expiring-danger;
+  color: @btn-danger-color;
+  border-color: darken(@contract-expiring-danger, 5%);
+}
+
+table.dataTable.display tbody tr.contract-row-expiring-danger .btn:hover {
+  background-color: darken(@contract-expiring-danger, 5%);
+  color: @btn-danger-color;
+  border-color: darken(@contract-expiring-danger, 7%);
+}
+
 
 .title-update-span {
   display: inline-block;
