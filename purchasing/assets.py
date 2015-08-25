@@ -77,6 +77,10 @@ conductorjs = Bundle(
 
 adminjs = Bundle(
     'libs/jquery/dist/jquery.js',
+    'libs/jquery-ui/ui/core.js',
+    'libs/jquery-ui/ui/widget.js',
+    'libs/jquery-ui/ui/mouse.js',
+    'libs/jquery-ui/ui/sortable.js',
     'libs/bootstrap/dist/js/bootstrap.js',
     'libs/bootstrap-datepicker/js/bootstrap-datepicker.js',
     'libs/select2/dist/js/select2.full.js',

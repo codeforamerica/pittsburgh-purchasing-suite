@@ -2,3 +2,18 @@
 
 {% block head %}
 {% endblock %}
+
+{% block tail_js %}
+{% assets "adminjs" %}
+  <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+{% endassets %}
+{% endblock %}
+
+{% block tail %}
+  {{ lib.form_js() }}
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('.select2-container').find("ul.select2-selection__rendered").sortable();
+    });
+  </script>
+{% endblock %}

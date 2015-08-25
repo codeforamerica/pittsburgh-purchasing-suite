@@ -12,3 +12,7 @@
   <link href="{{ admin_static.url(filename='vendor/x-editable/css/bootstrap3-editable.css', v='1.5.1') }}" rel="stylesheet">
   {% endif %}
 {% endmacro %}
+
+{% macro form_js() %}
+  {{ super() }}
+{% endmacro %}
