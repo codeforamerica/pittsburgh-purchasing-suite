@@ -206,7 +206,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
 
         self.assertEquals(Opportunity.query.count(), 5)
-        self.assert_flashes('Opportunity Successfully Created!', 'alert-success')
+        self.assert_flashes('Opportunity successfully created!', 'alert-success')
 
         self.assertFalse(
             Opportunity.query.filter(Opportunity.description == 'Just right.').first().is_public
