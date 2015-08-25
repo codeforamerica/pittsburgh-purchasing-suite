@@ -1,0 +1,19 @@
+{% extends "opportunities/emails/base.html" %}
+
+{% block content %}
+<h2>A new Beacon post needs review</h2>
+
+<p> {{ current_user.user_id.email }} has just submitted a new post to Beacon, {{ opportunity.title }}. It needs your approval before it can be published on {{ opportunity.planned_advertise|datetimeformat('%m/%d/%y') }}. <a href="{{ url_for('opportunities_admin.pending', opportunity_id=opportunity.id, _external=True) }}">Review it</a> on the Beacon pending page.
+</p>
+
+</p>
+<p>The departmental contact for the opportunity is: {{ opportunity.contact.email }}</p>
+
+<p>Thanks,<br>
+The Beacon team
+</p>
+{% endblock %}
+
+{% block footer %}
+<p><a href="{{ url_for('opportunities_admin.new', _external=True) }}">Post another opportunity</a> | <a href="{{ url_for('opportunities.splash', _external=True) }}">Beacon home</a>
+{% endblock %}
