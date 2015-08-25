@@ -42,7 +42,7 @@ def new():
         # strip the is_public field from the form data, it's not part of the form
         form_data.pop('is_public')
         opportunity = build_opportunity(form_data, publish=request.form.get('save_type'))
-        flash('Opportunity Successfully Created!', 'alert-success')
+        flash('Opportunity successfully created!', 'alert-success')
         return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
     return render_template(
         'opportunities/admin/opportunity.html', form=form, opportunity=None,
@@ -68,7 +68,7 @@ def edit(opportunity_id):
             # strip the is_public field from the form data, it's not part of the form
             form_data.pop('is_public')
             build_opportunity(form_data, publish=request.form.get('save_type'), opportunity=opportunity)
-            flash('Opportunity Successfully Created!', 'alert-success')
+            flash('Opportunity successfully updated!', 'alert-success')
             return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
 
         return render_template(

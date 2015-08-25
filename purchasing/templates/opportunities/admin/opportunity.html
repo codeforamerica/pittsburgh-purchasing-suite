@@ -10,8 +10,10 @@
         {{ form.csrf_token() }}
         {% include "includes/flashes.html" %}
 
-        <h3>Advertise an Opportunity</h3>
-        <p>Fill out this form, and OMB will post your request to the City of Pittsburgh's new Opportunities website.</p>
+         <div class="spacer-20"></div>
+
+        <h4>Post an Opportunity</h4>
+        <h3>Fill out this form, and OMB will publish your opportunity to the City of Pittsburgh's new Opportunities website.</h3>
         {% if opportunity.id %}
         <p><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">View this opportunity on Beacon.</a></p>
         {% endif %}
@@ -43,7 +45,7 @@
         <div class="row">
           <div class="col-sm-4">
             <div class="form-group">
-              <label for="planned_advertise" class="control-label">Advertise Date <span class="form-required">*</span></label>
+              <label for="planned_advertise" class="control-label">Publish Date <span class="form-required">*</span></label>
               <p class="help-block">
                 When do you want this opportunity to be made public? If you are uncertain, use an approximate date.
               </p>
@@ -53,7 +55,7 @@
 
           <div class="col-sm-4">
             <div class="form-group">
-              <label for="planned_open" class="control-label">Open Date <span class="form-required">*</span></label>
+              <label for="planned_open" class="control-label">Submission Start Date <span class="form-required">*</span></label>
               <p class="help-block">
                 When do you want to start receiving responses to this opportunity? If you are uncertain, use an approximate date.
               </p>
@@ -63,7 +65,7 @@
 
           <div class="col-sm-4">
             <div class="form-group">
-              <label for="planned_deadline" class="control-label">Planned Deadline <span class="form-required">*</span></label>
+              <label for="planned_deadline" class="control-label">Submission End Date <span class="form-required">*</span></label>
               <p class="help-block">
                 When is the deadline for vendors to respond to this opportunity? If you are uncertain, use an approximate date.
               </p>
@@ -83,11 +85,8 @@
         <div class="form-group">
           <label for="document" class="control-label">Upload your solicitation documents.</label>
           <p class="help-block">
-            If you don't have them on hand right now, don't worry. We'll email you two weeks before the publication date to remind you to upload it.
+            We accept .pdf, Word (.doc/.docx), and Excel (.xls/.xlsx) documents only.
           </p>
-          <p class="help-block"><strong>
-            .pdf, Word (.doc/.docx), and Excel (.xls/.xlsx) documents only!
-          </strong></p>
 
           {% if opportunity and opportunity.opportunity_documents.all()|length > 0 %}
             <p><strong>Uploaded files:</strong></p>
@@ -148,7 +147,7 @@
             </button>
             <ul class="dropdown-menu submit-dropdown">
               <li><a href="#" onclick="$('#save_type').val('save'); $('#js-opportunity-form').submit()">Save as draft</a></li>
-              <li><a href="#" onclick="$('#save_type').val('publish'); $('#js-opportunity-form').submit()">Save and publish on Advertise Date</a></li>
+              <li><a href="#" onclick="$('#save_type').val('publish'); $('#js-opportunity-form').submit()">Save and publish on Publish Date</a></li>
             </ul>
           </div>
         </div>

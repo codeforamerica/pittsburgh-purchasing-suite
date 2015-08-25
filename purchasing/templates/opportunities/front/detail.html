@@ -16,19 +16,18 @@
         {% if opportunity.can_edit(current_user) %}
         <p><a href="{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}">Edit this opportunity</a></p>
         {% endif %}
-        {% if opportunity.categories|length > 0 %}
-
-        <div class="status status-complete">
+         <div class="status status-complete">
           {% if opportunity.is_upcoming %}
-          <p class="status-date"><strong>Opening soon!</strong> Accepting proposals starting {{ opportunity.estimate_open() }}</p>
+          <p class="status-date"><strong>Accepting submissions soon!</strong> Submit your responses starting on {{ opportunity.estimate_open() }}</p>
           {% elif opportunity.is_open %}
-          <h3>Open: accepting proposals</h3>
-          <p>Responses due by {{ opportunity.estimate_deadline() }}</p>
+          <h3>Accepting submissions</h3>
+          <p>Responses are due by {{ opportunity.estimate_deadline() }}</p>
           {% elif opportunity.is_closed %}
           <h3>Closed</h3>
-          <p>We are no longer accepting responses.</p>
+          <p>We are no longer accepting submissions.</p>
           {% endif %}
         </div>
+        {% if opportunity.categories|length > 0 %}
 
         <div class="row">
           <div class="col-md-10">
@@ -61,7 +60,7 @@
 
         {% if not opportunity.is_advertised %}
            <div class="alert alert-warning beacon-detail" role="alert">
-              This opportunity will not be viewable by the general public until advertised on {{ opportunity.planned_advertise.strftime('%B %d, %Y') }}
+              This opportunity will not be viewable by the general public until it's published on {{ opportunity.planned_advertise.strftime('%B %d, %Y') }}
           </div>
         {% endif %}
 
@@ -70,7 +69,7 @@
             <h3><strong>What is it?</strong></h3>
             <p>{{ opportunity.description }}</p>
             {% if opportunity.is_upcoming %}
-            <p><strong>We estimate that this opportunity will start accepting responses on {{ opportunity.estimate_open() }}.</strong></p>
+            <p><strong>We estimate that this opportunity will start accepting submissions on {{ opportunity.estimate_open() }}.</strong></p>
             {% endif %}
           </div>
         </div>

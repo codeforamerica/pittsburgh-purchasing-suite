@@ -146,12 +146,12 @@ class Opportunity(Model):
             {
                 'event': 'bid_open', 'classes': 'event event-open',
                 'date': self.estimate_open(),
-                'description': 'Opportunity opens for submissions.'
+                'description': 'We start accepting submissions.'
             },
             {
                 'event': 'deadline', 'classes': 'event event-deadline',
                 'date': self.estimate_deadline(),
-                'description': 'Deadline to submit proposals.'
+                'description': 'Deadline for submitting proposals.'
             }
         ]
 

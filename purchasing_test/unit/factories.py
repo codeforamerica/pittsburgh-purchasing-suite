@@ -98,7 +98,7 @@ class CategoryFactory(BaseFactory):
         model = Category
 
 class OpportunityFactory(BaseFactory):
-    id = factory.Sequence(lambda n: n)
+    id = factory.Sequence(lambda n: n + 100)
     department = factory.SubFactory(DepartmentFactory)
 
     class Meta:
