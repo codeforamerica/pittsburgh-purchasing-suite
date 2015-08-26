@@ -150,9 +150,9 @@ class FlowAdmin(ConductorAuthMixin, sqla.ModelView):
         )
     }
 
-    def create_model(self, form, model):
+    def create_model(self, form):
         form.stage_order.data = [i.id for i in form.stage_order.data]
-        super(FlowAdmin, self).create_model(form, model)
+        super(FlowAdmin, self).create_model(form)
 
     def update_model(self, form, model):
         form.stage_order.data = [i.id for i in form.stage_order.data]
