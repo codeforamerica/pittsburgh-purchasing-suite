@@ -1,4 +1,5 @@
 {% extends 'admin/model/edit.html' %}
+{% import 'admin/purchasing_lib.html' as _lib with context %}
 
 {% block head %}
 {% endblock %}
@@ -10,10 +11,6 @@
 {% endblock %}
 
 {% block tail %}
-  {{ lib.form_js() }}
-  <script type="text/javascript">
-    $(document).ready(function() {
-      $('.select2-container').find("ul.select2-selection__rendered").sortable();
-    });
-  </script>
+  {{ super() }}
+  {{ _lib.form_js() }}
 {% endblock %}
