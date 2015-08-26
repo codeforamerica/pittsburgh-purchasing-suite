@@ -162,6 +162,7 @@ def search():
         ('line_item', 'Line Item', SearchView.tsv_line_item_description),
         ('contract_description', 'Contract Description', SearchView.tsv_contract_description),
         ('contract_detail', 'Contract Detail', SearchView.tsv_detail_value),
+        ('financial_id', 'Controller Number', SearchView.financial_id)
     ]
 
     filter_where = build_filter(
