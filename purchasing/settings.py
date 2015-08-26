@@ -25,6 +25,9 @@ class Config(object):
     UPLOAD_DESTINATION = 'pittsburgh-purchasing-opportunities'
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # max file size
     UPLOAD_FOLDER = os.path.join(HERE, os_env.get('UPLOAD_FOLDER', 'uploads/'))
+    S3_BUCKET_NAME = os_env.get('S3_BUCKET_NAME')
+    AWS_ACCESS_KEY_ID = os_env.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os_env.get('AWS_SECRET_ACCESS_KEY')
 
 class ProdConfig(Config):
     """Production configuration."""
@@ -33,9 +36,6 @@ class ProdConfig(Config):
     SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing')  # TODO: Change me
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
     FLASK_ASSETS_USE_S3 = True
-    S3_BUCKET_NAME = os_env.get('S3_BUCKET_NAME')
-    AWS_ACCESS_KEY_ID = os_env.get('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os_env.get('AWS_SECRET_ACCESS_KEY')
     S3_USE_HTTPS = True
     UGLIFYJS_EXTRA_ARGS = ['-m']
     MAIL_SERVER = 'smtp.sendgrid.net'

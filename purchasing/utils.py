@@ -66,13 +66,16 @@ def connect_to_s3(access_key, access_secret, bucket_name):
     bucket = conn.get_bucket(bucket_name)
     return conn, bucket
 
-def upload_file(filename, bucket, root=None, prefix='/static'):
+def upload_file(filename, bucket, input_file=None, root=None, prefix='/static', from_file=False):
     filepath = os.path.join(root, filename.lstrip('/')) if root else filename
     _file = bucket.new_key(
         '{}/{}'.format(prefix, filename)
     )
     aggressive_headers = _get_aggressive_cache_headers(_file)
-    _file.set_contents_from_filename(filepath, headers=aggressive_headers)
+    if from_file:
+        _file.set_contents_from_file(input_file, headers=aggressive_headers, replace=True)
+    else:
+        _file.set_contents_from_filename(filepath, headers=aggressive_headers)
     _file.set_acl('public-read')
     return _file.generate_url(expires_in=0, query_auth=False)
 

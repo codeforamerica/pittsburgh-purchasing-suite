@@ -80,7 +80,7 @@ def upload_costars_contract(_file):
             'costars'
         )
 
-        file_href = upload_file(filename, bucket, prefix='/')
+        file_href = upload_file(filename, bucket, input_file=_file, prefix='/', from_file=True)
         return filename, file_href
 
     else:
