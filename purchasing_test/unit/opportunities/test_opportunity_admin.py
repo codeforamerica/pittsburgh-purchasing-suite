@@ -227,7 +227,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
 
         self.assert200(self.client.get('/beacon/opportunities'))
 
-        self.assertEquals(len(self.get_context_variable('_submission_start')), 1)
+        self.assertEquals(len(self.get_context_variable('_open')), 1)
         self.assertEquals(len(self.get_context_variable('upcoming')), 1)
 
         self.client.post('/beacon/admin/opportunities/{}'.format(self.opportunity2.id), data={
@@ -236,7 +236,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         })
 
         self.assert200(self.client.get('/beacon/opportunities'))
-        self.assertEquals(len(self.get_context_variable('_submission_start')), 2)
+        self.assertEquals(len(self.get_context_variable('_open')), 2)
         self.assertEquals(len(self.get_context_variable('upcoming')), 0)
 
     def test_delete_document(self):

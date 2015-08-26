@@ -94,7 +94,7 @@ class Opportunity(Model):
         return field
 
     @property
-    def is_advertised(self):
+    def is_published(self):
         return self.coerce_to_date(self.planned_advertise) <= datetime.date.today() and self.is_public
 
     @property
@@ -114,7 +114,7 @@ class Opportunity(Model):
     def can_view(self, user):
         '''Check if a user can see opportunity detail
         '''
-        return False if user.is_anonymous() and not self.is_advertised else True
+        return False if user.is_anonymous() and not self.is_published else True
 
     def can_edit(self, user):
         '''Check if a user can edit the contract
