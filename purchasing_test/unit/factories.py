@@ -9,7 +9,7 @@ from purchasing.database import db
 from purchasing.users.models import User, Role, Department
 from purchasing.data.models import (
     Flow, Stage, StageProperty, ContractBase, ContractProperty,
-    Company
+    Company, ContractType
 )
 from purchasing.opportunities.models import (
     Opportunity, RequiredBidDocument, OpportunityDocument, Category,
@@ -78,15 +78,22 @@ class CompanyFactory(BaseFactory):
     class Meta:
         model = Company
 
+class ContractTypeFactory(BaseFactory):
+    id = factory.Sequence(lambda n: n)
+
+    class Meta:
+        model = ContractType
+
 class ContractBaseFactory(BaseFactory):
     id = factory.Sequence(lambda n: 100 + n)
+    contract_type = factory.SubFactory(ContractTypeFactory)
 
     class Meta:
         model = ContractBase
 
 class ContractPropertyFactory(BaseFactory):
     id = factory.Sequence(lambda n: n + 10)
-    contract = factory.SubFactory(ContractBase)
+    contract = factory.SubFactory(ContractBaseFactory)
 
     class Meta:
         model = ContractProperty

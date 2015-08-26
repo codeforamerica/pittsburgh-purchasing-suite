@@ -35,8 +35,7 @@ class ContractBaseAdmin(AuthMixin, sqla.ModelView):
     create_template = 'admin/purchasing_create.html'
 
     column_searchable_list = (
-        ContractBase.description, ContractBase.contract_type,
-        ContractProperty.value, Company.company_name
+        ContractBase.description, ContractProperty.value, Company.company_name
     )
 
     column_list = [
@@ -162,7 +161,7 @@ class FlowAdmin(ConductorAuthMixin, sqla.ModelView):
 class StageAdmin(ConductorAuthMixin, sqla.ModelView):
     inline_models = (StageProperty, )
 
-    form_columns = ['name', 'post_opportunities']
+    form_columns = ['name', 'post_opportunities', 'default_message']
 
 class UserAdmin(AuthMixin, sqla.ModelView):
     form_columns = ['email', 'first_name', 'last_name', 'department']

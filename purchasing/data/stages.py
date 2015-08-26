@@ -276,7 +276,7 @@ def get_contract_stages(contract):
     '''
     return db.session.query(
         ContractStage.contract_id, ContractStage.stage_id, ContractStage.id,
-        ContractStage.entered, ContractStage.exited, Stage.name,
+        ContractStage.entered, ContractStage.exited, Stage.name, Stage.default_message,
         Stage.post_opportunities, ContractBase.description
     ).join(Stage, Stage.id == ContractStage.stage_id).join(
         ContractBase, ContractBase.id == ContractStage.contract_id

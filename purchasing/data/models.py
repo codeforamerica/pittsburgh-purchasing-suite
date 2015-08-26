@@ -88,6 +88,15 @@ class CompanyContact(Model):
             first=self.first_name, last=self.last_name
         )
 
+class ContractType(Model):
+    __tablename__ = 'contract_type'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    name = Column(db.String(255))
+
+    def __unicode__(self):
+        return self.name
+
 class ContractBase(Model):
     __tablename__ = 'contract'
 
@@ -95,7 +104,6 @@ class ContractBase(Model):
     financial_id = Column(db.String(255))
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
-    contract_type = Column(db.String(255))
     expiration_date = Column(db.Date)
     description = Column(db.Text, index=True)
     contract_href = Column(db.Text)
@@ -108,6 +116,11 @@ class ContractBase(Model):
         secondary=contract_user_association_table,
         backref='contracts_following',
     )
+
+    contract_type_id = ReferenceCol('contract_type', ondelete='SET NULL', nullable=True)
+    contract_type = db.relationship('ContractType', backref=backref(
+        'contracts', lazy='dynamic'
+    ))
 
     assigned_to = ReferenceCol('users', ondelete='SET NULL', nullable=True)
     assigned = db.relationship('User', backref=backref(
@@ -244,6 +257,8 @@ class Stage(Model):
     id = Column(db.Integer, primary_key=True, index=True)
     name = Column(db.String(255))
     post_opportunities = Column(db.Boolean, default=False, nullable=False)
+
+    default_message = Column(db.Text)
 
     def __unicode__(self):
         return self.name

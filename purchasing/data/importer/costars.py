@@ -10,11 +10,8 @@ from purchasing.data.importer import (
 )
 from purchasing.database import db
 from purchasing.data.models import (
-    CompanyContact,
-    Company,
-    ContractBase,
-    ContractProperty,
-    LineItem
+    CompanyContact, Company, ContractBase, ContractProperty,
+    LineItem, ContractType
 )
 
 CONSTANT_FIELDS = [
@@ -98,10 +95,15 @@ def main(filetarget, filename, access_key, access_secret, bucket):
             except ValueError:
                 expiration = None
 
+            costars_type, _ = get_or_create(
+                db.session, ContractType,
+                name='COSTARS'
+            )
+
             # create or select the contract object
             contract, new_contract = get_or_create(
                 db.session, ContractBase,
-                contract_type='COSTARS',
+                contract_type=costars_type,
                 expiration_date=expiration,
                 financial_id=convert_empty_to_none(row.get('CONTROLLER')),
                 description='{costars} - {company}'.format(

@@ -71,7 +71,6 @@ class ContractsTest(BaseTestCase):
     def test_create_new_contract(self):
         # test that no additional properties works
         contract_data = dict(
-            contract_type='test',
             description='test'
         )
 
@@ -84,7 +83,6 @@ class ContractsTest(BaseTestCase):
 
         # test that additional properties also works
         contract_data_props = dict(
-            contract_type='test',
             description='test2',
             properties=[
                 dict(foo='bar'),
@@ -102,7 +100,6 @@ class ContractsTest(BaseTestCase):
 
         # this should fail with non-existing stage
         contract_data_fails = dict(
-            contract_type='test',
             description='test2',
             current_stage_id=1
         )
@@ -176,7 +173,6 @@ class ContractObjectTest(TestCase):
         '''
         # test that no additional properties works
         contract_data = dict(
-            contract_type='test',
             description='test'
         )
 
@@ -185,7 +181,6 @@ class ContractObjectTest(TestCase):
 
         # test that additional properties also works
         contract_data_props = dict(
-            contract_type='test',
             description='test2'
         )
         contract_with_props = ContractBaseFactory.build(**contract_data_props)
@@ -200,7 +195,6 @@ class ContractObjectTest(TestCase):
 
         # this should fail with non-existing stage
         contract_data_fails = dict(
-            contract_type='test',
             description='test2',
             current_stage_id=1
         )
