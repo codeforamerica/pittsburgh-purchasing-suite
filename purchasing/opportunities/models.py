@@ -69,9 +69,9 @@ class Opportunity(Model):
     )
     # Date opportunity should be made public on beacon
     planned_advertise = Column(db.DateTime, nullable=False)
-    # Date opportunity submission_starts for responses
+    # Date opportunity accepts responses
     planned_open = Column(db.DateTime, nullable=False)
-    # Date opportunity closes for receiving responses
+    # Date opportunity stops accepting responses
     planned_deadline = Column(db.DateTime, nullable=False)
     # Created from contract
     created_from_id = ReferenceCol('contract', ondelete='cascade', nullable=True)
