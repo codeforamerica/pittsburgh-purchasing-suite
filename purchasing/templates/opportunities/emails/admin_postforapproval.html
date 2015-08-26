@@ -3,11 +3,11 @@
 {% block content %}
 <h2>A new Beacon post needs review</h2>
 
-<p> {{ current_user.user_id.email }} has just submitted a new post to Beacon, {{ opportunity.title }}. It needs your approval before it can be published on {{ opportunity.planned_advertise|datetimeformat('%m/%d/%y') }}. <a href="{{ url_for('opportunities_admin.pending', opportunity_id=opportunity.id, _external=True) }}">Review it</a> on the Beacon pending page.
+<p> {{ current_user.email }} has just submitted a new post to Beacon, <b>{{ opportunity.title }}</b>. It needs your approval before it can be published on {{ opportunity.planned_advertise|datetimeformat('%m/%d/%y') }}. <a href="{{ url_for('opportunities_admin.pending', opportunity_id=opportunity.id, _external=True) }}">Review it</a> on the Beacon pending page.
 </p>
 
 </p>
-<p>The departmental contact for the opportunity is: {{ opportunity.contact.email }}</p>
+<p>Preview what potential vendors will see <a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}">here</a>. The departmental contact for the opportunity is: {{ opportunity.contact.email }}</p>
 
 <p>Thanks,<br>
 The Beacon team

@@ -14,7 +14,9 @@ from purchasing.decorators import requires_roles
 from purchasing.opportunities.models import (
     Opportunity, Category, Vendor, OpportunityDocument
 )
-from purchasing.users.models import User
+from purchasing.users.models import (
+    User, Role
+)
 from purchasing.opportunities.util import (
     fix_form_categories, generate_opportunity_form, build_opportunity,
     build_vendor_row
@@ -42,8 +44,28 @@ def new():
         # strip the is_public field from the form data, it's not part of the form
         form_data.pop('is_public')
         opportunity = build_opportunity(form_data, publish=request.form.get('save_type'))
-        flash('Opportunity successfully created!', 'alert-success')
+        flash('Opportunity post submitted to OMB!', 'alert-success')
+
+        Notification(
+                to_email=[current_user.email],
+                subject='Your post has been sent to OMB for approval',
+                html_template='opportunities/emails/staff_postsubmitted.html',
+                txt_template='opportunities/emails/staff_postsubmitted.txt',
+                opportunity=opportunity
+            ).send(multi=True)
+
+        Notification(
+                to_email=db.session.query(User.email).join(Role).filter(
+                    Role.name.in_(['admin', 'superadmin'])
+                ).all(),
+                subject='A new Beacon post needs review',
+                html_template='opportunities/emails/admin_postforapproval.html',
+                txt_template='opportunities/emails/admin_postforapproval.txt',
+                opportunity=opportunity
+            ).send(multi=True)
+
         return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
+
     return render_template(
         'opportunities/admin/opportunity.html', form=form, opportunity=None,
         subcategories=subcategories,
@@ -103,6 +125,14 @@ def publish(opportunity_id):
         opportunity.is_public = True
         db.session.commit()
         flash('Opportunity successfully published!', 'alert-success')
+
+        Notification(
+            to_email=[opportunity.created_by.email],
+            subject='OMB approved your opportunity post!',
+            html_template='opportunities/emails/staff_postapproved.html',
+            txt_template='opportunities/emails/staff_postapproved.txt',
+            opportunity=opportunity
+        ).send(multi=True)
 
         if opportunity.is_published:
             opp_categories = [i.id for i in opportunity.categories]
