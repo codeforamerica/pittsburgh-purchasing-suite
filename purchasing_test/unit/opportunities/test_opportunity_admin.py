@@ -188,11 +188,11 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         bad_data['description'] = 'Bar'
         bad_data['planned_deadline'] = datetime.date.today() - datetime.timedelta(1)
 
-        # assert you can't create a contract with an expired submission_end
+        # assert you can't create a contract with an expired deadline
         new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
         self.assertEquals(Opportunity.query.count(), 4)
         self.assert200(new_contract)
-        self.assertTrue('The submission_end has to be after today!' in new_contract.data)
+        self.assertTrue('The deadline has to be after today!' in new_contract.data)
 
         bad_data['description'] = 'TOO LONG! ' * 500
         new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)

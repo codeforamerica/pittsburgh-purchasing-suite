@@ -149,9 +149,9 @@ class Opportunity(Model):
                 'description': 'Opportunity submission_starts for submissions.'
             },
             {
-                'event': 'submission_end', 'classes': 'event event-submission_end',
+                'event': 'bid_submission_end', 'classes': 'event event-submission_end',
                 'date': self.estimate_submission_end(),
-                'description': 'submission_end to submit proposals.'
+                'description': 'Deadline to submit proposals.'
             }
         ]
 
