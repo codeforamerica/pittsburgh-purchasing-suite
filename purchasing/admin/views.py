@@ -131,10 +131,14 @@ class QuerySelect2TagsWidget(Select2Widget):
         super(QuerySelect2TagsWidget, self).__init__(*args, **kwargs)
 
     def __call__(self, field, **kwargs):
-        stages = Stage.query.filter(Stage.id.in_(field.data)).all()
-        field.data = [y for (x,y) in sorted(zip(field.data, stages))]
+        current_stages = field.data
+        stages = Stage.query.filter(Stage.id.in_(current_stages)).all()
+        field.data = [y for (x, y) in sorted(zip(current_stages, stages))]
+
+        kwargs.setdefault('data-stage-order', u','.join([unicode(i) for i in current_stages]))
         kwargs.setdefault('data-role', u'select2-tags')
-        kwargs.setdefault('multiple', 'multiple')
+        kwargs.setdefault('multiple', u'multiple')
+
         return super(QuerySelect2TagsWidget, self).__call__(field, **kwargs)
 
 class FlowAdmin(ConductorAuthMixin, sqla.ModelView):
