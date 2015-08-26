@@ -5,16 +5,13 @@ from __future__ import unicode_literals
 import datetime
 import re
 from purchasing.database import db
-from sqlalchemy.exc import IntegrityError, InvalidRequestError
+from sqlalchemy.exc import IntegrityError
 from purchasing.data.importer import (
     extract, get_or_create, convert_empty_to_none,
     determine_company_contact
 )
 from purchasing.data.models import (
-    CompanyContact,
-    Company,
-    ContractBase,
-    ContractProperty
+    CompanyContact, Company, ContractBase, ContractProperty, ContractType
 )
 
 BASE_CONTRACT_URL = 'http://apps.county.allegheny.pa.us/BidsSearch/pdf/{number}.pdf'
@@ -77,10 +74,15 @@ def main(file_target='./files/2015-05-05-contractlist.csv'):
             except ValueError:
                 _financial_id = None
 
+            contract_type, _ = get_or_create(
+                db.session, ContractType,
+                name=convert_empty_to_none(row.get('TYPE OF CONTRACT'))
+            )
+
             # create or select the contract object
             contract, new_contract = get_or_create(
                 db.session, ContractBase,
-                contract_type=convert_empty_to_none(row.get('TYPE OF CONTRACT')),
+                contract_type=contract_type,
                 expiration_date=expiration,
                 financial_id=_financial_id,
                 description=convert_empty_to_none(row.get('SERVICE'))

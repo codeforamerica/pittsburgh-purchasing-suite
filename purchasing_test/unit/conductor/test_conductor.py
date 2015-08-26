@@ -14,6 +14,8 @@ from purchasing.data.models import (
 from purchasing.opportunities.models import Opportunity
 from purchasing.extensions import mail
 
+from purchasing_test.unit.factories import ContractTypeFactory
+
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
     insert_a_contract, insert_a_stage, insert_a_flow,
@@ -24,13 +26,18 @@ class TestConductorSetup(BaseTestCase):
     def setUp(self):
         super(TestConductorSetup, self).setUp()
         # create a conductor and general staff person
+        self.county_type = ContractTypeFactory.create(**{'name': 'County'})
+
         self.conductor_role_id = insert_a_role('conductor')
         self.staff_role_id = insert_a_role('staff')
         self.conductor = insert_a_user(email='foo@foo.com', role=self.conductor_role_id)
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role_id)
 
         # create three stages, and set up a flow between them
-        self.stage1 = insert_a_stage(name='stage1', send_notifs=True, post_opportunities=True)
+        self.stage1 = insert_a_stage(
+            name='stage1', send_notifs=True, post_opportunities=True,
+            default_message='i am a default message'
+        )
         self.stage2 = insert_a_stage(name='stage2', send_notifs=True, post_opportunities=False)
         self.stage3 = insert_a_stage(name='stage3', send_notifs=False, post_opportunities=False)
 
@@ -40,12 +47,12 @@ class TestConductorSetup(BaseTestCase):
 
         # create two contracts
         self.contract1 = insert_a_contract(
-            contract_type='County', description='scuba supplies', financial_id=123,
+            contract_type=self.county_type, description='scuba supplies', financial_id=123,
             expiration_date=datetime.date.today(), properties=[{'key': 'Spec Number', 'value': '123'}],
             is_visible=True
         )
         self.contract2 = insert_a_contract(
-            contract_type='County', description='scuba repair', financial_id=456,
+            contract_type=self.county_type, description='scuba repair', financial_id=456,
             expiration_date=datetime.date.today() + datetime.timedelta(120),
             properties=[{'key': 'Spec Number', 'value': '456'}],
             is_visible=True
@@ -403,6 +410,17 @@ class TestConductor(TestConductorSetup):
         )
         self.assertEquals(ContractStageActionItem.query.count(), 2)
         self.assert_template_used('public/home.html')
+
+    def test_conductor_stage_default_message(self):
+        '''Test default messages appear in proper place in the form
+        '''
+        self.assign_contract()
+
+        self.assertEquals(ContractStageActionItem.query.count(), 1)
+        detail_view_url = self.build_detail_view(self.contract1)
+        request = self.client.get(detail_view_url)
+
+        self.assertTrue('i am a default message' in request.data)
 
     def test_conductor_send_update(self):
         '''Test sending an email/into the activity stream

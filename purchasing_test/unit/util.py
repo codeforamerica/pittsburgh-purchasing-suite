@@ -16,7 +16,6 @@ from purchasing_test.unit.factories import (
 
 def insert_a_contract(properties=None, **kwargs):
     contract_data = dict(
-        contract_type='test',
         description='test2',
     ) if not kwargs else dict(kwargs)
 
@@ -41,10 +40,11 @@ def get_a_property():
 
     return contract.properties[0]
 
-def insert_a_stage(name='foo', send_notifs=False, post_opportunities=False):
+def insert_a_stage(name='foo', send_notifs=False, post_opportunities=False, default_message=''):
     stage = StageFactory.create(**{
         'name': name,
-        'post_opportunities': post_opportunities
+        'post_opportunities': post_opportunities,
+        'default_message': default_message
     })
 
     properties = [

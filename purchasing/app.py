@@ -63,7 +63,7 @@ def create_app(config_object=ProdConfig):
 
             stdout = logging.StreamHandler(sys.stdout)
             stdout.setFormatter(logging.Formatter(
-                '%(asctime)s | %(name)s | %(levelname)s in %(module)s [%(pathname)s:%(lineno)d]: %(message)s'
+                '%(asctime)s | %(name)s | %(current_user)s | %(levelname)s in %(module)s [%(pathname)s:%(lineno)d]: %(message)s'
             ))
             app.logger.addHandler(stdout)
             app.logger.setLevel(logging.DEBUG)

@@ -10,7 +10,7 @@ from werkzeug import secure_filename
 
 from purchasing.utils import connect_to_s3, upload_file
 from purchasing.database import db
-from purchasing.data.models import ContractBase
+from purchasing.data.models import ContractBase, ContractType
 from purchasing.data.importer.costars import main as import_costars
 from purchasing.decorators import requires_roles
 from purchasing.conductor.forms import FileUploadForm, ContractUploadForm
@@ -96,8 +96,8 @@ def upload_costars_contract(_file):
 @blueprint.route('/costars/contracts', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def costars_contract_upload():
-    contracts = ContractBase.query.filter(
-        db.func.lower(ContractBase.contract_type) == 'costars',
+    contracts = ContractBase.query.join(ContractType).filter(
+        db.func.lower(ContractType.name) == 'costars',
         db.or_(
             ContractBase.contract_href == None,
             ContractBase.contract_href == ''

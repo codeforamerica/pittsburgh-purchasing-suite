@@ -45,7 +45,7 @@
       <div class="row spacer-10">
         {% if contract.contract_type %}
         <div class="col-sm-4 details-callout">
-          <span class="text-muted">Contract Type:</span> {{ contract.contract_type }}
+          <span class="text-muted">Contract Type:</span> {{ contract.contract_type.name }}
         </div>
         {% endif %}
         {% if contract.expiration_date %}

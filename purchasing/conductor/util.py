@@ -9,7 +9,7 @@ from flask_login import current_user
 from purchasing.database import db
 from purchasing.notifications import Notification
 
-from purchasing.data.models import ContractStageActionItem, Flow
+from purchasing.data.models import ContractStageActionItem
 from purchasing.data.contracts import clone_a_contract
 from purchasing.opportunities.models import Opportunity
 from purchasing.users.models import User, Role, Department
@@ -30,6 +30,10 @@ class OpportunityFormObj(object):
         self.department = department
         self.title = title
         self.contact_email = contact_email
+
+class UpdateFormObj(object):
+    def __init__(self, stage):
+        self.body = stage.default_message if stage.default_message else ''
 
 def json_serial(obj):
     if isinstance(obj, datetime.datetime) or isinstance(obj, datetime.date):

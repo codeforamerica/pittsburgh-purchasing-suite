@@ -18,7 +18,8 @@ from purchasing.data.stages import transition_stage, get_contract_stages
 from purchasing.data.flows import create_contract_stages, switch_flow
 from purchasing.data.models import (
     ContractBase, ContractProperty, ContractStage, Stage,
-    ContractStageActionItem, Flow, Company, CompanyContact
+    ContractStageActionItem, Flow, Company, CompanyContact,
+    ContractType
 )
 
 from purchasing.users.models import User, Role
@@ -31,7 +32,7 @@ from purchasing.conductor.forms import (
 from purchasing.conductor.util import (
     update_contract_with_spec, handle_form, ContractMetadataObj,
     build_action_log, build_subscribers, create_opp_form_obj,
-    json_serial, parse_companies
+    json_serial, parse_companies, UpdateFormObj
 )
 
 from purchasing.opportunities.util import generate_opportunity_form
@@ -68,8 +69,8 @@ def index():
         ContractBase.financial_id, ContractBase.expiration_date,
         ContractProperty.value.label('spec_number'),
         ContractBase.contract_href
-    ).outerjoin(ContractProperty).filter(
-        db.func.lower(ContractBase.contract_type) == 'county',
+    ).join(ContractType).outerjoin(ContractProperty).filter(
+        db.func.lower(ContractType.name).in_(['county', 'a-bid', 'b-bid']),
         db.func.lower(ContractProperty.key) == 'spec number',
         ContractBase.children == None,
         ContractBase.is_visible == True
@@ -174,7 +175,7 @@ def detail(contract_id, stage_id=-1):
         abort(404)
 
     note_form = NoteForm()
-    update_form = SendUpdateForm()
+    update_form = SendUpdateForm(obj=UpdateFormObj(current_stage))
     opportunity_form, categories, subcategories = generate_opportunity_form(
         obj=create_opp_form_obj(contract),
         form=PostOpportunityForm
