@@ -23,7 +23,7 @@ class Config(object):
     MAIL_USE_TLS = True
     UPLOAD_S3 = True
     UPLOAD_DESTINATION = 'pittsburgh-purchasing-opportunities'
-    MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # max file size
+    MAX_CONTENT_LENGTH = os_env.get('MAX_CONTENT_LENGTH', 2 * 1024 * 1024)  # max file size, default 2mb
     UPLOAD_FOLDER = os.path.join(HERE, os_env.get('UPLOAD_FOLDER', 'uploads/'))
     S3_BUCKET_NAME = os_env.get('S3_BUCKET_NAME')
     AWS_ACCESS_KEY_ID = os_env.get('AWS_ACCESS_KEY_ID')
