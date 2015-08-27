@@ -18,10 +18,10 @@
         {% endif %}
          <div class="status status-complete">
           {% if opportunity.is_upcoming %}
-          <p class="status-date"><strong>Accepting submissions soon!</strong> Submit your responses starting on {{ opportunity.estimate_open() }}</p>
+          <p class="status-date"><strong>Accepting submissions soon!</strong> Submit your responses starting on {{ opportunity.estimate_submission_start() }}</p>
           {% elif opportunity.is_open %}
           <h3>Accepting submissions</h3>
-          <p>Responses are due by {{ opportunity.estimate_deadline() }}</p>
+          <p>Responses are due by {{ opportunity.estimate_submission_end() }}</p>
           {% elif opportunity.is_closed %}
           <h3>Closed</h3>
           <p>We are no longer accepting submissions.</p>
@@ -69,7 +69,7 @@
             <h3><strong>What is it?</strong></h3>
             <p>{{ opportunity.description }}</p>
             {% if opportunity.is_upcoming %}
-            <p><strong>We estimate that this opportunity will start accepting submissions on {{ opportunity.estimate_open() }}.</strong></p>
+            <p><strong>We estimate that this opportunity will start accepting submissions on {{ opportunity.estimate_submission_start() }}.</strong></p>
             {% endif %}
           </div>
         </div>

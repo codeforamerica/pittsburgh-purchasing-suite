@@ -86,7 +86,7 @@
                 <td class="col-md-1"><input type="checkbox" name="opportunity" value="{{ opportunity.id }}"></td>
                 <td class="col-md-5"><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
                 <td class="col-md-3">{{ opportunity.department }}</td>
-                <td class="col-md-2">{{ opportunity.planned_deadline|datetimeformat('%m/%d/%y') }}</td>
+                <td class="col-md-2">{{ opportunity.planned_open|datetimeformat('%m/%d/%y') }}</td>
                 {% if opportunity.can_edit(current_user) %}
                 <td><a href="{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
                 {% elif not current_user.is_anonymous() %}
@@ -120,4 +120,3 @@
 {% endblock %}
 
 <div class="spacer-50"></div>
-
