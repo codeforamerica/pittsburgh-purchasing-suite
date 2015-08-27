@@ -54,17 +54,31 @@ def create_app(config_object=ProdConfig):
         if app.debug and not app.testing:
             # log to console for dev
             app.logger.setLevel(logging.DEBUG)
+
         elif app.testing:
             # disable logging output
             app.logger.setLevel(logging.CRITICAL)
+
         else:
             # for heroku, just send everything to the console (instead of a file)
             # and it will forward automatically to the logging service
 
+            class UserEmailFilter(logging.Filter):
+                '''
+                This is a filter which injects contextual information into the log.
+                '''
+                def filter(self, record):
+                    user_id = current_user.email if not current_user.is_anonymous() else 'anonymous'
+                    record.user_id = user_id
+                    return True
+
+            _filter = UserEmailFilter()
+
             stdout = logging.StreamHandler(sys.stdout)
             stdout.setFormatter(logging.Formatter(
-                '%(asctime)s | %(name)s | %(current_user)s | %(levelname)s in %(module)s [%(pathname)s:%(lineno)d]: %(message)s'
+                '%(asctime)s | %(name)s | %(user_id)s | %(funcName)s | %(levelname)s in %(module)s [%(pathname)s:%(lineno)d]: %(message)s'
             ))
+            app.logger.addFilter(_filter)
             app.logger.addHandler(stdout)
             app.logger.setLevel(logging.DEBUG)
 
@@ -140,8 +154,8 @@ def register_errorhandlers(app):
 
         app.logger.exception(error)
 
-        return render_template("{0}.html".format(error_code)), error_code
-    for errcode in [401, 403, 404, 500]:
+        return render_template("errors/{0}.html".format(error_code)), error_code
+    for errcode in [401, 403, 404, 413, 500]:
         # for 500-level status codes, change the db status
         app.errorhandler(errcode)(render_error)
     return None

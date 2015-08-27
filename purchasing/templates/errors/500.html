@@ -1,0 +1,17 @@
+
+{% extends "public/layout.html" %}
+
+{% block page_title %}Server error{% endblock %}
+
+{% block content %}
+{{ super() }}
+<div class="container">
+  <div class="jumbotron">
+    <div class="text-center">
+      <h1>500</h1>
+      <p>Sorry, something went wrong on our system. Don't panic, we are fixing it! Please try again later.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
