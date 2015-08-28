@@ -88,6 +88,15 @@ def parse_companies(companies):
             })
     return cleaned
 
+def get_attachment_filenames(attachments):
+    filenames = []
+    for attachment in attachments:
+        try:
+            return filenames.append(attachment.upload.data.filename)
+        except AttributeError:
+            continue
+    return filenames
+
 def handle_form(form, form_name, stage_id, user, contract, current_stage):
     if form.validate_on_submit():
         action = ContractStageActionItem(
@@ -105,15 +114,18 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
                 'sent_to': form.data.get('send_to', ''),
                 'body': form.data.get('body'),
                 'subject': form.data.get('subject'),
-                'stage_name': current_stage.name
+                'stage_name': current_stage.name,
+                'attachments': [get_attachment_filenames(form.attachments.entries)]
             }
+
             Notification(
                 to_email=[i.strip() for i in form.data.get('send_to').split(';') if i != ''],
                 from_email=current_user.email,
                 cc_email=form.data.get('send_to_cc', []),
                 subject=form.data.get('subject'),
                 html_template='conductor/emails/email_update.html',
-                body=form.data.get('body')
+                body=form.data.get('body'),
+                attachments=[i.upload.data for i in form.attachments.entries]
             ).send()
 
         elif form_name == 'post':

@@ -68,6 +68,11 @@ class ContractMetadataForm(Form):
         allow_blank=True, blank_text='-----'
     )
 
+class AttachmentForm(Form):
+    upload = FileField('datafile', validators=[
+        FileAllowed(['doc', 'docx', 'xls', 'xlsx', 'pdf'], message='Invalid file type')
+    ])
+
 class SendUpdateForm(Form):
     '''Form to update
     '''
@@ -75,6 +80,7 @@ class SendUpdateForm(Form):
     send_to_cc = TextField(validators=[Optional(), validate_multiple_emails])
     subject = TextField(validators=[DataRequired()])
     body = TextAreaField(validators=[DataRequired()])
+    attachments = FieldList(FormField(AttachmentForm), min_entries=1)
 
 class PostOpportunityForm(OpportunityForm):
     pass
