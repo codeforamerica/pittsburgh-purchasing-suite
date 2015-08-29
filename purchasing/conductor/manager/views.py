@@ -126,8 +126,8 @@ def detail(contract_id, stage_id=-1):
         db.session.commit()
 
         flash(
-            'Contract Successfully extended! Please update it with a new expiration date',
-            'alert-success'
+            'This contract has been extended. Please add the new expiration date below.',
+            'alert-warning'
         )
 
         session['extend'] = True
