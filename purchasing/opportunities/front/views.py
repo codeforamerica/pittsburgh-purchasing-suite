@@ -16,11 +16,8 @@ from purchasing.opportunities.models import Category, Opportunity, Vendor
 
 from purchasing.opportunities.front import blueprint
 from purchasing.opportunities.util import get_categories, fix_form_categories
-from purchasing.opportunities.tasks import something
 
 from purchasing.users.models import User, Role
-
-from purchasing.opportunities.front import blueprint
 
 @blueprint.route('/')
 def splash():

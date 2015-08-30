@@ -17,10 +17,7 @@ from purchasing.utils import (
 
 from purchasing.public.models import AppStatus
 
-if os.environ.get("PITTSBURGH-PURCHASING-SUITE_ENV") == 'prod':
-    app = create_app(ProdConfig)
-else:
-    app = create_app(DevConfig)
+app = create_app(os.environ.get('CONFIG', DevConfig))
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 TEST_PATH = os.path.join(HERE, 'tests')

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
-from mock import patch, MagicMock
-from purchasing.notifications import Notification, render_template, current_app, mail
+from mock import patch, Mock, MagicMock
+from purchasing.notifications import Notification
 
 class TestNotification(TestCase):
     @patch('purchasing.notifications.render_template', return_value='a test')
@@ -56,3 +56,31 @@ class TestNotification(TestCase):
             ['a', 'b', 'c', 'd', 'e'],
             notification.flatten(test_recips_complex)
         )
+
+    @patch('purchasing.notifications.render_template', return_value='a test')
+    def test_notification_build_multi(self, render_template):
+        '''Test multi builds multiple message objects
+        '''
+        notification = Notification(to_email=['foobar@foo.com', 'foobar2@foo.com'], from_email='foo@foo.com')
+
+        notification.build_msg = Mock()
+        notification.build_msg.return_value = []
+
+        # should build two messages on multi send
+        notification.send(multi=True)
+        self.assertTrue(notification.build_msg.called)
+        self.assertEquals(notification.build_msg.call_count, 2)
+
+    @patch('purchasing.notifications.render_template', return_value='a test')
+    def test_notification_build_single(self, render_template):
+        '''Test non-multi only builds one message even with multiple emails
+        '''
+        notification = Notification(to_email=['foobar@foo.com', 'foobar2@foo.com'], from_email='foo@foo.com')
+
+        notification.build_msg = Mock()
+        notification.build_msg.return_value = []
+
+        # should build two messages on multi send
+        notification.send(multi=False)
+        self.assertTrue(notification.build_msg.called)
+        self.assertEquals(notification.build_msg.call_count, 1)

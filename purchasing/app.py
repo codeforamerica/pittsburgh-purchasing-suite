@@ -3,12 +3,13 @@
 
 import logging
 import os
-import types
 import sys
 import datetime
 
 from pkgutil import iter_modules
 from importlib import import_module
+
+from werkzeug.utils import import_string
 
 from flask import Flask, render_template, Blueprint
 from celery import Celery
@@ -39,9 +40,11 @@ def log_file(app):
     return os.path.join(os.path.realpath(log_dir), 'app.log')
 
 def make_celery(config=DevConfig):
+    if isinstance(config, basestring):
+        config = import_string(config)
     return Celery(__name__, broker=getattr(config, 'CELERY_BROKER_URL', 'sqla+postgresql://localhost/purchasing'))
 
-celery = make_celery(os.environ.get('CONFIG', DevConfig))
+celery = make_celery(config=os.environ.get('CONFIG', DevConfig))
 
 def create_app(config_object=ProdConfig):
     '''An application factory, as explained here:

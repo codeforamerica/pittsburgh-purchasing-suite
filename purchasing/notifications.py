@@ -10,6 +10,7 @@ from flask_mail import Message
 
 from purchasing.compat import basestring
 from purchasing.extensions import mail
+from purchasing.tasks import send_email
 
 class Notification(object):
     def __init__(
@@ -64,7 +65,7 @@ class Notification(object):
         '''
         return list(self._flatten(l))
 
-    def _send(self, conn, recipient):
+    def build_msg(self, recipient):
         try:
             current_app.logger.debug(
                 'EMAILTRY | Sending message:\nTo: {}\n:From: {}\nSubject: {}'.format(
@@ -95,8 +96,7 @@ class Notification(object):
                         data=attachment.stream.read()
                     )
 
-            conn.send(msg)
-            return True
+            return msg
 
         except Exception, e:
             current_app.logger.debug(
@@ -107,13 +107,13 @@ class Notification(object):
             return False
 
     def send(self, multi=False):
+        # send_mail(Notification, multi)
+        msgs = []
         if multi:
-            with mail.connect() as conn:
-                for to in self.to_email:
-                    if not self._send(conn, to):
-                        return False
+            for to in self.to_email:
+                msgs.append(self.build_msg(to))
         else:
-            if not self._send(mail, self.to_email):
-                return False
+            msgs.append(self.build_msg(self.to_email))
 
+        send_email.delay(msgs, multi=multi)
         return True

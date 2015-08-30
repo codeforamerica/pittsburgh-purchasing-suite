@@ -28,11 +28,12 @@ class Config(object):
     S3_BUCKET_NAME = os_env.get('S3_BUCKET_NAME')
     AWS_ACCESS_KEY_ID = os_env.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os_env.get('AWS_SECRET_ACCESS_KEY')
+    CELERY_IMPORTS = ("purchasing.tasks",)
 
 class ProdConfig(Config):
     """Production configuration."""
     ENV = 'prod'
-    DEBUG = False
+    DEBUG = True
     SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing')  # TODO: Change me
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
     FLASK_ASSETS_USE_S3 = True
@@ -40,6 +41,8 @@ class ProdConfig(Config):
     UGLIFYJS_EXTRA_ARGS = ['-m']
     MAIL_SERVER = 'smtp.sendgrid.net'
     MAIL_MAX_EMAILS = 100
+    CELERY_BROKER_URL = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
+    CELERY_RESULT_BACKEND = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
 
 class DevConfig(Config):
     """Development configuration."""
@@ -55,6 +58,7 @@ class DevConfig(Config):
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'uploads'))
     MAIL_SUPPRESS_SEND = False
     CELERY_BROKER_URL = 'sqla+{}'.format(SQLALCHEMY_DATABASE_URI)
+    CELERY_ALWAYS_EAGER = True
 
 class TestConfig(Config):
     ADMIN_EMAIL = 'foo@foo.com'
@@ -69,3 +73,4 @@ class TestConfig(Config):
     UPLOAD_S3 = False
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'test_uploads'))
     UPLOAD_FOLDER = UPLOAD_DESTINATION
+    CELERY_ALWAYS_EAGER = True
