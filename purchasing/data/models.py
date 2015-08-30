@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import TSVECTOR, JSON
 from sqlalchemy.schema import Table, Sequence
 from sqlalchemy.orm import backref
 
-from purchasing.database import Column, Model, db, ReferenceCol
+from purchasing.database import Column, Model, db, ReferenceCol, RefreshSearchViewMixin
 from purchasing.filters import days_from_today
 
 TRIGGER_TUPLES = [
@@ -49,7 +49,7 @@ class SearchView(Model):
     line_item_description = Column(db.Text)
     tsv_line_item_description = Column(TSVECTOR)
 
-class Company(Model):
+class Company(RefreshSearchViewMixin, Model):
     __tablename__ = 'company'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -63,7 +63,7 @@ class Company(Model):
     def __unicode__(self):
         return self.company_name
 
-class CompanyContact(Model):
+class CompanyContact(RefreshSearchViewMixin, Model):
     __tablename__ = 'company_contact'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -97,7 +97,7 @@ class ContractType(Model):
     def __unicode__(self):
         return self.name
 
-class ContractBase(Model):
+class ContractBase(RefreshSearchViewMixin, Model):
     __tablename__ = 'contract'
 
     id = Column(db.Integer, primary_key=True)
@@ -193,7 +193,7 @@ class ContractBase(Model):
             self.current_stage_id == self.flow.stage_order[-1] and \
             self.get_current_stage().exited is not None
 
-class ContractProperty(Model):
+class ContractProperty(RefreshSearchViewMixin, Model):
     __tablename__ = 'contract_property'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -226,7 +226,7 @@ class ContractNote(Model):
     def __unicode__(self):
         return self.note
 
-class LineItem(Model):
+class LineItem(RefreshSearchViewMixin, Model):
     __tablename__ = 'line_item'
 
     id = Column(db.Integer, primary_key=True, index=True)

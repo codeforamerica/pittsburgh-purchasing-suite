@@ -12,7 +12,7 @@ from importlib import import_module
 from werkzeug.utils import import_string
 
 from flask import Flask, render_template, Blueprint
-from celery import Celery
+from celery import Celery, signals
 
 from flask_login import current_user
 

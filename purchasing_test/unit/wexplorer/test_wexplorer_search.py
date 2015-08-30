@@ -5,9 +5,10 @@ import datetime
 from purchasing.app import db
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
-    insert_a_company, insert_a_contract,
-    insert_a_user, get_a_role
+    insert_a_company, insert_a_user, get_a_role
 )
+
+from purchasing_test.unit.factories import ContractTypeFactory, ContractBaseFactory, ContractPropertyFactory
 
 from purchasing.data.models import LineItem
 
@@ -25,27 +26,39 @@ class TestWexplorerSearch(BaseTestCase):
         self.superadmin_user = insert_a_user(email='bar@foo.com', role=self.superadmin_role)
 
         # insert the companies/contracts
-        company_1 = insert_a_company(name='ship', insert_contract=False)
+        self.company_1 = insert_a_company(name='ship', insert_contract=False)
         company_2 = insert_a_company(name='boat', insert_contract=False)
 
-        insert_a_contract(
+        contract_type = ContractTypeFactory.create(name='test')
+
+        self.contract1 = ContractBaseFactory.create(
             description='vessel', companies=[company_2], line_items=[LineItem(description='NAVY')],
             expiration_date=datetime.datetime.today() + datetime.timedelta(1), is_archived=False,
-            financial_id='123'
+            financial_id='123', contract_type=contract_type
         )
-        insert_a_contract(
-            description='sail', financial_id='456', companies=[company_1],
+        ContractBaseFactory.create(
+            description='sail', financial_id='456', companies=[self.company_1],
             line_items=[LineItem(description='sunfish')], is_archived=False,
-            expiration_date=datetime.datetime.today() + datetime.timedelta(1)
+            expiration_date=datetime.datetime.today() + datetime.timedelta(1),
+            contract_type=contract_type
         )
-        insert_a_contract(
-            description='sunfish', financial_id='789', properties=[dict(key='foo', value='engine')],
-            expiration_date=datetime.datetime.today() + datetime.timedelta(1), is_archived=False
+        ContractBaseFactory.create(
+            description='sunfish', financial_id='789',
+            properties=[ContractPropertyFactory.create(key='foo', value='engine')],
+            expiration_date=datetime.datetime.today() + datetime.timedelta(1), is_archived=False,
+            contract_type=contract_type
         )
-        insert_a_contract(
-            description='sunfish', financial_id='012', properties=[dict(key='foo', value='engine')],
-            expiration_date=datetime.datetime.today() - datetime.timedelta(1), is_archived=False
+        ContractBaseFactory.create(
+            description='sunfish', financial_id='012',
+            properties=[ContractPropertyFactory.create(key='foo', value='engine')],
+            expiration_date=datetime.datetime.today() - datetime.timedelta(1), is_archived=False,
+            contract_type=contract_type
         )
+
+        # db.session.execute('''
+        #     REFRESH MATERIALIZED VIEW CONCURRENTLY search_view
+        # ''')
+        db.session.commit()
 
     def tearDown(self):
         db.session.execute('''DROP SCHEMA IF EXISTS public cascade;''')
@@ -58,6 +71,12 @@ class TestWexplorerSearch(BaseTestCase):
     def test_search(self):
         '''Check searches return properly: descriptions, names, properties, line items, financial ids
         '''
+
+        db.session.execute('''
+            REFRESH MATERIALIZED VIEW CONCURRENTLY search_view
+        ''')
+        db.session.commit()
+
         self.assert200(self.client.get('/scout/search?q=ship'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 

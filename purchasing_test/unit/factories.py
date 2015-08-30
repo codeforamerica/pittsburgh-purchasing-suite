@@ -79,7 +79,7 @@ class CompanyFactory(BaseFactory):
         model = Company
 
 class ContractTypeFactory(BaseFactory):
-    id = factory.Sequence(lambda n: n)
+    id = factory.Sequence(lambda n: n + 100)
 
     class Meta:
         model = ContractType

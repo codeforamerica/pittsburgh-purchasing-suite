@@ -9,7 +9,6 @@ from flask import render_template, current_app
 from flask_mail import Message
 
 from purchasing.compat import basestring
-from purchasing.extensions import mail
 from purchasing.tasks import send_email
 
 class Notification(object):

@@ -17,8 +17,6 @@ class Config(object):
     CITY_DOMAIN = 'pittsburghpa.gov'
     ADMIN_EMAIL = os_env.get('ADMIN_EMAIL', 'bsmithgall@codeforamerica.org')
     MAIL_DEFAULT_SENDER = 'beaconbot@pittsburghpurchasingsuite.com'
-    MAIL_USERNAME = os_env.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     UPLOAD_S3 = True
@@ -57,7 +55,8 @@ class DevConfig(Config):
     UPLOAD_S3 = False
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'uploads'))
     MAIL_SUPPRESS_SEND = False
-    CELERY_BROKER_URL = 'sqla+{}'.format(SQLALCHEMY_DATABASE_URI)
+    # CELERY_BROKER_URL = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
+    # CELERY_RESULT_BACKEND = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
     CELERY_ALWAYS_EAGER = True
 
 class TestConfig(Config):
