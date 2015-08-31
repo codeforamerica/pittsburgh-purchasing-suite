@@ -47,22 +47,22 @@ def new():
         flash('Opportunity post submitted to OMB!', 'alert-success')
 
         Notification(
-                to_email=[current_user.email],
-                subject='Your post has been sent to OMB for approval',
-                html_template='opportunities/emails/staff_postsubmitted.html',
-                txt_template='opportunities/emails/staff_postsubmitted.txt',
-                opportunity=opportunity
-            ).send(multi=True)
+            to_email=[current_user.email],
+            subject='Your post has been sent to OMB for approval',
+            html_template='opportunities/emails/staff_postsubmitted.html',
+            txt_template='opportunities/emails/staff_postsubmitted.txt',
+            opportunity=opportunity
+        ).send(multi=True)
 
         Notification(
-                to_email=db.session.query(User.email).join(Role).filter(
-                    Role.name.in_(['admin', 'superadmin'])
-                ).all(),
-                subject='A new Beacon post needs review',
-                html_template='opportunities/emails/admin_postforapproval.html',
-                txt_template='opportunities/emails/admin_postforapproval.txt',
-                opportunity=opportunity
-            ).send(multi=True)
+            to_email=db.session.query(User.email).join(Role).filter(
+                Role.name.in_(['admin', 'superadmin'])
+            ).all(),
+            subject='A new Beacon post needs review',
+            html_template='opportunities/emails/admin_postforapproval.html',
+            txt_template='opportunities/emails/admin_postforapproval.txt',
+            opportunity=opportunity
+        ).send(multi=True)
 
         return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
 
