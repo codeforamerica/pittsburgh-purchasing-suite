@@ -90,8 +90,8 @@ class TestOpportunities(BaseTestCase):
 
             _endpoint = rule.endpoint.split('.')
             # filters out non-beacon endpoints
-
-            if (len(_endpoint) > 1 and _endpoint[1] == 'static') or _endpoint[0] != 'opportunities':
+            if (len(_endpoint) > 1 and _endpoint[1] == 'static') or _endpoint[0] != ('opportunities',
+            'opportunities_admin'):
                 continue
             else:
                 if '<int:' in rule.rule:
