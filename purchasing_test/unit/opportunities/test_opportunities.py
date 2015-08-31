@@ -3,14 +3,14 @@
 import json
 import datetime
 from unittest import TestCase
-from flask import current_app
+from flask import current_app, url_for
 
 from purchasing.extensions import mail
 from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.models import Vendor
 
 from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import insert_a_role, insert_a_user
+from purchasing_test.unit.util import insert_a_role, insert_a_user, insert_an_opportunity
 from purchasing_test.unit.factories import OpportunityFactory
 
 class TestOpportunityModel(TestCase):
@@ -70,6 +70,35 @@ class TestOpportunities(BaseTestCase):
         super(TestOpportunities, self).setUp()
         # import our test categories
         import_nigp(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
+
+    def test_templates(self):
+        '''Test templates used, return 200
+        '''
+
+        # insert our opportunity, users
+        admin_role = insert_a_role('admin')
+        admin = insert_a_user(role=admin_role)
+
+        opportunity = insert_an_opportunity(
+            contact_id=admin.id, created_by_id=admin.id,
+            is_public=True, planned_advertise=datetime.date.today() - datetime.timedelta(1),
+            planned_open=datetime.date.today() + datetime.timedelta(2),
+            planned_deadline=datetime.date.today() + datetime.timedelta(2)
+        )
+
+        for rule in current_app.url_map.iter_rules():
+
+            _endpoint = rule.endpoint.split('.')
+            # filters out non-beacon endpoints
+
+            if (len(_endpoint) > 1 and _endpoint[1] == 'static') or _endpoint[0] != 'opportunities':
+                continue
+            else:
+                if '<int:' in rule.rule:
+                    response = self.client.get(url_for(rule.endpoint, opportunity_id=opportunity.id))
+                else:
+                    response = self.client.get(rule.rule)
+                self.assert200(response)
 
     def test_index(self):
         '''Test index page works as expected
