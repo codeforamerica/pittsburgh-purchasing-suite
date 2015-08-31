@@ -16,6 +16,7 @@ class TestNotification(TestCase):
         self.assertEquals(notification.subject, '')
         self.assertEquals(notification.html_body, 'a test')
         self.assertEquals(notification.txt_body, '')
+        self.assertEquals(notification.attachments, [])
 
     @patch('purchasing.notifications.render_template', return_value='a test')
     def test_notification_flatten(self, render_template):

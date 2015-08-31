@@ -329,7 +329,13 @@ def subscribe(contract_id):
     if contract:
         db.session.commit()
         flash(message[0], message[1])
-        'SUBSCRIBE: {user} subscribed to {contract}'.format(user=current_user.email, contract=contract_id)
+
+        current_app.logger.info(
+            'SUBSCRIBE: {user} subscribed to {contract}'.format(
+                user=current_user.email, contract=contract_id
+            )
+        )
+
         return redirect(next_url)
 
     elif contract is None:
@@ -349,7 +355,13 @@ def unsubscribe(contract_id):
     if contract:
         db.session.commit()
         flash(message[0], message[1])
-        'UNSUBSCRIBE: {user} unsubscribed from {contract}'.format(user=current_user.email, contract=contract_id)
+
+        current_app.logger.info(
+            'UNSUBSCRIBE: {user} unsubscribed from {contract}'.format(
+                user=current_user.email, contract=contract_id
+            )
+        )
+
         return redirect(next_url)
 
     elif contract is None:

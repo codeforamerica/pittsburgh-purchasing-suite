@@ -19,7 +19,7 @@
   {%- elif action.action_type == 'update' -%}
   <div class="action-event">
     {{ pn.print_name(action, current_user) }}
-    sent <strong>{{ action.action_detail.sent_to }}</strong> an update on {{ action.taken_at|datetimeformat }} with the subject "<strong>{{ action.action_detail.subject }}</strong>".
+    sent <strong>{{ action.action_detail.sent_to }}</strong> an update on {{ action.taken_at|datetimeformat }} with the subject "<strong>{{ action.action_detail.subject }}</strong>"{% if action.action_detail.attachments|length > 0 %} with attachments{% endif -%}.
   </div>
 
   {# opportunity #}

@@ -2,6 +2,9 @@
 
 import collections
 
+from werkzeug import secure_filename
+from werkzeug.datastructures import FileStorage
+
 from flask import render_template, current_app
 from flask_mail import Message
 
@@ -12,7 +15,8 @@ class Notification(object):
     def __init__(
         self, to_email=[], from_email=None, cc_email=[], subject='',
         html_template='/public/emails/email_admins.html',
-        txt_template=None, convert_args=False, *args, **kwargs
+        txt_template=None, attachments=[],
+        convert_args=False, *args, **kwargs
     ):
         self.to_email = to_email
         self.from_email = from_email if from_email else current_app.config['MAIL_DEFAULT_SENDER']
@@ -23,6 +27,7 @@ class Notification(object):
             self.txt_body = self.build_msg_body(txt_template, convert_args, *args, **kwargs)
         else:
             self.txt_body = ''
+        self.attachments = attachments
 
     def build_msg_body(self, template, convert_args, *args, **kwargs):
         if convert_args:
@@ -45,6 +50,8 @@ class Notification(object):
         return kwarg_dict
 
     def _flatten(self, l):
+        '''Returns a flat generator object from artibrary-depth iterables
+        '''
         for el in l:
             if isinstance(el, collections.Iterable) and not isinstance(el, basestring):
                 for sub in self._flatten(el):
@@ -53,6 +60,8 @@ class Notification(object):
                 yield el
 
     def flatten(self, l):
+        '''Coerces the generator from _flatten to a list and return it
+        '''
         return list(self._flatten(l))
 
     def _send(self, conn, recipient):
@@ -77,6 +86,14 @@ class Notification(object):
                 recipients=recipient,
                 cc=self.cc_email
             )
+
+            for attachment in self.attachments:
+                if isinstance(attachment, FileStorage):
+                    msg.attach(
+                        filename=secure_filename(attachment.filename),
+                        content_type=attachment.content_type,
+                        data=attachment.stream.read()
+                    )
 
             conn.send(msg)
             return True

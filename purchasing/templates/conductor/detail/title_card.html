@@ -3,9 +3,11 @@
     <div class="col-md-12">
       <h3><strong>{{ active_stage.description|title }}</strong></h3>
       <p class="text-muted">
+        {% if contract.parent.expiration_date %}
         <span class="text-shares-with-button">Expires on {{ contract.parent.expiration_date|datetimeformat('%m/%d/%Y') }}</span>
-        <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, extend='true') }}" class="btn btn-default btn-detail">Extend Contract</a></li>
-        <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}" class="btn btn-default btn-detail">View on Scout</a>
+        {% endif %}
+        <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, extend='true') }}" class="btn btn-default" onclick="return confirm('Please confirm that the contract has already gone through the proper extension process.')">Extend Contract</a></li>
+        <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}" class="btn btn-default">View on Scout</a>
       </p>
     </div>
   </div>
