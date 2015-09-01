@@ -69,9 +69,9 @@ class Opportunity(Model):
     )
     # Date opportunity should be made public on beacon
     planned_advertise = Column(db.DateTime, nullable=False)
-    # Date opportunity opens for responses
+    # Date opportunity accepts responses
     planned_open = Column(db.DateTime, nullable=False)
-    # Date opportunity closes for receiving responses
+    # Date opportunity stops accepting responses
     planned_deadline = Column(db.DateTime, nullable=False)
     # Created from contract
     created_from_id = ReferenceCol('contract', ondelete='cascade', nullable=True)
@@ -94,27 +94,27 @@ class Opportunity(Model):
         return field
 
     @property
-    def is_advertised(self):
+    def is_published(self):
         return self.coerce_to_date(self.planned_advertise) <= datetime.date.today() and self.is_public
 
     @property
     def is_upcoming(self):
         return self.coerce_to_date(self.planned_advertise) <= datetime.date.today() and \
-            not self.is_open and not self.is_closed and self.is_public
+            not self.is_submission_start and not self.is_submission_end and self.is_public
 
     @property
-    def is_open(self):
+    def is_submission_start(self):
         return self.coerce_to_date(self.planned_open) <= datetime.date.today() and \
-            not self.is_closed and self.is_public
+            not self.is_submission_end and self.is_public
 
     @property
-    def is_closed(self):
+    def is_submission_end(self):
         return self.coerce_to_date(self.planned_deadline) <= datetime.date.today() and self.is_public
 
     def can_view(self, user):
         '''Check if a user can see opportunity detail
         '''
-        return False if user.is_anonymous() and not self.is_advertised else True
+        return False if user.is_anonymous() and not self.is_published else True
 
     def can_edit(self, user):
         '''Check if a user can edit the contract
@@ -124,12 +124,12 @@ class Opportunity(Model):
             (user.id not in (self.created_by, self.contact_id))
         ) else True
 
-    def estimate_open(self):
-        '''Returns the month/year based on planned_open
+    def estimate_submission_start(self):
+        '''Returns the month/year based on planned_submission_start
         '''
         return self.planned_open.strftime('%B %d, %Y')
 
-    def estimate_deadline(self):
+    def estimate_submission_end(self):
         '''
         '''
         return self.planned_deadline.strftime('%B %d, %Y')
@@ -144,14 +144,14 @@ class Opportunity(Model):
         '''
         return [
             {
-                'event': 'bid_open', 'classes': 'event event-open',
-                'date': self.estimate_open(),
-                'description': 'We start accepting submissions.'
+                'event': 'bid_submission_start', 'classes': 'event event-submission_start',
+                'date': self.estimate_submission_start(),
+                'description': 'Opportunity submission_starts for submissions.'
             },
             {
-                'event': 'deadline', 'classes': 'event event-deadline',
-                'date': self.estimate_deadline(),
-                'description': 'Deadline for submitting proposals.'
+                'event': 'bid_submission_end', 'classes': 'event event-submission_end',
+                'date': self.estimate_submission_end(),
+                'description': 'Deadline to submit proposals.'
             }
         ]
 

@@ -434,14 +434,14 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.assert_flashes('Opportunity successfully published!', 'alert-success')
         self.assertEquals(admin_publish.status_code, 302)
         self.assertTrue(Opportunity.query.get(self.opportunity1.id).is_public)
-        self.assertFalse(Opportunity.query.get(self.opportunity1.id).is_advertised)
+        self.assertFalse(Opportunity.query.get(self.opportunity1.id).is_published)
         self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity1.id)))
 
         self.logout_user()
         self.assert404(self.client.get('/beacon/opportunities/{}'.format(self.opportunity1.id)))
 
     def test_pending_notification_email_gated(self):
-        '''Test we don't send an email when the opportunity is not advertised
+        '''Test we don't send an email when the opportunity is not published
         '''
         self.login_user(self.admin)
         self.opportunity3.planned_advertise = datetime.date.today() + datetime.timedelta(1)
@@ -451,12 +451,12 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             self.client.get('/beacon/admin/opportunities/{}/publish'.format(
                 self.opportunity3.id
             ))
-            self.assertFalse(self.opportunity3.is_advertised)
+            self.assertFalse(self.opportunity3.is_published)
             self.assertTrue(self.opportunity3.is_public)
             self.assertEquals(len(outbox), 0)
 
     def test_pending_notification_email(self):
-        '''Test we do send an email when the opportunity is advertised
+        '''Test we do send an email when the opportunity is published
         '''
         self.login_user(self.admin)
 
@@ -464,6 +464,6 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             self.client.get('/beacon/admin/opportunities/{}/publish'.format(
                 self.opportunity3.id
             ))
-            self.assertTrue(self.opportunity3.is_advertised)
+            self.assertTrue(self.opportunity3.is_published)
             self.assertTrue(self.opportunity3.is_public)
             self.assertEquals(len(outbox), 1)

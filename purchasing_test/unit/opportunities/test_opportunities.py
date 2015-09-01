@@ -3,14 +3,14 @@
 import json
 import datetime
 from unittest import TestCase
-from flask import current_app
+from flask import current_app, url_for
 
 from purchasing.extensions import mail
 from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.models import Vendor
 
 from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import insert_a_role, insert_a_user
+from purchasing_test.unit.util import insert_a_role, insert_a_user, insert_an_opportunity
 from purchasing_test.unit.factories import OpportunityFactory
 
 class TestOpportunityModel(TestCase):
@@ -23,45 +23,45 @@ class TestOpportunityModel(TestCase):
         open_opportunity = OpportunityFactory.build(
             is_public=True, planned_advertise=self.yesterday, planned_open=self.today, planned_deadline=self.tomorrow
         )
-        self.assertTrue(open_opportunity.is_advertised)
+        self.assertTrue(open_opportunity.is_published)
         self.assertFalse(open_opportunity.is_upcoming)
-        self.assertTrue(open_opportunity.is_open)
-        self.assertFalse(open_opportunity.is_closed)
+        self.assertTrue(open_opportunity.is_submission_start)
+        self.assertFalse(open_opportunity.is_submission_end)
 
     def test_opportunity_notpublic(self):
         notpublic_opportunity = OpportunityFactory.build(
             is_public=False, planned_advertise=self.yesterday, planned_open=self.today, planned_deadline=self.tomorrow
         )
-        self.assertFalse(notpublic_opportunity.is_advertised)
+        self.assertFalse(notpublic_opportunity.is_published)
         self.assertFalse(notpublic_opportunity.is_upcoming)
-        self.assertFalse(notpublic_opportunity.is_open)
-        self.assertFalse(notpublic_opportunity.is_closed)
+        self.assertFalse(notpublic_opportunity.is_submission_start)
+        self.assertFalse(notpublic_opportunity.is_submission_end)
 
     def test_opportunity_pending(self):
         pending_opportunity = OpportunityFactory.build(
             is_public=True, planned_advertise=self.yesterday, planned_open=self.tomorrow, planned_deadline=self.tomorrow
         )
-        self.assertTrue(pending_opportunity.is_advertised)
+        self.assertTrue(pending_opportunity.is_published)
         self.assertTrue(pending_opportunity.is_upcoming)
-        self.assertFalse(pending_opportunity.is_open)
-        self.assertFalse(pending_opportunity.is_closed)
+        self.assertFalse(pending_opportunity.is_submission_start)
+        self.assertFalse(pending_opportunity.is_submission_end)
 
     def test_opportunity_closed(self):
         closed_opportunity = OpportunityFactory.build(
             is_public=True, planned_advertise=self.yesterday, planned_open=self.yesterday, planned_deadline=self.yesterday
         )
-        self.assertTrue(closed_opportunity.is_advertised)
+        self.assertTrue(closed_opportunity.is_published)
         self.assertFalse(closed_opportunity.is_upcoming)
-        self.assertFalse(closed_opportunity.is_open)
-        self.assertTrue(closed_opportunity.is_closed)
+        self.assertFalse(closed_opportunity.is_submission_start)
+        self.assertTrue(closed_opportunity.is_submission_end)
 
         closed_opportunity_today_deadline = OpportunityFactory.build(
             is_public=True, planned_advertise=self.yesterday, planned_open=self.yesterday, planned_deadline=self.today
         )
-        self.assertTrue(closed_opportunity_today_deadline.is_advertised)
+        self.assertTrue(closed_opportunity_today_deadline.is_published)
         self.assertFalse(closed_opportunity_today_deadline.is_upcoming)
-        self.assertFalse(closed_opportunity_today_deadline.is_open)
-        self.assertTrue(closed_opportunity_today_deadline.is_closed)
+        self.assertFalse(closed_opportunity_today_deadline.is_submission_start)
+        self.assertTrue(closed_opportunity_today_deadline.is_submission_end)
 
 class TestOpportunities(BaseTestCase):
     render_templates = True
@@ -70,6 +70,35 @@ class TestOpportunities(BaseTestCase):
         super(TestOpportunities, self).setUp()
         # import our test categories
         import_nigp(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
+
+    def test_templates(self):
+        '''Test templates used, return 200
+        '''
+
+        # insert our opportunity, users
+        admin_role = insert_a_role('admin')
+        admin = insert_a_user(role=admin_role)
+
+        opportunity = insert_an_opportunity(
+            contact_id=admin.id, created_by_id=admin.id,
+            is_public=True, planned_advertise=datetime.date.today() - datetime.timedelta(1),
+            planned_open=datetime.date.today() + datetime.timedelta(2),
+            planned_deadline=datetime.date.today() + datetime.timedelta(2)
+        )
+
+        for rule in current_app.url_map.iter_rules():
+
+            _endpoint = rule.endpoint.split('.')
+            # filters out non-beacon endpoints
+            if (len(_endpoint) > 1 and _endpoint[1] == 'static') or _endpoint[0] != ('opportunities',
+            'opportunities_admin'):
+                continue
+            else:
+                if '<int:' in rule.rule:
+                    response = self.client.get(url_for(rule.endpoint, opportunity_id=opportunity.id))
+                else:
+                    response = self.client.get(rule.rule)
+                self.assert200(response)
 
     def test_index(self):
         '''Test index page works as expected

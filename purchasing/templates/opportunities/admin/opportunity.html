@@ -50,7 +50,7 @@
                 When do you want this opportunity to be made public? If you are uncertain, use an approximate date.
               </p>
               {{ macros.with_errors(form.planned_advertise, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
-            </div><!-- publication date -->
+            </div><!-- date published to beacon -->
           </div>
 
           <div class="col-sm-4">
@@ -60,7 +60,7 @@
                 When do you want to start receiving responses to this opportunity? If you are uncertain, use an approximate date.
               </p>
               {{ macros.with_errors(form.planned_open, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
-            </div><!-- opportunity open date -->
+            </div><!-- date submissions accepted -->
           </div>
 
           <div class="col-sm-4">
@@ -70,7 +70,7 @@
                 When is the deadline for vendors to respond to this opportunity? If you are uncertain, use an approximate date.
               </p>
               {{ macros.with_errors(form.planned_deadline, class_="form-control datepicker", placeholder="ex: 2015-01-01")}}
-            </div><!-- opp deadline -->
+            </div><!-- date submissions no longer accepted -->
           </div>
         </div><!-- dates -->
 

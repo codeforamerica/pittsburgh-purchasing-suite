@@ -104,7 +104,7 @@ def publish(opportunity_id):
         db.session.commit()
         flash('Opportunity successfully published!', 'alert-success')
 
-        if opportunity.is_advertised:
+        if opportunity.is_published:
             opp_categories = [i.id for i in opportunity.categories]
 
             vendors = Vendor.query.filter(

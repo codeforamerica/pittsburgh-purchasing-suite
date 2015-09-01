@@ -243,7 +243,7 @@ def browse():
     ).all()
 
     for opportunity in opportunities:
-        if opportunity.is_open:
+        if opportunity.is_submission_start:
             _open.append(opportunity)
         elif opportunity.is_upcoming:
             upcoming.append(opportunity)
