@@ -68,17 +68,21 @@ class Model(CRUDMixin, db.Model):
             c.name: self.serialize_dates(getattr(self, c.name)) for c in self.__table__.columns
         }
 
+
+def refresh_search_view(mapper, connection, target):
+    from purchasing.tasks import rebuild_search_view
+    rebuild_search_view.delay()
+
 # modified from http://stackoverflow.com/questions/12753450/sqlalchemy-mixins-and-event-listener
 class RefreshSearchViewMixin(object):
-    @staticmethod
-    def refresh_search_view(mapper, connection, target):
-        from purchasing.tasks import rebuild_search_view
-        rebuild_search_view.delay()
+    @classmethod
+    def event_handler(cls, *args, **kwargs):
+        return refresh_search_view
 
     @classmethod
     def __declare_last__(cls):
         for event_name in ['after_insert', 'after_update', 'after_delete']:
-            sqlalchemy.event.listen(cls, event_name, cls.refresh_search_view)
+            sqlalchemy.event.listen(cls, event_name, cls.event_handler)
 
 class CreateUpdateMixin(object):
     @staticmethod
