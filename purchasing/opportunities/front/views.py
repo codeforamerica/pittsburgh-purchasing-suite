@@ -84,7 +84,7 @@ def signup():
                 ).send()
 
                 if confirmation_sent:
-                    admins = db.session.query(User.email).join(Role).filter(
+                    admins = db.session.query(User.email).join(Role, User.role_id == Role.id).filter(
                         Role.name.in_(['admin', 'superadmin'])
                     ).all()
 

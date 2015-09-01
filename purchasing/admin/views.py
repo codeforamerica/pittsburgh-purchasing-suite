@@ -117,7 +117,9 @@ class ConductorContractAdmin(ContractBaseAdmin):
         return form
 
     def _get_filtered_users(self):
-        return self.session.query(User).join(Role).filter(
+        return self.session.query(User).join(
+            Role, User.role_id == Role.id
+        ).filter(
             Role.name.in_(['conductor', 'admin', 'superadmin'])
         )
 

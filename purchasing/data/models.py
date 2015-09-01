@@ -125,7 +125,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
     assigned_to = ReferenceCol('users', ondelete='SET NULL', nullable=True)
     assigned = db.relationship('User', backref=backref(
         'assignments', lazy='dynamic', cascade='none'
-    ))
+    ), foreign_keys=assigned_to)
 
     department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True)
     department = db.relationship('Department', backref=backref(
@@ -218,10 +218,11 @@ class ContractNote(Model):
     note = Column(db.Text)
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
+
     taken_by_id = ReferenceCol('users', ondelete='SET NULL', nullable=True)
     taken_by = db.relationship('User', backref=backref(
         'contract_note', lazy='dynamic', cascade=None
-    ))
+    ), foreign_keys=taken_by_id)
 
     def __unicode__(self):
         return self.note
@@ -351,10 +352,11 @@ class ContractStageActionItem(Model):
     action_type = Column(db.String(255))
     action_detail = Column(JSON)
     taken_at = Column(db.DateTime, default=datetime.datetime.now())
+
     taken_by = ReferenceCol('users', ondelete='SET NULL', nullable=True)
     taken_by_user = db.relationship('User', backref=backref(
         'contract_stage_actions', lazy='dynamic'
-    ))
+    ), foreign_keys=taken_by)
 
     def __unicode__(self):
         return self.action

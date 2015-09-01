@@ -191,11 +191,11 @@ def build_subscribers(contract):
         db.func.lower(Department.name) != 'equal opportunity review commission'
     ).all()
 
-    county_purchasers = User.query.join(Role).filter(
+    county_purchasers = User.query.join(Role, User.role_id == Role.id).filter(
         Role.name == 'county'
     ).all()
 
-    eorc = User.query.join(Department).filter(
+    eorc = User.query.join(Department, User.department_id == Department.id).filter(
         db.func.lower(Department.name) == 'equal opportunity review commission'
     ).all()
 

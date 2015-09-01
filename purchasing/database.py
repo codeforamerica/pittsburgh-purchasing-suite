@@ -6,11 +6,14 @@ import datetime
 
 import sqlalchemy
 
+from flask_login import current_user
+
 from sqlalchemy.sql.functions import GenericFunction
 from sqlalchemy.orm import relationship
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.ext.declarative import declared_attr
 
 from .extensions import db
 from .compat import basestring
@@ -48,9 +51,52 @@ class CRUDMixin(object):
         db.session.delete(self)
         return commit and db.session.commit()
 
+def ReferenceCol(tablename, nullable=False, ondelete=None, pk_name='id', **kwargs):
+    """Column that adds primary key foreign key reference.
+
+    Usage: ::
+
+        category_id = ReferenceCol('category')
+        category = relationship('Category', backref='categories')
+    """
+    return db.Column(
+        db.ForeignKey("{0}.{1}".format(tablename, pk_name), ondelete=ondelete),
+        nullable=nullable, **kwargs)
+
+def create_time(mapper, connection, target):
+    target.created_at = datetime.datetime.utcnow()
+    target.created_by_id = current_user.id if hasattr(current_user, 'id') else None
+
+def update_time(mapper, connection, target):
+    target.updated_at = datetime.datetime.utcnow()
+    target.updated_by_id = current_user.id if hasattr(current_user, 'id') else None
+
 class Model(CRUDMixin, db.Model):
     """Base model class that includes CRUD convenience methods."""
     __abstract__ = True
+
+    created_at = Column(db.DateTime)
+    updated_at = Column(db.DateTime)
+
+    @declared_attr
+    def created_by_id(cls):
+        return Column(
+            db.Integer(), db.ForeignKey('users.id', use_alter=True, name='created_by_id_fkey')
+        )
+
+    @declared_attr
+    def created_by(cls):
+        return db.relationship('User', foreign_keys=lambda: cls.created_by_id)
+
+    @declared_attr
+    def updated_by_id(cls):
+        return Column(
+            db.Integer(), db.ForeignKey('users.id', use_alter=True, name='updated_by_id_fkey')
+        )
+
+    @declared_attr
+    def updated_by(cls):
+        return db.relationship('User', foreign_keys=lambda: cls.updated_by_id)
 
     def unicode_helper(self, field):
         if field:
@@ -68,6 +114,19 @@ class Model(CRUDMixin, db.Model):
             c.name: self.serialize_dates(getattr(self, c.name)) for c in self.__table__.columns
         }
 
+    @classmethod
+    def create_handler(cls, *args, **kwargs):
+        return create_time
+
+    @classmethod
+    def update_handler(cls, *args, **kwargs):
+        return update_time
+
+    @classmethod
+    def __declare_last__(cls):
+        sqlalchemy.event.listen(cls, 'before_insert', cls.create_handler)
+        sqlalchemy.event.listen(cls, 'before_update', cls.update_handler)
+
 
 def refresh_search_view(mapper, connection, target):
     from purchasing.tasks import rebuild_search_view
@@ -83,20 +142,6 @@ class RefreshSearchViewMixin(object):
     def __declare_last__(cls):
         for event_name in ['after_insert', 'after_update', 'after_delete']:
             sqlalchemy.event.listen(cls, event_name, cls.event_handler)
-
-class CreateUpdateMixin(object):
-    @staticmethod
-    def create_time(mapper, connection, target):
-        target.created_at = datetime.datetime.now()
-
-    @staticmethod
-    def update_time(mapper, connection, target):
-        target.updated_at = datetime.datetime.now()
-
-    @classmethod
-    def __declare_last__(cls):
-        sqlalchemy.event.listen(cls, 'before_insert', cls.create_time)
-        sqlalchemy.event.listen(cls, 'before_update', cls.update_time)
 
 # From Mike Bayer's "Building the app" talk
 # https://speakerdeck.com/zzzeek/building-the-app
@@ -116,19 +161,6 @@ class SurrogatePK(object):
         ):
             return cls.query.get(int(id))
         return None
-
-
-def ReferenceCol(tablename, nullable=False, ondelete=None, pk_name='id', **kwargs):
-    """Column that adds primary key foreign key reference.
-
-    Usage: ::
-
-        category_id = ReferenceCol('category')
-        category = relationship('Category', backref='categories')
-    """
-    return db.Column(
-        db.ForeignKey("{0}.{1}".format(tablename, pk_name), ondelete=ondelete),
-        nullable=nullable, **kwargs)
 
 # for details, see http://skien.cc/blog/2014/01/15/sqlalchemy-and-race-conditions-implementing/
 def get_or_create(session, model, create_method='', create_method_kwargs=None, **kwargs):

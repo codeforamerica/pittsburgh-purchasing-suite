@@ -3,18 +3,12 @@ import datetime as dt
 
 from flask.ext.login import UserMixin, AnonymousUserMixin
 
-from purchasing.database import (
-    Column,
-    db,
-    Model,
-    ReferenceCol,
-    SurrogatePK,
-)
+from purchasing.database import Column, db, Model, ReferenceCol, SurrogatePK
+from sqlalchemy.orm import backref
 
 class Role(SurrogatePK, Model):
     __tablename__ = 'roles'
     name = Column(db.String(80), unique=True, nullable=False)
-    users = db.relationship('User', lazy='dynamic', backref='role')
 
     def __repr__(self):
         return '<Role({name})>'.format(name=self.name)
@@ -29,9 +23,19 @@ class User(UserMixin, SurrogatePK, Model):
     created_at = Column(db.DateTime, nullable=False, default=dt.datetime.utcnow)
     first_name = Column(db.String(30), nullable=True)
     last_name = Column(db.String(30), nullable=True)
-    department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True)
     active = Column(db.Boolean(), default=True)
+
     role_id = ReferenceCol('roles', ondelete='SET NULL', nullable=True)
+    role = db.relationship(
+        'Role', backref=backref('users', lazy='dynamic'),
+        foreign_keys=role_id, primaryjoin='User.role_id==Role.id'
+    )
+
+    department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True)
+    department = db.relationship(
+        'Department', backref=backref('users', lazy='dynamic'),
+        foreign_keys=department_id, primaryjoin='User.department_id==Department.id'
+    )
 
     @property
     def full_name(self):
@@ -58,7 +62,6 @@ class User(UserMixin, SurrogatePK, Model):
 class Department(SurrogatePK, Model):
     __tablename__ = 'department'
 
-    users = db.relationship('User', lazy='dynamic', backref='department')
     name = Column(db.String(255), nullable=False, unique=True)
 
     def __unicode__(self):
