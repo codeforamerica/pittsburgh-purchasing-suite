@@ -12,3 +12,26 @@
   <link href="{{ admin_static.url(filename='vendor/x-editable/css/bootstrap3-editable.css', v='1.5.1') }}" rel="stylesheet">
   {% endif %}
 {% endmacro %}
+
+{% macro form_js() %}
+  <script>
+  $(document).ready(function() {
+    var select = $('.select2');
+    var selectValues = $('.select2-hidden-accessible');
+
+    var ul = $('.select2-container').first('ul');
+    $('.select2-container').find("ul.select2-selection__rendered").sortable({
+      placeholder : 'ui-state-highlight',
+      items       : 'li:not(.select2-search-field)',
+      tolerance   : 'pointer',
+      stop: function() {
+        $($(ul).find('.select2-selection__choice').get().reverse()).each(function() {
+          var text = $(this).text().substring(1);
+          var option = selectValues.find('option').filter(function() { return this.text === text; })[0];
+          selectValues.prepend(option);
+        });
+      }
+    });
+  });
+  </script>
+{% endmacro %}

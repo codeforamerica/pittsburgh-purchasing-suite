@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from flask import request
+
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
@@ -129,9 +131,14 @@ class QuerySelect2TagsWidget(Select2Widget):
         super(QuerySelect2TagsWidget, self).__init__(*args, **kwargs)
 
     def __call__(self, field, **kwargs):
-        field.data = Stage.query.filter(Stage.id.in_(field.data)).all()
+        current_stages = field.data
+        stages = Stage.query.filter(Stage.id.in_(current_stages)).all()
+        field.data = [y for (x, y) in sorted(zip(current_stages, stages))]
+
+        kwargs.setdefault('data-stage-order', u','.join([unicode(i) for i in current_stages]))
         kwargs.setdefault('data-role', u'select2-tags')
-        kwargs.setdefault('multiple', 'multiple')
+        kwargs.setdefault('multiple', u'multiple')
+
         return super(QuerySelect2TagsWidget, self).__call__(field, **kwargs)
 
 class FlowAdmin(ConductorAuthMixin, sqla.ModelView):
@@ -150,12 +157,12 @@ class FlowAdmin(ConductorAuthMixin, sqla.ModelView):
         )
     }
 
-    def create_model(self, form):
-        form.stage_order.data = [i.id for i in form.stage_order.data]
-        super(FlowAdmin, self).create_model(form)
+    def create_model(self, form, model):
+        form.stage_order.data = [int(i) for i in request.form.getlist('stage_order')]
+        super(FlowAdmin, self).create_model(form, model)
 
     def update_model(self, form, model):
-        form.stage_order.data = [i.id for i in form.stage_order.data]
+        form.stage_order.data = [int(i) for i in request.form.getlist('stage_order')]
         super(FlowAdmin, self).update_model(form, model)
 
 class StageAdmin(ConductorAuthMixin, sqla.ModelView):

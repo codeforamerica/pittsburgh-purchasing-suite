@@ -1,5 +1,16 @@
 {% extends 'admin/model/create.html' %}
-{% import 'admin/purchasing_lib.html' as lib with context %}
+{% import 'admin/purchasing_lib.html' as _lib with context %}
 
 {% block head %}
+{% endblock %}
+
+{% block tail_js %}
+{% assets "adminjs" %}
+  <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+{% endassets %}
+{% endblock %}
+
+{% block tail %}
+  {{ super() }}
+  {{ _lib.form_js() }}
 {% endblock %}
