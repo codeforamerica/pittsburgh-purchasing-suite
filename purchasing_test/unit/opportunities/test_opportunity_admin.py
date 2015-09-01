@@ -158,8 +158,8 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.client.post('/beacon/admin/opportunities/new', data=data)
         self.assertEquals(User.query.count(), 3)
 
-    def test_create_a_contract(self):
-        '''Test create contract page
+    def test_create_an_opportunity(self):
+        '''Test create a new opportunity
         '''
         self.assertEquals(Opportunity.query.count(), 4)
         self.assertEquals(self.client.get('/beacon/admin/opportunities/new').status_code, 302)
@@ -204,9 +204,9 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         bad_data['planned_deadline'] = datetime.date.today() + datetime.timedelta(1)
 
         new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
+        self.assert_flashes('Opportunity post submitted to OMB!', 'alert-success')
 
         self.assertEquals(Opportunity.query.count(), 5)
-        self.assert_flashes('Opportunity successfully created!', 'alert-success')
 
         self.assertFalse(
             Opportunity.query.filter(Opportunity.description == 'Just right.').first().is_public
@@ -453,10 +453,14 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             ))
             self.assertFalse(self.opportunity3.is_published)
             self.assertTrue(self.opportunity3.is_public)
-            self.assertEquals(len(outbox), 0)
+            self.assertEquals(len(outbox), 1)
+            self.assertTrue(
+                'A new City of Pittsburgh opportunity from Beacon' not in
+                [i.subject for i in outbox]
+            )
 
     def test_pending_notification_email(self):
-        '''Test we do send an email when the opportunity is published
+        '''Test we do send an email to vendors when the opportunity is advertised
         '''
         self.login_user(self.admin)
 
@@ -466,4 +470,4 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             ))
             self.assertTrue(self.opportunity3.is_published)
             self.assertTrue(self.opportunity3.is_public)
-            self.assertEquals(len(outbox), 1)
+            self.assertEquals(len(outbox), 2)

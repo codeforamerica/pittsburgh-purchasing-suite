@@ -1,0 +1,19 @@
+{% extends "opportunities/emails/base.html" %}
+
+{% block content %}
+<h2>OMB approved your opportunity post!</h2>
+
+<p>Great news! The OMB team has approved your post about a new opportunity, <a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}">{{ opportunity.title }}</a>. It will be published on Beacon on {{ opportunity.planned_advertise|datetimeformat('%m/%d/%y') }}. Businesses who have signed up for notifications for categories you chose will get an email on the publish date.
+</p>
+
+</p>
+<p>Have a question? Send it over to Kevin Forsythe at kevin.forsythe@pittsburghpa.gov.</p>
+
+<p>Thanks,<br>
+The Beacon team
+</p>
+{% endblock %}
+
+{% block footer %}
+<p><a href="{{ url_for('opportunities_admin.new', _external=True) }}">Post another opportunity</a> | <a href="{{ url_for('opportunities.splash', _external=True) }}">Beacon home</a>
+{% endblock %}
