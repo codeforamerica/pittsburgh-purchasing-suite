@@ -3,17 +3,20 @@
 
 import logging
 import os
-import types
 import sys
 import datetime
 
 from pkgutil import iter_modules
 from importlib import import_module
 
+from werkzeug.utils import import_string
+
 from flask import Flask, render_template, Blueprint
+from celery import Celery, signals
+
 from flask_login import current_user
 
-from purchasing.settings import ProdConfig
+from purchasing.settings import ProdConfig, DevConfig
 from purchasing.assets import assets, test_assets
 from purchasing.extensions import (
     bcrypt, cache, db, login_manager,
@@ -36,6 +39,13 @@ def log_file(app):
         os.makedirs(log_dir)
     return os.path.join(os.path.realpath(log_dir), 'app.log')
 
+def make_celery(config=DevConfig):
+    if isinstance(config, basestring):
+        config = import_string(config)
+    return Celery(__name__, broker=getattr(config, 'CELERY_BROKER_URL', 'sqla+postgresql://localhost/purchasing'))
+
+celery = make_celery(config=os.environ.get('CONFIG', DevConfig))
+
 def create_app(config_object=ProdConfig):
     '''An application factory, as explained here:
         http://flask.pocoo.org/docs/patterns/appfactories/
@@ -48,6 +58,18 @@ def create_app(config_object=ProdConfig):
     register_blueprints(app)
     register_jinja_extensions(app)
     register_errorhandlers(app)
+
+    celery.conf.update(app.config)
+    TaskBase = celery.Task
+
+    class ContextTask(TaskBase):
+        abstract = True
+
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+
+    celery.Task = ContextTask
 
     @app.before_first_request
     def before_first_request():

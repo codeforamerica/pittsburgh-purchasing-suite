@@ -17,13 +17,14 @@ from purchasing.opportunities.models import (
 from purchasing.users.models import (
     User, Role
 )
+
 from purchasing.opportunities.util import (
     fix_form_categories, generate_opportunity_form, build_opportunity,
     build_vendor_row
 )
-from purchasing.notifications import Notification
 
 from purchasing.opportunities.admin import blueprint
+from purchasing.notifications import Notification
 
 @login_manager.user_loader
 def load_user(userid):
@@ -55,7 +56,7 @@ def new():
         ).send(multi=True)
 
         Notification(
-            to_email=db.session.query(User.email).join(Role).filter(
+            to_email=db.session.query(User.email).join(Role, User.role_id == Role.id).filter(
                 Role.name.in_(['admin', 'superadmin'])
             ).all(),
             subject='A new Beacon post needs review',

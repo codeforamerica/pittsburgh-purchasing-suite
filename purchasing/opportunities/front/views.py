@@ -14,16 +14,17 @@ from purchasing.notifications import Notification
 from purchasing.opportunities.forms import UnsubscribeForm, VendorSignupForm, OpportunitySignupForm
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
+from purchasing.opportunities.front import blueprint
 from purchasing.opportunities.util import get_categories, fix_form_categories
 
 from purchasing.users.models import User, Role
-
-from purchasing.opportunities.front import blueprint
 
 @blueprint.route('/')
 def splash():
     '''Landing page for opportunities site
     '''
+    # test = something.delay()
+    # test.wait()
     return render_template(
         'opportunities/front/splash.html'
     )
@@ -83,7 +84,7 @@ def signup():
                 ).send()
 
                 if confirmation_sent:
-                    admins = db.session.query(User.email).join(Role).filter(
+                    admins = db.session.query(User.email).join(Role, User.role_id == Role.id).filter(
                         Role.name.in_(['admin', 'superadmin'])
                     ).all()
 

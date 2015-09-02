@@ -2,14 +2,19 @@
 
 import datetime
 
+from unittest import TestCase
+
+from purchasing.database import Model, RefreshSearchViewMixin, Column
+
 from purchasing.app import db
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
-    insert_a_company, insert_a_contract,
-    insert_a_user, get_a_role
+    insert_a_company, insert_a_user, get_a_role
 )
 
-from purchasing.data.models import LineItem
+from purchasing_test.unit.factories import ContractTypeFactory, ContractBaseFactory, ContractPropertyFactory
+
+from purchasing.data.models import LineItem, ContractBase
 
 class TestWexplorerSearch(BaseTestCase):
     render_templates = True
@@ -25,27 +30,39 @@ class TestWexplorerSearch(BaseTestCase):
         self.superadmin_user = insert_a_user(email='bar@foo.com', role=self.superadmin_role)
 
         # insert the companies/contracts
-        company_1 = insert_a_company(name='ship', insert_contract=False)
+        self.company_1 = insert_a_company(name='ship', insert_contract=False)
         company_2 = insert_a_company(name='boat', insert_contract=False)
 
-        insert_a_contract(
+        contract_type = ContractTypeFactory.create(name='test')
+
+        self.contract1 = ContractBaseFactory.create(
             description='vessel', companies=[company_2], line_items=[LineItem(description='NAVY')],
             expiration_date=datetime.datetime.today() + datetime.timedelta(1), is_archived=False,
-            financial_id='123'
+            financial_id='123', contract_type=contract_type
         )
-        insert_a_contract(
-            description='sail', financial_id='456', companies=[company_1],
+        ContractBaseFactory.create(
+            description='sail', financial_id='456', companies=[self.company_1],
             line_items=[LineItem(description='sunfish')], is_archived=False,
-            expiration_date=datetime.datetime.today() + datetime.timedelta(1)
+            expiration_date=datetime.datetime.today() + datetime.timedelta(1),
+            contract_type=contract_type
         )
-        insert_a_contract(
-            description='sunfish', financial_id='789', properties=[dict(key='foo', value='engine')],
-            expiration_date=datetime.datetime.today() + datetime.timedelta(1), is_archived=False
+        ContractBaseFactory.create(
+            description='sunfish', financial_id='789',
+            properties=[ContractPropertyFactory.create(key='foo', value='engine')],
+            expiration_date=datetime.datetime.today() + datetime.timedelta(1), is_archived=False,
+            contract_type=contract_type
         )
-        insert_a_contract(
-            description='sunfish', financial_id='012', properties=[dict(key='foo', value='engine')],
-            expiration_date=datetime.datetime.today() - datetime.timedelta(1), is_archived=False
+        ContractBaseFactory.create(
+            description='sunfish', financial_id='012',
+            properties=[ContractPropertyFactory.create(key='foo', value='engine')],
+            expiration_date=datetime.datetime.today() - datetime.timedelta(1), is_archived=False,
+            contract_type=contract_type
         )
+
+        # db.session.execute('''
+        #     REFRESH MATERIALIZED VIEW CONCURRENTLY search_view
+        # ''')
+        db.session.commit()
 
     def tearDown(self):
         db.session.execute('''DROP SCHEMA IF EXISTS public cascade;''')
@@ -58,6 +75,12 @@ class TestWexplorerSearch(BaseTestCase):
     def test_search(self):
         '''Check searches return properly: descriptions, names, properties, line items, financial ids
         '''
+
+        db.session.execute('''
+            REFRESH MATERIALIZED VIEW CONCURRENTLY search_view
+        ''')
+        db.session.commit()
+
         self.assert200(self.client.get('/scout/search?q=ship'))
         self.assertEquals(len(self.get_context_variable('results')), 1)
 
@@ -94,3 +117,51 @@ class TestWexplorerSearch(BaseTestCase):
         # make sure that archived contracts are properly handled
         self.assert200(self.client.get('/scout/search?archived=y&q='))
         self.assertEquals(len(self.get_context_variable('results')), 4)
+
+class FakeModel(RefreshSearchViewMixin, Model):
+    __tablename__ = 'fakefake'
+    __table_args__ = {'extend_existing': True}
+
+    id = Column(db.Integer, primary_key=True)
+    description = Column(db.String(255))
+
+    def __init__(self, *args, **kwargs):
+        super(FakeModel, self).__init__(*args, **kwargs)
+
+    @classmethod
+    def record_called(cls):
+        cls.called = True
+
+    @classmethod
+    def reset_called(cls):
+        cls.called = False
+
+    @classmethod
+    def event_handler(cls, *args, **kwargs):
+        return cls.record_called()
+
+class TestEventHandler(BaseTestCase):
+    def setUp(self):
+        super(TestEventHandler, self).setUp()
+        FakeModel.reset_called()
+
+    def test_init(self):
+        self.assertFalse(FakeModel.called)
+
+    def test_create(self):
+        FakeModel.create(description='abcd')
+        self.assertTrue(FakeModel.called)
+
+    def test_update(self):
+        fake_model = FakeModel.create(description='abcd')
+        FakeModel.reset_called()
+        self.assertFalse(FakeModel.called)
+        fake_model.update(description='efgh')
+        self.assertTrue(FakeModel.called)
+
+    def test_delete(self):
+        fake_model = FakeModel.create(description='abcd')
+        FakeModel.reset_called()
+        self.assertFalse(FakeModel.called)
+        fake_model.delete()
+        self.assertTrue(FakeModel.called)

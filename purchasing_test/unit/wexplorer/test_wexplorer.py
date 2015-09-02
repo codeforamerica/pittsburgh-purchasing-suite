@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from flask import current_app
 from flask_login import current_user
-from purchasing.extensions import mail, db
+from purchasing.extensions import mail
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
     insert_a_company, insert_a_contract,
@@ -11,7 +10,6 @@ from purchasing_test.unit.util import (
 from purchasing_test.unit.factories import DepartmentFactory
 
 from purchasing.data.models import ContractBase, LineItem, ContractNote
-from purchasing.data.contracts import get_one_contract
 
 class TestWexplorer(BaseTestCase):
     render_templates = True
@@ -42,7 +40,7 @@ class TestWexplorer(BaseTestCase):
             line_items=[LineItem(description='sunfish')]
         )
         self.contract2 = insert_a_contract(
-            description='sunfish', financial_id=456, properties=[dict(key='foo', value='engine')]
+            description='sunfish', financial_id=456
         )
 
     def test_explore(self):

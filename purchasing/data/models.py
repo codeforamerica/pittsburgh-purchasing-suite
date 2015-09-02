@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import TSVECTOR, JSON
 from sqlalchemy.schema import Table, Sequence
 from sqlalchemy.orm import backref
 
-from purchasing.database import Column, Model, db, ReferenceCol
+from purchasing.database import Column, Model, db, ReferenceCol, RefreshSearchViewMixin
 from purchasing.filters import days_from_today
 
 TRIGGER_TUPLES = [
@@ -49,7 +49,7 @@ class SearchView(Model):
     line_item_description = Column(db.Text)
     tsv_line_item_description = Column(TSVECTOR)
 
-class Company(Model):
+class Company(RefreshSearchViewMixin, Model):
     __tablename__ = 'company'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -63,7 +63,7 @@ class Company(Model):
     def __unicode__(self):
         return self.company_name
 
-class CompanyContact(Model):
+class CompanyContact(RefreshSearchViewMixin, Model):
     __tablename__ = 'company_contact'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -97,7 +97,7 @@ class ContractType(Model):
     def __unicode__(self):
         return self.name
 
-class ContractBase(Model):
+class ContractBase(RefreshSearchViewMixin, Model):
     __tablename__ = 'contract'
 
     id = Column(db.Integer, primary_key=True)
@@ -125,7 +125,7 @@ class ContractBase(Model):
     assigned_to = ReferenceCol('users', ondelete='SET NULL', nullable=True)
     assigned = db.relationship('User', backref=backref(
         'assignments', lazy='dynamic', cascade='none'
-    ))
+    ), foreign_keys=assigned_to)
 
     department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True)
     department = db.relationship('Department', backref=backref(
@@ -193,7 +193,7 @@ class ContractBase(Model):
             self.current_stage_id == self.flow.stage_order[-1] and \
             self.get_current_stage().exited is not None
 
-class ContractProperty(Model):
+class ContractProperty(RefreshSearchViewMixin, Model):
     __tablename__ = 'contract_property'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -218,15 +218,16 @@ class ContractNote(Model):
     note = Column(db.Text)
     created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
     updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
+
     taken_by_id = ReferenceCol('users', ondelete='SET NULL', nullable=True)
     taken_by = db.relationship('User', backref=backref(
         'contract_note', lazy='dynamic', cascade=None
-    ))
+    ), foreign_keys=taken_by_id)
 
     def __unicode__(self):
         return self.note
 
-class LineItem(Model):
+class LineItem(RefreshSearchViewMixin, Model):
     __tablename__ = 'line_item'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -351,10 +352,11 @@ class ContractStageActionItem(Model):
     action_type = Column(db.String(255))
     action_detail = Column(JSON)
     taken_at = Column(db.DateTime, default=datetime.datetime.now())
+
     taken_by = ReferenceCol('users', ondelete='SET NULL', nullable=True)
     taken_by_user = db.relationship('User', backref=backref(
         'contract_stage_actions', lazy='dynamic'
-    ))
+    ), foreign_keys=taken_by)
 
     def __unicode__(self):
         return self.action

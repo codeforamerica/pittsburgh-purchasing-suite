@@ -18,6 +18,9 @@ class BaseTestCase(FlaskTestCase):
 
     def setUp(self):
         db.create_all()
+        self.app.config['CELERY_ALWAYS_EAGER'] = True
+        self.app.config['BROKER_BACKEND'] = 'memory'
+        self.app.config['CELERY_EAGER_PROPAGATES_EXCEPTIONS'] = True
 
     def tearDown(self):
         db.session.remove()

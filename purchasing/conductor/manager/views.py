@@ -36,7 +36,6 @@ from purchasing.conductor.util import (
 )
 
 from purchasing.opportunities.util import generate_opportunity_form
-
 from purchasing.conductor.manager import blueprint
 
 @blueprint.route('/')
@@ -57,7 +56,7 @@ def index():
         Stage, Stage.id == ContractBase.current_stage_id
     ).join(
         Flow, Flow.id == ContractBase.flow_id
-    ).join(User).filter(
+    ).join(User, User.id == ContractBase.assigned_to).filter(
         ContractStage.entered != None,
         ContractBase.assigned_to != None,
         ContractStage.flow_id == ContractBase.flow_id,
@@ -76,7 +75,7 @@ def index():
         ContractBase.is_visible == True
     ).order_by(ContractBase.expiration_date).all()
 
-    conductors = User.query.join(Role).filter(
+    conductors = User.query.join(Role, User.role_id == Role.id).filter(
         Role.name == 'conductor',
         User.email != current_user.email
     ).all()

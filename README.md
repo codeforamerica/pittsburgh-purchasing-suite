@@ -23,7 +23,7 @@ The purchasing suite is a project of the 2015 Pittsburgh Code for America [fello
 
 ## How
 #### Core Dependencies
-The purchasing suite is a [Flask](http://flask.pocoo.org/) app. It uses [Postgres](http://www.postgresql.org/) for a database and uses [bower](http://bower.io/) to manage most of its dependencies. It also uses [less](http://lesscss.org/) to compile style assets. Big thanks to the [cookiecutter-flask](https://github.com/sloria/cookiecutter-flask) project for a nice kickstart.
+The purchasing suite is a [Flask](http://flask.pocoo.org/) app. It uses [Postgres](http://www.postgresql.org/) for a database and uses [bower](http://bower.io/) to manage most of its dependencies. It also uses [less](http://lesscss.org/) to compile style assets. In production, the project uses [Celery](http://celery.readthedocs.org/en/latest/) with [Redis](http://redis.io/) as a broker to handle backgrounding various tasks. Big thanks to the [cookiecutter-flask](https://github.com/sloria/cookiecutter-flask) project for a nice kickstart.
 
 It is highly recommended that you use use [virtualenv](https://readthedocs.org/projects/virtualenv/) (and [virtualenvwrapper](https://virtualenvwrapper.readthedocs.org/en/latest/) for convenience). For a how-to on getting set up, please consult this [howto](https://github.com/codeforamerica/howto/blob/master/Python-Virtualenv.md). Additionally, you'll need node to install bower (see this [howto](https://github.com/codeforamerica/howto/blob/master/Node.js.md) for more on Node), and it is recommended that you use [postgres.app](http://postgresapp.com/) to handle your Postgres (assuming you are developing on OSX).
 
@@ -117,6 +117,38 @@ Now you should be ready to roll with some seed data to get you started!
 # run the server
 python manage.py server
 ```
+
+**Celery and Redis**
+
+To get started with development, you won't need to do any additional setup. However, if you want to emulate the production environment on your local system, you will need to install Redis and configure Celery. To do everything, you'll need to run Redis (our broker), Celery (our task queue), and the app itself all at the same time.
+
+Get started by installing redis. On OSX, you can use [homebrew](http://brew.sh/):
+
+```bash
+brew install redis
+```
+
+Once this is all installed, you should see a handy command you can use to start the Redis cluster locally (something like the following):
+
+```bash
+redis-server /usr/local/etc/redis.conf
+```
+
+Now, redis should be up and running. Before we launch our web app, we'll need to configure it to use our Celery/Redis task queue as opposed to using the [eager fake queue](http://celery.readthedocs.org/en/latest/configuration.html#celery-always-eager). Navgate to `purchasing/settings.py`. In the `DevConfig`, there should be three settings related to Celery. Commenting out `CELERY_ALWAYS_EAGER` and un-commenting `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` will signal the app to use Redis for Celery's broker.
+
+At this point, you'll be abel to boot up the celery worker. Our app's celery workers live in `purchasing/celery_worker.py`. Start them as follows:
+
+```bash
+celery --app=purchasing.celery_worker:celery worker --loglevel=debug
+```
+
+You can log at a higher level than debug (info, for example), if you want to get fewer messages.  Finally, we'll need to start our web app. You can do this as normal:
+
+```bash
+python manage.py server
+```
+
+When all of these are running, you should be ready to go!
 
 #### Testing
 
