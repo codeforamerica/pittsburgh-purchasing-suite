@@ -55,6 +55,7 @@ common.js
 beacon.js
 wexplorer.js
 conductor.js
+admin.js
 
 # App logs (from foreman)
 log

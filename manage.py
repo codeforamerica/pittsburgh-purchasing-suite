@@ -17,7 +17,7 @@ from purchasing.utils import (
 
 from purchasing.public.models import AppStatus
 
-app = create_app(os.environ.get('CONFIG', DevConfig))
+app = create_app()
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 TEST_PATH = os.path.join(HERE, 'tests')

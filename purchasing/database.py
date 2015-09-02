@@ -136,7 +136,7 @@ def refresh_search_view(mapper, connection, target):
 class RefreshSearchViewMixin(object):
     @classmethod
     def event_handler(cls, *args, **kwargs):
-        return refresh_search_view
+        return refresh_search_view(*args, **kwargs)
 
     @classmethod
     def __declare_last__(cls):

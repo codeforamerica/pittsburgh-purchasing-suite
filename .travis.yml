@@ -3,6 +3,8 @@ python:
 - '2.7'
 install: pip install -r requirements/dev.txt
 cache: pip
+env:
+- CONFIG='purchasing.settings.TestConfig'
 before_script:
 - psql -c 'create database purchasing_test;' -U postgres
 script: PYTHONPATH=. nosetests purchasing_test/ --with-coverage --cover-package=purchasing

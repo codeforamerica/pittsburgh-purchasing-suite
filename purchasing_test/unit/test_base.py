@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 from mock import Mock, patch
 from flask.ext.testing import TestCase as FlaskTestCase
 
@@ -14,7 +16,8 @@ class BaseTestCase(FlaskTestCase):
     A base test case that boots our app
     '''
     def create_app(self):
-        return _create_app(TestConfig)
+        os.environ['CONFIG'] = 'purchasing.settings.TestConfig'
+        return _create_app()
 
     def setUp(self):
         db.create_all()

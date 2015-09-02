@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 '''The app module, containing the app factory function.'''
 
+import sys
 import logging
 import os
-import sys
 import datetime
 
 from pkgutil import iter_modules
@@ -12,11 +12,10 @@ from importlib import import_module
 from werkzeug.utils import import_string
 
 from flask import Flask, render_template, Blueprint
-from celery import Celery, signals
+from celery import Celery
 
 from flask_login import current_user
 
-from purchasing.settings import ProdConfig, DevConfig
 from purchasing.assets import assets, test_assets
 from purchasing.extensions import (
     bcrypt, cache, db, login_manager,
@@ -39,21 +38,25 @@ def log_file(app):
         os.makedirs(log_dir)
     return os.path.join(os.path.realpath(log_dir), 'app.log')
 
-def make_celery(config=DevConfig):
+def make_celery():
+    config = os.environ['CONFIG']
     if isinstance(config, basestring):
         config = import_string(config)
     return Celery(__name__, broker=getattr(config, 'CELERY_BROKER_URL', 'sqla+postgresql://localhost/purchasing'))
 
-celery = make_celery(config=os.environ.get('CONFIG', DevConfig))
+celery = make_celery()
 
-def create_app(config_object=ProdConfig):
+def create_app():
     '''An application factory, as explained here:
         http://flask.pocoo.org/docs/patterns/appfactories/
 
-    :param config_object: The configuration object to use.
+    :param config: A config object or import path to the config object string.
     '''
+    config = os.environ['CONFIG']
+    if isinstance(config, basestring):
+        config = import_string(config)
     app = Flask(__name__)
-    app.config.from_object(config_object)
+    app.config.from_object(config)
     register_extensions(app)
     register_blueprints(app)
     register_jinja_extensions(app)
