@@ -141,6 +141,7 @@ def build_opportunity(data, publish=None, opportunity=None):
     data.update(dict(contact_id=contact.id))
 
     if opportunity:
+        data.pop('publish_notification_sent', None)
         opportunity = opportunity.update(**data)
     else:
         data.update(dict(created_by_id=current_user.id))

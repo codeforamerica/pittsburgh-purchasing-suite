@@ -258,7 +258,7 @@ def do_work():
     from purchasing.jobs.job_base import JobStatus
     jobs = JobStatus.query.filter(JobStatus.status == 'new').all()
     for job in jobs:
-        task = getattr(nightly_jobs, job.name)
+        task = getattr(nightly_jobs, job.name)()
         task.run_job(job)
 
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))

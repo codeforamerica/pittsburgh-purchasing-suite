@@ -151,6 +151,7 @@ def publish(opportunity_id):
             ).send(multi=True)
 
             opportunity.publish_notification_sent = True
+            db.session.commit()
 
         return redirect(url_for('opportunities_admin.pending'))
     abort(404)

@@ -34,7 +34,7 @@ def upgrade():
     op.alter_column('opportunity', 'planned_open', new_column_name='planned_submission_start')
     op.alter_column('opportunity', 'planned_deadline', new_column_name='planned_submission_end')
 
-    op.add_column('opportunity', sa.Column('publish_notification_sent', sa.Boolean(), nullable=True))
+    op.add_column('opportunity', sa.Column('publish_notification_sent', sa.Boolean(), nullable=False, server_default=sa.schema.DefaultClause('false')))
     ### end Alembic commands ###
 
 
