@@ -19,6 +19,8 @@ class Config(object):
     MAIL_DEFAULT_SENDER = 'beaconbot@pittsburghpurchasingsuite.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
+    MAIL_USERNAME = os_env.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
     UPLOAD_S3 = True
     UPLOAD_DESTINATION = 'pittsburgh-purchasing-opportunities'
     MAX_CONTENT_LENGTH = int(os_env.get('MAX_CONTENT_LENGTH', 2 * 1024 * 1024))  # max file size, default 2mb

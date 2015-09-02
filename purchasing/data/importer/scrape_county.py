@@ -345,4 +345,4 @@ def main(_all=None):
     print 'Completed! Parsed {ix} records, ({skipped} skipped)'.format(
         ix=added, skipped=skipped
     )
-    return
+    return added, skipped

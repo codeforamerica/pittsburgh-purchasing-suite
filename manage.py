@@ -17,6 +17,8 @@ from purchasing.utils import (
 
 from purchasing.public.models import AppStatus
 
+from purchasing.jobs import *
+
 app = create_app()
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -245,6 +247,20 @@ def reset_conductor():
     )
     db.session.commit()
     return
+
+@manager.command
+def schedule_work():
+    from purchasing.jobs import JobBase
+    for job in JobBase.jobs:
+        job().schedule_job()
+
+@manager.command
+def do_work():
+    from purchasing.jobs.job_base import JobStatus
+    jobs = JobStatus.query.filter(JobStatus.status == 'new').all()
+    for job in jobs:
+        task = globals()[job.name]()
+        task.run_job(job)
 
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))
 manager.add_command('shell', Shell(make_context=_make_context))
