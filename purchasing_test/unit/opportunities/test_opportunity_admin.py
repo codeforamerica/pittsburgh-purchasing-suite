@@ -51,27 +51,27 @@ class TestOpportunitiesAdminBase(BaseTestCase):
         self.document = insert_a_document()
         self.opportunity1 = insert_an_opportunity(
             contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
-            is_public=True, planned_advertise=datetime.date.today() + datetime.timedelta(1),
-            planned_open=datetime.date.today() + datetime.timedelta(2),
-            planned_deadline=datetime.date.today() + datetime.timedelta(2)
+            is_public=True, planned_publish=datetime.date.today() + datetime.timedelta(1),
+            planned_submission_start=datetime.date.today() + datetime.timedelta(2),
+            planned_submission_end=datetime.date.today() + datetime.timedelta(2)
         )
         self.opportunity2 = insert_an_opportunity(
             contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
-            is_public=True, planned_advertise=datetime.date.today(),
-            planned_open=datetime.date.today() + datetime.timedelta(2),
-            planned_deadline=datetime.date.today() + datetime.timedelta(2)
+            is_public=True, planned_publish=datetime.date.today(),
+            planned_submission_start=datetime.date.today() + datetime.timedelta(2),
+            planned_submission_end=datetime.date.today() + datetime.timedelta(2)
         )
         self.opportunity3 = insert_an_opportunity(
             contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
-            is_public=True, planned_advertise=datetime.date.today() - datetime.timedelta(2),
-            planned_open=datetime.date.today() - datetime.timedelta(2),
-            planned_deadline=datetime.date.today() - datetime.timedelta(1)
+            is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(2),
+            planned_submission_start=datetime.date.today() - datetime.timedelta(2),
+            planned_submission_end=datetime.date.today() - datetime.timedelta(1)
         )
         self.opportunity4 = insert_an_opportunity(
             contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
-            is_public=True, planned_advertise=datetime.date.today() - datetime.timedelta(1),
-            planned_open=datetime.date.today(),
-            planned_deadline=datetime.date.today() + datetime.timedelta(2), title='TEST TITLE!'
+            is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(1),
+            planned_submission_start=datetime.date.today(),
+            planned_submission_end=datetime.date.today() + datetime.timedelta(2), title='TEST TITLE!'
         )
 
     def tearDown(self):
@@ -105,9 +105,9 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         data = {
             'department': str(self.department1.id), 'contact_email': self.admin.email,
             'title': 'NEW_OPPORTUNITY', 'description': 'test',
-            'planned_advertise': datetime.date.today(),
-            'planned_open': datetime.date.today(),
-            'planned_deadline': datetime.date.today() + datetime.timedelta(1),
+            'planned_publish': datetime.date.today(),
+            'planned_submission_start': datetime.date.today(),
+            'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
             'is_public': False, 'subcategories-1': 'on', 'subcategories-2': 'on',
             'subcategories-3': 'on', 'subcategories-4': 'on'
         }
@@ -147,9 +147,9 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
             'department': str(self.department1.id),
             'contact_email': 'new_email@foo.com',
             'title': 'test', 'description': 'test',
-            'planned_advertise': datetime.date.today(),
-            'planned_open': datetime.date.today(),
-            'planned_deadline': datetime.date.today() + datetime.timedelta(1),
+            'planned_publish': datetime.date.today(),
+            'planned_submission_start': datetime.date.today(),
+            'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
             'is_public': False
         }
 
@@ -172,9 +172,9 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         bad_data = {
             'department': str(self.department1.id), 'contact_email': self.staff.email,
             'title': None, 'description': None,
-            'planned_advertise': datetime.date.today(),
-            'planned_open': datetime.date.today(),
-            'planned_deadline': datetime.date.today() + datetime.timedelta(1),
+            'planned_publish': datetime.date.today(),
+            'planned_submission_start': datetime.date.today(),
+            'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
             'save_type': 'save'
         }
 
@@ -186,7 +186,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
 
         bad_data['title'] = 'Foo'
         bad_data['description'] = 'Bar'
-        bad_data['planned_deadline'] = datetime.date.today() - datetime.timedelta(1)
+        bad_data['planned_submission_end'] = datetime.date.today() - datetime.timedelta(1)
 
         # assert you can't create a contract with an expired deadline
         new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
@@ -201,7 +201,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.assertTrue('Text cannot be more than 500 words!' in new_contract.data)
 
         bad_data['description'] = 'Just right.'
-        bad_data['planned_deadline'] = datetime.date.today() + datetime.timedelta(1)
+        bad_data['planned_submission_end'] = datetime.date.today() + datetime.timedelta(1)
 
         new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
         self.assert_flashes('Opportunity post submitted to OMB!', 'alert-success')
@@ -231,7 +231,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.assertEquals(len(self.get_context_variable('upcoming')), 1)
 
         self.client.post('/beacon/admin/opportunities/{}'.format(self.opportunity2.id), data={
-            'planned_open': datetime.date.today(), 'title': 'Updated', 'is_public': True,
+            'planned_submission_start': datetime.date.today(), 'title': 'Updated', 'is_public': True,
             'description': 'Updated Contract!', 'save_type': 'public'
         })
 
@@ -444,7 +444,8 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         '''Test we don't send an email when the opportunity is not published
         '''
         self.login_user(self.admin)
-        self.opportunity3.planned_advertise = datetime.date.today() + datetime.timedelta(1)
+        self.opportunity3.planned_publish = datetime.date.today() + datetime.timedelta(1)
+        self.assertFalse(self.opportunity3.publish_notification_sent)
         db.session.commit()
 
         with mail.record_messages() as outbox:
@@ -453,6 +454,7 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             ))
             self.assertFalse(self.opportunity3.is_published)
             self.assertTrue(self.opportunity3.is_public)
+            self.assertFalse(self.opportunity3.publish_notification_sent)
             self.assertEquals(len(outbox), 1)
             self.assertTrue(
                 'A new City of Pittsburgh opportunity from Beacon' not in
@@ -463,6 +465,7 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         '''Test we do send an email to vendors when the opportunity is advertised
         '''
         self.login_user(self.admin)
+        self.assertFalse(self.opportunity3.publish_notification_sent)
 
         with mail.record_messages() as outbox:
             self.client.get('/beacon/admin/opportunities/{}/publish'.format(
@@ -470,4 +473,5 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             ))
             self.assertTrue(self.opportunity3.is_published)
             self.assertTrue(self.opportunity3.is_public)
+            self.assertTrue(self.opportunity3.publish_notification_sent)
             self.assertEquals(len(outbox), 2)

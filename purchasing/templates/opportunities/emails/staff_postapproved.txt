@@ -1,4 +1,4 @@
-Great news! The OMB team has approved your post about a new opportunity, {{ opportunity.title }}. It will be published on Beacon on {{ opportunity.planned_advertise|datetimeformat('%m/%d/%y') }}. Businesses who have signed up for notifications for categories you chose will get an email on the publish date.
+Great news! The OMB team has approved your post about a new opportunity, {{ opportunity.title }}. It will be published on Beacon on {{ opportunity.planned_publish|datetimeformat('%m/%d/%y') }}. Businesses who have signed up for notifications for categories you chose will get an email on the publish date.
 
 Have a question? Send it over to Kevin Forsythe at kevin.forsythe@pittsburghpa.gov.
 

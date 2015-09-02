@@ -21,7 +21,8 @@ class TestOpportunityModel(TestCase):
 
     def test_opportunity_open(self):
         open_opportunity = OpportunityFactory.build(
-            is_public=True, planned_advertise=self.yesterday, planned_open=self.today, planned_deadline=self.tomorrow
+            is_public=True, planned_publish=self.yesterday,
+            planned_submission_start=self.today, planned_submission_end=self.tomorrow
         )
         self.assertTrue(open_opportunity.is_published)
         self.assertFalse(open_opportunity.is_upcoming)
@@ -30,7 +31,8 @@ class TestOpportunityModel(TestCase):
 
     def test_opportunity_notpublic(self):
         notpublic_opportunity = OpportunityFactory.build(
-            is_public=False, planned_advertise=self.yesterday, planned_open=self.today, planned_deadline=self.tomorrow
+            is_public=False, planned_publish=self.yesterday,
+            planned_submission_start=self.today, planned_submission_end=self.tomorrow
         )
         self.assertFalse(notpublic_opportunity.is_published)
         self.assertFalse(notpublic_opportunity.is_upcoming)
@@ -39,7 +41,8 @@ class TestOpportunityModel(TestCase):
 
     def test_opportunity_pending(self):
         pending_opportunity = OpportunityFactory.build(
-            is_public=True, planned_advertise=self.yesterday, planned_open=self.tomorrow, planned_deadline=self.tomorrow
+            is_public=True, planned_publish=self.yesterday,
+            planned_submission_start=self.tomorrow, planned_submission_end=self.tomorrow
         )
         self.assertTrue(pending_opportunity.is_published)
         self.assertTrue(pending_opportunity.is_upcoming)
@@ -48,7 +51,8 @@ class TestOpportunityModel(TestCase):
 
     def test_opportunity_closed(self):
         closed_opportunity = OpportunityFactory.build(
-            is_public=True, planned_advertise=self.yesterday, planned_open=self.yesterday, planned_deadline=self.yesterday
+            is_public=True, planned_publish=self.yesterday,
+            planned_submission_start=self.yesterday, planned_submission_end=self.yesterday
         )
         self.assertTrue(closed_opportunity.is_published)
         self.assertFalse(closed_opportunity.is_upcoming)
@@ -56,7 +60,8 @@ class TestOpportunityModel(TestCase):
         self.assertTrue(closed_opportunity.is_submission_end)
 
         closed_opportunity_today_deadline = OpportunityFactory.build(
-            is_public=True, planned_advertise=self.yesterday, planned_open=self.yesterday, planned_deadline=self.today
+            is_public=True, planned_publish=self.yesterday,
+            planned_submission_start=self.yesterday, planned_submission_end=self.today
         )
         self.assertTrue(closed_opportunity_today_deadline.is_published)
         self.assertFalse(closed_opportunity_today_deadline.is_upcoming)
@@ -74,16 +79,15 @@ class TestOpportunities(BaseTestCase):
     def test_templates(self):
         '''Test templates used, return 200
         '''
-
         # insert our opportunity, users
         admin_role = insert_a_role('admin')
         admin = insert_a_user(role=admin_role)
 
         opportunity = insert_an_opportunity(
             contact_id=admin.id, created_by_id=admin.id,
-            is_public=True, planned_advertise=datetime.date.today() - datetime.timedelta(1),
-            planned_open=datetime.date.today() + datetime.timedelta(2),
-            planned_deadline=datetime.date.today() + datetime.timedelta(2)
+            is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(1),
+            planned_submission_start=datetime.date.today() + datetime.timedelta(2),
+            planned_submission_end=datetime.date.today() + datetime.timedelta(2)
         )
 
         for rule in current_app.url_map.iter_rules():

@@ -8,7 +8,6 @@ from flask_migrate import MigrateCommand
 from flask.ext.assets import ManageAssets
 
 from purchasing.app import create_app
-from purchasing.settings import DevConfig, ProdConfig
 from purchasing.database import db
 from purchasing.utils import (
     connect_to_s3, upload_file, disable_triggers, enable_triggers,
@@ -17,7 +16,7 @@ from purchasing.utils import (
 
 from purchasing.public.models import AppStatus
 
-from purchasing.jobs import *
+from purchasing import jobs as nightly_jobs
 
 app = create_app()
 
@@ -259,7 +258,7 @@ def do_work():
     from purchasing.jobs.job_base import JobStatus
     jobs = JobStatus.query.filter(JobStatus.status == 'new').all()
     for job in jobs:
-        task = globals()[job.name]()
+        task = getattr(nightly_jobs, job.name)
         task.run_job(job)
 
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))

@@ -68,11 +68,11 @@ class Opportunity(Model):
         collection_class=set
     )
     # Date opportunity should be made public on beacon
-    planned_advertise = Column(db.DateTime, nullable=False)
+    planned_publish = Column(db.DateTime, nullable=False)
     # Date opportunity accepts responses
-    planned_open = Column(db.DateTime, nullable=False)
+    planned_submission_start = Column(db.DateTime, nullable=False)
     # Date opportunity stops accepting responses
-    planned_deadline = Column(db.DateTime, nullable=False)
+    planned_submission_end = Column(db.DateTime, nullable=False)
     # Created from contract
     created_from_id = ReferenceCol('contract', ondelete='cascade', nullable=True)
 
@@ -86,6 +86,8 @@ class Opportunity(Model):
     )
     is_public = Column(db.Boolean(), default=False)
 
+    publish_notification_sent = Column(db.Boolean, default=False)
+
     def coerce_to_date(self, field):
         if isinstance(field, datetime.datetime):
             return field.date()
@@ -95,21 +97,21 @@ class Opportunity(Model):
 
     @property
     def is_published(self):
-        return self.coerce_to_date(self.planned_advertise) <= datetime.date.today() and self.is_public
+        return self.coerce_to_date(self.planned_publish) <= datetime.date.today() and self.is_public
 
     @property
     def is_upcoming(self):
-        return self.coerce_to_date(self.planned_advertise) <= datetime.date.today() and \
+        return self.coerce_to_date(self.planned_publish) <= datetime.date.today() and \
             not self.is_submission_start and not self.is_submission_end and self.is_public
 
     @property
     def is_submission_start(self):
-        return self.coerce_to_date(self.planned_open) <= datetime.date.today() and \
+        return self.coerce_to_date(self.planned_submission_start) <= datetime.date.today() and \
             not self.is_submission_end and self.is_public
 
     @property
     def is_submission_end(self):
-        return self.coerce_to_date(self.planned_deadline) <= datetime.date.today() and self.is_public
+        return self.coerce_to_date(self.planned_submission_end) <= datetime.date.today() and self.is_public
 
     def can_view(self, user):
         '''Check if a user can see opportunity detail
@@ -127,12 +129,12 @@ class Opportunity(Model):
     def estimate_submission_start(self):
         '''Returns the month/year based on planned_submission_start
         '''
-        return self.planned_open.strftime('%B %d, %Y')
+        return self.planned_submission_start.strftime('%B %d, %Y')
 
     def estimate_submission_end(self):
         '''
         '''
-        return self.planned_deadline.strftime('%B %d, %Y')
+        return self.planned_submission_end.strftime('%B %d, %Y')
 
     def get_needed_documents(self):
         return RequiredBidDocument.query.filter(

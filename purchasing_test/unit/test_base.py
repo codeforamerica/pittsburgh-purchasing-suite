@@ -5,7 +5,6 @@ import os
 from mock import Mock, patch
 from flask.ext.testing import TestCase as FlaskTestCase
 
-from purchasing.settings import TestConfig
 from purchasing.app import create_app as _create_app, db
 
 import logging

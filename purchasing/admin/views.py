@@ -206,8 +206,8 @@ class OpportunityAdmin(AuthMixin, sqla.ModelView):
     column_list = ['contact', 'department', 'title', 'description', 'is_public']
 
     form_columns = [
-        'contact', 'department', 'title', 'description',
-        'planned_open', 'planned_deadline', 'is_public'
+        'contact', 'department', 'title', 'description', 'planned_publish',
+        'planned_submission_start', 'planned_submission_end', 'is_public'
     ]
 
 admin.add_view(ScoutContractAdmin(
