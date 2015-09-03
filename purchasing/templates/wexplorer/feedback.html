@@ -7,13 +7,21 @@
 <div class="container">
   <div class="row">
     <div class="col-sm-12">
+      {% if contract.id %}
       <form class="form form-horizontal" method="POST" action="{{ url_for('wexplorer.feedback', contract_id=contract.id) }}">
+      {% else %}
+      <form class="form form-horizontal" method="POST" action="{{ url_for('wexplorer.search_feedback', search_for=search_for) }}">
+      {% endif %}
         {{ feedback_form.csrf_token() }}
         <div class="form-group">
           <label class="col-md-3 control-label">Feedback about:</label>
           <div class="col-md-6">
             <div class="form-descriptive-text">
+              {% if contract.id %}
               <a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">{{ contract.description }}</a>
+              {% else %}
+              Empty search results for "{{ search_for }}"
+              {% endif %}
             </div>
           </div>
         </div>
