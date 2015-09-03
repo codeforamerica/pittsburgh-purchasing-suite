@@ -1,7 +1,7 @@
-<p>Feedback received on <a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">Contract {{ contract.id }}</a> ({{ contract.description }}).</p>
+<p>Feedback received on <a href="{{ url_for('wexplorer.contract', contract_id=contract.id, _external=True) }}">Contract {{ contract.id }}</a> ({{ contract.description }}).</p>
 
 <p>Comment:</p>
 
 <p>{{- body -}}</p>
 
-<p>Received from: {{- sender -}}</p>
+<p>Received from: {{ sender -}}</p>

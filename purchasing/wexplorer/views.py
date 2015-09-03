@@ -294,7 +294,7 @@ def feedback(contract_id):
                 to_email=db.session.query(User.email).join(Role, User.role_id == Role.id).filter(
                     Role.name.in_(['admin', 'superadmin'])
                 ).all(),
-                subject='Wexplorer contract feedback - ID: {id}, Description: {description}'.format(
+                subject='Scout contract feedback - ID: {id}, Description: {description}'.format(
                     id=contract.id,
                     description=contract.description
                 ), html_template='wexplorer/feedback_email.html',
