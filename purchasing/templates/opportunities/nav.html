@@ -10,12 +10,12 @@
 {% endblock %}
 
 {% block applinks_right %}
-<li><p class="navbar-text"><a href="{{ url_for('opportunities.browse') }}" class="navbar-link">Browse opportunities</a></p></li>
-<li><p class="navbar-text"><a href="{{ url_for('opportunities.signup') }}" class="navbar-link">Subscribe</a></p></li>
-<li><p class="navbar-text"><a href="{{ url_for('opportunities.manage') }}" class="navbar-link">Manage subscriptions</a></p></li>
+<li><a href="{{ url_for('opportunities.browse') }}" class="navbar-link">Browse opportunities</a></li>
+<li><a href="{{ url_for('opportunities.signup') }}" class="navbar-link">Subscribe</a></li>
+<li><a href="{{ url_for('opportunities.manage') }}" class="navbar-link">Manage subscriptions</a></li>
 {% if not current_user.is_anonymous() %}
 <li class="dropdown">
-  <a class="btn nav-dropdown-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+  <a class="dropdown-toggle navbar-link" data-toggle="dropdown" aria-expanded="false">
     Manage Opportunities
     <span class="caret"></span>
     <span class="sr-only">Toggle dropdown</span>
@@ -25,11 +25,11 @@
     <li><a href="{{ url_for('opportunities_admin.pending') }}">View pending opportunities</a></li>
     <li><a href="{{ url_for('opportunities_admin.signups') }}">Download vendor subscriptions</a></li>
     {% if current_user.is_conductor() %}
-    <li><a href="{{ url_for('admin.index') }}" class="navbar-link">Admin</a></li>
+    <li><a href="{{ url_for('admin.index') }}">Admin</a></li>
     {% endif %}
     <li role="separator" class="divider"></li>
     <li><a href="{{ url_for('public.home') }}"><i class="fa fa-home"></i> Pittsburgh Purchasing Suite</a></li>
-    <li><a class="navbar-link js-signout" href="#"><i class="fa fa-sign-out"></i> Sign Out</a></li>
+    <li><a class="js-signout" href="#"><i class="fa fa-sign-out"></i> Sign Out</a></li>
   </ul>
 </li>
 {% else %}

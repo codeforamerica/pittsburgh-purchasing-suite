@@ -5,12 +5,14 @@
 {% block brand %}<img class="nav-logo" src="{{ url_for('static', filename='img/scout_logo_binoculars.png') }}"><strong>Scout</strong>{% endblock %}
 
 {% block applinks %}
-<form id="search-box" method="GET" class="navbar-form navbar-left" action="{{ url_for('wexplorer.search') }}" role="search">
-  <div class="form-group">
-    {{ search_form.q(placeholder="I'm looking for...", class_="form-control") }}
-  </div>
-  <button type="submit" class="btn btn-success">Submit</button>
-</form>
+<li>
+  <form id="search-box" method="GET" class="form navbar-form" action="{{ url_for('wexplorer.search') }}" role="search">
+    <div class="form-group">
+      {{ search_form.q(placeholder="I'm looking for...", class_="form-control") }}
+    </div>
+    <button type="submit" class="btn btn-success">Submit</button>
+  </form>
+</li>
 
 <li class="dropdown">
   {% if choices|length > 0 %}
