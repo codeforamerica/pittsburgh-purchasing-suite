@@ -18,7 +18,7 @@ from purchasing.wexplorer.forms import (
 )
 from purchasing.data.searches import find_contract_metadata, return_all_contracts
 from purchasing.data.models import (
-    SearchView, ContractNote
+    SearchView, ContractNote, ContractBase
 )
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
@@ -270,12 +270,17 @@ def contract(contract_id):
         )
     abort(404)
 
-@blueprint.route('/contracts/<int:contract_id>/feedback', methods=['GET', 'POST'])
-def feedback(contract_id):
+def feedback_handler(contract_id=None, search_for=None):
     '''
     Allow user to send feedback on the data present in a specific contract
     '''
-    contract = get_one_contract(contract_id)
+    if contract_id:
+        contract = ContractBase.query.get(contract_id)
+    else:
+        contract = ContractBase(
+            description='Search term: ' + search_for
+        )
+
     search_form = SearchForm()
     if contract:
         form = FeedbackForm()
@@ -295,7 +300,7 @@ def feedback(contract_id):
                     Role.name.in_(['admin', 'superadmin'])
                 ).all(),
                 subject='Scout contract feedback - ID: {id}, Description: {description}'.format(
-                    id=contract.id,
+                    id=contract.id if contract.id else 'N/A',
                     description=contract.description
                 ), html_template='wexplorer/feedback_email.html',
                 contract=contract, sender=form.data.get('sender'),
@@ -307,16 +312,27 @@ def feedback(contract_id):
             else:
                 flash('Oh no! Something went wrong. We are looking into it.', 'alert-danger')
 
-            return redirect(url_for('wexplorer.contract', contract_id=contract.id))
+            if contract.id:
+                return redirect(url_for('wexplorer.contract', contract_id=contract.id))
+            return redirect(url_for('wexplorer.explore'))
 
         return render_template(
             'wexplorer/feedback.html',
             search_form=search_form,
             contract=contract,
             choices=get_department_choices(),
-            feedback_form=form
+            feedback_form=form,
+            search_for=search_for
         )
     abort(404)
+
+@blueprint.route('/contracts/feedback/<search_for>', methods=['GET', 'POST'])
+def search_feedback(search_for):
+    return feedback_handler(search_for=search_for)
+
+@blueprint.route('/contracts/<int:contract_id>/feedback', methods=['GET', 'POST'])
+def feedback(contract_id):
+    return feedback_handler(contract_id=contract_id)
 
 @blueprint.route('/contracts/<int:contract_id>/subscribe')
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')

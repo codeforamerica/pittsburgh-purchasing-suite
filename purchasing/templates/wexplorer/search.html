@@ -122,6 +122,8 @@
 
     <div class="row text-center">
       <h4>There are no results!</h4>
+
+      <p>Is this a mistake? <a href="{{ url_for('wexplorer.search', q=request.args.get('q'), archived='y') }}">Try including expired contracts in your search</a>, or <a href="{{ url_for('wexplorer.search_feedback', search_for=request.args.get('q')) }}">send us feedback</a>.</p>
     </div>
 
     {% endif %}
