@@ -1,0 +1,6 @@
+{{ contract.description|title }} will expire on {{ contract.expiration_date }}. If you have specific requests for OMB as they work on renewing or bidding this contract back out, send them an email soon.
+
+For details about this contract, visit the detail page here: {{ url_for('wexplorer.contract', contract_id=contract.id, _external=True) }}
+
+Thanks,
+The Scout Auto-Update Bot
