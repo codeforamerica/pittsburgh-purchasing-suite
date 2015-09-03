@@ -19,10 +19,10 @@
          <div class="status status-complete">
           {% if opportunity.is_upcoming %}
           <p class="status-date"><strong>Accepting submissions soon!</strong> Submit your responses starting on {{ opportunity.estimate_submission_start() }}</p>
-          {% elif opportunity.is_open %}
+          {% elif opportunity.is_submission_start %}
           <h3>Accepting submissions</h3>
           <p>Responses are due by {{ opportunity.estimate_submission_end() }}</p>
-          {% elif opportunity.is_closed %}
+          {% elif opportunity.is_submission_end %}
           <h3>Closed</h3>
           <p>We are no longer accepting submissions.</p>
           {% endif %}
@@ -58,9 +58,9 @@
       {% include 'includes/flashes.html' %}
       <div class="col-sm-8">
 
-        {% if not opportunity.is_advertised %}
+        {% if not opportunity.is_published %}
            <div class="alert alert-warning beacon-detail" role="alert">
-              This opportunity will not be viewable by the general public until it's published on {{ opportunity.planned_advertise.strftime('%B %d, %Y') }}
+              This opportunity will not be viewable by the general public until it's published on {{ opportunity.planned_publish.strftime('%B %d, %Y') }}
           </div>
         {% endif %}
 
@@ -107,7 +107,7 @@
 
         <div class="row">
           <h3><strong>How do I bid?</strong></h3>
-          <p>Sealed proposals (3 printed copies and 1 digital copy on a CD or USB) must be received by noon on {{ opportunity.planned_deadline|datetimeformat('%B %d, %Y') }}. Postmarks are not sufficient. Proposals by fax and email will not be accepted.</p>
+          <p>Sealed proposals (3 printed copies and 1 digital copy on a CD or USB) must be received by noon on {{ opportunity.planned_submission_end|datetimeformat('%B %d, %Y') }}. Postmarks are not sufficient. Proposals by fax and email will not be accepted.</p>
 
           {% if has_docs > 0 %}<p>Mail or deliver proposals to the address detailed in the main solicitation document (RFP, IFB, RFQ). </p>{% endif %}
           {# TODO: generate a way to determine if something is city/county, have directions in an if/else in each place. #}

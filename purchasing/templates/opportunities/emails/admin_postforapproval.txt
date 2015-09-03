@@ -1,4 +1,4 @@
-{{ current_user.email }} has just submitted a new post to Beacon, "{{ opportunity.title }}". It needs your approval before it can be published on {{ opportunity.planned_advertise|datetimeformat('%m/%d/%y') }}. Review it on the Beacon pending page here: {{ url_for('opportunities_admin.pending', opportunity_id=opportunity.id, _external=True) }}
+{{ current_user.email }} has just submitted a new post to Beacon, "{{ opportunity.title }}". It needs your approval before it can be published on {{ opportunity.planned_publish|datetimeformat('%m/%d/%y') }}. Review it on the Beacon pending page here: {{ url_for('opportunities_admin.pending', opportunity_id=opportunity.id, _external=True) }}
 
 Preview what potential vendors will see here: {{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}. The departmental contact for the opportunity is: {{ opportunity.contact.email }}
 

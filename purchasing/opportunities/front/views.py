@@ -240,7 +240,7 @@ def browse():
             return redirect(url_for('opportunities.browse'))
 
     opportunities = Opportunity.query.filter(
-        Opportunity.planned_deadline >= datetime.date.today()
+        Opportunity.planned_submission_end >= datetime.date.today()
     ).all()
 
     for opportunity in opportunities:

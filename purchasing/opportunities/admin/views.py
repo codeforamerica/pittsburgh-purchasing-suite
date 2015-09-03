@@ -150,6 +150,9 @@ def publish(opportunity_id):
                 opportunity=opportunity
             ).send(multi=True)
 
+            opportunity.publish_notification_sent = True
+            db.session.commit()
+
         return redirect(url_for('opportunities_admin.pending'))
     abort(404)
 
@@ -163,7 +166,7 @@ def pending():
     ).all()
 
     approved = Opportunity.query.filter(
-        Opportunity.planned_advertise > datetime.date.today(),
+        Opportunity.planned_submission_start > datetime.date.today(),
         Opportunity.is_public == True
     ).all()
 

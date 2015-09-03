@@ -74,17 +74,16 @@ def create_app():
 
     celery.Task = ContextTask
 
+    if app.testing:
+        app.logger.setLevel(logging.CRITICAL)
+
     @app.before_first_request
     def before_first_request():
         if app.debug and not app.testing:
             # log to console for dev
             app.logger.setLevel(logging.DEBUG)
 
-        elif app.testing:
-            # disable logging output
-            app.logger.setLevel(logging.CRITICAL)
-
-        else:
+        elif not app.testing:
             # for heroku, just send everything to the console (instead of a file)
             # and it will forward automatically to the logging service
 

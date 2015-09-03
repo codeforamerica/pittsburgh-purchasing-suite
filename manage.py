@@ -8,7 +8,6 @@ from flask_migrate import MigrateCommand
 from flask.ext.assets import ManageAssets
 
 from purchasing.app import create_app
-from purchasing.settings import DevConfig, ProdConfig
 from purchasing.database import db
 from purchasing.utils import (
     connect_to_s3, upload_file, disable_triggers, enable_triggers,
@@ -16,6 +15,8 @@ from purchasing.utils import (
 )
 
 from purchasing.public.models import AppStatus
+
+from purchasing import jobs as nightly_jobs
 
 app = create_app()
 
@@ -74,7 +75,6 @@ def import_old_contracts(filepath):
     print 'Enabling triggers...'
     enable_triggers()
     print 'Refreshing search_view...'
-    refresh_search_view()
     print 'Done!'
     return
 
@@ -100,7 +100,6 @@ def import_costars(user=None, secret=None, bucket=None, directory=None):
     print 'Import finished!'
     print 'Enabling triggers...'
     enable_triggers()
-    refresh_search_view()
     return
 
 @manager.option(
@@ -131,7 +130,6 @@ def scrape(_all):
     print 'Scraping Finished'
     print 'Enabling triggers...'
     enable_triggers()
-    refresh_search_view()
     return
 
 @manager.command
@@ -146,7 +144,6 @@ def delete_contracts():
         db.session.commit()
         print 'Enabling triggers...'
         enable_triggers()
-        refresh_search_view()
     return
 
 @manager.option('-u', '--user_id', dest='user')
@@ -245,6 +242,20 @@ def reset_conductor():
     )
     db.session.commit()
     return
+
+@manager.command
+def schedule_work():
+    from purchasing.jobs import JobBase
+    for job in JobBase.jobs:
+        job().schedule_job()
+
+@manager.command
+def do_work():
+    from purchasing.jobs.job_base import JobStatus
+    jobs = JobStatus.query.filter(JobStatus.status == 'new').all()
+    for job in jobs:
+        task = getattr(nightly_jobs, job.name)()
+        task.run_job(job)
 
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))
 manager.add_command('shell', Shell(make_context=_make_context))

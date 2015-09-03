@@ -37,6 +37,8 @@ class ProdConfig(Config):
     FLASK_ASSETS_USE_S3 = True
     S3_USE_HTTPS = True
     UGLIFYJS_EXTRA_ARGS = ['-m']
+    MAIL_USERNAME = os_env.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
     MAIL_SERVER = 'smtp.sendgrid.net'
     MAIL_MAX_EMAILS = 100
     CELERY_BROKER_URL = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
@@ -51,6 +53,8 @@ class DevConfig(Config):
     DEBUG_TB_ENABLED = False
     BROWSERID_URL = os_env.get('BROWSERID_URL', 'http://127.0.0.1:9000')
     MAIL_SERVER = 'smtp.gmail.com'  # Use gmail in dev: https://support.google.com/mail/answer/1173270?hl=en
+    MAIL_USERNAME = os_env.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
     ASSETS_DEBUG = True
     UPLOAD_S3 = False
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'uploads'))

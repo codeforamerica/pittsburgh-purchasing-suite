@@ -1,0 +1,16 @@
+{% extends "wexplorer/emails/base.html" %}
+
+{% block content %}
+<h2><a href="{{ url_for('wexplorer.contract', contract_id=contract.id, _external=True) }}">{{ contract.description|title }}</a> is expiring soon</h2>
+
+<p><a href="{{ url_for('wexplorer.contract', contract_id=contract.id, _external=True) }}">{{ contract.description|title }}</a> will expire on {{ contract.expiration_date }}. If you have specific requests for OMB as they work on renewing or bidding this contract back out, send them an email soon.
+</p>
+
+<p>Thanks,<br>
+The Scout Auto-Update Bot
+</p>
+{% endblock %}
+
+{% block footer %}
+<p><a href="{{ url_for('wexplorer.explore', _external=True) }}">Scout</a>
+{% endblock %}

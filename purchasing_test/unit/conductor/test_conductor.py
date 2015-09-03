@@ -472,9 +472,9 @@ class TestConductor(TestConductorSetup):
 
         self.client.post(detail_view_url + '?form=post', data=dict(
             contact_email=self.conductor.email, title='foobar', description='barbaz',
-            planned_advertise=datetime.date.today() + datetime.timedelta(1),
-            planned_open=datetime.date.today() + datetime.timedelta(2),
-            planned_deadline=datetime.date.today() + datetime.timedelta(2)
+            planned_publish=datetime.date.today() + datetime.timedelta(1),
+            planned_submission_start=datetime.date.today() + datetime.timedelta(2),
+            planned_submission_end=datetime.date.today() + datetime.timedelta(2)
         ))
 
         self.assertEquals(Opportunity.query.count(), 1)

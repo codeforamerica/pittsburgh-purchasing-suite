@@ -105,7 +105,7 @@ class Notification(object):
             )
             return False
 
-    def send(self, multi=False):
+    def send(self, multi=False, async=True):
         # send_mail(Notification, multi)
         msgs = []
         if multi:
@@ -114,5 +114,8 @@ class Notification(object):
         else:
             msgs.append(self.build_msg(self.to_email))
 
-        send_email.delay(msgs, multi=multi)
+        if async:
+            send_email.delay(msgs, multi=multi)
+        else:
+            send_email.run(msgs, multi=multi)
         return True
