@@ -15,6 +15,7 @@ from purchasing.opportunities.models import (
     Opportunity, RequiredBidDocument, OpportunityDocument, Category,
     Vendor
 )
+from purchasing.jobs.job_base import JobStatus
 
 class BaseFactory(SQLAlchemyModelFactory):
 
@@ -107,12 +108,16 @@ class CategoryFactory(BaseFactory):
 class OpportunityFactory(BaseFactory):
     id = factory.Sequence(lambda n: n + 100)
     department = factory.SubFactory(DepartmentFactory)
+    contact = factory.SubFactory(UserFactory)
+    created_by = factory.SubFactory(UserFactory)
 
     class Meta:
         model = Opportunity
 
 class VendorFactory(BaseFactory):
     id = factory.Sequence(lambda n: n)
+    email = factory.Sequence(lambda n: '{}@foo.com'.format(n))
+    business_name = factory.Sequence(lambda n: '{}'.format(n))
 
     class Meta:
         model = Vendor
@@ -124,3 +129,7 @@ class RequiredBidDocumentFactory(BaseFactory):
 class OpportunityDocumentFactory(BaseFactory):
     class Meta:
         model = OpportunityDocument
+
+class JobStatusFactory(BaseFactory):
+    class Meta:
+        model = JobStatus

@@ -58,5 +58,5 @@ class ScoutContractsExpireSoonJob(ScoutJobBase):
     def get_expiring_contracts(self):
         return ContractBase.query.filter(
             ContractBase.expiration_date ==
-            datetime.date.today() - datetime.timedelta(days=120),
+            datetime.date.today() + datetime.timedelta(days=120),
         ).all()

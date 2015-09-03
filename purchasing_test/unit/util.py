@@ -125,21 +125,21 @@ def insert_a_document(name='Foo', description='Bar'):
     return document
 
 def insert_an_opportunity(
-    contact_id=None, department=None,
+    contact=None, department=None,
     title='Test', description='Test',
     planned_publish=datetime.datetime.today(),
     planned_submission_start=datetime.datetime.today(),
     planned_submission_end=datetime.datetime.today() + datetime.timedelta(1),
     required_documents=[],
-    created_from_id=None, created_by_id=None, is_public=True
+    created_from_id=None, created_by=None, is_public=True
 ):
     department = department if department else DepartmentFactory()
     opportunity = OpportunityFactory.create(**dict(
-        department_id=department.id, contact_id=contact_id, title=title,
+        department_id=department.id, contact=contact, title=title,
         description=description, planned_publish=planned_publish,
         planned_submission_start=planned_submission_start,
         planned_submission_end=planned_submission_end,
-        created_from_id=created_from_id, created_by_id=created_by_id,
+        created_from_id=created_from_id, created_by=created_by,
         is_public=is_public
     ))
 

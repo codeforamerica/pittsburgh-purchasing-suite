@@ -50,25 +50,25 @@ class TestOpportunitiesAdminBase(BaseTestCase):
 
         self.document = insert_a_document()
         self.opportunity1 = insert_an_opportunity(
-            contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
+            contact=self.admin, created_by=self.staff, required_documents=[self.document],
             is_public=True, planned_publish=datetime.date.today() + datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
             planned_submission_end=datetime.date.today() + datetime.timedelta(2)
         )
         self.opportunity2 = insert_an_opportunity(
-            contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
+            contact=self.admin, created_by=self.staff, required_documents=[self.document],
             is_public=True, planned_publish=datetime.date.today(),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
             planned_submission_end=datetime.date.today() + datetime.timedelta(2)
         )
         self.opportunity3 = insert_an_opportunity(
-            contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
+            contact=self.admin, created_by=self.staff, required_documents=[self.document],
             is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(2),
             planned_submission_start=datetime.date.today() - datetime.timedelta(2),
             planned_submission_end=datetime.date.today() - datetime.timedelta(1)
         )
         self.opportunity4 = insert_an_opportunity(
-            contact_id=self.admin.id, created_by_id=self.staff.id, required_documents=[self.document],
+            contact=self.admin, created_by=self.staff, required_documents=[self.document],
             is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(1),
             planned_submission_start=datetime.date.today(),
             planned_submission_end=datetime.date.today() + datetime.timedelta(2), title='TEST TITLE!'

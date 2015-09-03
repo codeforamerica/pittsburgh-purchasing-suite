@@ -19,8 +19,6 @@ class BeaconNewOppotunityOpenJob(EmailJobBase):
                 Vendor.categories.any(Category.id.in_(opp_categories))
             ).all()
 
-            import pdb; pdb.set_trace()
-
             notifications.append(
                 Notification(
                     to_email=set([i.email for i in category_vendors] + [i.email for i in opportunity.vendors]),

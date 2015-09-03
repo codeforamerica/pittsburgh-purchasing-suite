@@ -8,7 +8,7 @@ from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
 from flask_admin.form.widgets import Select2Widget
 from purchasing.data.models import (
-    Stage, StageProperty, Flow, ContractBase, ContractProperty,
+    Stage, StageProperty, Flow, ContractBase, ContractProperty, ContractType,
     Company, CompanyContact, LineItem, company_contract_association_table
 )
 from purchasing.opportunities.models import RequiredBidDocument
@@ -47,13 +47,13 @@ class ContractBaseAdmin(AuthMixin, sqla.ModelView):
 
     column_labels = dict(
         contract_href='Link to Contract PDF', financial_id='Controller #',
-        properties='Contract Properties', expiration_date='Expiration', is_archived='Archived'
+        properties='Contract Properties', expiration_date='Expiration', is_archived='Archived',
     )
 
     form_args = {
         'financial_id': {
             'validators': [validate_integer]
-        }
+        },
     }
 
     def init_search(self):

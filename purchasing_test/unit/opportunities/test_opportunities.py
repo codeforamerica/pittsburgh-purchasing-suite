@@ -84,7 +84,7 @@ class TestOpportunities(BaseTestCase):
         admin = insert_a_user(role=admin_role)
 
         opportunity = insert_an_opportunity(
-            contact_id=admin.id, created_by_id=admin.id,
+            contact=admin, created_by=admin,
             is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
             planned_submission_end=datetime.date.today() + datetime.timedelta(2)
@@ -94,8 +94,8 @@ class TestOpportunities(BaseTestCase):
 
             _endpoint = rule.endpoint.split('.')
             # filters out non-beacon endpoints
-            if (len(_endpoint) > 1 and _endpoint[1] == 'static') or _endpoint[0] != ('opportunities',
-            'opportunities_admin'):
+            if (len(_endpoint) > 1 and _endpoint[1] == 'static') or \
+                _endpoint[0] != ('opportunities', 'opportunities_admin'):
                 continue
             else:
                 if '<int:' in rule.rule:

@@ -95,7 +95,7 @@ class ContractType(Model):
     name = Column(db.String(255))
 
     def __unicode__(self):
-        return self.name
+        return self.name if self.name else ''
 
 class ContractBase(RefreshSearchViewMixin, Model):
     __tablename__ = 'contract'

@@ -75,7 +75,6 @@ def import_old_contracts(filepath):
     print 'Enabling triggers...'
     enable_triggers()
     print 'Refreshing search_view...'
-    refresh_search_view()
     print 'Done!'
     return
 
@@ -101,7 +100,6 @@ def import_costars(user=None, secret=None, bucket=None, directory=None):
     print 'Import finished!'
     print 'Enabling triggers...'
     enable_triggers()
-    refresh_search_view()
     return
 
 @manager.option(
@@ -132,7 +130,6 @@ def scrape(_all):
     print 'Scraping Finished'
     print 'Enabling triggers...'
     enable_triggers()
-    refresh_search_view()
     return
 
 @manager.command
@@ -147,7 +144,6 @@ def delete_contracts():
         db.session.commit()
         print 'Enabling triggers...'
         enable_triggers()
-        refresh_search_view()
     return
 
 @manager.option('-u', '--user_id', dest='user')
