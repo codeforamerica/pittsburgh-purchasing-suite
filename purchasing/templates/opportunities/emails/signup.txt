@@ -10,7 +10,17 @@ You've signed up to receive notifications about the following categories:
 {% endfor %}
 {% endif %}
 
-Every 2 weeks, we’ll send a short summary of all opportunities that have been posted, so you don’t miss out on potential business. 
+As new opportunities are posted to Beacon, you'll get an email whenever one matches a category you've signed up for. In this email will be a link to the posting where you can learn more about the opportunity, including general timeline, instructions on how to respond, and where to send questions.
+
+Every two weeks, we’ll also send a short summary of all opportunities that have been posted, so you'll never miss out on potential business.
+
+Right now, Beacon is only for City of Pittsburgh opportunities. For postings from other governmental agencies in Pittsburgh, check out:
+- Bidnet (covering 8 Pennsylvania agencies, including Allegheny County): http://www.govbids.com/scripts/PAPG/public/OpenBids/ViewSolicitations.asp
+- The Urban Redevelopment Authority of Pittsburgh: http://www.ura.org/working_with_us/proposals.php
+- Port Authority: http://www.portauthority.org/paac/CompanyInfoProjects/DoingBusiness/Procurement/OpenPurchasingEvents.aspx
+- Pittsburgh Parking Authority: http://www.pittsburghparking.com/contract-bids
+- Housing Authority of the City of Pittsburgh: http://www.hacp.org/business-opportunities/vendor/procurements/get_terms
+- Pittsburgh Water and Sewer Authority: http://www.pgh2o.com/doing-business
 
 Thanks,
 The Beacon team
