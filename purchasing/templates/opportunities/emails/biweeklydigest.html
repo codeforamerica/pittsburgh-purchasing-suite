@@ -10,7 +10,7 @@
 
     <ul>
      {% for opportunity in opportunities %}
-        <li><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}">{{ opportunity.title }}</a></li>
+        <li><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}">{{ opportunity.title }}</a>, with a deadline to submit proposals on {{ opportunity.planned_submission_end|datetimeformat('%m/%d/%y') }}</li>
     {% endfor %}
     </ul>
 {% else %}
