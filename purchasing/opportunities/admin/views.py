@@ -20,7 +20,7 @@ from purchasing.users.models import (
 
 from purchasing.opportunities.util import (
     fix_form_categories, generate_opportunity_form, build_opportunity,
-    build_vendor_row
+    build_vendor_row, send_publish_email
 )
 
 from purchasing.opportunities.admin import blueprint
@@ -46,26 +46,8 @@ def new():
         form_data.pop('is_public')
         opportunity = build_opportunity(form_data, publish=request.form.get('save_type'))
         db.session.commit()
+        send_publish_email(opportunity)
         flash('Opportunity post submitted to OMB!', 'alert-success')
-
-        Notification(
-            to_email=[current_user.email],
-            subject='Your post has been sent to OMB for approval',
-            html_template='opportunities/emails/staff_postsubmitted.html',
-            txt_template='opportunities/emails/staff_postsubmitted.txt',
-            opportunity=opportunity
-        ).send(multi=True)
-
-        Notification(
-            to_email=db.session.query(User.email).join(Role, User.role_id == Role.id).filter(
-                Role.name.in_(['admin', 'superadmin'])
-            ).all(),
-            subject='A new Beacon post needs review',
-            html_template='opportunities/emails/admin_postforapproval.html',
-            txt_template='opportunities/emails/admin_postforapproval.txt',
-            opportunity=opportunity
-        ).send(multi=True)
-
         return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
 
     return render_template(
@@ -159,36 +141,7 @@ def publish(opportunity_id):
             )
         )
 
-        if opportunity.is_published:
-            opp_categories = [i.id for i in opportunity.categories]
-
-            vendors = Vendor.query.filter(
-                Vendor.categories.any(Category.id.in_(opp_categories))
-            ).all()
-
-            Notification(
-                to_email=[i.email for i in vendors],
-                subject='A new City of Pittsburgh opportunity from Beacon!',
-                html_template='opportunities/emails/newopp.html',
-                txt_template='opportunities/emails/newopp.txt',
-                opportunity=opportunity
-            ).send(multi=True)
-
-            opportunity.publish_notification_sent = True
-            db.session.commit()
-
-            current_app.logger.info(
-                '''BEACON PUBLISHED:
-                ID: {}
-                Title: {}
-                Publish Date: {}
-                Submission Start Date: {}
-                Submission End Date: {}
-                '''.format(
-                    opportunity.id, opportunity.description, str(opportunity.planned_publish),
-                    str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
-                )
-            )
+        send_publish_email(opportunity)
 
         return redirect(url_for('opportunities_admin.pending'))
     abort(404)

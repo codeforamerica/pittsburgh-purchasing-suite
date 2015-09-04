@@ -71,7 +71,8 @@ class TestOpportunitiesAdminBase(BaseTestCase):
             contact=self.admin, created_by=self.staff, required_documents=[self.document],
             is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(1),
             planned_submission_start=datetime.date.today(),
-            planned_submission_end=datetime.date.today() + datetime.timedelta(2), title='TEST TITLE!'
+            planned_submission_end=datetime.date.today() + datetime.timedelta(2),
+            title='TEST TITLE!'
         )
 
     def tearDown(self):
@@ -212,8 +213,8 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
             Opportunity.query.filter(Opportunity.description == 'Just right.').first().is_public
         )
 
-    def test_edit_a_contract(self):
-        '''Test updating a contract
+    def test_edit_an_opportunity(self):
+        '''Test updating an opportunity
         '''
         self.assertEquals(self.client.get('/beacon/admin/opportunities/{}'.format(
             self.opportunity2.id
@@ -475,3 +476,25 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             self.assertTrue(self.opportunity3.is_public)
             self.assertTrue(self.opportunity3.publish_notification_sent)
             self.assertEquals(len(outbox), 2)
+
+    def test_create_and_publish_opportunity_as_admin(self):
+        '''Test that 'publishing' an opportunity sends the proper emails
+        '''
+        self.login_user(self.admin)
+        self.assertEquals(Opportunity.query.count(), 4)
+
+        with mail.record_messages() as outbox:
+            self.client.post('/beacon/admin/opportunities/new', data={
+                'department': str(self.department1.id), 'contact_email': self.staff.email,
+                'title': 'foo', 'description': 'bar',
+                'planned_publish': datetime.date.today(),
+                'planned_submission_start': datetime.date.today(),
+                'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
+                'save_type': 'publish', 'subcategories-{}'.format(Category.query.all()[-1].id): 'on'
+            })
+
+            self.assertEquals(Opportunity.query.count(), 5)
+            # should send to the single vendor signed up to receive info
+            # about that category
+            self.assertEquals(len(outbox), 1)
+            self.assertEquals(outbox[0].subject, '[Pittsburgh Purchasing] A new City of Pittsburgh opportunity from Beacon!')
