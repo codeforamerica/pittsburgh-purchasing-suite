@@ -110,13 +110,6 @@ def detail(contract_id, stage_id=-1):
                 contract_id, current_user, destination=clicked
             )
             db.session.commit()
-
-            current_app.logger.info(
-                'CONDUCTOR TRANSITION | Contract for {} (ID: {}) transition to'.format(
-                    mod_contract.description, mod_contract.id, stage.stage.name
-                )
-            )
-
         except IntegrityError:
             db.session.rollback()
             pass
@@ -126,13 +119,29 @@ def detail(contract_id, stage_id=-1):
 
         if complete:
             url = url_for('conductor.edit', contract_id=mod_contract.id)
+            current_app.logger.info(
+                'CONDUCTOR TRANSITION - Contract for {} (ID: {}) transition to {}'.format(
+                    mod_contract.description, mod_contract.id, stage.stage.name
+                )
+            )
+
         else:
             url = url_for('conductor.detail', contract_id=contract_id, stage_id=stage.id)
+            current_app.logger.info(
+                'CONDUCTOR COMPLETE - Contract for {} (ID: {}) transition to {} (last stage)'.format(
+                    mod_contract.description, mod_contract.id, stage.stage.name
+                )
+            )
 
         return redirect(url)
 
     elif request.args.get('extend'):
         extended_contract = extend_a_contract(child_contract_id=contract_id, delete_child=False)
+        current_app.logger.info(
+            'CONDUCTOR EXTEND - Contract for {} (ID: {}) extended'.format(
+                extended_contract.description, extended_contract.id
+            )
+        )
         db.session.commit()
 
         flash(
@@ -146,8 +155,13 @@ def detail(contract_id, stage_id=-1):
         ))
 
     elif request.args.get('flow_switch'):
-        new_contract_stage = switch_flow(
+        new_contract_stage, contract = switch_flow(
             int(request.args.get('flow_switch')), contract_id, current_user
+        )
+        current_app.logger.info(
+            'CONDUCTOR FLOW SWITCH - Contract for {} (ID: {}) switched to new flow {}'.format(
+                contract.description, contract.id, contract.flow.flow_name
+            )
         )
         return redirect(url_for(
             'conductor.detail', contract_id=contract_id, stage_id=new_contract_stage.id
@@ -216,6 +230,12 @@ def detail(contract_id, stage_id=-1):
     subscribers, total_subscribers = build_subscribers(contract)
     flows = Flow.query.filter(Flow.id != contract.flow_id).all()
 
+    current_app.logger.info(
+        'CONDUCTOR DETAIL VIEW - Detail view for contract {} (ID: {}), stage {}'.format(
+            contract.description, contract.id, current_stage.name
+        )
+    )
+
     if len(stages) > 0:
         return render_template(
             'conductor/detail.html',
@@ -239,11 +259,13 @@ def delete_note(contract_id, stage_id, note_id):
     try:
         note = ContractStageActionItem.query.get(note_id)
         if note:
+            current_app.logger.info('Conductor note delete')
             note.delete()
             flash('Note deleted successfully!', 'alert-success')
         else:
             flash("That note doesn't exist!", 'alert-warning')
     except Exception, e:
+        current_app.logger.error('Conductor note delete error: {}'.format(str(e)))
         flash('Something went wrong: {}'.format(e.message), 'alert-danger')
     return redirect(url_for('conductor.detail', contract_id=contract_id))
 
@@ -271,6 +293,9 @@ def edit(contract_id):
                 # if there is no flow, that means that it is an extended contract
                 # so we will save it and return back to the conductor home page
                 contract, _ = update_contract_with_spec(contract, form.data)
+                current_app.logger.info('CONDUCTOR CONTRACT COMPLETE - contract metadata for "{}" updated'.format(
+                    contract.description
+                ))
                 session.pop('extend')
                 return redirect(url_for('conductor.index'))
         form.spec_number.data = contract.get_spec_number().value
@@ -289,6 +314,9 @@ def edit_company(contract_id):
         if form.validate_on_submit():
             cleaned = parse_companies(form.data)
             session['companies'] = json.dumps(cleaned, default=json_serial)
+            current_app.logger.info('CONDUCTOR CONTRACT COMPLETE - awarded companies for contract "{}" assigned'.format(
+                contract.description
+            ))
             return redirect(url_for('conductor.edit_company_contacts', contract_id=contract.id))
         return render_template('conductor/edit/edit_company.html', form=form, contract=contract)
     elif session.get('contract') is None:
@@ -344,6 +372,13 @@ def edit_company_contacts(contract_id):
             session.pop('contract')
             session.pop('companies')
             session['success'] = True
+
+            current_app.logger.info('''
+                CONDUCTOR CONTRACT COMPLETE - company contacts for contract "{}" assigned.
+                New contract(s) successfully created'''.format(
+                contract.description
+            ))
+
             return redirect(url_for('conductor.success', contract_id=main_contract.id))
 
         if len(form.companies.entries) == 0:
@@ -367,16 +402,6 @@ def success(contract_id):
         contract = ContractBase.query.get(contract_id)
         return render_template('conductor/edit/success.html', contract=contract)
     return redirect(url_for('conductor.edit_company_contacts', contract_id=contract_id))
-
-# @blueprint.route('')
-# @requires_roles('conductor', 'admin', 'superadmin')
-# def flows():
-    # pass
-
-# @blueprint.route('')
-# @requires_roles('conductor', 'admin', 'superadmin')
-# def stages():
-#     pass
 
 @blueprint.route('/contract/<int:contract_id>/edit/url-exists', methods=['POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
@@ -438,5 +463,15 @@ def assign(contract_id, flow_id, user_id):
         new_contract.assigned_to = user_id
 
     db.session.commit()
+
+    try:
+        current_app.logger.info('CONDUCTOR ASSIGN - contract "{}" assigned to {} with flow {}'.format(
+            new_contract.description, new_contract.assigned.email, new_contract.flow.flow_name
+        ))
+    except UnboundLocalError:
+        current_app.logger.info('CONDUCTOR ASSIGN - contract "{}" assigned to {} with flow {}'.format(
+            contract.description, contract.assigned.email, contract.flow.flow_name
+        ))
+
     flash('Successfully assigned to {}!'.format(contract.assigned.email), 'alert-success')
     return redirect(url_for('conductor.index'))

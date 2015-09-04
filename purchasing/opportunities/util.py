@@ -143,9 +143,39 @@ def build_opportunity(data, publish=None, opportunity=None):
     if opportunity:
         data.pop('publish_notification_sent', None)
         opportunity = opportunity.update(**data)
+
+        current_app.logger.info(
+            '''BEACON Update - Opportunity Updated:
+                ID: {}
+                Title: {}
+                Publish Date: {}
+                Submission Start Date: {}
+                Submission End Date: {}
+            '''.format(
+                opportunity.id, opportunity.description, str(opportunity.planned_publish),
+                str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
+            )
+        )
+
     else:
         data.update(dict(created_by_id=current_user.id))
         opportunity = Opportunity.create(**data)
+
+        current_app.logger.info(
+            '''BEACON NEW - New Opportunity Created:
+                ID: {}
+                Department: {}
+                Title: {}
+                Publish Date: {}
+                Submission Start Date: {}
+                Submission End Date: {}
+            '''.format(
+                opportunity.id, opportunity.description,
+                opportunity.department.name if opportunity.department else '',
+                str(opportunity.planned_publish),
+                str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
+            )
+        )
 
     opp_documents = opportunity.opportunity_documents.all()
 

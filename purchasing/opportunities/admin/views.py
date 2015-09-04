@@ -48,21 +48,6 @@ def new():
         db.session.commit()
         flash('Opportunity post submitted to OMB!', 'alert-success')
 
-        current_app.logger.info(
-            '''BEACON NEW - New Opportunity Created:
-                ID: {}
-                Department: {}
-                Title: {}
-                Publish Date: {}
-                Submission Start Date: {}
-                Submission End Date: {}
-            '''.format(
-                opportunity.id, opportunity.description,
-                opportunity.department.name, str(opportunity.planned_publish),
-                str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
-            )
-        )
-
         Notification(
             to_email=[current_user.email],
             subject='Your post has been sent to OMB for approval',
@@ -111,19 +96,6 @@ def edit(opportunity_id):
             )
             db.session.commit()
             flash('Opportunity successfully updated!', 'alert-success')
-
-            current_app.logger.info(
-                '''BEACON Update - Opportunity Updated:
-                    ID: {}
-                    Title: {}
-                    Publish Date: {}
-                    Submission Start Date: {}
-                    Submission End Date: {}
-                '''.format(
-                    opportunity.id, opportunity.description, str(opportunity.planned_publish),
-                    str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
-                )
-            )
 
             return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
 
