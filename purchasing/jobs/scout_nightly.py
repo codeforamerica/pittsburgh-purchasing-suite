@@ -10,6 +10,10 @@ from purchasing.data.models import ContractBase
 
 @JobBase.register
 class CountyScrapeJob(JobBase):
+    @property
+    def start_time(self):
+        return None
+
     def run_job(self, job):
         if job:
             scrape_county_task.delay(job)
