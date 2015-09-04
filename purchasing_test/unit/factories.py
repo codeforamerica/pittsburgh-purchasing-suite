@@ -101,6 +101,7 @@ class ContractPropertyFactory(BaseFactory):
 
 class CategoryFactory(BaseFactory):
     id = factory.Sequence(lambda n: n)
+    category_friendly_name = 'i am friendly!'
 
     class Meta:
         model = Category

@@ -116,8 +116,6 @@ def create_app():
             # app.logger.addHandler(file_handler)
             # app.logger.setLevel(logging.DEBUG)
 
-        app.logger.info("app config before_first_request: %s", app.config)
-
     return app
 
 def register_extensions(app):

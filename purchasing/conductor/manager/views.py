@@ -4,7 +4,7 @@ import urllib2
 import json
 
 from flask import (
-    render_template, flash, redirect,
+    render_template, flash, redirect, current_app,
     url_for, abort, request, jsonify, session
 )
 from flask_login import current_user
@@ -80,6 +80,10 @@ def index():
         User.email != current_user.email
     ).all()
 
+    current_app.logger.info(
+        'CONDUCTOR INDEX - Conductor index page view'
+    )
+
     return render_template(
         'conductor/index.html',
         in_progress=in_progress, _all=all_contracts,
@@ -106,6 +110,13 @@ def detail(contract_id, stage_id=-1):
                 contract_id, current_user, destination=clicked
             )
             db.session.commit()
+
+            current_app.logger.info(
+                'CONDUCTOR TRANSITION | Contract for {} (ID: {}) transition to'.format(
+                    mod_contract.description, mod_contract.id, stage.stage.name
+                )
+            )
+
         except IntegrityError:
             db.session.rollback()
             pass

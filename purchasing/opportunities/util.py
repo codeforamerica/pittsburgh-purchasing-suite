@@ -168,7 +168,6 @@ def build_opportunity(data, publish=None, opportunity=None):
     if not opportunity.is_public:
         opportunity.is_public = True if publish == 'publish' else False
 
-    db.session.commit()
     return opportunity
 
 def generate_opportunity_form(obj=None, form=OpportunityForm):

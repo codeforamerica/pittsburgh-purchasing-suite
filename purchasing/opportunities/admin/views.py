@@ -4,7 +4,7 @@ import datetime
 
 from flask import (
     render_template, url_for, Response, stream_with_context,
-    redirect, flash, abort, request
+    redirect, flash, abort, request, current_app
 )
 from flask_login import current_user
 
@@ -45,7 +45,23 @@ def new():
         # strip the is_public field from the form data, it's not part of the form
         form_data.pop('is_public')
         opportunity = build_opportunity(form_data, publish=request.form.get('save_type'))
+        db.session.commit()
         flash('Opportunity post submitted to OMB!', 'alert-success')
+
+        current_app.logger.info(
+            '''BEACON NEW - New Opportunity Created:
+                ID: {}
+                Department: {}
+                Title: {}
+                Publish Date: {}
+                Submission Start Date: {}
+                Submission End Date: {}
+            '''.format(
+                opportunity.id, opportunity.description,
+                opportunity.department.name, str(opportunity.planned_publish),
+                str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
+            )
+        )
 
         Notification(
             to_email=[current_user.email],
@@ -90,8 +106,25 @@ def edit(opportunity_id):
             form_data['documents'] = form.documents
             # strip the is_public field from the form data, it's not part of the form
             form_data.pop('is_public')
-            build_opportunity(form_data, publish=request.form.get('save_type'), opportunity=opportunity)
+            opportunity = build_opportunity(
+                form_data, publish=request.form.get('save_type'), opportunity=opportunity
+            )
+            db.session.commit()
             flash('Opportunity successfully updated!', 'alert-success')
+
+            current_app.logger.info(
+                '''BEACON Update - Opportunity Updated:
+                    ID: {}
+                    Title: {}
+                    Publish Date: {}
+                    Submission Start Date: {}
+                    Submission End Date: {}
+                '''.format(
+                    opportunity.id, opportunity.description, str(opportunity.planned_publish),
+                    str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
+                )
+            )
+
             return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
 
         return render_template(
@@ -108,11 +141,17 @@ def remove_document(opportunity_id, document_id):
         document = OpportunityDocument.query.get(document_id)
         # TODO: delete the document from S3
         if document:
+            current_app.logger.info(
+                'BEACON DELETE DOCUMENT:\n Opportunity ID: {}\n Document: {}\n Location: {}'.format(
+                    opportunity_id, document.name, document.href
+                )
+            )
             document.delete()
             flash('Document successfully deleted', 'alert-success')
         else:
             flash("That document doesn't exist!", 'alert-danger')
     except Exception, e:
+        current_app.logger.error('Document delete error: {}'.format(str(e)))
         flash('Something went wrong: {}'.format(e.message), 'alert-danger')
     return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity_id))
 
@@ -135,6 +174,19 @@ def publish(opportunity_id):
             opportunity=opportunity
         ).send(multi=True)
 
+        current_app.logger.info(
+            '''BEACON APPROVED:
+            ID: {}
+            Title: {}
+            Publish Date: {}
+            Submission Start Date: {}
+            Submission End Date: {}
+            '''.format(
+                opportunity.id, opportunity.description, str(opportunity.planned_publish),
+                str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
+            )
+        )
+
         if opportunity.is_published:
             opp_categories = [i.id for i in opportunity.categories]
 
@@ -153,6 +205,19 @@ def publish(opportunity_id):
             opportunity.publish_notification_sent = True
             db.session.commit()
 
+            current_app.logger.info(
+                '''BEACON PUBLISHED:
+                ID: {}
+                Title: {}
+                Publish Date: {}
+                Submission Start Date: {}
+                Submission End Date: {}
+                '''.format(
+                    opportunity.id, opportunity.description, str(opportunity.planned_publish),
+                    str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
+                )
+            )
+
         return redirect(url_for('opportunities_admin.pending'))
     abort(404)
 
@@ -169,6 +234,8 @@ def pending():
         Opportunity.planned_submission_start > datetime.date.today(),
         Opportunity.is_public == True
     ).all()
+
+    current_app.logger.info('BEACON PENDING VIEW')
 
     return render_template(
         'opportunities/admin/pending.html', pending=pending,
@@ -190,6 +257,8 @@ def signups():
         for vendor in vendors:
             row = build_vendor_row(vendor)
             yield ','.join([str(i) for i in row]) + '\n'
+
+    current_app.logger.info('BEACON VENDOR CSV DOWNLOAD')
 
     resp = Response(
         stream_with_context(stream()),
