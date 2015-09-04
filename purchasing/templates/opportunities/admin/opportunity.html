@@ -31,6 +31,12 @@
         </div><!-- email -->
 
         <div class="form-group">
+          <label for="opportunity_type" class="control-label">Opportunity Type <span class="form-required">*</span></label>
+          <p class="help-block">What type of opportunity is this?</p>
+          {{ macros.with_errors(form.opportunity_type, class="form-control") }}
+        </div><!-- opportunity type -->
+
+        <div class="form-group">
           <label for="title" class="control-label">Title <span class="form-required">*</span></label>
           <p class="help-block">What do you want your opportunity to be named?</p>
           {{ macros.with_errors(form.title, class_="form-control", placeholder="ex: What you need")}}

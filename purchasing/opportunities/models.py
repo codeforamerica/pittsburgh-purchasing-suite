@@ -86,7 +86,12 @@ class Opportunity(Model):
     )
     is_public = Column(db.Boolean(), default=False)
 
-    publish_notification_sent = Column(db.Boolean, default=False)
+    publish_notification_sent = Column(db.Boolean, default=False, nullable=False)
+
+    opportunity_type_id = ReferenceCol('contract_type', ondelete='SET NULL', nullable=True)
+    opportunity_type = db.relationship(
+        'ContractType', backref=backref('opportunities', lazy='dynamic'),
+    )
 
     def coerce_to_date(self, field):
         if isinstance(field, datetime.datetime):

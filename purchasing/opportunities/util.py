@@ -56,6 +56,9 @@ def fix_form_categories(request, form, cls, validate=None, obj=None,):
     if form.data.get('department', None):
         form_data['department_id'] = form.data.get('department').id
 
+    if form.data.get('opportunity_type', None):
+        form_data['opportunity_type_id'] = form.data.get('opportunity_type').id
+
     form_data['categories'] = obj.categories if obj else set()
     subcats = set()
 
