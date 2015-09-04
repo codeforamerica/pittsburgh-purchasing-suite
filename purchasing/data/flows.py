@@ -119,7 +119,7 @@ def switch_flow(new_flow_id, contract_id, user):
     through a bunch of stages than it is to incorrectly fast-forward
     them to an incorrect state.
 
-    There are three concrete actions here:
+    There are five concrete actions here:
         1. Fully revert all stages in the old flow
         2. Rebuild our flow/stage model for the new order.
         3. Attach the complete log of the old flow into the first stage
@@ -179,4 +179,4 @@ def switch_flow(new_flow_id, contract_id, user):
     )
 
     db.session.commit()
-    return new_stage
+    return new_stage, new_contract

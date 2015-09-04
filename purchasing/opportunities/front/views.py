@@ -23,8 +23,7 @@ from purchasing.users.models import User, Role
 def splash():
     '''Landing page for opportunities site
     '''
-    # test = something.delay()
-    # test.wait()
+    current_app.logger.info('BEACON FRONT SPLASH VIEW')
     return render_template(
         'opportunities/front/splash.html'
     )
@@ -45,7 +44,7 @@ def signup():
         if not form.errors:
             if vendor:
                 current_app.logger.info('''
-                    OPPPUPDATEVENDOR - Vendor updated:
+                    OPPUPDATEVENDOR - Vendor updated:
                     EMAIL: {old_email} -> {email} at
                     BUSINESS: {old_bis} -> {bis_name} signed up for:
                     CATEGORIES:
@@ -142,14 +141,32 @@ def manage():
         vendor = Vendor.query.filter(Vendor.email == email).first()
 
         if vendor is None:
+            current_app.logger.info(
+                'OPPMANAGEVIEW - Unsuccessful search for email {}'.format(email)
+            )
             form.email.errors = ['We could not find the email {}'.format(email)]
 
         if request.form.get('button', '').lower() == 'unsubscribe from checked':
             remove_categories = set([Category.query.get(i) for i in form.categories.data])
             remove_opportunities = set([Opportunity.query.get(i) for i in form.opportunities.data])
 
+            # remove none types if any
+            remove_categories.discard(None)
+            remove_opportunities.discard(None)
+
             vendor.categories = vendor.categories.difference(remove_categories)
             vendor.opportunities = vendor.opportunities.difference(remove_opportunities)
+
+            current_app.logger.info(
+                '''OPPMANAGEVIEW - Vendor {} unsubscribed from:
+                Categories: {}
+                Opportunities: {}
+                '''.format(
+                    email,
+                    ', '.join([i.category_friendly_name for i in remove_categories if remove_categories and len(remove_categories) > 0]),
+                    ', '.join([i.description for i in remove_opportunities if remove_opportunities and len(remove_opportunities) > 0])
+                )
+            )
 
             db.session.commit()
             flash('Preferences updated!', 'alert-success')
@@ -214,6 +231,15 @@ def signup_for_opp(form, user, opportunity, multi=False):
 
     db.session.commit()
 
+    current_app.logger.info(
+        'OPPSIGNUP - Vendor has signed up for opportunities: EMAIL: {email} at BUSINESS: {bis_name} signed up for:\n' +
+        'OPPORTUNITY: {opportunities}'.format(
+            email=form.data.get('email'),
+            business_name=form.data.get('business_name'),
+            opportunities=', '.join([i.description for i in email_opportunities])
+        )
+    )
+
     Notification(
         to_email=vendor.email,
         subject='Subscription confirmation from Beacon',
@@ -249,6 +275,7 @@ def browse():
         elif opportunity.is_upcoming:
             upcoming.append(opportunity)
 
+    current_app.logger.info('BEACON FRONT OPPORTUNITY BROWSE VIEW')
     return render_template(
         'opportunities/browse.html', opportunities=opportunities,
         _open=_open, upcoming=upcoming, current_user=current_user,
@@ -270,6 +297,7 @@ def detail(opportunity_id):
 
         has_docs = opportunity.opportunity_documents.count() > 0
 
+        current_app.logger.info('BEACON FRONT OPPORTUNITY DETAIL VIEW')
         return render_template(
             'opportunities/front/detail.html', opportunity=opportunity,
             current_user=current_user, signup_form=signup_form, has_docs=has_docs

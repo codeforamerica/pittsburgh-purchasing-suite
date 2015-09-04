@@ -3,7 +3,7 @@
 import datetime
 from collections import defaultdict
 
-from flask import request
+from flask import request, current_app
 from flask_login import current_user
 
 from purchasing.database import db
@@ -104,12 +104,24 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
             taken_by=user.id, taken_at=datetime.datetime.now()
         )
         if form_name == 'activity':
+            current_app.logger.info(
+                'CONDUCTOR NOTE | New note on stage "{}" from contract "{}" (ID: {})'.format(
+                    current_stage.name, contract.description, contract.id
+                )
+            )
+
             action.action_detail = {
                 'note': form.data.get('note', ''),
                 'stage_name': current_stage.name
             }
 
         elif form_name == 'update':
+            current_app.logger.info(
+                'CONDUCTOR EMAIL UPDATE | New update on stage "{}" from contract "{}" (ID: {})'.format(
+                    current_stage.name, contract.description, contract.id
+                )
+            )
+
             action.action_detail = {
                 'sent_to': form.data.get('send_to', ''),
                 'body': form.data.get('body'),
@@ -129,6 +141,12 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
             ).send()
 
         elif form_name == 'post':
+            current_app.logger.info(
+                'CONDUCTOR BEACON POST | Beacon posting on stage "{}" from contract "{}" (ID: {})'.format(
+                    current_stage.name, contract.description, contract.id
+                )
+            )
+
             label = 'created'
             if contract.opportunity:
                 label = 'updated'
@@ -151,6 +169,12 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
             }
 
         elif form_name == 'update-metadata':
+            current_app.logger.info(
+                'CONDUCTOR UPDATE METADATA | Contract update metadata on stage "{}" from contract "{}" (ID: {})'.format(
+                    current_stage.name, contract.description, contract.id
+                )
+            )
+
             # remove the blank hidden field -- we don't need it
             data = form.data
             del data['all_blank']
