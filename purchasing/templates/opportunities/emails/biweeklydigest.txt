@@ -1,0 +1,19 @@
+Your biweekly digest of opportunities on Beacon:
+
+ {% if opportunities|length > 0 %}
+
+    Hi there, Beacon subscriber! Here's a list of all the opportunities we've posted to Beacon over the last 2 weeks!  Take a look and apply or share them with your networks. Thanks for your interest!
+
+     {% for opportunity in opportunities %}
+        - {{ opportunity.title }}: {{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}
+
+    {% endfor %}
+
+{% else %}
+    Hi there, Beacon subscriber! Over the last 2 weeks, no new opportunities have been posted on Beacon. All opportunities that were on Beacon are no longer taking submissions. Stay tuned, however! The City posts new opportunities about once a month, so there will be something new in your inbox soon. Thanks for your patience!
+{% endif %}
+
+Have a question? Click on the link at the end of this message to send us an email, and we'll get back to you as soon as we can. If you'd like to change your email settings, manage your subscription here: {{ url_for('opportunities.manage', _external=True) }}
+
+Thanks,
+The Beacon team
