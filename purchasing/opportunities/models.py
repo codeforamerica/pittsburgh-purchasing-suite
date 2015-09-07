@@ -13,6 +13,8 @@ from sqlalchemy.orm import backref
 from sqlalchemy.dialects.postgres import ARRAY
 from sqlalchemy.dialects.postgresql import TSVECTOR
 
+from purchasing.data.models import ContractType
+
 category_vendor_association_table = Table(
     'category_vendor_association', Model.metadata,
     Column('category_id', db.Integer, db.ForeignKey('category.id', ondelete='SET NULL'), index=True),
@@ -126,10 +128,13 @@ class Opportunity(Model):
     def can_edit(self, user):
         '''Check if a user can edit the contract
         '''
-        return False if user.is_anonymous() or (
-            user.role.name not in ('conductor', 'admin', 'superadmin') and
-            (user.id not in (self.created_by, self.contact_id))
-        ) else True
+        if self.is_public and user.role.name in ('conductor', 'admin', 'superadmin'):
+            return True
+        elif not self.is_public and \
+            (user.role.name in ('conductor', 'admin', 'superadmin') or
+                user.id in (self.created_by_id, self.contact_id)):
+                return True
+        return False
 
     def estimate_submission_start(self):
         '''Returns the month/year based on planned_submission_start

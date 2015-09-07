@@ -12,10 +12,10 @@ from purchasing.database import db
 from purchasing.extensions import login_manager
 from purchasing.decorators import requires_roles
 from purchasing.opportunities.models import (
-    Opportunity, Category, Vendor, OpportunityDocument
+    Opportunity, Vendor, OpportunityDocument
 )
 from purchasing.users.models import (
-    User, Role
+    User
 )
 
 from purchasing.opportunities.util import (
@@ -63,29 +63,34 @@ def edit(opportunity_id):
     '''
     opportunity = Opportunity.query.get(opportunity_id)
     if opportunity:
-        form, categories, subcategories = generate_opportunity_form(obj=opportunity)
-        form.contact_email.data = opportunity.contact.email
 
-        if form.validate_on_submit():
-            form_data = fix_form_categories(request, form, Opportunity, opportunity)
-            # add the contact email, documents back on because it was stripped by the cleaning
-            form_data['contact_email'] = form.data.get('contact_email')
-            form_data['documents'] = form.documents
-            # strip the is_public field from the form data, it's not part of the form
-            form_data.pop('is_public')
-            opportunity = build_opportunity(
-                form_data, publish=request.form.get('save_type'), opportunity=opportunity
+        if opportunity.can_edit(current_user):
+            form, categories, subcategories = generate_opportunity_form(obj=opportunity)
+
+            if form.validate_on_submit():
+                form_data = fix_form_categories(request, form, Opportunity, opportunity)
+                # add the contact email, documents back on because it was stripped by the cleaning
+                form_data['contact_email'] = form.data.get('contact_email')
+                form_data['documents'] = form.documents
+                # strip the is_public field from the form data, it's not part of the form
+                form_data.pop('is_public')
+                opportunity = build_opportunity(
+                    form_data, publish=request.form.get('save_type'), opportunity=opportunity
+                )
+                db.session.commit()
+                flash('Opportunity successfully updated!', 'alert-success')
+
+                return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
+
+            form.contact_email.data = opportunity.contact.email
+
+            return render_template(
+                'opportunities/admin/opportunity.html', form=form, opportunity=opportunity,
+                subcategories=subcategories,
+                categories=categories
             )
-            db.session.commit()
-            flash('Opportunity successfully updated!', 'alert-success')
-
-            return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
-
-        return render_template(
-            'opportunities/admin/opportunity.html', form=form, opportunity=opportunity,
-            subcategories=subcategories,
-            categories=categories
-        )
+        flash('This opportunity has been locked for editing by OMB.', 'alert-warning')
+        return redirect(url_for('opportunities.detail', opportunity_id=opportunity_id))
     abort(404)
 
 @blueprint.route('/opportunities/<int:opportunity_id>/document/<int:document_id>/remove', methods=['GET', 'POST'])

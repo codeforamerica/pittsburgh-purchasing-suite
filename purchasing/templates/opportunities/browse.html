@@ -90,7 +90,7 @@
                 {% if opportunity.can_edit(current_user) %}
                 <td><a href="{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}">Edit</a></td>
                 {% elif not current_user.is_anonymous() %}
-                <i class="fa fa-minus"></i>
+                <td><i class="fa fa-minus"></i></td>
                 {% endif %}
               </tr>
               {% endfor %}

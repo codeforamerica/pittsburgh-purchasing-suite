@@ -233,7 +233,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
 
         self.client.post('/beacon/admin/opportunities/{}'.format(self.opportunity2.id), data={
             'planned_submission_start': datetime.date.today(), 'title': 'Updated', 'is_public': True,
-            'description': 'Updated Contract!', 'save_type': 'public'
+            'description': 'Updated Contract!', 'save_type': 'public', 'contact_email': self.admin.email
         })
 
         self.assert200(self.client.get('/beacon/opportunities'))
