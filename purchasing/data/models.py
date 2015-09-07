@@ -93,6 +93,8 @@ class ContractType(Model):
 
     id = Column(db.Integer, primary_key=True, index=True)
     name = Column(db.String(255))
+    allow_opportunities = Column(db.Boolean, default=False)
+    opportunity_response_instructions = Column(db.Text)
 
     def __unicode__(self):
         return self.name if self.name else ''
@@ -390,3 +392,6 @@ class Flow(Model):
 
     def __unicode__(self):
         return self.flow_name
+
+def opportunity_type_query():
+    return ContractType.query.filter(ContractType.allow_opportunities == True)

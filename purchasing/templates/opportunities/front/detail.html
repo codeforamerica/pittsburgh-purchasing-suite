@@ -58,9 +58,14 @@
       {% include 'includes/flashes.html' %}
       <div class="col-sm-8">
 
-        {% if not opportunity.is_published %}
-           <div class="alert alert-warning beacon-detail" role="alert">
-              This opportunity will not be viewable by the general public until it's published on {{ opportunity.planned_publish.strftime('%B %d, %Y') }}
+        {% if not opportunity.is_public %}
+          <div class="alert alert-warning beacon-detail" role="alert">
+            <p><strong>Warning!</strong> This opportunity has not yet been approved to be published.</p>
+            <p>{% if days_from_today(opportunity.planned_publish) > 0 %} Once it has been approved, it will be published on {{ opportunity.planned_publish|datetimeformat('%B %d, %Y')}}.{% else %} Once it has been approved, it will be published immediately.{% endif %}</p>
+          </div>
+        {% elif not opportunity.is_published %}
+          <div class="alert alert-warning beacon-detail" role="alert">
+            This opportunity will not be viewable by the general public until it's published on {{ opportunity.planned_publish|datetimeformat('%B %d, %Y') }}
           </div>
         {% endif %}
 
@@ -105,13 +110,12 @@
         </div>
         {% endif %}
 
+        {% if opportunity.opportunity_type.opportunity_response_instructions %}
         <div class="row">
           <h3><strong>How do I bid?</strong></h3>
-          <p>Sealed proposals (3 printed copies and 1 digital copy on a CD or USB) must be received by noon on {{ opportunity.planned_submission_end|datetimeformat('%B %d, %Y') }}. Postmarks are not sufficient. Proposals by fax and email will not be accepted.</p>
-
-          {% if has_docs > 0 %}<p>Mail or deliver proposals to the address detailed in the main solicitation document (RFP, IFB, RFQ). </p>{% endif %}
-          {# TODO: generate a way to determine if something is city/county, have directions in an if/else in each place. #}
+          {{ opportunity.opportunity_type.opportunity_response_instructions|safe }}
         </div>
+        {% endif %}
 
         <div class="row">
           <div class="browse-signup-collapse-container">

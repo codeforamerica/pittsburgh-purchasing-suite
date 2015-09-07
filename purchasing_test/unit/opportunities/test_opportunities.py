@@ -11,7 +11,7 @@ from purchasing.opportunities.models import Vendor
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import insert_a_role, insert_a_user, insert_an_opportunity
-from purchasing_test.unit.factories import OpportunityFactory
+from purchasing_test.unit.factories import OpportunityFactory, UserFactory, RoleFactory
 
 class TestOpportunityModel(TestCase):
     def setUp(self):
@@ -67,6 +67,34 @@ class TestOpportunityModel(TestCase):
         self.assertFalse(closed_opportunity_today_deadline.is_upcoming)
         self.assertFalse(closed_opportunity_today_deadline.is_submission_start)
         self.assertTrue(closed_opportunity_today_deadline.is_submission_end)
+
+    def test_can_edit_not_public(self):
+        staff = UserFactory.build(role=RoleFactory.build(name='staff'))
+        creator = UserFactory.build(role=RoleFactory.build(name='staff'))
+        admin = UserFactory.build(role=RoleFactory.build(name='admin'))
+        opportunity = OpportunityFactory.build(
+            is_public=False, planned_publish=self.yesterday,
+            planned_submission_start=self.today, planned_submission_end=self.tomorrow,
+            created_by=creator, contact=creator, created_by_id=creator.id,
+            contact_id=creator.id
+        )
+        self.assertFalse(opportunity.can_edit(staff))
+        self.assertTrue(opportunity.can_edit(creator))
+        self.assertTrue(opportunity.can_edit(admin))
+
+    def test_can_edit_is_public(self):
+        staff = UserFactory.build(role=RoleFactory.build(name='staff'))
+        creator = UserFactory.build(role=RoleFactory.build(name='staff'))
+        admin = UserFactory.build(role=RoleFactory.build(name='admin'))
+        opportunity = OpportunityFactory.build(
+            is_public=True, planned_publish=self.yesterday,
+            planned_submission_start=self.today, planned_submission_end=self.tomorrow,
+            created_by=creator, created_by_id=creator.id,
+            contact_id=creator.id
+        )
+        self.assertFalse(opportunity.can_edit(staff))
+        self.assertFalse(opportunity.can_edit(creator))
+        self.assertTrue(opportunity.can_edit(admin))
 
 class TestOpportunities(BaseTestCase):
     render_templates = True

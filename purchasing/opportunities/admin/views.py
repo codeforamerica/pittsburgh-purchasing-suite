@@ -12,15 +12,15 @@ from purchasing.database import db
 from purchasing.extensions import login_manager
 from purchasing.decorators import requires_roles
 from purchasing.opportunities.models import (
-    Opportunity, Category, Vendor, OpportunityDocument
+    Opportunity, Vendor, OpportunityDocument
 )
 from purchasing.users.models import (
-    User, Role
+    User
 )
 
 from purchasing.opportunities.util import (
     fix_form_categories, generate_opportunity_form, build_opportunity,
-    build_vendor_row
+    build_vendor_row, send_publish_email
 )
 
 from purchasing.opportunities.admin import blueprint
@@ -46,26 +46,8 @@ def new():
         form_data.pop('is_public')
         opportunity = build_opportunity(form_data, publish=request.form.get('save_type'))
         db.session.commit()
+        send_publish_email(opportunity)
         flash('Opportunity post submitted to OMB!', 'alert-success')
-
-        Notification(
-            to_email=[current_user.email],
-            subject='Your post has been sent to OMB for approval',
-            html_template='opportunities/emails/staff_postsubmitted.html',
-            txt_template='opportunities/emails/staff_postsubmitted.txt',
-            opportunity=opportunity
-        ).send(multi=True)
-
-        Notification(
-            to_email=db.session.query(User.email).join(Role, User.role_id == Role.id).filter(
-                Role.name.in_(['admin', 'superadmin'])
-            ).all(),
-            subject='A new Beacon post needs review',
-            html_template='opportunities/emails/admin_postforapproval.html',
-            txt_template='opportunities/emails/admin_postforapproval.txt',
-            opportunity=opportunity
-        ).send(multi=True)
-
         return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
 
     return render_template(
@@ -81,29 +63,34 @@ def edit(opportunity_id):
     '''
     opportunity = Opportunity.query.get(opportunity_id)
     if opportunity:
-        form, categories, subcategories = generate_opportunity_form(obj=opportunity)
-        form.contact_email.data = opportunity.contact.email
 
-        if form.validate_on_submit():
-            form_data = fix_form_categories(request, form, Opportunity, opportunity)
-            # add the contact email, documents back on because it was stripped by the cleaning
-            form_data['contact_email'] = form.data.get('contact_email')
-            form_data['documents'] = form.documents
-            # strip the is_public field from the form data, it's not part of the form
-            form_data.pop('is_public')
-            opportunity = build_opportunity(
-                form_data, publish=request.form.get('save_type'), opportunity=opportunity
+        if opportunity.can_edit(current_user):
+            form, categories, subcategories = generate_opportunity_form(obj=opportunity)
+
+            if form.validate_on_submit():
+                form_data = fix_form_categories(request, form, Opportunity, opportunity)
+                # add the contact email, documents back on because it was stripped by the cleaning
+                form_data['contact_email'] = form.data.get('contact_email')
+                form_data['documents'] = form.documents
+                # strip the is_public field from the form data, it's not part of the form
+                form_data.pop('is_public')
+                opportunity = build_opportunity(
+                    form_data, publish=request.form.get('save_type'), opportunity=opportunity
+                )
+                db.session.commit()
+                flash('Opportunity successfully updated!', 'alert-success')
+
+                return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
+
+            form.contact_email.data = opportunity.contact.email
+
+            return render_template(
+                'opportunities/admin/opportunity.html', form=form, opportunity=opportunity,
+                subcategories=subcategories,
+                categories=categories
             )
-            db.session.commit()
-            flash('Opportunity successfully updated!', 'alert-success')
-
-            return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
-
-        return render_template(
-            'opportunities/admin/opportunity.html', form=form, opportunity=opportunity,
-            subcategories=subcategories,
-            categories=categories
-        )
+        flash('This opportunity has been locked for editing by OMB.', 'alert-warning')
+        return redirect(url_for('opportunities.detail', opportunity_id=opportunity_id))
     abort(404)
 
 @blueprint.route('/opportunities/<int:opportunity_id>/document/<int:document_id>/remove', methods=['GET', 'POST'])
@@ -159,36 +146,7 @@ def publish(opportunity_id):
             )
         )
 
-        if opportunity.is_published:
-            opp_categories = [i.id for i in opportunity.categories]
-
-            vendors = Vendor.query.filter(
-                Vendor.categories.any(Category.id.in_(opp_categories))
-            ).all()
-
-            Notification(
-                to_email=[i.email for i in vendors],
-                subject='A new City of Pittsburgh opportunity from Beacon!',
-                html_template='opportunities/emails/newopp.html',
-                txt_template='opportunities/emails/newopp.txt',
-                opportunity=opportunity
-            ).send(multi=True)
-
-            opportunity.publish_notification_sent = True
-            db.session.commit()
-
-            current_app.logger.info(
-                '''BEACON PUBLISHED:
-                ID: {}
-                Title: {}
-                Publish Date: {}
-                Submission Start Date: {}
-                Submission End Date: {}
-                '''.format(
-                    opportunity.id, opportunity.description, str(opportunity.planned_publish),
-                    str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
-                )
-            )
+        send_publish_email(opportunity)
 
         return redirect(url_for('opportunities_admin.pending'))
     abort(404)

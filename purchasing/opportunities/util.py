@@ -14,9 +14,10 @@ from purchasing.utils import (
     connect_to_s3, _get_aggressive_cache_headers, random_id
 )
 from purchasing.database import db
+from purchasing.notifications import Notification
 from purchasing.opportunities.forms import OpportunityForm
 from purchasing.opportunities.models import (
-    Opportunity, RequiredBidDocument, Category, OpportunityDocument
+    Opportunity, RequiredBidDocument, Category, OpportunityDocument, Vendor
 )
 from purchasing.users.models import User, Role
 
@@ -54,6 +55,9 @@ def fix_form_categories(request, form, cls, validate=None, obj=None,):
 
     if form.data.get('department', None):
         form_data['department_id'] = form.data.get('department').id
+
+    if form.data.get('opportunity_type', None):
+        form_data['opportunity_type_id'] = form.data.get('opportunity_type').id
 
     form_data['categories'] = obj.categories if obj else set()
     subcats = set()
@@ -177,6 +181,28 @@ def build_opportunity(data, publish=None, opportunity=None):
             )
         )
 
+        if not (current_user.is_conductor() or publish == 'publish'):
+            # only send 'your post has been sent/a new post needs review'
+            # emails when 1. the submitter isn't from OMB and 2. they are
+            # saving a draft as opposed to publishing the opportunity
+            Notification(
+                to_email=[current_user.email],
+                subject='Your post has been sent to OMB for approval',
+                html_template='opportunities/emails/staff_postsubmitted.html',
+                txt_template='opportunities/emails/staff_postsubmitted.txt',
+                opportunity=opportunity
+            ).send(multi=True)
+
+            Notification(
+                to_email=db.session.query(User.email).join(Role, User.role_id == Role.id).filter(
+                    Role.name.in_(['admin', 'superadmin'])
+                ).all(),
+                subject='A new Beacon post needs review',
+                html_template='opportunities/emails/admin_postforapproval.html',
+                txt_template='opportunities/emails/admin_postforapproval.txt',
+                opportunity=opportunity
+            ).send(multi=True)
+
     opp_documents = opportunity.opportunity_documents.all()
 
     for document in documents.entries:
@@ -196,9 +222,44 @@ def build_opportunity(data, publish=None, opportunity=None):
             ))
 
     if not opportunity.is_public:
-        opportunity.is_public = True if publish == 'publish' else False
+        if publish == 'publish':
+            opportunity.is_public = True
 
     return opportunity
+
+def send_publish_email(opportunity):
+    if opportunity.is_published:
+        opp_categories = [i.id for i in opportunity.categories]
+
+        vendors = Vendor.query.filter(
+            Vendor.categories.any(Category.id.in_(opp_categories))
+        ).all()
+
+        Notification(
+            to_email=[i.email for i in vendors],
+            subject='A new City of Pittsburgh opportunity from Beacon!',
+            html_template='opportunities/emails/newopp.html',
+            txt_template='opportunities/emails/newopp.txt',
+            opportunity=opportunity
+        ).send(multi=True)
+
+        opportunity.publish_notification_sent = True
+        db.session.commit()
+
+        current_app.logger.info(
+            '''BEACON PUBLISHED:
+            ID: {}
+            Title: {}
+            Publish Date: {}
+            Submission Start Date: {}
+            Submission End Date: {}
+            '''.format(
+                opportunity.id, opportunity.description, str(opportunity.planned_publish),
+                str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
+            )
+        )
+        return True
+    return False
 
 def generate_opportunity_form(obj=None, form=OpportunityForm):
     all_categories = Category.query.all()

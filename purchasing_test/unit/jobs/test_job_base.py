@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import pytz
 
 from unittest import TestCase
 from mock import patch, Mock, call
@@ -16,6 +17,10 @@ class FakeJobBase(JobBase):
     jobs = []
 
     @property
+    def start_time(self):
+        return None
+
+    @property
     def job_status_model(self):
         return JobStatusFactory
 
@@ -27,12 +32,12 @@ class FakeJob(FakeJobBase):
 class PastJob(FakeJobBase):
     @property
     def start_time(self):
-        return (datetime.datetime.now() - datetime.timedelta(seconds=1)).time()
+        return (datetime.datetime.utcnow() - datetime.timedelta(minutes=1)).time()
 
 class FutureJob(FakeJobBase):
     @property
     def start_time(self):
-        return (datetime.datetime.now() + datetime.timedelta(seconds=1)).time()
+        return (datetime.datetime.utcnow() + datetime.timedelta(minutes=1)).time()
 
 class FakeEmailJob(EmailJobBase):
     @property

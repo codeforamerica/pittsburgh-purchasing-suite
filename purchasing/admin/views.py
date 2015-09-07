@@ -2,7 +2,6 @@
 
 from flask import request
 
-from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
@@ -17,12 +16,20 @@ from purchasing.extensions import login_manager
 from purchasing.users.models import User, Role, department_query, role_query
 from purchasing.opportunities.models import Opportunity
 
+GLOBAL_EXCLUDE = [
+    'created_at', 'updated_at', 'created_by', 'updated_by'
+]
+
 @login_manager.user_loader
 def load_user(userid):
     return User.get_by_id(int(userid))
 
-class CompanyAdmin(AuthMixin, sqla.ModelView):
-    inline_models = (CompanyContact,)
+class BaseModelViewAdmin(sqla.ModelView):
+    form_excluded_columns = GLOBAL_EXCLUDE
+    column_exclude_list = GLOBAL_EXCLUDE
+
+class CompanyAdmin(AuthMixin, BaseModelViewAdmin):
+    inline_models = ((CompanyContact, dict(form_excluded_columns=GLOBAL_EXCLUDE)),)
 
     column_searchable_list = ('company_name',)
 
@@ -30,7 +37,7 @@ class CompanyAdmin(AuthMixin, sqla.ModelView):
         'company_name', 'contracts'
     ]
 
-class ContractBaseAdmin(AuthMixin, sqla.ModelView):
+class ContractBaseAdmin(AuthMixin, BaseModelViewAdmin):
     '''Base model for different representations of contracts
     '''
     edit_template = 'admin/purchasing_edit.html'
@@ -71,7 +78,10 @@ class ContractBaseAdmin(AuthMixin, sqla.ModelView):
         return filters
 
 class ScoutContractAdmin(ContractBaseAdmin):
-    inline_models = (ContractProperty, LineItem,)
+    inline_models = (
+        (ContractProperty, dict(form_excluded_columns=GLOBAL_EXCLUDE)),
+        (LineItem, dict(form_excluded_columns=GLOBAL_EXCLUDE)),
+    )
 
     form_columns = [
         'contract_type', 'description', 'properties',
@@ -80,7 +90,7 @@ class ScoutContractAdmin(ContractBaseAdmin):
     ]
 
 class ConductorContractAdmin(ContractBaseAdmin):
-    inline_models = (ContractProperty,)
+    inline_models = ((ContractProperty, dict(form_excluded_columns=GLOBAL_EXCLUDE)),)
 
     column_list = [
         'description', 'expiration_date', 'current_stage', 'current_flow', 'assigned'
@@ -128,6 +138,11 @@ class ConductorContractAdmin(ContractBaseAdmin):
 def get_stages():
     return Stage.query.order_by(Stage.name)
 
+class ContractTypeAdmin(BaseModelViewAdmin):
+    form_columns = [
+        'name', 'allow_opportunities', 'opportunity_response_instructions'
+    ]
+
 class QuerySelect2TagsWidget(Select2Widget):
     def __init__(self, *args, **kwargs):
         super(QuerySelect2TagsWidget, self).__init__(*args, **kwargs)
@@ -143,7 +158,7 @@ class QuerySelect2TagsWidget(Select2Widget):
 
         return super(QuerySelect2TagsWidget, self).__call__(field, **kwargs)
 
-class FlowAdmin(ConductorAuthMixin, sqla.ModelView):
+class FlowAdmin(ConductorAuthMixin, BaseModelViewAdmin):
     edit_template = 'admin/purchasing_edit.html'
     create_template = 'admin/purchasing_create.html'
 
@@ -167,12 +182,12 @@ class FlowAdmin(ConductorAuthMixin, sqla.ModelView):
         form.stage_order.data = [int(i) for i in request.form.getlist('stage_order')]
         super(FlowAdmin, self).update_model(form, model)
 
-class StageAdmin(ConductorAuthMixin, sqla.ModelView):
-    inline_models = (StageProperty, )
+class StageAdmin(ConductorAuthMixin, BaseModelViewAdmin):
+    inline_models = ((StageProperty, dict(form_excluded_columns=GLOBAL_EXCLUDE)), )
 
     form_columns = ['name', 'post_opportunities', 'default_message']
 
-class UserAdmin(AuthMixin, sqla.ModelView):
+class UserAdmin(AuthMixin, BaseModelViewAdmin):
     form_columns = ['email', 'first_name', 'last_name', 'department']
 
     form_extra_fields = {
@@ -182,7 +197,7 @@ class UserAdmin(AuthMixin, sqla.ModelView):
         )
     }
 
-class UserRoleAdmin(SuperAdminMixin, sqla.ModelView):
+class UserRoleAdmin(SuperAdminMixin, BaseModelViewAdmin):
     form_columns = ['email', 'first_name', 'last_name', 'department', 'role']
 
     form_extra_fields = {
@@ -196,13 +211,13 @@ class UserRoleAdmin(SuperAdminMixin, sqla.ModelView):
         )
     }
 
-class RoleAdmin(SuperAdminMixin, sqla.ModelView):
+class RoleAdmin(SuperAdminMixin, BaseModelViewAdmin):
     form_columns = ['name']
 
-class DocumentAdmin(AuthMixin, sqla.ModelView):
+class DocumentAdmin(AuthMixin, BaseModelViewAdmin):
     pass
 
-class OpportunityAdmin(AuthMixin, sqla.ModelView):
+class OpportunityAdmin(AuthMixin, BaseModelViewAdmin):
     column_list = ['contact', 'department', 'title', 'description', 'is_public']
 
     form_columns = [
@@ -215,6 +230,9 @@ admin.add_view(ScoutContractAdmin(
 ))
 admin.add_view(CompanyAdmin(
     Company, db.session, name='Companies', endpoint='company', category='Scout'
+))
+admin.add_view(ContractTypeAdmin(
+    ContractType, db.session, name='Contract Types', endpoint='contract-type', category='Scout'
 ))
 
 admin.add_view(StageAdmin(Stage, db.session, endpoint='stage', category='Conductor'))
