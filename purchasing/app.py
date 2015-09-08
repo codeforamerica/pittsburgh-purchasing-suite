@@ -52,9 +52,11 @@ def create_app():
 
     :param config: A config object or import path to the config object string.
     '''
-    config = os.environ['CONFIG']
-    if isinstance(config, basestring):
-        config = import_string(config)
+    config_string = os.environ['CONFIG']
+    if isinstance(config_string, basestring):
+        config = import_string(config_string)
+    else:
+        config = config_string
     app = Flask(__name__)
     app.config.from_object(config)
     register_extensions(app)
@@ -74,47 +76,9 @@ def create_app():
 
     celery.Task = ContextTask
 
-    if app.testing:
-        app.logger.setLevel(logging.CRITICAL)
-
     @app.before_first_request
     def before_first_request():
-        if app.debug and not app.testing:
-            # log to console for dev
-            app.logger.setLevel(logging.DEBUG)
-
-        elif not app.testing:
-            # for heroku, just send everything to the console (instead of a file)
-            # and it will forward automatically to the logging service
-
-            class UserEmailFilter(logging.Filter):
-                '''
-                This is a filter which injects contextual information into the log.
-                '''
-                def filter(self, record):
-                    user_id = current_user.email if not current_user.is_anonymous() else 'anonymous'
-                    record.user_id = user_id
-                    return True
-
-            _filter = UserEmailFilter()
-
-            stdout = logging.StreamHandler(sys.stdout)
-            stdout.setFormatter(logging.Formatter(
-                '%(asctime)s | %(name)s | %(user_id)s | %(funcName)s | %(levelname)s in %(module)s [%(pathname)s:%(lineno)d]: %(message)s'
-            ))
-            app.logger.addFilter(_filter)
-            app.logger.addHandler(stdout)
-            app.logger.setLevel(logging.DEBUG)
-
-            # log to a file. this is commented out for heroku deploy, but kept
-            # in case we need it later
-
-            # file_handler = logging.handlers.RotatingFileHandler(log_file(app), 'a', 10000000, 10)
-            # file_handler.setFormatter(logging.Formatter(
-            #     '%(asctime)s | %(name)s | %(levelname)s in %(module)s [%(pathname)s:%(lineno)d]: %(message)s')
-            # )
-            # app.logger.addHandler(file_handler)
-            # app.logger.setLevel(logging.DEBUG)
+        register_logging(app, config_string)
 
     return app
 
@@ -180,4 +144,55 @@ def register_errorhandlers(app):
     for errcode in [401, 403, 404, 413, 500]:
         # for 500-level status codes, change the db status
         app.errorhandler(errcode)(render_error)
+    return None
+
+def register_logging(app, config_string):
+    if 'prod' in config_string.lower():
+
+        # for heroku, just send everything to the console (instead of a file)
+        # and it will forward automatically to the logging service
+
+        # disable the existing flask handler, we are replacing it with our own
+        app.logger.removeHandler(app.logger.handlers[0])
+
+        class UserEmailFilter(logging.Filter):
+            '''
+            This is a filter which injects contextual information into the log.
+            '''
+            def filter(self, record):
+                user_id = current_user.email if not current_user.is_anonymous() else 'anonymous'
+                record.user_id = user_id
+                return True
+
+        _filter = UserEmailFilter()
+
+        app.logger.setLevel(logging.DEBUG)
+        stdout = logging.StreamHandler(sys.stdout)
+        stdout.setFormatter(logging.Formatter(
+            '''--------------------------------------------------------------------------------
+%(asctime)s | %(levelname)s in %(module)s [%(funcName)s]
+%(user_id)s | [%(pathname)s:%(lineno)d]
+%(message)s
+--------------------------------------------------------------------------------'''
+        ))
+        app.logger.addFilter(_filter)
+        app.logger.addHandler(stdout)
+
+        # log to a file. this is commented out for heroku deploy, but kept
+        # in case we need it later
+
+        # file_handler = logging.handlers.RotatingFileHandler(log_file(app), 'a', 10000000, 10)
+        # file_handler.setFormatter(logging.Formatter(
+        #     '%(asctime)s | %(name)s | %(levelname)s in %(module)s [%(pathname)s:%(lineno)d]: %(message)s')
+        # )
+        # app.logger.addHandler(file_handler)
+        # app.logger.setLevel(logging.DEBUG)
+
+    elif 'test' in config_string.lower():
+        app.logger.setLevel(logging.CRITICAL)
+
+    else:
+        # log to console for dev
+        app.logger.setLevel(logging.DEBUG)
+
     return None
