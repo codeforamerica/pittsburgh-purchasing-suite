@@ -6,7 +6,7 @@ import pytz
 from unittest import TestCase
 from mock import patch, Mock, call
 
-from purchasing.jobs.job_base import JobBase, EmailJobBase
+from purchasing.jobs.job_base import JobBase, EmailJobBase, EASTERN
 
 from purchasing_test.unit.factories import JobStatusFactory
 
@@ -32,12 +32,12 @@ class FakeJob(FakeJobBase):
 class PastJob(FakeJobBase):
     @property
     def start_time(self):
-        return (datetime.datetime.utcnow() - datetime.timedelta(minutes=1)).time()
+        return (datetime.datetime.utcnow() - datetime.timedelta(minutes=1)).replace(tzinfo=pytz.UTC)
 
 class FutureJob(FakeJobBase):
     @property
     def start_time(self):
-        return (datetime.datetime.utcnow() + datetime.timedelta(minutes=1)).time()
+        return (datetime.datetime.utcnow() + datetime.timedelta(minutes=1)).replace(tzinfo=pytz.UTC)
 
 class FakeEmailJob(EmailJobBase):
     @property

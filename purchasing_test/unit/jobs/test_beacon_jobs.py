@@ -11,9 +11,9 @@ from purchasing.jobs.beacon_nightly import (
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.factories import OpportunityFactory, VendorFactory, CategoryFactory
 
-class TestScoutJobs(BaseTestCase):
+class TestBeaconJobs(BaseTestCase):
     def setUp(self):
-        super(TestScoutJobs, self).setUp()
+        super(TestBeaconJobs, self).setUp()
 
         yesterday = datetime.datetime.today() - datetime.timedelta(days=1)
         today = datetime.datetime.today()
