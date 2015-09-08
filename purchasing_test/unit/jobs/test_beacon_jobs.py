@@ -41,7 +41,7 @@ class TestBeaconJobs(BaseTestCase):
 
     def test_beacon_new_opportunity_nightly(self):
         nightly = BeaconNewOppotunityOpenJob()
-        scheduled, existing_job = nightly.schedule_job()
+        scheduled, existing_job = nightly.schedule_job(time_override=True)
 
         with mail.record_messages() as outbox:
             nightly.run_job(scheduled)
