@@ -53,19 +53,26 @@ class JobBase(object):
             hour=time.hour, minute=time.minute, second=time.second, tzinfo=tzinfo
         )
 
-    def schedule_job(self):
+    def schedule_job(self, time_override=False):
         '''Schedule a job.
+
+        If the time_override param is set to True, it will override the timing.
+        This allows us to always run jobs from the tests or manually force a job
+        to be scheduled if necessary.
         '''
         start_time = self.start_time
 
         if isinstance(self.start_time, datetime.time):
             start_time = self.build_datetime_object(self.start_time)
 
-        if start_time is None or UTC.localize(datetime.datetime.utcnow()) > start_time.astimezone(UTC):
-            return get_or_create(
-                db.session, self.job_status_model, create_method='create',
-                name=self.name, date=datetime.date.today(), status='new'
-            )
+        if start_time is None or \
+            UTC.localize(datetime.datetime.utcnow()) > start_time.astimezone(UTC) or \
+                time_override is True:
+
+                return get_or_create(
+                    db.session, self.job_status_model, create_method='create',
+                    name=self.name, date=datetime.date.today(), status='new'
+                )
 
     def run_job(self, job):
         raise NotImplementedError
