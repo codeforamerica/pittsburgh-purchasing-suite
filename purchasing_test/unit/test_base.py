@@ -8,7 +8,7 @@ from flask.ext.testing import TestCase as FlaskTestCase
 from purchasing.app import create_app as _create_app, db
 
 import logging
-# logging.getLogger("factory").setLevel(logging.WARN)
+logging.getLogger("factory").setLevel(logging.WARN)
 
 class BaseTestCase(FlaskTestCase):
     '''

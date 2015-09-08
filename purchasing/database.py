@@ -22,6 +22,8 @@ from .compat import basestring
 Column = db.Column
 relationship = relationship
 
+LISTEN_FOR_EVENTS = ['after_insert', 'after_update', 'after_delete']
+
 class CRUDMixin(object):
     """Mixin that adds convenience methods for CRUD (create, read, update, delete)
     operations.
@@ -134,13 +136,14 @@ def refresh_search_view(mapper, connection, target):
 
 # modified from http://stackoverflow.com/questions/12753450/sqlalchemy-mixins-and-event-listener
 class RefreshSearchViewMixin(object):
+
     @classmethod
     def event_handler(cls, *args, **kwargs):
         return refresh_search_view(*args, **kwargs)
 
     @classmethod
     def __declare_last__(cls):
-        for event_name in ['after_insert', 'after_update', 'after_delete']:
+        for event_name in LISTEN_FOR_EVENTS:
             sqlalchemy.event.listen(cls, event_name, cls.event_handler)
 
 # From Mike Bayer's "Building the app" talk
