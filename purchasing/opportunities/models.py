@@ -158,7 +158,7 @@ class Opportunity(Model):
             {
                 'event': 'bid_submission_start', 'classes': 'event event-submission_start',
                 'date': self.estimate_submission_start(),
-                'description': 'Opportunity submission_starts for submissions.'
+                'description': 'Opportunity opens for submissions.'
             },
             {
                 'event': 'bid_submission_end', 'classes': 'event event-submission_end',
