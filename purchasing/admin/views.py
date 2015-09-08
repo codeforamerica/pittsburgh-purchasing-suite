@@ -13,7 +13,7 @@ from purchasing.data.models import (
 from purchasing.opportunities.models import RequiredBidDocument
 from purchasing.conductor.forms import validate_integer
 from purchasing.extensions import login_manager
-from purchasing.users.models import User, Role, department_query, role_query
+from purchasing.users.models import User, Role, department_query, role_query, Department
 from purchasing.opportunities.models import Opportunity
 
 GLOBAL_EXCLUDE = [
@@ -138,10 +138,13 @@ class ConductorContractAdmin(ContractBaseAdmin):
 def get_stages():
     return Stage.query.order_by(Stage.name)
 
-class ContractTypeAdmin(BaseModelViewAdmin):
+class ContractTypeAdmin(AuthMixin, BaseModelViewAdmin):
     form_columns = [
         'name', 'allow_opportunities', 'opportunity_response_instructions'
     ]
+
+class DepartmentAdmin(AuthMixin, BaseModelViewAdmin):
+    pass
 
 class QuerySelect2TagsWidget(Select2Widget):
     def __init__(self, *args, **kwargs):
@@ -233,6 +236,9 @@ admin.add_view(CompanyAdmin(
 ))
 admin.add_view(ContractTypeAdmin(
     ContractType, db.session, name='Contract Types', endpoint='contract-type', category='Scout'
+))
+admin.add_view(DepartmentAdmin(
+    Department, db.session, name='Departments', endpoint='department', category='Scout'
 ))
 
 admin.add_view(StageAdmin(Stage, db.session, endpoint='stage', category='Conductor'))

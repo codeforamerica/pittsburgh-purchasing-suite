@@ -35,9 +35,7 @@ $(document).ready(function() {
     progressTable.draw();
   });
 
+  $('.hidden').removeClass('hidden');
   $('#js-loading-spinner').addClass('hidden');
-  $('#js-table-container-progress').removeClass('hidden');
-  $('#js-table-container-upcoming').removeClass('hidden');
-  $('#js-table-container-all').removeClass('hidden');
 
 });

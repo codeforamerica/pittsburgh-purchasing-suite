@@ -15,7 +15,8 @@ from wtforms.validators import (
 
 from purchasing.filters import better_title
 
-from purchasing.users.models import department_query
+from purchasing.users.models import department_query, conductor_users_query
+from purchasing.data.models import flow_query
 from purchasing.data.companies import get_all_companies_query
 
 from purchasing.opportunities.forms import OpportunityForm
@@ -46,10 +47,31 @@ def validate_multiple_emails(form, field):
             elif not re.match(EMAIL_REGEX, email):
                 raise ValidationError('One of the supplied emails is invalid!')
 
+
+class NewContractForm(Form):
+    description = TextField(validators=[DataRequired()])
+    flow = QuerySelectField(
+        query_factory=flow_query,
+        get_pk=lambda i: i.id,
+        get_label=lambda i: i.flow_name,
+        allow_blank=True, blank_text='-----'
+    )
+    assign_to = QuerySelectField(
+        query_factory=conductor_users_query,
+        get_pk=lambda i: i.id,
+        get_label=lambda i: i.email,
+        allow_blank=True, blank_text='-----'
+    )
+    department = QuerySelectField(
+        query_factory=department_query,
+        get_pk=lambda i: i.id,
+        get_label=lambda i: i.name,
+        allow_blank=True, blank_text='-----'
+    )
+
 class EditContractForm(Form):
     '''Form to control details needed to finalize a new/renewed contract
     '''
-
     description = TextField(validators=[DataRequired()])
     expiration_date = DateField(validators=[DataRequired()])
     spec_number = TextField(validators=[DataRequired()])

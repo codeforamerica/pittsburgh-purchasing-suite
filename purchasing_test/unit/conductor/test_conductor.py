@@ -133,7 +133,9 @@ class TestConductor(TestConductorSetup):
         self.assertEquals(self.contract1.assigned_to, self.conductor.id)
 
         self.assertEquals(assign.status_code, 302)
-        self.assert_flashes('Successfully assigned to {}!'.format(self.conductor.email), 'alert-success')
+        self.assert_flashes('Successfully assigned {} to {}!'.format(
+            self.contract1.description, self.conductor.email
+        ), 'alert-success')
         self.assertEquals(assign.location, 'http://localhost/conductor/')
 
         # re-assigning shouldn't cause problems
