@@ -23,21 +23,19 @@
   {% if stage.entered and stage.exited %}
     <div class="event event-complete {% if stage.id == active_stage.id %}event-active{% endif %}">
       <p><a href="{{ url_for('conductor.detail', contract_id=stage.contract_id, stage_id=stage.id) }}">{{ stage.name }}</a></p>
-      <p class="event-date">
-        {{ stage.exited|datetimeformat }}
-      </p>
+      <p class="event-date"><small>Took {{ stage.days_spent|int }} days to complete</small></p>
+      <p class="text-muted"><small>Completed {{ format_days_from_today(stage.exited) }} ({{ stage.entered|datetimeformat('%B %d, %Y') }})</small></p>
     </div>
   {% elif stage.entered %}
     <div class="event event-current {% if stage.id == active_stage.id %}event-active{% endif %}">
       <p>
         <a href="{{ url_for('conductor.detail', contract_id=stage.contract_id, stage_id=stage.id) }}">{{ stage.name }}</a>
       </p>
-      <p class="event-date">
-        {{ stage.entered|datetimeformat }}
-      </p>
+      <p class="event-date"><small>Started {{ format_days_from_today(stage.entered)|lower }}</small></p>
+      <p class="text-muted"><small>{{ stage.entered|datetimeformat('%B %d, %Y') }}</small></p>
     </div>
   {% else %}
-    <div class="event {% if stage.id == active_stage.id %}event-active{% endif %}">
+    <div class="event {% if stage.id == active_stage.id %}event-active{% endif %} event-not-started">
       <p class="text-muted">
         {{ stage.name }}
       </p>

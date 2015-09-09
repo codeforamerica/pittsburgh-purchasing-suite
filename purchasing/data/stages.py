@@ -277,7 +277,8 @@ def get_contract_stages(contract):
     return db.session.query(
         ContractStage.contract_id, ContractStage.stage_id, ContractStage.id,
         ContractStage.entered, ContractStage.exited, Stage.name, Stage.default_message,
-        Stage.post_opportunities, ContractBase.description
+        Stage.post_opportunities, ContractBase.description,
+        (db.func.extract(db.text('DAYS'), ContractStage.exited - ContractStage.entered)).label('days_spent')
     ).join(Stage, Stage.id == ContractStage.stage_id).join(
         ContractBase, ContractBase.id == ContractStage.contract_id
     ).filter(

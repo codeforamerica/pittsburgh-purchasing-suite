@@ -99,7 +99,7 @@ def get_attachment_filenames(attachments):
             return filenames.append(attachment.upload.data.filename)
         except AttributeError:
             continue
-    return filenames
+    return filenames if len(filenames) > 0 else None
 
 def handle_form(form, form_name, stage_id, user, contract, current_stage):
     if form.validate_on_submit():
@@ -131,7 +131,7 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
                 'body': form.data.get('body'),
                 'subject': form.data.get('subject'),
                 'stage_name': current_stage.name,
-                'attachments': [get_attachment_filenames(form.attachments.entries)]
+                'attachments': get_attachment_filenames(form.attachments.entries)
             }
 
             Notification(

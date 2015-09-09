@@ -226,7 +226,7 @@ def detail(contract_id, stage_id=-1):
         else:
             active_tab = '#' + submitted_form
 
-    actions = build_action_log(stage_id, active_stage)
+    actions = contract.build_complete_action_log()
     subscribers, total_subscribers = build_subscribers(contract)
     flows = Flow.query.filter(Flow.id != contract.flow_id).all()
 

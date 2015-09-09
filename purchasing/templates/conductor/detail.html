@@ -17,49 +17,59 @@
    </div><!-- event timeline view -->
 
     <div class="col-sm-8">
-      <div class="well well-no-border">
-        {% include 'conductor/detail/current_stage_title.html' %}
-        <hr>
-
-        <h4>Activity Stream</h4>
-        <div class="action-log">
-          {% include 'conductor/detail/_activity_log.html' %}
-        </div>
-
-        <!-- Conductor Action Tabs -->
-        {% if active_stage.id == current_stage.id %}
-        <ul class="nav nav-pills" role="tablist" id="tablist">
-          <li role="presentation" class="active"><a href="#activity" aria-controls="activity" role="tab" data-toggle="tab">Add Note</a></li>
-          <li role="presentation"><a href="#update" aria-controls="update" role="tab" data-toggle="tab">Send Email</a></li>
-          {% if active_stage.post_opportunities %}
-          <li role="presentation"><a href="#post" aria-controls="post" role="tab" data-toggle="tab">Post Opportunity</a></li>
-          {% endif %}
-          <li role="presentation"><a href="#update-metadata" aria-controls="update-metadata" role="tab" data-toggle="tab">Update Metadata</a></li>
-        </ul>
-        {% endif %}
-
-        <!-- Tab panes -->
-        <div class="tab-content conductor-action-tabs">
-          <div role="tabpanel" class="tab-pane active" id="activity">
-
-            <div class="note-form-container">
-            {% include 'conductor/detail/_add_note.html' %}
-            </div>
-          </div>
-
-          <div role="tabpanel" class="tab-pane" id="update">
-            {% include 'conductor/detail/_send_updates.html' %}
-          </div>
-
-          <div role="tabpanel" class="tab-pane" id="post">
-            {% include 'conductor/detail/_post_opportunities.html' %}
-          </div>
-
-          <div role="tabpanel" class="tab-pane" id="update-metadata">
-            {% include 'conductor/detail/_update_metadata.html' %}
+      <div class="row">
+        <div class="col-md-12">
+          <div class="well well-no-border">
+            {% include 'conductor/detail/current_stage_title.html' %}
           </div>
         </div>
       </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="well well-no-border">
+            <h4>Activity Stream</h4>
+            <div class="action-log">
+              {% include 'conductor/detail/_activity_log.html' %}
+            </div>
+
+            <!-- Conductor Action Tabs -->
+            {% if active_stage.id == current_stage.id %}
+            <ul class="nav nav-pills" role="tablist" id="tablist">
+              <li role="presentation" class="active"><a href="#activity" aria-controls="activity" role="tab" data-toggle="tab">Add Note</a></li>
+              <li role="presentation"><a href="#update" aria-controls="update" role="tab" data-toggle="tab">Send Email</a></li>
+              {% if active_stage.post_opportunities %}
+              <li role="presentation"><a href="#post" aria-controls="post" role="tab" data-toggle="tab">Post Opportunity</a></li>
+              {% endif %}
+              <li role="presentation"><a href="#update-metadata" aria-controls="update-metadata" role="tab" data-toggle="tab">Update Metadata</a></li>
+            </ul>
+            {% endif %}
+
+            <!-- Tab panes -->
+            <div class="tab-content conductor-action-tabs">
+              <div role="tabpanel" class="tab-pane active" id="activity">
+
+                <div class="note-form-container">
+                  {% include 'conductor/detail/_add_note.html' %}
+                </div>
+              </div>
+
+              <div role="tabpanel" class="tab-pane" id="update">
+                {% include 'conductor/detail/_send_updates.html' %}
+              </div>
+
+              <div role="tabpanel" class="tab-pane" id="post">
+                {% include 'conductor/detail/_post_opportunities.html' %}
+              </div>
+
+              <div role="tabpanel" class="tab-pane" id="update-metadata">
+                {% include 'conductor/detail/_update_metadata.html' %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     </div>
   </div><!-- row -->
