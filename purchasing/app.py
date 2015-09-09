@@ -96,7 +96,9 @@ def register_extensions(app):
     mail.init_app(app)
 
     from flask_sslify import SSLify
-    SSLify(app)
+    # only trigger SSLify if the app is running on Heroku
+    if 'DYNO' in os.environ:
+        SSLify(app)
     return None
 
 def register_blueprints(app, package_name='purchasing', package_path=None):

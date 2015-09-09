@@ -31,11 +31,12 @@ class Config(object):
 class ProdConfig(Config):
     """Production configuration."""
     ENV = 'prod'
-    DEBUG = True
+    DEBUG = False
     SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing')  # TODO: Change me
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
-    FLASK_ASSETS_USE_S3 = True
+    USE_S3 = True
     S3_USE_HTTPS = True
+    FLASK_ASSETS_USE_S3 = True
     UGLIFYJS_EXTRA_ARGS = ['-m']
     MAIL_USERNAME = os_env.get('MAIL_USERNAME')
     MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
@@ -55,7 +56,7 @@ class DevConfig(Config):
     MAIL_SERVER = 'smtp.gmail.com'  # Use gmail in dev: https://support.google.com/mail/answer/1173270?hl=en
     MAIL_USERNAME = os_env.get('MAIL_USERNAME')
     MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
-    ASSETS_DEBUG = True
+    ASSETS_DEBUG = False
     UPLOAD_S3 = False
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'uploads'))
     MAIL_SUPPRESS_SEND = False
