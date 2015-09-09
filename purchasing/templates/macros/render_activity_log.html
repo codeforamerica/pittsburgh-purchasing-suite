@@ -3,10 +3,10 @@
 {% macro render_activity_log(action, current_user, contract, top_level) %}
 
   {%- if action.action_type in ['activity', 'note'] -%}
-  <div class="action-event">
+  <div class="action-event js-filter-action-note">
     <span class="event-icon"><i class="fa fa-sticky-note-o"></i></span>
     {{ pn.print_name(action, current_user) }}
-    wrote "<strong>{{ action.action_detail.note }}</strong>" on {{ action.taken_at|datetimeformat }}.
+    wrote "<strong>{{ action.action_detail.note }}</strong>" on {{ action.taken_at|datetimeformat('%m/%d/%y') }}.
 
     {% if top_level %}
     <span class="pull-right">
@@ -17,56 +17,56 @@
 
   {# update #}
   {%- elif action.action_type == 'update' -%}
-  <div class="action-event">
+  <div class="action-event js-filter-action-update">
     <span class="event-icon"><i class="fa fa-envelope-o"></i></span>
     {{ pn.print_name(action, current_user) }}
-    sent <strong>{{ action.action_detail.sent_to }}</strong> an update on {{ action.taken_at|datetimeformat }} with the subject "<strong>{{ action.action_detail.subject }}</strong>"{% if action.action_detail.attachments and action.action_detail.attachments|length > 0 %} and {{ action.action_detail.attachments|length }} attachment(s){% endif -%}.
+    sent <strong>{{ action.action_detail.sent_to }}</strong> an update on {{ action.taken_at|datetimeformat('%m/%d/%y') }} with the subject "<strong>{{ action.action_detail.subject }}</strong>"{% if action.action_detail.attachments and action.action_detail.attachments|length > 0 %} and {{ action.action_detail.attachments|length }} attachment(s){% endif -%}.
   </div>
 
   {# opportunity #}
   {%- elif action.action_type == 'post' -%}
-  <div class="action-event action-event-post">
+  <div class="action-event action-event-post js-filter-action-post">
     <span class="event-icon"><i class="fa fa-paper-plane-o"></i></span>
     {{ pn.print_name(action, current_user) }}
-    <strong>{{ action.action_detail.label }}</strong> the <strong>{{ action.action_detail.title }}</strong> opportunity on {{ action.taken_at|datetimeformat }}. View it <a href="{{ url_for('opportunities.detail', opportunity_id=action.action_detail.opportunity_id) }}">on Beacon</a>.
+    {{ action.action_detail.label }} the {{ action.action_detail.title }} opportunity on {{ action.taken_at|datetimeformat('%m/%d/%y') }}. View it <a href="{{ url_for('opportunities.detail', opportunity_id=action.action_detail.opportunity_id) }}">on Beacon</a>.
   </div>
 
   {# date handling #}
   {%- elif action.action_type == 'entered' -%}
-  <div class="action-event action-event-date">
+  <div class="action-event action-event-date js-filter-action-enter">
     <span class="event-icon"><i class="fa fa-play-circle-o"></i></span>
-    {{ pn.print_name(action, current_user) }} <strong>started work</strong> on "{{ action['action_detail']['stage_name'] }}" on {{ action.action_detail.timestamp|datetimeformat }}.
+    {{ pn.print_name(action, current_user) }} started work on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
   </div>
 
   {%- elif action.action_type == 'exited' and action.action_detail -%}
-  <div class="action-event action-event-date">
+  <div class="action-event action-event-date js-filter-action-exit">
     <span class="event-icon"><i class="fa fa-check"></i></span>
-    {{ pn.print_name(action, current_user) }} <strong>completed work</strong> on "{{ action.action_detail.stage_name }}" on {{ action.action_detail.timestamp|datetimeformat }}.
+    {{ pn.print_name(action, current_user) }} completed work on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
   </div>
 
   {%- elif action.action_type == 'reversion' -%}
-  <div class="action-event action-event-reversion">
+  <div class="action-event action-event-reversion js-filter-action-revert">
     <span class="event-icon"><i class="fa fa-repeat"></i></span>
-    {{ action.action_detail.label }} on "{{ action.action_detail.stage_name }}" on {{ action.action_detail.timestamp|datetimeformat }}.
+    {{ action.action_detail.label }} on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
   </div>
 
   {# metadata update handling #}
   {%- elif action.action_type == 'update-metadata' -%}
-  <div class="action-event action-event-metadata">
+  <div class="action-event action-event-metadata js-filter-action-metadata">
     <span class="event-icon"><i class="fa fa-pencil-square-o"></i></span>
     {{ pn.print_name(action, current_user) }} set
     {% for field, value in action['action_detail'].items() if value is not none %}
-      <strong>{{ field.replace('_', ' ')|title }}</strong> to <strong>"{{ value }}"</strong>
+      {{ field.replace('_', ' ')|title }} to "{{ value }}"
       {{- csl.comma_separated_loop(loop) -}}
     {% endfor %}
-    on {{ action.taken_at|datetimeformat }}
+    on {{ action.taken_at|datetimeformat('%m/%d/%y') }}
   </div>
 
   {%- elif action.action_type == 'flow_switch' -%}
-  <div class="action-event action-event-reversion">
+  <div class="action-event action-event-reversion js-filter-action-flow-switch">
     <span class="event-icon"><i class="fa fa-exchange"></i></span>
     {{ pn.print_name(action, current_user) }}
-    switched the contract flow from <strong>"{{ action.action_detail.old_flow }}"</strong> to <strong>"{{ action.action_detail.new_flow }}"</strong>. Here is the action log from the previous work:
+    switched the contract flow from "{{ action.action_detail.old_flow }}" to "{{ action.action_detail.new_flow }}". Here is the action log from the previous work:
     {% for _action in action.action_detail.old_flow_actions %}
       {{ render_activity_log(_action, current_user, contract, false) }}
     {% endfor %}

@@ -1,17 +1,21 @@
 <div class="row">
-<div class="col-md-12">
-{% if active_stage.id != current_stage.id %}
-<h4>Current Stage</h4>
-<p class="text-bigger"><strong>{{ current_stage.name }}</strong></p>
-<p>
-  This stage has been completed. <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=current_stage.id) }}">View current stage</a>
-</p>
-<a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, transition='true', destination=active_stage.stage_id) }}" class="btn btn-detail btn-primary">Revert to this stage</a></span>
-<div class="spacer-10"></div>
-{% else %}
-  <h4>Current Stage</h4>
-  <p class="text-bigger"><strong>{{ current_stage.name }}</strong></p>
-  <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, transition='true') }}" id="stage-{{ active_stage.id }}" data-current="true" class="btn btn-detail btn-success js-transition">Mark complete!</a>
-{% endif %}
-</div>
+  {% if active_stage.id != current_stage.id %}
+  <div class="col-md-9">
+    <span class="text-bigger"><strong>{{ current_stage.name }}</strong></span> <br/>
+    <span>
+      This stage has been completed. <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=current_stage.id) }}">View current stage</a>
+    </span>
+  </div>
+  <div class="col-md-3 pull-right">
+    <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, transition='true', destination=active_stage.stage_id) }}" class="btn btn-detail btn-primary">Revert to this stage</a></span>
+  </div>
+  <div class="spacer-10"></div>
+  {% else %}
+  <div class="col-md-9">
+    <span class="text-bigger btn-share-row">Current stage: <strong>{{ current_stage.name }}</strong></span>
+  </div>
+  <div class="col-md-3">
+    <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, transition='true') }}" id="stage-{{ active_stage.id }}" data-current="true" class="btn btn-detail btn-success js-transition pull-right">Mark complete!</a>
+  </div>
+  {% endif %}
 </div>

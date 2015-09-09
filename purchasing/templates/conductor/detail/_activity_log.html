@@ -1,6 +1,33 @@
 {% import "macros/comma_separated_loop.html" as macros %}
 {% import 'macros/render_activity_log.html' as ral %}
 
-{%- for action in actions -%}
-  {{ ral.render_activity_log(action, current_user, contract, true) }}
-{%- endfor -%}
+<div class="action-log-header">
+  <h4>Activity Stream</h4>
+  <h4>
+    Filter:
+    <div class="btn-group btn-group-sm" id="js-activity-log-filter" role="group" data-toggle="buttons">
+      <label type="button" data-js-filter="note" class="btn btn-default js-filter-btn">
+        <input type="checkbox" id="note" value="note" name="filter-btn"><i class="fa fa-sticky-note-o"></i>
+      </label>
+      <label type="button" data-js-filter="update" class="btn btn-default js-filter-btn">
+        <input type="checkbox" id="update" value="update" name="filter-btn"><i class="fa fa-envelope-o"></i>
+      </label>
+      <label type="button" data-js-filter="post" class="btn btn-default js-filter-btn">
+        <input type="checkbox" id="post" value="post" name="filter-btn"><i class="fa fa-paper-plane-o"></i>
+      </label>
+      <label type="button" data-js-filter="metadata" class="btn btn-default js-filter-btn">
+        <input type="checkbox" id="metadata" value="metadata" name="filter-btn"><i class="fa fa-pencil-square-o"></i>
+      </label>
+      <label type="button" data-js-filter="enter" class="btn btn-default js-filter-btn">
+        <input type="checkbox" id="enter" value="enter" name="filter-btn"><i class="fa fa-play-circle-o"></i>
+      </label>
+    </div>
+  </h4>
+</div>
+
+<div class="action-log">
+  {%- for action in actions -%}
+    {{ ral.render_activity_log(action, current_user, contract, true) }}
+  {%- endfor -%}
+</div>
+
