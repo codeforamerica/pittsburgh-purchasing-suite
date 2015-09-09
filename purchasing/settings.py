@@ -27,6 +27,7 @@ class Config(object):
     AWS_ACCESS_KEY_ID = os_env.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os_env.get('AWS_SECRET_ACCESS_KEY')
     CELERY_IMPORTS = ("purchasing.tasks",)
+    BROKER_POOL_LIMIT = None
 
 class ProdConfig(Config):
     """Production configuration."""
