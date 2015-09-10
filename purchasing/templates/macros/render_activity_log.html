@@ -4,7 +4,7 @@
 
   {%- if action.action_type in ['activity', 'note'] -%}
   <div class="action-event js-filter-action-note">
-    <span class="event-icon"><i class="fa fa-sticky-note-o"></i></span>
+    <span class="event-icon"><i class="fa fa-pencil"></i></span>
     {{ pn.print_name(action, current_user) }}
     wrote "<strong>{{ action.action_detail.note }}</strong>" on {{ action.taken_at|datetimeformat('%m/%d/%y') }}.
 
@@ -26,7 +26,7 @@
   {# opportunity #}
   {%- elif action.action_type == 'post' -%}
   <div class="action-event js-filter-action-post">
-    <span class="event-icon"><i class="fa fa-paper-plane-o"></i></span>
+    <span class="event-icon"><i class="fa fa-bullhorn"></i></span>
     {{ pn.print_name(action, current_user) }}
     {{ action.action_detail.label }} the {{ action.action_detail.title }} opportunity on {{ action.taken_at|datetimeformat('%m/%d/%y') }}. View it <a href="{{ url_for('opportunities.detail', opportunity_id=action.action_detail.opportunity_id) }}">on Beacon</a>.
   </div>
@@ -34,13 +34,13 @@
   {# date handling #}
   {%- elif action.action_type == 'entered' -%}
   <div class="action-event action-event-date js-filter-action-stage">
-    <span class="event-icon"><i class="fa fa-play-circle-o"></i></span>
+    <span class="event-icon"><i class="fa fa-circle-o"></i></span>
     {{ pn.print_name(action, current_user) }} started work on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
   </div>
 
   {%- elif action.action_type == 'exited' and action.action_detail -%}
   <div class="action-event action-event-date js-filter-action-stage">
-    <span class="event-icon"><i class="fa fa-check"></i></span>
+    <span class="event-icon"><i class="fa fa-check-circle"></i></span>
     {{ pn.print_name(action, current_user) }} completed work on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
   </div>
 
@@ -53,7 +53,7 @@
   {# metadata update handling #}
   {%- elif action.action_type == 'update-metadata' -%}
   <div class="action-event js-filter-action-metadata">
-    <span class="event-icon"><i class="fa fa-pencil-square-o"></i></span>
+    <span class="event-icon"><i class="fa fa-file-text-o"></i></span>
     {{ pn.print_name(action, current_user) }} set
     {% for field, value in action['action_detail'].items() if value is not none %}
       {{ field.replace('_', ' ')|title }} to "{{ value }}"
