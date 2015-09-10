@@ -1,0 +1,17 @@
+<table class="display" id="js-table-progress">
+  <thead>
+    {% set type = 'in_progress' %}
+    {% include 'conductor/table/header.html' %}
+
+  </thead>
+  <tbody>
+    {% for contract in in_progress %}
+    <tr class="{%- if days_from_today(contract.entered) < -14 -%}contract-row-expiring-danger
+    {%- elif days_from_today(contract.entered) < -7 -%}contract-row-expiring-warning
+    {%- endif -%}" data-department="{{ contract.department.name or 'Not set' }}"
+    data-controller="{{ contract.financial_id or 'Not set' }}">
+      {% include 'conductor/table/row.html' %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table><!-- in progress contracts table -->

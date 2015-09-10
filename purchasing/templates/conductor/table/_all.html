@@ -1,0 +1,17 @@
+<table class="display" id="js-table-all">
+  <thead>
+    {% set type = 'all' %}
+    {% include 'conductor/table/header.html' %}
+  </thead>
+  <tbody>
+    {% for contract in _all %}
+    <tr class="{%- if days_from_today(contract.expiration_date) < 60 -%}contract-row-expiring-danger
+    {%- elif days_from_today(contract.expiration_date) < 120 -%}contract-row-expiring-warning
+    {%- endif -%}" data-department="Sample data"
+    data-controller="Sample data"
+    >
+      {% include 'conductor/table/row.html' %}
+    </tr>
+    {% endfor%}
+  </tbody>
+</table><!-- all contracts table  conductor-add-new-->

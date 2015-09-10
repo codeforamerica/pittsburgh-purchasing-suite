@@ -24,22 +24,7 @@
       </label>
     </div>
 
-    <table class="display" id="js-table-progress">
-      <thead>
-        {% set type = 'in_progress' %}
-        {% include 'conductor/table/header.html' %}
-
-      </thead>
-      <tbody>
-        {% for contract in in_progress %}
-        <tr class="{%- if days_from_today(contract.entered) < -14 -%}contract-row-expiring-danger
-        {%- elif days_from_today(contract.entered) < -7 -%}contract-row-expiring-warning
-        {%- endif -%}">
-          {% include 'conductor/table/row.html' %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table><!-- in progress contracts table -->
+    {% include 'conductor/table/in_progress.html' %}
 
   <hr>
   </div>
@@ -47,20 +32,7 @@
   <div id="js-table-container-all" class="row hidden conductor-all-contracts">
     <h3>All Contracts <i class="fa fa-question-circle" aria-hidden="true" data-toggle="tooltip" data-placement="right" data-title="Contracts expiring in less than 60 days are marked red. Contracts expiring in less than 120 days are marked yellow."></i></h3>
 
-    <table class="display" id="js-table-all">
-      <thead>
-        {% set type = 'all' %}
-        {% include 'conductor/table/header.html' %}
-      </thead>
-      <tbody>
-        {% for contract in _all %}
-        <tr class="{%- if days_from_today(contract.expiration_date) < 60 -%}contract-row-expiring-danger
-        {%- elif days_from_today(contract.expiration_date) < 120 -%}contract-row-expiring-warning
-        {%- endif -%}">
-          {% include 'conductor/table/row.html' %}
-        </tr>
-        {% endfor%}
-      </table><!-- all contracts table  conductor-add-new-->
+    {% include 'conductor/table/_all.html' %}
 
   <hr>
   </div>

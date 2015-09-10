@@ -22,7 +22,7 @@ from purchasing.data.models import (
     ContractType
 )
 
-from purchasing.users.models import User, Role
+from purchasing.users.models import User, Role, Department
 from purchasing.conductor.forms import (
     EditContractForm, PostOpportunityForm,
     SendUpdateForm, NoteForm, ContractMetadataForm, CompanyListForm,
@@ -46,7 +46,8 @@ def index():
         ContractBase.description, Flow.flow_name,
         Stage.name.label('stage_name'), ContractStage.entered,
         db.func.string.split_part(User.email, '@', 1).label('assigned'),
-    ).join(
+        ContractBase.department
+    ).outerjoin(Department).join(
         ContractStage, db.and_(
             ContractStage.stage_id == ContractBase.current_stage_id,
             ContractStage.contract_id == ContractBase.id,
@@ -67,8 +68,8 @@ def index():
         ContractBase.id, ContractBase.description,
         ContractBase.financial_id, ContractBase.expiration_date,
         ContractProperty.value.label('spec_number'),
-        ContractBase.contract_href
-    ).join(ContractType).outerjoin(ContractProperty).filter(
+        ContractBase.contract_href, ContractBase.department
+    ).join(ContractType).outerjoin(Department).outerjoin(ContractProperty).filter(
         db.func.lower(ContractType.name).in_(['county', 'a-bid', 'b-bid']),
         db.func.lower(ContractProperty.key) == 'spec number',
         ContractBase.children == None,
