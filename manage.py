@@ -38,9 +38,12 @@ def seed_user(email, role, dept):
     '''
     Creates a new user in the database.
     '''
-    from purchasing.users.models import User
+    from purchasing.users.models import User, Department
     seed_email = email if email else app.config.get('SEED_EMAIL')
     user_exists = User.query.filter(User.email == seed_email).first()
+    department = Department.query.filter(
+            Department.name == db.func.lower(dept)
+            ).first()
     if user_exists:
         print 'User {email} already exists'.format(email=seed_email)
     else:
@@ -49,7 +52,7 @@ def seed_user(email, role, dept):
                 email=seed_email,
                 created_at=datetime.datetime.utcnow(),
                 role_id=role,
-                department=dept
+                department=department if department else None
             )
             db.session.add(new_user)
             db.session.commit()

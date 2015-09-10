@@ -48,6 +48,7 @@ env
 
 # Bower Installs
 libs/
+node_modules/
 
 # Flask-assets output
 css
