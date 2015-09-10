@@ -12,9 +12,10 @@ import datetime
 
 from boto.s3.connection import S3Connection
 
-from purchasing.database import db
-
+import sqlalchemy
 from wtforms.validators import InputRequired, StopValidation
+
+from purchasing.database import db, LISTEN_FOR_EVENTS
 
 # modified from https://gist.github.com/bsmithgall/372de43205804a2279c9
 SMALL_WORDS = re.compile(r'^(a|an|and|as|at|but|by|en|etc|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$', re.I)
@@ -45,9 +46,34 @@ def enable_triggers():
         '''.format(table=table, column=column)))
 
 def refresh_search_view():
-    db.session.execute(db.text('''
+    '''Create and execute a refresh to the search view in a scoped session
+    '''
+    print 'Refreshing the search view...'
+    session = db.create_scoped_session()
+    session.execute(db.text('''
         REFRESH MATERIALIZED VIEW CONCURRENTLY search_view
     '''))
+    session.commit()
+    db.engine.dispose()
+
+def get_all_refresh_mixin_models():
+    # import data models for turning off/on sqlalchemy events
+    from purchasing.database import RefreshSearchViewMixin
+    return RefreshSearchViewMixin.__subclasses__()
+
+def turn_off_sqlalchemy_events():
+    print 'Disabling sqlalchemy events...'
+    models = get_all_refresh_mixin_models()
+    for model in models:
+        for event in LISTEN_FOR_EVENTS:
+            sqlalchemy.event.remove(model, event, model.event_handler)
+
+def turn_on_sqlalchemy_events():
+    print 'Enabling sqlalchemy events...'
+    models = get_all_refresh_mixin_models()
+    for model in models:
+        for event in LISTEN_FOR_EVENTS:
+            sqlalchemy.event.listen(model, event, model.event_handler)
 
 def random_id(n):
     '''Returns random id of length n

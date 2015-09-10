@@ -10,8 +10,8 @@ from flask.ext.assets import ManageAssets
 from purchasing.app import create_app
 from purchasing.database import db
 from purchasing.utils import (
-    connect_to_s3, upload_file, disable_triggers, enable_triggers,
-    refresh_search_view
+    connect_to_s3, upload_file, turn_off_sqlalchemy_events,
+    turn_on_sqlalchemy_events, refresh_search_view
 )
 
 from purchasing.public.models import AppStatus
@@ -67,13 +67,13 @@ def import_old_contracts(filepath):
     Takes a csv of old contracts and imports them into the DB
     '''
     print 'Disabling triggers...'
-    disable_triggers()
+    turn_off_sqlalchemy_events()
     from purchasing.data.importer.old_contracts import main
     print 'Importing data from {filepath}\n'.format(filepath=filepath)
     main(filepath)
     print 'Import finished!'
     print 'Enabling triggers...'
-    enable_triggers()
+    turn_on_sqlalchemy_events()
     print 'Refreshing search_view...'
     print 'Done!'
     return
@@ -91,7 +91,7 @@ def import_costars(user=None, secret=None, bucket=None, directory=None):
     costars data, and then important them into the DB
     '''
     print 'Disabling triggers...'
-    disable_triggers()
+    turn_off_sqlalchemy_events()
     from purchasing.data.importer.costars import main
     for file in os.listdir(directory):
         if file.endswith('.csv'):
@@ -99,7 +99,7 @@ def import_costars(user=None, secret=None, bucket=None, directory=None):
             main(os.path.join(directory, file), file, user, secret, bucket)
     print 'Import finished!'
     print 'Enabling triggers...'
-    enable_triggers()
+    turn_on_sqlalchemy_events()
     return
 
 @manager.option(
@@ -123,27 +123,27 @@ def import_nigp(filepath, replace=False):
 @manager.option('-a', '--all', dest='_all', default=None)
 def scrape(_all):
     print 'Disabling triggers...'
-    disable_triggers()
+    turn_off_sqlalchemy_events()
     from purchasing.data.importer.scrape_county import main
     print 'Scraping County'
     main(_all)
     print 'Scraping Finished'
     print 'Enabling triggers...'
-    enable_triggers()
+    turn_on_sqlalchemy_events()
     return
 
 @manager.command
 def delete_contracts():
     if prompt_bool("Are you sure you want to lose all contracts & companies?"):
         print 'Disabling triggers...'
-        disable_triggers()
+        turn_off_sqlalchemy_events()
         print 'Deleting!'
         from purchasing.data.models import ContractBase, Company
         ContractBase.query.delete()
         Company.query.delete()
         db.session.commit()
         print 'Enabling triggers...'
-        enable_triggers()
+        turn_on_sqlalchemy_events()
     return
 
 @manager.option('-u', '--user_id', dest='user')
@@ -252,10 +252,13 @@ def schedule_work():
 @manager.command
 def do_work():
     from purchasing.jobs.job_base import JobStatus
+    turn_off_sqlalchemy_events()
     jobs = JobStatus.query.filter(JobStatus.status == 'new').all()
     for job in jobs:
         task = getattr(nightly_jobs, job.name)()
         task.run_job(job)
+    turn_on_sqlalchemy_events()
+    refresh_search_view()
 
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))
 manager.add_command('shell', Shell(make_context=_make_context))
