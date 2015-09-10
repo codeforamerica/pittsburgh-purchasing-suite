@@ -9,7 +9,7 @@
     <div class="col-md-8 col-md-offset-2">
       <h3>New Contract</h3>
 
-      <form class="form" method="POST" action="{{ url_for('conductor.new') }}">
+      <form class="form" method="POST" action="{{ url_for('conductor.start_work', contract_id=contract_id) }}">
         {{ form.csrf_token() }}
 
         <div class="form-group">

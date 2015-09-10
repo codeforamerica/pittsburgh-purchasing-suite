@@ -8,10 +8,11 @@
   </div>
 
   <div class="row hidden conductor-add-new">
-    <h4><a href="{{ url_for('conductor.new') }}">Start new contract <i class="fa fa-plus-circle"></i></a></h4>
+    <p class="pull-right"><a class="btn btn-primary btn-sm" href="{{ url_for('conductor.start_work') }}">Add new contract</a></p>
 
-    <hr class="hr-no-padding">
   </div>
+
+  <div class="row hidden"><hr class="hr-no-padding"></div>
 
   <div id="js-table-container-progress" class="row hidden conductor-in-progress">
   <h3>

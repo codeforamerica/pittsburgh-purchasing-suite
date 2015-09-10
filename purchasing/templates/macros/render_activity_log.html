@@ -1,6 +1,6 @@
 {% import 'macros/print_name.html' as pn %}
 {% import 'macros/comma_separated_loop.html' as csl %}
-{% macro render_activity_log(action, current_user, contract, top_level) %}
+{% macro render_activity_log(action, current_user, contract, top_level, current_stage) %}
 
   {%- if action.action_type in ['activity', 'note'] -%}
   <div class="action-event js-filter-action-note">
@@ -25,7 +25,7 @@
 
   {# opportunity #}
   {%- elif action.action_type == 'post' -%}
-  <div class="action-event action-event-post js-filter-action-post">
+  <div class="action-event js-filter-action-post">
     <span class="event-icon"><i class="fa fa-paper-plane-o"></i></span>
     {{ pn.print_name(action, current_user) }}
     {{ action.action_detail.label }} the {{ action.action_detail.title }} opportunity on {{ action.taken_at|datetimeformat('%m/%d/%y') }}. View it <a href="{{ url_for('opportunities.detail', opportunity_id=action.action_detail.opportunity_id) }}">on Beacon</a>.
@@ -33,26 +33,26 @@
 
   {# date handling #}
   {%- elif action.action_type == 'entered' -%}
-  <div class="action-event action-event-date js-filter-action-enter">
+  <div class="action-event action-event-date js-filter-action-stage">
     <span class="event-icon"><i class="fa fa-play-circle-o"></i></span>
     {{ pn.print_name(action, current_user) }} started work on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
   </div>
 
   {%- elif action.action_type == 'exited' and action.action_detail -%}
-  <div class="action-event action-event-date js-filter-action-exit">
+  <div class="action-event action-event-date js-filter-action-stage">
     <span class="event-icon"><i class="fa fa-check"></i></span>
     {{ pn.print_name(action, current_user) }} completed work on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
   </div>
 
   {%- elif action.action_type == 'reversion' -%}
-  <div class="action-event action-event-reversion js-filter-action-revert">
+  <div class="action-event action-event-reversion js-filter-action-stage">
     <span class="event-icon"><i class="fa fa-repeat"></i></span>
     {{ action.action_detail.label }} on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
   </div>
 
   {# metadata update handling #}
   {%- elif action.action_type == 'update-metadata' -%}
-  <div class="action-event action-event-metadata js-filter-action-metadata">
+  <div class="action-event js-filter-action-metadata">
     <span class="event-icon"><i class="fa fa-pencil-square-o"></i></span>
     {{ pn.print_name(action, current_user) }} set
     {% for field, value in action['action_detail'].items() if value is not none %}
@@ -63,7 +63,7 @@
   </div>
 
   {%- elif action.action_type == 'flow_switch' -%}
-  <div class="action-event action-event-reversion js-filter-action-flow-switch">
+  <div class="action-event js-filter-action-flow-switch">
     <span class="event-icon"><i class="fa fa-exchange"></i></span>
     {{ pn.print_name(action, current_user) }}
     switched the contract flow from "{{ action.action_detail.old_flow }}" to "{{ action.action_detail.new_flow }}". Here is the action log from the previous work:

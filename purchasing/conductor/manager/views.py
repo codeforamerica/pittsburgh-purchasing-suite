@@ -271,8 +271,9 @@ def delete_note(contract_id, stage_id, note_id):
     return redirect(url_for('conductor.detail', contract_id=contract_id))
 
 @blueprint.route('/contract/new', methods=['GET', 'POST'])
+@blueprint.route('/contract/<int:contract_id>/start', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
-def new():
+def start_work(contract_id=-1):
     form = NewContractForm()
     if form.validate_on_submit():
         contract, _ = get_or_create(

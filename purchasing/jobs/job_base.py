@@ -70,8 +70,8 @@ class JobBase(object):
                 time_override is True:
 
                 return get_or_create(
-                    db.session, self.job_status_model, create_method='create',
-                    name=self.name, date=datetime.date.today(), status='new'
+                    db.session, self.job_status_model, name=self.name,
+                    date=datetime.date.today(), status='new'
                 )
 
     def run_job(self, job):

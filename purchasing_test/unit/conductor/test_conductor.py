@@ -211,7 +211,9 @@ class TestConductor(TestConductorSetup):
         # transition to the third stage
         transition_url = self.build_detail_view(self.contract1) + '?transition=true'
         self.client.get(transition_url)
+        self.assertEquals(ContractStageActionItem.query.count(), 3)
         self.client.get(transition_url)
+        self.assertEquals(ContractStageActionItem.query.count(), 5)
 
         self.assertEquals(self.contract1.current_stage_id, self.stage3.id)
 
@@ -219,19 +221,7 @@ class TestConductor(TestConductorSetup):
         # revert to the original stage
         self.client.get(revert_url.format(self.stage1.id))
 
-        self.assertEquals(ContractStageActionItem.query.count(), 12)
-        # there should be 3 for stage 1 & 2 (enter, exit, reopen)
-        self.assertEquals(ContractStageActionItem.query.join(ContractStage).filter(
-            ContractStage.stage_id == self.stage1.id
-        ).count(), 5)
-
-        self.assertEquals(ContractStageActionItem.query.join(ContractStage).filter(
-            ContractStage.stage_id == self.stage2.id
-        ).count(), 5)
-
-        self.assertEquals(ContractStageActionItem.query.join(ContractStage).filter(
-            ContractStage.stage_id == self.stage3.id
-        ).count(), 2)
+        self.assertEquals(ContractStageActionItem.query.count(), 6)
 
         self.assertEquals(self.contract1.current_stage_id, self.stage1.id)
         self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage1.id).first().entered is not None)

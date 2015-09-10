@@ -1,16 +1,61 @@
 <table class="display" id="js-table-all">
   <thead>
-    {% set type = 'all' %}
-    {% include 'conductor/table/header.html' %}
+    <th>Item #</th>
+    <th>Name</th>
+    <th>Spec #</th>
+    <th>Expires Sort (Hidden)</th>
+    <th>Expires</th>
+    <th>Controller</th>
+    <th>Actions</th>
   </thead>
   <tbody>
     {% for contract in _all %}
     <tr class="{%- if days_from_today(contract.expiration_date) < 60 -%}contract-row-expiring-danger
     {%- elif days_from_today(contract.expiration_date) < 120 -%}contract-row-expiring-warning
-    {%- endif -%}" data-department="Sample data"
-    data-controller="Sample data"
-    >
-      {% include 'conductor/table/row.html' %}
+    {%- endif -%}">
+
+      <td>{{ contract.id }}</td>
+
+      <td>
+        <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>{{ contract.description|title|truncate(40) }}</span>
+      </td>
+
+      <td>{{ contract.spec_number}}</td><!-- spec number -->
+
+      <td>{{ contract.expiration_date }}</td><!-- expiration date for sorting -->
+      <td>
+        {% if contract.expiration_date %}
+        <strong>{{ format_days_from_today(contract.expiration_date) }}</strong><br>
+        <span class="text-muted">{{ contract.expiration_date|datetimeformat('%m/%d/%Y') }}</span>
+        {% else %}
+        --
+        {% endif %}
+      </td><!-- formatted expiration date -->
+
+      <td>{{ contract.financial_id }}</td>
+
+      <td>
+      <div class="dropdown">
+        <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+          Actions
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="actionDropdown-{{ contract.id }}">
+          <li><a href="{{ url_for('conductor.start_work', contract_id=contract.id) }}">
+            Start work <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-play-circle-o"></i></span>
+          </a></li>
+          {% if contract.contract_href %}
+          <li><a href="{{ contract.contract_href }}" target="_blank">
+            View contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-file-pdf-o"></i></span>
+          </a></li>
+          {% endif %}
+          <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
+            View on Scout <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search"></i></span>
+          </a></li>
+        </ul>
+      </div>
+      </td><!-- button dropdowns -->
+
     </tr>
     {% endfor%}
   </tbody>
