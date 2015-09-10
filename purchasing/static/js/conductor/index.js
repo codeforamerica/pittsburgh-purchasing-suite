@@ -27,9 +27,9 @@ $(document).ready(function() {
     // use column 3 (actual timestamps) as a sort proxy for
     // column 4 (formatted "days since")
     'aoColumnDefs': [
-      { 'bVisible': false, 'aTargets': [3] },
-      { 'iDataSort': 3, 'aTargets': [4] }
-    ]
+      { 'bVisible': false, 'aTargets': [4] },
+      { 'iDataSort': 4, 'aTargets': [5] }
+    ],
   });
 
   $('#js-show-only-mine').on('change', function() {
@@ -59,5 +59,9 @@ $(document).ready(function() {
 
   $('.hidden').removeClass('hidden');
   $('#js-loading-spinner').addClass('hidden');
+
+  // custom styling for datatables
+  $('.dataTables_filter').find('input').addClass('form-control datatables-form-controls');
+  $('.dataTables_length').find('select').addClass('form-control input-sm datatables-form-controls');
 
 });

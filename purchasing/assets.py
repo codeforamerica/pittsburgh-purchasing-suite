@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 from flask_assets import Bundle, Environment
 
 less = Bundle(

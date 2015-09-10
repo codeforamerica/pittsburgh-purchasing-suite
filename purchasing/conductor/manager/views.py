@@ -31,7 +31,7 @@ from purchasing.conductor.forms import (
 
 from purchasing.conductor.util import (
     update_contract_with_spec, handle_form, ContractMetadataObj,
-    build_action_log, build_subscribers, create_opp_form_obj,
+    build_subscribers, create_opp_form_obj,
     json_serial, parse_companies, UpdateFormObj, assign_a_contract
 )
 
@@ -274,18 +274,24 @@ def delete_note(contract_id, stage_id, note_id):
 @blueprint.route('/contract/<int:contract_id>/start', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def start_work(contract_id=-1):
-    form = NewContractForm()
+    contract = ContractBase.query.get(contract_id)
+    contract = contract if contract else ContractBase()
+    form = NewContractForm(obj=contract)
+
     if form.validate_on_submit():
-        contract, _ = get_or_create(
-            db.session, ContractBase, description=form.data.get('description'),
-            department=form.data.get('department')
-        )
-        if assign_a_contract(contract, form.data.get('flow'), form.data.get('assign_to').id):
+
+        if contract_id == -1:
+            contract, _ = get_or_create(
+                db.session, ContractBase, description=form.data.get('description'),
+                department=form.data.get('department')
+            )
+
+        if assign_a_contract(contract, form.data.get('flow'), form.data.get('assigned').id):
             flash('Successfully assigned {} to {}!'.format(contract.description, contract.assigned.email), 'alert-success')
             return redirect(url_for('conductor.detail', contract_id=contract.id))
         else:
             flash("That flow doesn't exist!", 'alert-danger')
-    return render_template('conductor/new.html', form=form)
+    return render_template('conductor/new.html', form=form, contract_id=contract_id)
 
 @blueprint.route('/contract/<int:contract_id>/edit/contract', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')

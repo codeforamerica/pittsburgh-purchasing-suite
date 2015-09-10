@@ -3,9 +3,9 @@
     <th>Item #</th>
     <th>Name</th>
     <th>Spec #</th>
+    <th>Controller #</th>
     <th>Expires Sort (Hidden)</th>
     <th>Expires</th>
-    <th>Controller</th>
     <th>Actions</th>
   </thead>
   <tbody>
@@ -22,6 +22,8 @@
 
       <td>{{ contract.spec_number}}</td><!-- spec number -->
 
+      <td>{{ contract.financial_id }}</td><!-- controller number -->
+
       <td>{{ contract.expiration_date }}</td><!-- expiration date for sorting -->
       <td>
         {% if contract.expiration_date %}
@@ -31,8 +33,6 @@
         --
         {% endif %}
       </td><!-- formatted expiration date -->
-
-      <td>{{ contract.financial_id }}</td>
 
       <td>
       <div class="dropdown">

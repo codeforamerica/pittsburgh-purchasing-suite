@@ -273,11 +273,11 @@ def assign_a_contract(contract, flow, user_id):
     db.session.commit()
 
     try:
-        current_app.logger.info('CONDUCTOR ASSIGN - contract "{}" assigned to {} with flow {}'.format(
+        current_app.logger.info('CONDUCTOR ASSIGN - new contract "{}" assigned to {} with flow {}'.format(
             new_contract.description, new_contract.assigned.email, new_contract.flow.flow_name
         ))
     except UnboundLocalError:
-        current_app.logger.info('CONDUCTOR ASSIGN - contract "{}" assigned to {} with flow {}'.format(
+        current_app.logger.info('CONDUCTOR ASSIGN - old contract "{}" assigned to {} with flow {}'.format(
             contract.description, contract.assigned.email, contract.flow.flow_name
         ))
 

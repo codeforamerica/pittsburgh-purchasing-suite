@@ -56,7 +56,7 @@ class NewContractForm(Form):
         get_label=lambda i: i.flow_name,
         allow_blank=True, blank_text='-----'
     )
-    assign_to = QuerySelectField(
+    assigned = QuerySelectField(
         query_factory=conductor_users_query,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.email,

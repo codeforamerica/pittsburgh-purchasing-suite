@@ -86,7 +86,7 @@ class ScoutContractAdmin(ContractBaseAdmin):
     form_columns = [
         'contract_type', 'description', 'properties',
         'financial_id', 'expiration_date', 'contract_href',
-        'companies', 'followers', 'is_archived'
+        'companies', 'followers', 'is_archived', 'department'
     ]
 
 class ConductorContractAdmin(ContractBaseAdmin):

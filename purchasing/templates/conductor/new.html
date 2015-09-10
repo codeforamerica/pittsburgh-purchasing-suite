@@ -7,7 +7,7 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-      <h3>New Contract</h3>
+      <h3>Start work on a contract</h3>
 
       <form class="form" method="POST" action="{{ url_for('conductor.start_work', contract_id=contract_id) }}">
         {{ form.csrf_token() }}
@@ -24,7 +24,7 @@
 
         <div class="form-group">
           <label for="assign_to">Assign To: <span class="form-required">*</span></label>
-          {{ macros.with_errors(form.assign_to, class_="form-control") }}
+          {{ macros.with_errors(form.assigned, class_="form-control") }}
         </div><!-- assign_to -->
 
         <div class="form-group">

@@ -7,11 +7,6 @@
   <div id="js-loading-spinner">
   </div>
 
-  <div class="row hidden conductor-add-new">
-    <p class="pull-right"><a class="btn btn-primary btn-sm" href="{{ url_for('conductor.start_work') }}">Add new contract</a></p>
-
-  </div>
-
   <div class="row hidden"><hr class="hr-no-padding"></div>
 
   <div id="js-table-container-progress" class="row hidden conductor-in-progress">
@@ -31,7 +26,11 @@
   </div>
 
   <div id="js-table-container-all" class="row hidden conductor-all-contracts">
+
     <h3>All Contracts <i class="fa fa-question-circle" aria-hidden="true" data-toggle="tooltip" data-placement="right" data-title="Contracts expiring in less than 60 days are marked red. Contracts expiring in less than 120 days are marked yellow."></i></h3>
+
+    <a class="btn btn-primary" href="{{ url_for('conductor.start_work') }}">Add new contract</a>
+    <div class="spacer-10"></div>
 
     {% include 'conductor/table/_all.html' %}
 
