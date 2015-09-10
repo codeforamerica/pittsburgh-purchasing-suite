@@ -7,3 +7,4 @@ setup:
 	make install
 	python manage.py db upgrade
 	python manage.py seed_user -e $(ADMIN_EMAIL) -r 1
+	python manage.py seed

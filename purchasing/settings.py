@@ -3,14 +3,15 @@ import os
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 os_env = os.environ
+PROJECT_ROOT = os.path.abspath(os.path.join(HERE, os.pardir))
 
 class Config(object):
     SECRET_KEY = os_env.get('PITTSBURGH-PURCHASING-SUITE_SECRET', 'secret-key')  # TODO: Change me
-    APP_DIR = os.path.abspath(os.path.dirname(__file__))  # This directory
-    PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, os.pardir))
+    APP_DIR = HERE
     ASSETS_DEBUG = False
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
     DEBUG_TB_INTERCEPT_REDIRECTS = False
+    PROJECT_ROOT = PROJECT_ROOT
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
     BROWSERID_URL = os_env.get('BROWSERID_URL')
     PER_PAGE = 50
@@ -64,6 +65,8 @@ class DevConfig(Config):
     # CELERY_BROKER_URL = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
     # CELERY_RESULT_BACKEND = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
     CELERY_ALWAYS_EAGER = True
+    UGLIFYJS_BIN = os.path.join(PROJECT_ROOT, 'node_modules', '.bin', 'uglifyjs')
+    LESS_BIN = os.path.join(PROJECT_ROOT, 'node_modules', '.bin', 'lessc')
 
 class TestConfig(Config):
     ADMIN_EMAIL = 'foo@foo.com'
