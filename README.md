@@ -22,13 +22,37 @@ Core Pittsburgh Purchasing Suite features are in alpha, with other features in d
 The purchasing suite is a project of the 2015 Pittsburgh Code for America [fellowship team](http://codeforamerica.org/governments/pittsburgh).
 
 ## How
+
 #### Core Dependencies
 The purchasing suite is a [Flask](http://flask.pocoo.org/) app. It uses [Postgres](http://www.postgresql.org/) for a database and uses [bower](http://bower.io/) to manage most of its dependencies. It also uses [less](http://lesscss.org/) to compile style assets. In production, the project uses [Celery](http://celery.readthedocs.org/en/latest/) with [Redis](http://redis.io/) as a broker to handle backgrounding various tasks. Big thanks to the [cookiecutter-flask](https://github.com/sloria/cookiecutter-flask) project for a nice kickstart.
 
 It is highly recommended that you use use [virtualenv](https://readthedocs.org/projects/virtualenv/) (and [virtualenvwrapper](https://virtualenvwrapper.readthedocs.org/en/latest/) for convenience). For a how-to on getting set up, please consult this [howto](https://github.com/codeforamerica/howto/blob/master/Python-Virtualenv.md). Additionally, you'll need node to install bower (see this [howto](https://github.com/codeforamerica/howto/blob/master/Node.js.md) for more on Node), and it is recommended that you use [postgres.app](http://postgresapp.com/) to handle your Postgres (assuming you are developing on OSX).
 
-#### Developing the Pittsburgh Purchasing Suite
-Use the following commands to bootstrap your development environment:
+#### Installation and setup
+
+##### Quick local installation using Make
+
+First, create a virtualenv and activate it. Then:
+
+```bash
+git clone git@github.com:codeforamerica/pittsburgh-purchasing-suite.git
+# create the 'purchasing' database
+psql -c 'create database purchasing;'
+# set environmental variables - it is recommended that you set these for your
+# your virtualenv, using a tool like autoenv or by modifying your activate script
+export ADMIN_EMAIL='youremail@someplace.net'
+export CONFIG=purchasing.settings.DevConfig
+# this next command will do all installs, add tables to the database, 
+# and insert seed data (note that this needs an internet connection to
+# scrape data from Allegheny County)
+make setup
+# start your server
+python manage.py server
+```
+
+##### More detailed installation instructions
+
+If you want to walk through the complete setup captured above in `make setup`, use the following commands to bootstrap your development environment:
 
 **python app**:
 
