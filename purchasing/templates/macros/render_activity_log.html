@@ -45,7 +45,7 @@
   </div>
 
   {%- elif action.action_type == 'reversion' -%}
-  <div class="action-event action-event-reversion js-filter-action-stage">
+  <div class="action-event action-event-date js-filter-action-stage">
     <span class="event-icon"><i class="fa fa-repeat"></i></span>
     {{ action.action_detail.label }} on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
   </div>

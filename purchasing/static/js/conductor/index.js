@@ -2,7 +2,7 @@ $(document).ready(function() {
   $.fn.dataTableExt.afnFiltering.push(function (oSettings, aData, iDataIndex) {
     if (oSettings.sTableId === "js-table-progress") {
       if ($('#js-show-only-mine').is(':checked')) {
-        return aData[7] === currentUser.split('@')[0];
+        return aData[7] === currentUser;
       }
       return true;
     }
@@ -37,11 +37,11 @@ $(document).ready(function() {
   });
 
   function format(description, department, controller) {
-    return '<table class="table table-bordered table-condensed">' +
+    return '<table class="table table-condensed">' +
       '<tbody>' +
-        '<tr><td><strong>Full Description</strong></td><td>' + description + '</td></tr>' +
-        '<tr><td><strong>Department</strong></td><td>' + department + '</td></tr>' +
-        '<tr><td><strong>Controller #</strong></td><td>' + controller + '</td></tr>' +
+        '<tr><td class="dropdown-table-border-right"><strong>Full Description</strong></td><td>' + description + '</td></tr>' +
+        '<tr><td class="dropdown-table-border-right"><strong>Department</strong></td><td>' + department + '</td></tr>' +
+        '<tr><td class="dropdown-table-border-right"><strong>Controller #</strong></td><td>' + controller + '</td></tr>' +
       '</tbody>' +
     '</table>';
   }

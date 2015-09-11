@@ -6,6 +6,7 @@
     <th>Controller #</th>
     <th>Expires Sort (Hidden)</th>
     <th>Expires</th>
+    <th>Assigned</th>
     <th>Actions</th>
   </thead>
   <tbody>
@@ -33,6 +34,10 @@
         --
         {% endif %}
       </td><!-- formatted expiration date -->
+
+      <td>
+        {% if contract.assigned %}{{ contract.assigned }}{% else %}Unassigned{% endif %}
+      </td>
 
       <td>
       <div class="dropdown">

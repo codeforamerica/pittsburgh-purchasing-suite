@@ -45,7 +45,7 @@ def index():
         db.distinct(ContractBase.id).label('id'),
         ContractBase.description, Flow.flow_name,
         Stage.name.label('stage_name'), ContractStage.entered,
-        db.func.string.split_part(User.email, '@', 1).label('assigned'),
+        User.email, User.print_pretty_first_name().label('assigned'),
         Department.name.label('department')
     ).outerjoin(Department).join(
         ContractStage, db.and_(
@@ -68,8 +68,15 @@ def index():
         ContractBase.id, ContractBase.description,
         ContractBase.financial_id, ContractBase.expiration_date,
         ContractProperty.value.label('spec_number'),
-        ContractBase.contract_href, ContractBase.department
-    ).join(ContractType).outerjoin(Department).outerjoin(ContractProperty).filter(
+        ContractBase.contract_href, ContractBase.department,
+        User.print_pretty_first_name().label('assigned')
+    ).join(ContractType).outerjoin(
+        User, User.id == ContractBase.assigned_to
+    ).outerjoin(
+        Department, Department.id == ContractBase.department_id
+    ).outerjoin(
+        ContractProperty, ContractProperty.contract_id == ContractBase.id
+    ).filter(
         db.func.lower(ContractType.name).in_(['county', 'a-bid', 'b-bid']),
         db.func.lower(ContractProperty.key) == 'spec number',
         ContractBase.children == None,

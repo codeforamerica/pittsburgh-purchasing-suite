@@ -1,6 +1,6 @@
 <div class="conductor-detail-title">
   <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-9">
       <h3><strong>{{ active_stage.description|title }}</strong></h3>
       <ul class="text-muted list-unstyled">
         {% if contract.parent.expiration_date %}
@@ -12,6 +12,8 @@
         <li class="">Spec Number: {{ contract.get_spec_number().value }}</li>
         {% endif %}
       </ul>
+    </div>
+    <div class="col-md-3">
       <p class="text-muted">
         <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, extend='true') }}" class="btn btn-default" onclick="return confirm('Please confirm that the contract has already gone through the proper extension process.')">Extend Contract</a></li>
         <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}" class="btn btn-default">View on Scout</a>
