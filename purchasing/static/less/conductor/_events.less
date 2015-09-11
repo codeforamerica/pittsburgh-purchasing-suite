@@ -5,7 +5,6 @@
 }
 
 .event {
-  min-height: 65px;
   position: relative;
   border-left: 5px solid @conductor-timeline-dot-default;
   margin: 5px;
@@ -23,6 +22,7 @@
   }
 
   &.event-current {
+    min-height: 65px;
     border-left:5px solid @conductor-timeline-dot-current;
     padding: 5px;
     &:before {
@@ -31,11 +31,13 @@
   }
 
   &.event-active {
+    min-height: 65px;
     background: @well-bg;
     padding: 5px;
   }
 
   &.event-complete {
+    min-height: 65px;
     border-left:5px solid @conductor-timeline-dot-complete;
     padding: 5px;
     &:before {
@@ -43,13 +45,19 @@
     }
   }
 
+  &.event-not-started {
+    min-height: 40px;
+  }
+
+  span,
   p {
     margin-left: 20px;
   }
 
+  span.event-date,
   p.event-date {
-    font-size: @font-size-large;
     font-weight: bold;
+    margin-bottom: 0;
   }
 }
 
@@ -64,15 +72,7 @@
   border-radius: 1px;
 
   &.action-event-date {
-    border-left: 3px solid darken(@brand-info, 10%);
-  }
-
-  &.action-event-reversion {
-    border-left: 3px solid darken(@brand-warning, 10%);
-  }
-
-  &.action-event-post {
-    border-left: 3px solid @brand-beacon;
+    border-left: 3px solid @conductor-timeline-dot-current;
   }
 }
 .less-padding-container {

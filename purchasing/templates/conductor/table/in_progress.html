@@ -1,0 +1,89 @@
+<table class="display" id="js-table-progress">
+  <thead>
+    <th></th>
+    <th>Item #</th>
+    <th>Name</th>
+    <th>Current Step</th>
+    <th>Current Step Started Sort (Hidden)</th>
+    <th>Current Step Started</th>
+    <th>Assigned To</th>
+    <th>Assigned To Filter (Hidden)</th>
+    <th>Actions</th>
+
+  </thead>
+  <tbody>
+    {% for contract in in_progress %}
+    <tr class="{%- if days_from_today(contract.entered) < -14 -%}contract-row-expiring-danger
+    {%- elif days_from_today(contract.entered) < -7 -%}contract-row-expiring-warning
+    {%- endif -%}" data-department="{{ contract.department }}"
+    data-controller="{{ contract.financial_id or 'Not set' }}"
+    data-full-description="{{ contract.description|title }}">
+
+      <td class="details-control"><i class="fa fa-plus"></i></td>
+      <td>{{ contract.id }}</td>
+
+      <td>
+        <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>{{ contract.description|title|truncate(40) }}</span>
+        <span class="pull-right">
+          <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}" class="btn btn-primary btn-sm">
+            Update
+          </a>
+        </span>
+      </td>
+
+      <td>{{ contract.stage_name }}</td><!-- current stage -->
+
+      <td>{{ contract.entered }}</td><!-- current stage started for sorting, hidden by datatables -->
+
+      <td>
+        <strong>{{ format_days_from_today(contract.entered) }}</strong><br />
+        <span class="text-muted">{{ contract.entered|datetimeformat('%m/%d/%Y') }}</span>
+      </td><!-- formatted current stage started -->
+
+      <td>
+        <div class="dropdown">
+          <button id="dLabel-{{ contract.id }}" class="btn btn-default btn-sm btn-assigned" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {% if contract.assigned %}
+              {{ contract.assigned }}
+            {% else %}
+              Not assigned
+            {% endif %}
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel-{{ contract.id }}">
+            {% for conductor in conductors %}
+            <li><a href="{{ url_for('conductor.assign', contract_id=contract.id, user_id=conductor.id, flow_id=1) }}">{{ conductor.email }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </td><!-- assigned to visible -->
+      <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
+
+      <td>
+      <div class="dropdown">
+        <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+          Actions
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="actionDropdown-{{ contract.id }}">
+          {% if contract.current_stage or contract.assigned %}
+          <li><a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
+            Update contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search-plus"></i></i></span>
+          </a></li>
+          {% endif %}
+          {% if contract.contract_href %}
+          <li><a href="{{ contract.contract_href }}" target="_blank">
+            View Contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-file-pdf-o"></i></span>
+          </a></li>
+          {% endif %}
+          <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
+            View on Scout <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search"></i></span>
+          </a></li>
+        </ul>
+      </div>
+      </td><!-- button dropdowns -->
+
+    </tr>
+    {% endfor %}
+  </tbody>
+</table><!-- in progress contracts table -->

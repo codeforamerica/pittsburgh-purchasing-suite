@@ -3,6 +3,8 @@
 import datetime
 from collections import defaultdict
 
+from sqlalchemy.exc import IntegrityError
+
 from flask import request, current_app
 from flask_login import current_user
 
@@ -10,7 +12,9 @@ from purchasing.database import db
 from purchasing.notifications import Notification
 
 from purchasing.data.models import ContractStageActionItem
+from purchasing.data.flows import create_contract_stages
 from purchasing.data.contracts import clone_a_contract
+from purchasing.data.stages import transition_stage
 from purchasing.opportunities.models import Opportunity
 from purchasing.users.models import User, Role, Department
 
@@ -95,7 +99,7 @@ def get_attachment_filenames(attachments):
             return filenames.append(attachment.upload.data.filename)
         except AttributeError:
             continue
-    return filenames
+    return filenames if len(filenames) > 0 else None
 
 def handle_form(form, form_name, stage_id, user, contract, current_stage):
     if form.validate_on_submit():
@@ -127,7 +131,7 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
                 'body': form.data.get('body'),
                 'subject': form.data.get('subject'),
                 'stage_name': current_stage.name,
-                'attachments': [get_attachment_filenames(form.attachments.entries)]
+                'attachments': get_attachment_filenames(form.attachments.entries)
             }
 
             Notification(
@@ -235,6 +239,50 @@ def build_subscribers(contract):
         'EORC': eorc
     }
     return subscribers, sum([len(i) for i in subscribers.values()])
+
+def assign_a_contract(contract, flow, user_id, clone=True):
+    # if we don't have a flow, stop and throw an error
+    if not flow:
+        return False
+
+    # if the contract is already assigned,
+    # resassign it and continue on
+    if contract.assigned_to and not contract.completed_last_stage():
+        contract.assigned_to = user_id
+    # otherwise, it's new work. perform the following:
+    # 1. create a cloned version of the contract
+    # 2. create the relevant contract stages
+    # 3. transition into the first stage
+    # 4. assign the contract to the user
+    else:
+        if clone:
+            contract = clone_a_contract(contract)
+        try:
+            stages, _, _ = create_contract_stages(flow.id, contract.id, contract=contract)
+            _, new_contract, _ = transition_stage(
+                contract.id, current_user, contract=contract, stages=stages
+            )
+            db.session.commit()
+        except IntegrityError:
+            # we already have the sequence for this, so just
+            # rollback and pass
+            db.session.rollback()
+            pass
+
+        new_contract.assigned_to = user_id
+
+    db.session.commit()
+
+    try:
+        current_app.logger.info('CONDUCTOR ASSIGN - new contract "{}" assigned to {} with flow {}'.format(
+            new_contract.description, new_contract.assigned.email, new_contract.flow.flow_name
+        ))
+    except UnboundLocalError:
+        current_app.logger.info('CONDUCTOR ASSIGN - old contract "{}" assigned to {} with flow {}'.format(
+            contract.description, contract.assigned.email, contract.flow.flow_name
+        ))
+
+    return contract
 
 def reshape_metrics_granular(resultset):
     '''Transform long data from database into wide data for consumption

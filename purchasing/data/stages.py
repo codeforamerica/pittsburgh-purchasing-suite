@@ -123,22 +123,16 @@ def _perform_revert(contract, stages, start_idx, end_idx, user):
 
     for stage_idx, contract_stage in enumerate(stages_to_revert):
         db.session.flush()
-        db.session.add(log_reopened(contract_stage, user))
 
         if stage_idx == 0:
-            # this is the destination stage. keep the entered open
-            log_exited(contract_stage, user)
-            log_entered(contract_stage, user)
+            # this is the destination stage. log a restart
+            # and reset the enter and exit times
+            db.session.add(log_reopened(contract_stage, user))
             contract_stage.entered = datetime.datetime.now()
             contract_stage.exited = None
 
-        elif stage_idx + 1 == len(stages_to_revert):
-            contract_stage.full_revert()
-
         else:
-            # log everything, fully revert each stage
-            log_exited(contract_stage, user)
-            log_entered(contract_stage, user)
+            # otherwise, just fully revert
             contract_stage.full_revert()
 
     contract.current_stage_id = stages_to_revert[0].stage_id
@@ -277,7 +271,9 @@ def get_contract_stages(contract):
     return db.session.query(
         ContractStage.contract_id, ContractStage.stage_id, ContractStage.id,
         ContractStage.entered, ContractStage.exited, Stage.name, Stage.default_message,
-        Stage.post_opportunities, ContractBase.description
+        Stage.post_opportunities, ContractBase.description,
+        (db.func.extract(db.text('DAYS'), ContractStage.exited - ContractStage.entered)).label('days_spent'),
+        (db.func.extract(db.text('HOURS'), ContractStage.exited - ContractStage.entered)).label('hours_spent')
     ).join(Stage, Stage.id == ContractStage.stage_id).join(
         ContractBase, ContractBase.id == ContractStage.contract_id
     ).filter(

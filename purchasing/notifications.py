@@ -88,12 +88,15 @@ class Notification(object):
             )
 
             for attachment in self.attachments:
-                if isinstance(attachment, FileStorage):
-                    msg.attach(
-                        filename=secure_filename(attachment.filename),
-                        content_type=attachment.content_type,
-                        data=attachment.stream.read()
-                    )
+                if (
+                    isinstance(attachment, FileStorage) and
+                    secure_filename(attachment.filename) != ''
+                ):
+                        msg.attach(
+                            filename=secure_filename(attachment.filename),
+                            content_type=attachment.content_type,
+                            data=attachment.stream.read()
+                        )
 
             return msg
 

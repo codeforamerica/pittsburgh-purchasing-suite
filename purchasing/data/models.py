@@ -104,8 +104,6 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
     id = Column(db.Integer, primary_key=True)
     financial_id = Column(db.String(255))
-    created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
-    updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
     expiration_date = Column(db.Date)
     description = Column(db.Text, index=True)
     contract_href = Column(db.Text)
@@ -395,3 +393,6 @@ class Flow(Model):
 
 def opportunity_type_query():
     return ContractType.query.filter(ContractType.allow_opportunities == True)
+
+def flow_query():
+    return Flow.query

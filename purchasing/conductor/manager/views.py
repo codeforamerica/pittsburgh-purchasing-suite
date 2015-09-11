@@ -13,26 +13,26 @@ from sqlalchemy.exc import IntegrityError
 from purchasing.decorators import requires_roles
 from purchasing.database import db, get_or_create
 from purchasing.notifications import Notification
-from purchasing.data.contracts import clone_a_contract, extend_a_contract
+from purchasing.data.contracts import extend_a_contract
 from purchasing.data.stages import transition_stage, get_contract_stages
-from purchasing.data.flows import create_contract_stages, switch_flow
+from purchasing.data.flows import switch_flow
 from purchasing.data.models import (
     ContractBase, ContractProperty, ContractStage, Stage,
     ContractStageActionItem, Flow, Company, CompanyContact,
     ContractType
 )
 
-from purchasing.users.models import User, Role
+from purchasing.users.models import User, Role, Department
 from purchasing.conductor.forms import (
     EditContractForm, PostOpportunityForm,
     SendUpdateForm, NoteForm, ContractMetadataForm, CompanyListForm,
-    CompanyContactListForm
+    CompanyContactListForm, NewContractForm
 )
 
 from purchasing.conductor.util import (
     update_contract_with_spec, handle_form, ContractMetadataObj,
-    build_action_log, build_subscribers, create_opp_form_obj,
-    json_serial, parse_companies, UpdateFormObj
+    build_subscribers, create_opp_form_obj,
+    json_serial, parse_companies, UpdateFormObj, assign_a_contract
 )
 
 from purchasing.opportunities.util import generate_opportunity_form
@@ -45,8 +45,9 @@ def index():
         db.distinct(ContractBase.id).label('id'),
         ContractBase.description, Flow.flow_name,
         Stage.name.label('stage_name'), ContractStage.entered,
-        db.func.string.split_part(User.email, '@', 1).label('assigned'),
-    ).join(
+        User.email, User.print_pretty_first_name().label('assigned'),
+        Department.name.label('department')
+    ).outerjoin(Department).join(
         ContractStage, db.and_(
             ContractStage.stage_id == ContractBase.current_stage_id,
             ContractStage.contract_id == ContractBase.id,
@@ -67,8 +68,15 @@ def index():
         ContractBase.id, ContractBase.description,
         ContractBase.financial_id, ContractBase.expiration_date,
         ContractProperty.value.label('spec_number'),
-        ContractBase.contract_href
-    ).join(ContractType).outerjoin(ContractProperty).filter(
+        ContractBase.contract_href, ContractBase.department,
+        User.print_pretty_first_name().label('assigned')
+    ).join(ContractType).outerjoin(
+        User, User.id == ContractBase.assigned_to
+    ).outerjoin(
+        Department, Department.id == ContractBase.department_id
+    ).outerjoin(
+        ContractProperty, ContractProperty.contract_id == ContractBase.id
+    ).filter(
         db.func.lower(ContractType.name).in_(['county', 'a-bid', 'b-bid']),
         db.func.lower(ContractProperty.key) == 'spec number',
         ContractBase.children == None,
@@ -177,9 +185,11 @@ def detail(contract_id, stage_id=-1):
             ContractStage.flow_id == ContractBase.flow_id
         ).first()
 
-        return redirect(url_for(
-            'conductor.detail', contract_id=contract_id, stage_id=contract_stage.id
-        ))
+        if contract_stage:
+            return redirect(url_for(
+                'conductor.detail', contract_id=contract_id, stage_id=contract_stage.id
+            ))
+        abort(500)
 
     contract = ContractBase.query.get(contract_id)
     if not contract:
@@ -226,7 +236,7 @@ def detail(contract_id, stage_id=-1):
         else:
             active_tab = '#' + submitted_form
 
-    actions = build_action_log(stage_id, active_stage)
+    actions = contract.build_complete_action_log()
     subscribers, total_subscribers = build_subscribers(contract)
     flows = Flow.query.filter(Flow.id != contract.flow_id).all()
 
@@ -268,6 +278,33 @@ def delete_note(contract_id, stage_id, note_id):
         current_app.logger.error('Conductor note delete error: {}'.format(str(e)))
         flash('Something went wrong: {}'.format(e.message), 'alert-danger')
     return redirect(url_for('conductor.detail', contract_id=contract_id))
+
+@blueprint.route('/contract/new', methods=['GET', 'POST'])
+@blueprint.route('/contract/<int:contract_id>/start', methods=['GET', 'POST'])
+@requires_roles('conductor', 'admin', 'superadmin')
+def start_work(contract_id=-1):
+    contract = ContractBase.query.get(contract_id)
+    contract = contract if contract else ContractBase()
+    form = NewContractForm(obj=contract)
+
+    if form.validate_on_submit():
+        clone = True
+        if contract_id == -1:
+            contract, _ = get_or_create(
+                db.session, ContractBase, description=form.data.get('description'),
+                department=form.data.get('department')
+            )
+            clone = False
+        else:
+            contract.description = form.data.get('description')
+            contract.department = form.data.get('department')
+
+        if assign_a_contract(contract, form.data.get('flow'), form.data.get('assigned').id, clone=clone):
+            flash('Successfully assigned {} to {}!'.format(contract.description, contract.assigned.email), 'alert-success')
+            return redirect(url_for('conductor.detail', contract_id=contract.id))
+        else:
+            flash("That flow doesn't exist!", 'alert-danger')
+    return render_template('conductor/new.html', form=form, contract_id=contract_id)
 
 @blueprint.route('/contract/<int:contract_id>/edit/contract', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
@@ -429,49 +466,9 @@ def assign(contract_id, flow_id, user_id):
     contract = ContractBase.query.get(contract_id)
     flow = Flow.query.get(flow_id)
 
-    # if we don't have a flow, stop and throw an error
-    if not flow:
-        flash('Something went wrong! That flow doesn\'t exist!', 'alert-danger')
-        return redirect('conductor.index')
-
-    # if the contract is already assigned,
-    # resassign it and continue on
-    if contract.assigned_to and not contract.completed_last_stage():
-        contract.assigned_to = user_id
-    # otherwise, it's new work. perform the following:
-    # 1. create a cloned version of the contract
-    # 2. create the relevant contract stages
-    # 3. transition into the first stage
-    # 4. assign the contract to the user
+    if assign_a_contract(contract, flow, user_id):
+        flash('Successfully assigned {} to {}!'.format(contract.description, contract.assigned.email), 'alert-success')
+        return redirect(url_for('conductor.index'))
     else:
-        contract = clone_a_contract(contract)
-        try:
-            stages, _, _ = create_contract_stages(flow_id, contract.id, contract=contract)
-            _, new_contract, _ = transition_stage(
-                contract.id, current_user, contract=contract, stages=stages
-            )
-            db.session.commit()
-        except IntegrityError, e:
-            # we already have the sequence for this, so just
-            # rollback and pass
-            db.session.rollback()
-            pass
-        except Exception, e:
-            flash('Something went wrong! {}'.format(e.message), 'alert-danger')
-            abort(500)
-
-        new_contract.assigned_to = user_id
-
-    db.session.commit()
-
-    try:
-        current_app.logger.info('CONDUCTOR ASSIGN - contract "{}" assigned to {} with flow {}'.format(
-            new_contract.description, new_contract.assigned.email, new_contract.flow.flow_name
-        ))
-    except UnboundLocalError:
-        current_app.logger.info('CONDUCTOR ASSIGN - contract "{}" assigned to {} with flow {}'.format(
-            contract.description, contract.assigned.email, contract.flow.flow_name
-        ))
-
-    flash('Successfully assigned to {}!'.format(contract.assigned.email), 'alert-success')
-    return redirect(url_for('conductor.index'))
+        flash("That flow doesn't exist!", 'alert-danger')
+        return redirect(url_for('conductor.index'))

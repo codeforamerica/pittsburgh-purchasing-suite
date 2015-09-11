@@ -59,6 +59,14 @@ class User(UserMixin, SurrogatePK, Model):
         else:
             return self.email
 
+    @classmethod
+    def print_pretty_first_name(cls):
+        if cls.first_name:
+            return cls.first_name
+        else:
+            return cls.email.split('@')[0]
+
+
 class Department(SurrogatePK, Model):
     __tablename__ = 'department'
 
@@ -72,11 +80,14 @@ class AnonymousUser(AnonymousUserMixin):
     department = Department(name='anonymous')
     id = -1
 
-def department_query():
-    return Department.query.filter(Department.name != 'New User')
+def conductor_users_query():
+    return [i for i in User.query.all() if i.is_conductor()]
 
 def role_query():
     return Role.query
+
+def department_query():
+    return Department.query.filter(Department.name != 'New User')
 
 def get_department_choices(blank=False):
     departments = [(i.id, i.name) for i in department_query().all()]

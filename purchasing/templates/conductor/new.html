@@ -1,0 +1,43 @@
+{% extends 'conductor/layout.html' %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <h3>Start work on a contract</h3>
+
+      <form class="form" method="POST" action="{% if contract_id > 0 %}{{ url_for('conductor.start_work', contract_id=contract_id) }}{% else %}{{ url_for('conductor.start_work') }}{% endif %}">
+        {{ form.csrf_token() }}
+
+        <div class="form-group">
+          <label for="description">Description of goods/services needed <span class="form-required">*</span></label>
+          {{ macros.with_errors(form.description, class_="form-control", placeholder="Write your description here...") }}
+        </div><!-- description -->
+
+        <div class="form-group">
+          <label for="flow">Flow <span class="form-required">*</span></label>
+          {{ macros.with_errors(form.flow, class_="form-control") }}
+        </div><!-- flow -->
+
+        <div class="form-group">
+          <label for="assign_to">Assign To: <span class="form-required">*</span></label>
+          {{ macros.with_errors(form.assigned, class_="form-control") }}
+        </div><!-- assign_to -->
+
+        <div class="form-group">
+          <label for="department">Primary Using Department: <span class="form-required">*</span></label>
+          {{ macros.with_errors(form.department, class_="form-control") }}
+        </div><!-- department -->
+
+        <button type="submit" class="btn btn-success">
+          Start work on contract
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
