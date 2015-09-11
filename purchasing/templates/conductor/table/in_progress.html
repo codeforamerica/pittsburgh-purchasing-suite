@@ -15,8 +15,9 @@
     {% for contract in in_progress %}
     <tr class="{%- if days_from_today(contract.entered) < -14 -%}contract-row-expiring-danger
     {%- elif days_from_today(contract.entered) < -7 -%}contract-row-expiring-warning
-    {%- endif -%}" data-department="{{ contract.department.name or 'Not set' }}"
-    data-controller="{{ contract.financial_id or 'Not set' }}">
+    {%- endif -%}" data-department="{{ contract.department }}"
+    data-controller="{{ contract.financial_id or 'Not set' }}"
+    data-full-description="{{ contract.description|title }}">
 
       <td class="details-control"><i class="fa fa-plus"></i></td>
       <td>{{ contract.id }}</td>

@@ -46,7 +46,7 @@ def index():
         ContractBase.description, Flow.flow_name,
         Stage.name.label('stage_name'), ContractStage.entered,
         db.func.string.split_part(User.email, '@', 1).label('assigned'),
-        ContractBase.department
+        Department.name.label('department')
     ).outerjoin(Department).join(
         ContractStage, db.and_(
             ContractStage.stage_id == ContractBase.current_stage_id,
