@@ -14,7 +14,7 @@ from purchasing.data.models import (
 from purchasing.opportunities.models import Opportunity
 from purchasing.extensions import mail
 
-from purchasing_test.unit.factories import ContractTypeFactory
+from purchasing_test.unit.factories import ContractTypeFactory, DepartmentFactory
 
 from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
@@ -27,6 +27,7 @@ class TestConductorSetup(BaseTestCase):
         super(TestConductorSetup, self).setUp()
         # create a conductor and general staff person
         self.county_type = ContractTypeFactory.create(**{'name': 'County'})
+        self.department = DepartmentFactory.create(**{'name': 'test'})
 
         self.conductor_role_id = insert_a_role('conductor')
         self.staff_role_id = insert_a_role('staff')
@@ -120,6 +121,46 @@ class TestConductor(TestConductorSetup):
         self.assert200(index_view)
         # it should redirect us to the home page
         self.assert_template_used('public/home.html')
+
+    def test_conductor_start_new(self):
+        '''Test start work page works as expected for new contracts
+        '''
+        self.assertEquals(ContractStage.query.count(), 0)
+        self.assert200(self.client.get('/conductor/contract/new'))
+        self.client.post('/conductor/contract/new', data={
+            'description': 'totally new wow', 'flow': self.flow.id,
+            'assigned': self.conductor.id, 'department': self.department.id
+        })
+
+        self.assertEquals(ContractStage.query.count(), len(self.flow.stage_order))
+        self.assertEquals(ContractBase.query.all()[-1].current_stage_id, self.flow.stage_order[0])
+        self.assertEquals(ContractBase.query.count(), 3)
+
+    def test_conductor_start_existing(self):
+        '''Test start page works as expected for existing contracts
+        '''
+        start_work_url = '/conductor/contract/{}/start'.format(self.contract1.id)
+
+        old_contract_id = self.contract1.id
+        old_description = self.contract1.description
+
+        self.assertEquals(ContractStage.query.count(), 0)
+        self.assert200(self.client.get(start_work_url))
+        self.assertEquals(self.get_context_variable('form').description.data, self.contract1.description)
+
+        self.client.post(start_work_url, data={
+            'description': 'updated!', 'flow': self.flow.id,
+            'assigned': self.conductor.id, 'department': self.department.id
+        })
+
+        old_contract = ContractBase.query.get(old_contract_id)
+        new_contract = ContractBase.query.get(old_contract_id).children[0]
+
+        self.assertEquals(old_contract.description, old_description)
+        self.assertEquals(new_contract.description, 'updated!')
+        self.assertEquals(ContractStage.query.count(), len(self.flow.stage_order))
+        self.assertEquals(new_contract.current_stage_id, self.flow.stage_order[0])
+        self.assertEquals(ContractBase.query.count(), 3)
 
     def test_conductor_contract_assign(self):
         '''Test contract assignment via conductor

@@ -2,10 +2,17 @@
   <div class="row">
     <div class="col-md-12">
       <h3><strong>{{ active_stage.description|title }}</strong></h3>
-      <p class="text-muted">
+      <ul class="text-muted list-unstyled">
         {% if contract.parent.expiration_date %}
-        <span class="text-shares-with-button">Expires on {{ contract.parent.expiration_date|datetimeformat('%m/%d/%Y') }}</span>
+        <li class="">Expires on {{ contract.parent.expiration_date|datetimeformat('%m/%d/%Y') }}</li>
         {% endif %}
+        {% if contract.parent.get_spec_number().value %}
+        <li class="">Old Spec Number: {{ contract.parent.get_spec_number().value }}</li>
+        {% elif contract.get_spec_number().value %}
+        <li class="">Spec Number: {{ contract.get_spec_number().value }}</li>
+        {% endif %}
+      </ul>
+      <p class="text-muted">
         <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, extend='true') }}" class="btn btn-default" onclick="return confirm('Please confirm that the contract has already gone through the proper extension process.')">Extend Contract</a></li>
         <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}" class="btn btn-default">View on Scout</a>
       </p>

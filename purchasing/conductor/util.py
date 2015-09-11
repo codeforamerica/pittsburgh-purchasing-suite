@@ -240,7 +240,7 @@ def build_subscribers(contract):
     }
     return subscribers, sum([len(i) for i in subscribers.values()])
 
-def assign_a_contract(contract, flow, user_id):
+def assign_a_contract(contract, flow, user_id, clone=True):
     # if we don't have a flow, stop and throw an error
     if not flow:
         return False
@@ -255,7 +255,8 @@ def assign_a_contract(contract, flow, user_id):
     # 3. transition into the first stage
     # 4. assign the contract to the user
     else:
-        contract = clone_a_contract(contract)
+        if clone:
+            contract = clone_a_contract(contract)
         try:
             stages, _, _ = create_contract_stages(flow.id, contract.id, contract=contract)
             _, new_contract, _ = transition_stage(

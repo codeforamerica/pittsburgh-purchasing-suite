@@ -178,9 +178,11 @@ def detail(contract_id, stage_id=-1):
             ContractStage.flow_id == ContractBase.flow_id
         ).first()
 
-        return redirect(url_for(
-            'conductor.detail', contract_id=contract_id, stage_id=contract_stage.id
-        ))
+        if contract_stage:
+            return redirect(url_for(
+                'conductor.detail', contract_id=contract_id, stage_id=contract_stage.id
+            ))
+        abort(500)
 
     contract = ContractBase.query.get(contract_id)
     if not contract:
@@ -279,14 +281,18 @@ def start_work(contract_id=-1):
     form = NewContractForm(obj=contract)
 
     if form.validate_on_submit():
-
+        clone = True
         if contract_id == -1:
             contract, _ = get_or_create(
                 db.session, ContractBase, description=form.data.get('description'),
                 department=form.data.get('department')
             )
+            clone = False
+        else:
+            contract.description = form.data.get('description')
+            contract.department = form.data.get('department')
 
-        if assign_a_contract(contract, form.data.get('flow'), form.data.get('assigned').id):
+        if assign_a_contract(contract, form.data.get('flow'), form.data.get('assigned').id, clone=clone):
             flash('Successfully assigned {} to {}!'.format(contract.description, contract.assigned.email), 'alert-success')
             return redirect(url_for('conductor.detail', contract_id=contract.id))
         else:

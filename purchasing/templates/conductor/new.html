@@ -9,7 +9,7 @@
     <div class="col-md-8 col-md-offset-2">
       <h3>Start work on a contract</h3>
 
-      <form class="form" method="POST" action="{{ url_for('conductor.start_work', contract_id=contract_id) }}">
+      <form class="form" method="POST" action="{% if contract_id > 0 %}{{ url_for('conductor.start_work', contract_id=contract_id) }}{% else %}{{ url_for('conductor.start_work') }}{% endif %}">
         {{ form.csrf_token() }}
 
         <div class="form-group">
@@ -33,7 +33,7 @@
         </div><!-- department -->
 
         <button type="submit" class="btn btn-success">
-          Create new contract
+          Start work on contract
         </button>
       </form>
     </div>
