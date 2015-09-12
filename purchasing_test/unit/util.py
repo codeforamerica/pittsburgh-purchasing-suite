@@ -3,10 +3,11 @@
 import datetime
 from purchasing.database import db
 from sqlalchemy.exc import IntegrityError
-from purchasing.data.models import (
-    ContractBase, ContractProperty,
-    Stage, StageProperty, Flow, Company
-)
+
+from purchasing.data.contracts import ContractBase
+from purchasing.data.stages import Stage
+from purchasing.data.flows import Flow
+
 from purchasing.users.models import Role, User
 from purchasing_test.unit.factories import (
     UserFactory, RoleFactory, StageFactory, FlowFactory, DepartmentFactory,

@@ -2,8 +2,6 @@
 
 import datetime
 
-from unittest import TestCase
-
 from purchasing.database import Model, RefreshSearchViewMixin, Column
 
 from purchasing.app import db
@@ -14,7 +12,7 @@ from purchasing_test.unit.util import (
 
 from purchasing_test.unit.factories import ContractTypeFactory, ContractBaseFactory, ContractPropertyFactory
 
-from purchasing.data.models import LineItem, ContractBase
+from purchasing.data.contracts import LineItem
 
 class TestWexplorerSearch(BaseTestCase):
     render_templates = True

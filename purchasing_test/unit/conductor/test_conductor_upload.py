@@ -3,7 +3,7 @@
 from collections import defaultdict
 from os import mkdir, rmdir
 from shutil import rmtree
-from flask import current_app, render_template
+from flask import current_app
 from werkzeug.datastructures import FileStorage, Headers
 from cStringIO import StringIO
 
@@ -11,19 +11,17 @@ from purchasing_test.unit.test_base import BaseTestCase
 from purchasing_test.unit.util import (
     insert_a_role, insert_a_user
 )
-from purchasing.data.contracts import get_all_contracts
-from purchasing.data.companies import get_all_companies
-from purchasing.data.models import LineItem, ContractBase
+from purchasing.data.contracts import ContractBase, LineItem
+from purchasing.data.companies import Company
 
-class TestCostarsUpload(BaseTestCase):
-
+class TestUploadBase(BaseTestCase):
     def create_file(self, filename, content_type):
         headers = Headers()
         headers.add('Content-Type', content_type)
         return FileStorage(StringIO('test,this,csv'), filename=filename, headers=headers)
 
     def setUp(self):
-        super(TestCostarsUpload, self).setUp()
+        super(TestUploadBase, self).setUp()
 
         try:
             mkdir(current_app.config.get('UPLOAD_DESTINATION'))
@@ -44,7 +42,7 @@ class TestCostarsUpload(BaseTestCase):
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role_id)
 
     def tearDown(self):
-        super(TestCostarsUpload, self).tearDown()
+        super(TestUploadBase, self).tearDown()
         # clear out the uploads folder
         rmtree(current_app.config.get('UPLOAD_DESTINATION'))
         try:
@@ -52,6 +50,7 @@ class TestCostarsUpload(BaseTestCase):
         except OSError:
             pass
 
+class TestCostarsUpload(TestUploadBase):
     def test_page_locked(self):
         '''Test page won't render for people without proper roles
         '''
@@ -103,7 +102,7 @@ class TestCostarsUpload(BaseTestCase):
             data=dict(filepath=costars_filepath, filename=costars_filename, _delete=False)
         )
 
-        contracts = get_all_contracts()
+        contracts = ContractBase.query.all()
         # assert we got both contracts
         self.assertEquals(len(contracts), 3)
 
@@ -119,13 +118,13 @@ class TestCostarsUpload(BaseTestCase):
         # assert that we got all the line items
         self.assertEquals(LineItem.query.count(), 12)
 
-        companies = get_all_companies()
+        companies = Company.query.all()
 
         self.assertEquals(len(companies), 3)
         for company in companies:
             self.assertEquals(company.contacts.count(), 0)
 
-class TestCostarsContractUpload(TestCostarsUpload):
+class TestCostarsContractUpload(TestUploadBase):
     def setUp(self):
         super(TestCostarsContractUpload, self).setUp()
 

@@ -141,7 +141,7 @@ def delete_contracts():
         print 'Disabling triggers...'
         turn_off_sqlalchemy_events()
         print 'Deleting!'
-        from purchasing.data.models import ContractBase, Company
+        from purchasing.data.contracts import ContractBase, Company
         ContractBase.query.delete()
         Company.query.delete()
         db.session.commit()

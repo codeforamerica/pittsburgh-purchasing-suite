@@ -13,14 +13,12 @@ from sqlalchemy.exc import IntegrityError
 from purchasing.decorators import requires_roles
 from purchasing.database import db, get_or_create
 from purchasing.notifications import Notification
-from purchasing.data.contracts import extend_a_contract
-from purchasing.data.stages import transition_stage, get_contract_stages
-from purchasing.data.flows import switch_flow
-from purchasing.data.models import (
-    ContractBase, ContractProperty, ContractStage, Stage,
-    ContractStageActionItem, Flow, Company, CompanyContact,
-    ContractType
-)
+
+from purchasing.data.stages import Stage, transition_stage, get_contract_stages
+from purchasing.data.flows import Flow, switch_flow
+from purchasing.data.contracts import ContractBase, ContractProperty, ContractType
+from purchasing.data.companies import Company, CompanyContact
+from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 
 from purchasing.users.models import User, Role, Department
 from purchasing.conductor.forms import (
@@ -108,6 +106,11 @@ def index():
 def detail(contract_id, stage_id=-1):
     '''View to control an individual stage update process
     '''
+
+    contract = ContractBase.query.get(contract_id)
+    if not contract:
+        abort(404)
+
     if request.args.get('transition'):
 
         clicked = int(request.args.get('destination')) if \
@@ -144,7 +147,7 @@ def detail(contract_id, stage_id=-1):
         return redirect(url)
 
     elif request.args.get('extend'):
-        extended_contract = extend_a_contract(child_contract_id=contract_id, delete_child=False)
+        extended_contract = contract.parent.extend(delete_children=False)
         current_app.logger.info(
             'CONDUCTOR EXTEND - Contract for {} (ID: {}) extended'.format(
                 extended_contract.description, extended_contract.id
@@ -189,11 +192,8 @@ def detail(contract_id, stage_id=-1):
             return redirect(url_for(
                 'conductor.detail', contract_id=contract_id, stage_id=contract_stage.id
             ))
+        current_app.logger.warning('Could not find stages for this contract, aborting!')
         abort(500)
-
-    contract = ContractBase.query.get(contract_id)
-    if not contract:
-        abort(404)
 
     if contract.completed_last_stage():
         return redirect(url_for('conductor.edit', contract_id=contract.id))
@@ -288,20 +288,23 @@ def start_work(contract_id=-1):
     form = NewContractForm(obj=contract)
 
     if form.validate_on_submit():
-        clone = True
         if contract_id == -1:
             contract, _ = get_or_create(
                 db.session, ContractBase, description=form.data.get('description'),
                 department=form.data.get('department')
             )
-            clone = False
         else:
+            contract = ContractBase.clone(contract)
             contract.description = form.data.get('description')
             contract.department = form.data.get('department')
+            db.session.add(contract)
+            db.session.commit()
 
-        if assign_a_contract(contract, form.data.get('flow'), form.data.get('assigned').id, clone=clone):
-            flash('Successfully assigned {} to {}!'.format(contract.description, contract.assigned.email), 'alert-success')
-            return redirect(url_for('conductor.detail', contract_id=contract.id))
+        assigned = assign_a_contract(contract, form.data.get('flow'), form.data.get('assigned').id, clone=False)
+
+        if assigned:
+            flash('Successfully assigned {} to {}!'.format(assigned.description, assigned.assigned.email), 'alert-success')
+            return redirect(url_for('conductor.detail', contract_id=assigned.id))
         else:
             flash("That flow doesn't exist!", 'alert-danger')
     return render_template('conductor/new.html', form=form, contract_id=contract_id)
@@ -466,8 +469,9 @@ def assign(contract_id, flow_id, user_id):
     contract = ContractBase.query.get(contract_id)
     flow = Flow.query.get(flow_id)
 
-    if assign_a_contract(contract, flow, user_id):
-        flash('Successfully assigned {} to {}!'.format(contract.description, contract.assigned.email), 'alert-success')
+    assigned = assign_a_contract(contract, flow, user_id)
+    if assigned:
+        flash('Successfully assigned {} to {}!'.format(assigned.description, assigned.assigned.email), 'alert-success')
         return redirect(url_for('conductor.index'))
     else:
         flash("That flow doesn't exist!", 'alert-danger')

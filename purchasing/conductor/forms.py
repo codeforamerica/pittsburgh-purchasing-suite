@@ -16,7 +16,7 @@ from wtforms.validators import (
 from purchasing.filters import better_title
 
 from purchasing.users.models import department_query, conductor_users_query
-from purchasing.data.models import flow_query
+from purchasing.data.flows import Flow
 from purchasing.data.companies import get_all_companies_query
 
 from purchasing.opportunities.forms import OpportunityForm
@@ -51,7 +51,7 @@ def validate_multiple_emails(form, field):
 class NewContractForm(Form):
     description = TextField(validators=[DataRequired()])
     flow = QuerySelectField(
-        query_factory=flow_query,
+        query_factory=Flow.all_flow_query_factory,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.flow_name,
         allow_blank=True, blank_text='-----'

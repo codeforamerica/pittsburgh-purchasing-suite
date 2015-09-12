@@ -2,65 +2,37 @@
 
 import datetime
 
-from purchasing.database import db
-from purchasing.data.models import (
-    Stage, StageProperty, ContractStage, ContractStageActionItem,
-    ContractBase
-)
-from purchasing.data.contracts import (
-    get_one_contract, complete_contract
-)
+from sqlalchemy.orm import backref
 
-def create_new_stage(stage_data):
-    '''Create a new stage.
+from purchasing.database import db, Model, Column, ReferenceCol
+from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
+from purchasing.data.contracts import ContractBase
 
-    Creates a new stage from the passed stage_data
-    and returns the created stage object.
-    '''
-    properties = stage_data.pop('properties', [])
-    stage = Stage.create(**stage_data)
-    for property in properties:
-        property.update({'stage_id': stage.id})
-        StageProperty.create(**property)
+class Stage(Model):
+    __tablename__ = 'stage'
 
-    return stage
+    id = Column(db.Integer, primary_key=True, index=True)
+    name = Column(db.String(255))
+    post_opportunities = Column(db.Boolean, default=False, nullable=False)
 
-def update_stage(stage_id, stage_data):
-    '''Updates stage data.
+    default_message = Column(db.Text)
 
-    Takes an individual stage and updates it with
-    the stage data. Returns the updated stage.
-    '''
-    stage = get_one_stage(stage_id)
-    stage.update(**stage_data)
-    return stage
+    def __unicode__(self):
+        return self.name
 
-def update_stage_property(stage_property_id, property_data):
-    '''Updates stage property data.
+class StageProperty(Model):
+    __tablename__ = 'stage_property'
 
-    Takes a dictionary of stage property data and
-    updates the individual property
-    '''
-    stage_property = StageProperty.query.get(stage_property_id)
-    stage_property.update(**property_data)
-    return stage_property
+    id = Column(db.Integer, primary_key=True, index=True)
+    stage = db.relationship('Stage', backref=backref(
+        'properties', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+    stage_id = ReferenceCol('stage', ondelete='CASCADE')
+    key = Column(db.String(255), nullable=False)
+    value = Column(db.String(255))
 
-def delete_stage(stage_id):
-    '''Deletes a stage and any associated properties
-    '''
-    stage = get_one_stage(stage_id)
-    stage.delete()
-    return True
-
-def get_one_stage(stage_id):
-    '''Takes a stage ID and returns the associated stage object
-    '''
-    return Stage.query.get(stage_id)
-
-def get_all_stages():
-    '''Returns one page's worth of stages.
-    '''
-    return Stage.query.all()
+    def __unicode__(self):
+        return '{key}: {value}'.format(key=self.key, value=self.value)
 
 def log_entered(contract_stage, user, action_type='reversion'):
     action = None
@@ -201,7 +173,7 @@ def transition_stage(contract_id, user, destination=None, contract=None, stages=
     to increase speed.
     '''
     # grab the contract
-    contract = contract if contract else get_one_contract(contract_id)
+    contract = contract if contract else ContractBase.query.get(contract_id)
     stages = stages if stages else contract.flow.stage_order
 
     # implement the case where we have a final destination in mind
@@ -247,7 +219,7 @@ def transition_stage(contract_id, user, destination=None, contract=None, stages=
             single_enter=False
         )
 
-        complete_contract(contract.parent, contract)
+        contract.parent.complete()
 
         stage, contract, is_complete = transition[0], contract, True
 

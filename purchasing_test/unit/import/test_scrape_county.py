@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import requests
 from bs4 import BeautifulSoup
 
 from flask import current_app
@@ -10,9 +9,8 @@ from purchasing.data.importer.scrape_county import (
     grab_line_items, get_contract, save_line_item
 )
 
-from purchasing.data.contracts import create_new_contract
-from purchasing.data.companies import create_new_company, get_all_companies
-from purchasing.data.models import LineItem
+from purchasing.data.contracts import ContractBase, LineItem, ContractProperty
+from purchasing.data.companies import Company
 
 from purchasing_test.unit.test_base import BaseTestCase
 
@@ -39,12 +37,12 @@ class TestScrapeCounty(BaseTestCase):
         '''
         Test that award information is scraped properly.
         '''
-        muni = create_new_company(dict(company_name='U.S. Municipal Supply, Inc.'))
-        chemung = create_new_company(dict(company_name='Chemung Supply Corporation'))
-        pathmaster = create_new_company(dict(company_name='Path Master, Inc., Co.'))
+        muni = Company.create(**dict(company_name='U.S. Municipal Supply, Inc.'))
+        chemung = Company.create(**dict(company_name='Chemung Supply Corporation'))
+        pathmaster = Company.create(**dict(company_name='Path Master, Inc., Co.'))
 
-        new_contract = create_new_contract(
-            dict(properties=[dict(key='foo', value='6965')], description='foo')
+        new_contract = ContractBase.create(
+            **dict(properties=[ContractProperty(key='foo', value='6965')], description='foo')
         )
 
         with open(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/award.html', 'r') as f:

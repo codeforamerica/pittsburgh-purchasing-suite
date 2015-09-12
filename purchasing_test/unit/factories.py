@@ -7,10 +7,12 @@ from factory.alchemy import SQLAlchemyModelFactory
 
 from purchasing.database import db
 from purchasing.users.models import User, Role, Department
-from purchasing.data.models import (
-    Flow, Stage, StageProperty, ContractBase, ContractProperty,
-    Company, ContractType
-)
+
+from purchasing.data.contracts import ContractBase, ContractProperty, ContractType
+from purchasing.data.companies import Company
+from purchasing.data.flows import Flow
+from purchasing.data.stages import Stage, StageProperty
+
 from purchasing.opportunities.models import (
     Opportunity, RequiredBidDocument, OpportunityDocument, Category,
     Vendor

@@ -11,7 +11,7 @@ from urlparse import urlparse
 
 from sqlalchemy import or_
 from purchasing.database import db
-from purchasing.data.models import ContractBase, ContractProperty, LineItem
+from purchasing.data.contracts import ContractBase, ContractProperty, LineItem
 from purchasing.public.models import AppStatus
 
 from purchasing.data.importer import get_or_create

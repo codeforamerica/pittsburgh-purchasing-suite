@@ -1,157 +1,275 @@
 # -*- coding: utf-8 -*-
 
-from purchasing.database import db
-from purchasing.data.models import ContractBase, ContractProperty
-from purchasing.opportunities.models import Opportunity
+import datetime
 
+from sqlalchemy.schema import Table
+from sqlalchemy.orm import backref
 from sqlalchemy.orm.session import make_transient
 
-def create_new_contract(contract_data):
-    '''
-    Creates a new contract and any associated properties
-    from contract_data and returns the contract
-    '''
-    properties = contract_data.pop('properties', [])
-    contract = ContractBase.create(**contract_data)
-    for property in properties:
-        _property = property.items()[0]
-        ContractProperty.create(**{
-            'contract_id': contract.id, 'key': _property[0], 'value': _property[1]
-        })
+from purchasing.database import db, Model, Column, RefreshSearchViewMixin, ReferenceCol
 
-    return contract
+from purchasing.filters import days_from_today
+from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 
-def update_contract(contract_id, contract_data):
-    '''
-    Updates an individual contract and returns the contract
-    '''
-    contract = get_one_contract(contract_id)
-    contract.update(**contract_data)
-    return contract
+contract_user_association_table = Table(
+    'contract_user_association', Model.metadata,
+    Column('user_id', db.Integer, db.ForeignKey('users.id'), index=True),
+    Column('contract_id', db.Integer, db.ForeignKey('contract.id'), index=True),
+)
 
-def update_contract_property(contract_property_id, property_data):
-    '''
-    Updates a contract property and returns the property
-    '''
-    property = ContractProperty.query.get(contract_property_id)
-    _property_data = property_data.items()[0]
-    property.update(**{
-        'contract': property.contract, 'key': _property_data[0], 'value': _property_data[1]
-    })
+class ContractBase(RefreshSearchViewMixin, Model):
+    __tablename__ = 'contract'
 
-    return property
+    id = Column(db.Integer, primary_key=True)
+    financial_id = Column(db.String(255))
+    expiration_date = Column(db.Date)
+    description = Column(db.Text, index=True)
+    contract_href = Column(db.Text)
+    current_flow = db.relationship('Flow', lazy='subquery')
+    flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
+    current_stage = db.relationship('Stage', lazy='subquery')
+    current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
+    followers = db.relationship(
+        'User',
+        secondary=contract_user_association_table,
+        backref='contracts_following',
+    )
 
-def delete_contract(contract_id):
-    '''
-    Deletes a contract and all associated properties
-    '''
-    contract = get_one_contract(contract_id)
-    contract.delete()
-    return True
+    contract_type_id = ReferenceCol('contract_type', ondelete='SET NULL', nullable=True)
+    contract_type = db.relationship('ContractType', backref=backref(
+        'contracts', lazy='dynamic'
+    ))
 
-def get_one_contract(contract_id):
-    '''
-    Returns a contract associated with a contract ID
-    '''
-    contract = ContractBase.query.get(contract_id)
-    return contract
+    assigned_to = ReferenceCol('users', ondelete='SET NULL', nullable=True)
+    assigned = db.relationship('User', backref=backref(
+        'assignments', lazy='dynamic', cascade='none'
+    ), foreign_keys=assigned_to)
 
-def get_all_contracts():
-    '''
-    Returns a list of contracts.
-    TODO: Paginate these results.
-    '''
-    return ContractBase.query.all()
+    department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True)
+    department = db.relationship('Department', backref=backref(
+        'contracts', lazy='dynamic', cascade='none'
+    ))
 
-def extend_a_contract(child_contract_id=None, delete_child=True):
-    '''Extends a contract.
+    is_visible = Column(db.Boolean, default=True, nullable=False)
+    is_archived = Column(db.Boolean, default=False, nullable=False)
 
-    Because conductor clones existing contracts when work begins,
-    when we get an "extend" signal, we actually want to extend the
-    parent conract of the clone. Optionally (by default), we also
-    want to delete the child (cloned) contract.
-    '''
-    child_contract = get_one_contract(child_contract_id)
-    parent_contract = child_contract.parent
+    opportunity = db.relationship('Opportunity', uselist=False, backref='opportunity')
 
-    parent_contract.expiration_date = None
+    parent_id = Column(db.Integer, db.ForeignKey('contract.id'))
+    children = db.relationship('ContractBase', backref=backref(
+        'parent', remote_side=[id]
+    ))
 
-    # strip the flow -- this will serve as the flag that
-    # the contract is extended
+    def __unicode__(self):
+        return self.description
 
-    if delete_child:
-        delete_contract(child_contract_id)
+    @property
+    def scout_contract_status(self):
+        if self.expiration_date:
+            if days_from_today(self.expiration_date) <= 0 and self.children and self.is_archived:
+                return 'expired_replaced'
+            elif days_from_today(self.expiration_date) <= 0:
+                return 'expired'
+            elif self.children and self.is_archived:
+                return 'replaced'
+            elif self.is_archived:
+                return 'archived'
+        elif self.children and self.is_archived:
+            return 'replaced'
+        elif self.is_archived:
+            return 'archived'
+        return 'active'
 
-    return parent_contract
+    def get_spec_number(self):
+        '''Returns the spec number for a given contract
+        '''
+        try:
+            return [i for i in self.properties if i.key.lower() == 'spec number'][0]
+        except IndexError:
+            return ContractProperty()
 
-def transfer_contract_relationships(parent_contract, child_contract):
-    '''Transfers stars/follows from parent to child contract
-    '''
+    def build_complete_action_log(self):
+        '''Returns the complete action log for this contract
+        '''
+        return ContractStageActionItem.query.join(ContractStage).filter(
+            ContractStage.contract_id == self.id
+        ).order_by(db.text('taken_at asc')).all()
 
-    for user in list(parent_contract.followers):
-        child_contract.add_follower(user)
-        parent_contract.remove_follower(user)
+    def get_current_stage(self):
+        '''Returns the details for the current contract stage
+        '''
+        return ContractStage.query.filter(
+            ContractStage.contract_id == self.id,
+            ContractStage.stage_id == self.current_stage_id,
+            ContractStage.flow_id == self.flow_id
+        ).first()
 
-    return child_contract
+    def completed_last_stage(self):
+        '''Boolean to check if we have completed the last stage of our flow
+        '''
+        return self.flow is None or \
+            self.current_stage_id == self.flow.stage_order[-1] and \
+            self.get_current_stage().exited is not None
 
-def complete_contract(parent_contract, child_contract):
-    transfer_contract_relationships(parent_contract, child_contract)
+    def add_follower(self, user):
+        if user not in self.followers:
+            self.followers.append(user)
+            return ('Successfully subscribed!', 'alert-success')
+        return ('Already subscribed!', 'alert-info')
 
-    parent_contract.is_archived = True
-    parent_contract.is_visible = False
+    def remove_follower(self, user):
+        if user in self.followers:
+            self.followers.remove(user)
+            return ('Successfully unsubscribed', 'alert-success')
+        return ('You haven\'t subscribed to this contract!', 'alert-warning')
 
-    if not parent_contract.description.endswith(' [Archived'):
-        parent_contract.description += ' [Archived]'
+    def transfer_followers_to_children(self):
+        '''Transfer relationships from parent to all children
+        '''
+        for child in self.children:
+            child.followers = self.followers
 
-    child_contract.is_archived = False
-    child_contract.is_visible = True
+        self.followers = []
+        return self.followers
 
-    return child_contract
+    def extend(self, delete_children=True):
+        '''Extends a contract.
 
-def clone_a_contract(contract, parent_id=None, strip=True, new_conductor_contract=True):
-    '''Takes a contract object and clones it
+        Because conductor clones existing contracts when work begins,
+        when we get an "extend" signal, we actually want to extend the
+        parent conract of the clone. Optionally (by default), we also
+        want to delete the child (cloned) contract.
+        '''
+        self.expiration_date = None
 
-    The clone always strips the following properties:
-        + Assigned To
-        + Current Stage
+        if delete_children:
+            for child in self.children:
+                child.delete()
+            self.children = []
 
-    If the strip flag is set to true, the following are also stripped
-        + Contract HREF
-        + Financial ID
-        + Expiration Date
+        return self
 
-    If the new_conductor_contract flag is set to true, the following are set:
-        + is_visible set to False
-        + is_archived set to False
+    def complete(self):
+        '''Do the steps to mark a contract as complete:
 
-    Relationships are handled as follows:
-        + Stage, Flow - Duplicated
-        + Properties, Notes, Line Items, Companies, Stars, Follows kept on old
-    '''
-    old_contract_id = int(contract.id)
+        1. Transfer the followers to children
+        2. Modify description to make contract explicitly completed/archived
+        3. Mark self as archived and not visible
+        4. Mark children as not archived and visible
+        '''
+        self.transfer_followers_to_children()
 
-    db.session.expunge(contract)
-    make_transient(contract)
+        self.is_archived = True
+        self.is_visible = False
 
-    contract.id = None
-    contract.assigned_to = None
-    contract.current_stage = None
-    contract.contract_href = None
+        if not self.description.endswith(' [Archived]'):
+            self.description += ' [Archived]'
 
-    if strip:
-        contract.financial_id = None
-        contract.expiration_date = None
+        for child in self.children:
+            child.is_archived = False
+            child.is_visible = True
 
-    if new_conductor_contract:
-        contract.is_archived = False
-        contract.is_visible = False
+    @classmethod
+    def clone(cls, instance, parent_id=None, strip=True, new_conductor_contract=True):
+        '''Takes a contract object and clones it
 
-    # set the parent
-    if parent_id:
-        contract.parent_id = parent_id
-    else:
-        contract.parent_id = old_contract_id
+        The clone always strips the following properties:
+            + Assigned To
+            + Current Stage
 
-    db.session.add(contract)
-    db.session.commit()
-    return contract
+        If the strip flag is set to true, the following are also stripped
+            + Contract HREF
+            + Financial ID
+            + Expiration Date
+
+        If the new_conductor_contract flag is set to true, the following are set:
+            + is_visible set to False
+            + is_archived set to False
+
+        Relationships are handled as follows:
+            + Stage, Flow - Duplicated
+            + Properties, Notes, Line Items, Companies, Stars, Follows kept on old
+        '''
+        clone = cls(**instance.as_dict())
+        clone.id, clone.assigned_to, clone.current_stage = None, None, None
+
+        clone.parent_id = parent_id if parent_id else instance.id
+
+        if strip:
+            clone.contract_href, clone.financial_id, clone.expiration_date = None, None, None
+
+        if new_conductor_contract:
+            clone.is_archived, clone.is_visible = False, False
+
+        return clone
+
+class ContractType(Model):
+    __tablename__ = 'contract_type'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    name = Column(db.String(255))
+    allow_opportunities = Column(db.Boolean, default=False)
+    opportunity_response_instructions = Column(db.Text)
+
+    def __unicode__(self):
+        return self.name if self.name else ''
+
+    @classmethod
+    def opportunity_type_query(cls):
+        return cls.query.filter(cls.allow_opportunities == True)
+
+class ContractProperty(RefreshSearchViewMixin, Model):
+    __tablename__ = 'contract_property'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    contract = db.relationship('ContractBase', backref=backref(
+        'properties', lazy='subquery', cascade='all, delete-orphan'
+    ))
+    contract_id = ReferenceCol('contract', ondelete='CASCADE')
+    key = Column(db.String(255), nullable=False)
+    value = Column(db.Text)
+
+    def __unicode__(self):
+        return '{key}: {value}'.format(key=self.key, value=self.value)
+
+class ContractNote(Model):
+    __tablename__ = 'contract_note'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    contract = db.relationship('ContractBase', backref=backref(
+        'notes', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+    contract_id = ReferenceCol('contract', ondelete='CASCADE')
+    note = Column(db.Text)
+    created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
+    updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
+
+    taken_by_id = ReferenceCol('users', ondelete='SET NULL', nullable=True)
+    taken_by = db.relationship('User', backref=backref(
+        'contract_note', lazy='dynamic', cascade=None
+    ), foreign_keys=taken_by_id)
+
+    def __unicode__(self):
+        return self.note
+
+class LineItem(RefreshSearchViewMixin, Model):
+    __tablename__ = 'line_item'
+
+    id = Column(db.Integer, primary_key=True, index=True)
+    contract = db.relationship('ContractBase', backref=backref(
+        'line_items', lazy='dynamic', cascade='all, delete-orphan'
+    ))
+    contract_id = ReferenceCol('contract', ondelete='CASCADE')
+    description = Column(db.Text, nullable=False, index=True)
+    manufacturer = Column(db.Text)
+    model_number = Column(db.Text)
+    quantity = Column(db.Integer)
+    unit_of_measure = Column(db.String(255))
+    unit_cost = Column(db.Float)
+    total_cost = Column(db.Float)
+    percentage = Column(db.Boolean)
+    company_name = Column(db.String(255), nullable=True)
+    company_id = ReferenceCol('company', nullable=True)
+
+    def __unicode__(self):
+        return self.description

@@ -8,9 +8,9 @@ from mock import Mock, patch
 from flask import session
 from werkzeug.datastructures import ImmutableMultiDict
 
-from purchasing.data.models import (
-    ContractStage, ContractStageActionItem, ContractBase
-)
+from purchasing.data.contracts import ContractBase
+from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
+
 from purchasing.opportunities.models import Opportunity
 from purchasing.extensions import mail
 
@@ -65,9 +65,11 @@ class TestConductorSetup(BaseTestCase):
     def assign_contract(self, flow=None, contract=None):
         flow = flow if flow else self.flow
         contract = contract if contract else self.contract1
-        return self.client.get('/conductor/contract/{}/assign/{}/flow/{}'.format(
+        self.client.get('/conductor/contract/{}/assign/{}/flow/{}'.format(
             contract.id, self.conductor.id, flow.id
         ))
+
+        return contract.children[0]
 
     def get_current_contract_stage_id(self, contract, old_stage=None):
         if contract.current_stage_id is None:
@@ -87,6 +89,7 @@ class TestConductorSetup(BaseTestCase):
         return stage.id
 
     def build_detail_view(self, contract, old_stage=None):
+        contract = contract.children[0] if len(contract.children) > 0 else contract
         return self.detail_view.format(
             contract.id, self.get_current_contract_stage_id(contract, old_stage)
         )
@@ -170,14 +173,12 @@ class TestConductor(TestConductorSetup):
         assign = self.assign_contract()
 
         self.assertEquals(ContractStage.query.count(), len(self.flow.stage_order))
-        self.assertEquals(self.contract1.current_stage_id, self.flow.stage_order[0])
-        self.assertEquals(self.contract1.assigned_to, self.conductor.id)
+        self.assertEquals(assign.current_stage_id, self.flow.stage_order[0])
+        self.assertEquals(assign.assigned_to, self.conductor.id)
 
-        self.assertEquals(assign.status_code, 302)
         self.assert_flashes('Successfully assigned {} to {}!'.format(
-            self.contract1.description, self.conductor.email
+            assign.description, self.conductor.email
         ), 'alert-success')
-        self.assertEquals(assign.location, 'http://localhost/conductor/')
 
         # re-assigning shouldn't cause problems
         self.assign_contract()
@@ -187,11 +188,11 @@ class TestConductor(TestConductorSetup):
         '''
         self.assert404(self.client.get(self.detail_view.format(999, 999)))
 
-        self.assign_contract()
+        assign = self.assign_contract()
 
-        detail_view_url = self.build_detail_view(self.contract1)
+        detail_view_url = self.build_detail_view(assign)
 
-        detail = self.client.get(self.build_detail_view(self.contract1))
+        detail = self.client.get(self.build_detail_view(assign))
         self.assert200(detail)
         self.assert_template_used('conductor/detail.html')
         self.assertEquals(self.get_context_variable('active_tab'), '#activity')
@@ -202,7 +203,7 @@ class TestConductor(TestConductorSetup):
         self.assertEquals(len(self.get_context_variable('actions')), 1)
 
         # make sure the redirect works
-        redir = self.client.get('/conductor/contract/{}'.format(self.contract1.id))
+        redir = self.client.get('/conductor/contract/{}'.format(assign.id))
         self.assertEquals(redir.status_code, 302)
         self.assertEquals(redir.location, 'http://localhost' + detail_view_url)
 
@@ -223,15 +224,15 @@ class TestConductor(TestConductorSetup):
     def test_conductor_contract_transition(self):
         '''Test conductor stage transition
         '''
-        self.assign_contract()
+        assign = self.assign_contract()
 
-        transition_url = self.build_detail_view(self.contract1) + '?transition=true'
+        transition_url = self.build_detail_view(assign) + '?transition=true'
         transition = self.client.get(transition_url)
         self.assertEquals(transition.status_code, 302)
         self.assertEquals(
-            transition.location, 'http://localhost' + self.build_detail_view(self.contract1)
+            transition.location, 'http://localhost' + self.build_detail_view(assign)
         )
-        new_page = self.client.get(self.build_detail_view(self.contract1))
+        new_page = self.client.get(self.build_detail_view(assign))
         self.assertTrue('<a href="#post" aria-controls="post" role="tab" data-toggle="tab">' not in new_page.data)
 
         contract_stages = ContractStage.query.all()
@@ -246,25 +247,25 @@ class TestConductor(TestConductorSetup):
     def test_conductor_directed_transition(self):
         '''Test conductor stage transition backwards/to specific point
         '''
-        self.assign_contract()
+        assign = self.assign_contract()
         self.assertEquals(ContractStageActionItem.query.count(), 1)
 
         # transition to the third stage
-        transition_url = self.build_detail_view(self.contract1) + '?transition=true'
+        transition_url = self.build_detail_view(assign) + '?transition=true'
         self.client.get(transition_url)
         self.assertEquals(ContractStageActionItem.query.count(), 3)
         self.client.get(transition_url)
         self.assertEquals(ContractStageActionItem.query.count(), 5)
 
-        self.assertEquals(self.contract1.current_stage_id, self.stage3.id)
+        self.assertEquals(assign.current_stage_id, self.stage3.id)
 
-        revert_url = self.build_detail_view(self.contract1) + '?transition=true&destination={}'
+        revert_url = self.build_detail_view(assign) + '?transition=true&destination={}'
         # revert to the original stage
         self.client.get(revert_url.format(self.stage1.id))
 
         self.assertEquals(ContractStageActionItem.query.count(), 6)
 
-        self.assertEquals(self.contract1.current_stage_id, self.stage1.id)
+        self.assertEquals(assign.current_stage_id, self.stage1.id)
         self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage1.id).first().entered is not None)
         self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage2.id).first().entered is None)
         self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage3.id).first().entered is None)
@@ -276,34 +277,34 @@ class TestConductor(TestConductorSetup):
     def test_conductor_link_directions(self):
         '''Test that we can access completed stages but not non-started ones
         '''
-        self.assign_contract()
-        self.client.get(self.detail_view.format(self.contract1.id, self.stage1.id) + '?transition=true')
+        assign = self.assign_contract()
+        self.client.get(self.detail_view.format(assign.id, self.stage1.id) + '?transition=true')
 
         # assert the current stage is stage 2
-        redir = self.client.get('/conductor/contract/{}'.format(self.contract1.id))
+        redir = self.client.get('/conductor/contract/{}'.format(assign.id))
         self.assertEquals(redir.status_code, 302)
-        self.assertEquals(redir.location, 'http://localhost' + self.build_detail_view(self.contract1))
+        self.assertEquals(redir.location, 'http://localhost' + self.build_detail_view(assign))
         # assert we can/can't go the correct locations
-        old_view = self.client.get(self.build_detail_view(self.contract1, old_stage=self.stage1))
+        old_view = self.client.get(self.build_detail_view(assign, old_stage=self.stage1))
         self.assert200(old_view)
         self.assertTrue('This stage has been completed.' in old_view.data)
-        self.assert200(self.client.get(self.build_detail_view(self.contract1, old_stage=self.stage2)))
-        self.assert404(self.client.get(self.build_detail_view(self.contract1, old_stage=self.stage3)))
+        self.assert200(self.client.get(self.build_detail_view(assign, old_stage=self.stage2)))
+        self.assert404(self.client.get(self.build_detail_view(assign, old_stage=self.stage3)))
 
     def test_conductor_flow_switching(self):
         '''Test flow switching back and forth in conductor
         '''
-        self.assign_contract()
-        self.client.get(self.detail_view.format(self.contract1.id, self.stage1.id) + '?transition=true')
+        assign = self.assign_contract()
+        self.client.get(self.detail_view.format(assign.id, self.stage1.id) + '?transition=true')
         # we should have three actions -- entered, exited, entered
         self.assertEquals(ContractStageActionItem.query.count(), 3)
 
-        self.client.get(self.detail_view.format(self.contract1.id, self.stage2.id) +
+        self.client.get(self.detail_view.format(assign.id, self.stage2.id) +
             '?flow_switch={}'.format(self.flow2.id))
 
         # assert that we have been updated appropriately
-        self.assertEquals(self.contract1.flow_id, self.flow2.id)
-        self.assertEquals(self.contract1.current_stage_id, self.flow2.stage_order[0])
+        self.assertEquals(assign.flow_id, self.flow2.id)
+        self.assertEquals(assign.current_stage_id, self.flow2.stage_order[0])
 
         # assert that the action log has been properly cleaned
         new_actions = ContractStageActionItem.query.all()
@@ -322,7 +323,7 @@ class TestConductor(TestConductorSetup):
         # have had their enter/exit times cleared
         old_stages = ContractStage.query.filter(
             ContractStage.flow_id == self.flow.id,
-            ContractStage.contract_id == self.contract1.id
+            ContractStage.contract_id == assign.id
         ).all()
         for i in old_stages:
             self.assertTrue(i.entered is None)
@@ -330,20 +331,20 @@ class TestConductor(TestConductorSetup):
 
         # assert that you can transition back to the original flow
         current_stage = ContractStage.query.filter(
-            ContractStage.stage_id == self.contract1.current_stage_id,
-            ContractStage.contract_id == self.contract1.id,
-            ContractStage.flow_id == self.contract1.flow_id
+            ContractStage.stage_id == assign.current_stage_id,
+            ContractStage.contract_id == assign.id,
+            ContractStage.flow_id == assign.flow_id
         ).first()
 
         # switch back to the first stage
         self.client.get(
-            self.detail_view.format(self.contract1.id, current_stage.id) +
+            self.detail_view.format(assign.id, current_stage.id) +
             '?flow_switch={}'.format(self.flow.id)
         )
 
         # assert that our contract properties work as expected
-        self.assertEquals(self.contract1.flow_id, self.flow.id)
-        self.assertEquals(self.contract1.current_stage_id, self.flow.stage_order[0])
+        self.assertEquals(assign.flow_id, self.flow.id)
+        self.assertEquals(assign.current_stage_id, self.flow.stage_order[0])
 
         # assert that the actions were logged correctly
         new_actions = ContractStageActionItem.query.all()
@@ -391,11 +392,11 @@ class TestConductor(TestConductorSetup):
     def test_conductor_contract_post_note(self):
         '''Test posting a note to the activity stream
         '''
-        self.assign_contract()
+        assign = self.assign_contract()
 
         self.assertEquals(ContractStageActionItem.query.count(), 1)
 
-        detail_view_url = self.build_detail_view(self.contract1)
+        detail_view_url = self.build_detail_view(assign)
         self.client.post(detail_view_url + '?form=activity', data=dict(
             note='a test note!'
         ))
@@ -406,7 +407,7 @@ class TestConductor(TestConductorSetup):
 
         # make sure you can't post notes to an unstarted stage
         self.assert404(self.client.post(
-            self.build_detail_view(self.contract1, old_stage=self.stage3) + '?form=activity',
+            self.build_detail_view(assign, old_stage=self.stage3) + '?form=activity',
             data=dict(note='a test note!')
         ))
 
@@ -419,9 +420,9 @@ class TestConductor(TestConductorSetup):
     def test_delete_note(self):
         '''Test you can delete a note
         '''
-        self.assign_contract()
+        assign = self.assign_contract()
         self.assertEquals(ContractStageActionItem.query.count(), 1)
-        detail_view_url = self.build_detail_view(self.contract1)
+        detail_view_url = self.build_detail_view(assign)
         self.client.post(detail_view_url + '?form=activity', data=dict(
             note='a test note!'
         ))
@@ -429,8 +430,12 @@ class TestConductor(TestConductorSetup):
             note='a second test note!'
         ))
 
+        first_note = ContractStageActionItem.query.filter(
+            ContractStageActionItem.action_type == 'activity'
+        ).first()
+
         self.assertEquals(ContractStageActionItem.query.count(), 3)
-        self.client.get('/conductor/contract/1/stage/1/note/1/delete')
+        self.client.get('/conductor/contract/1/stage/1/note/{}/delete'.format(first_note.id))
         self.assertEquals(ContractStageActionItem.query.count(), 2)
 
         self.client.get('/conductor/contract/1/stage/1/note/100/delete')
@@ -447,10 +452,10 @@ class TestConductor(TestConductorSetup):
     def test_conductor_stage_default_message(self):
         '''Test default messages appear in proper place in the form
         '''
-        self.assign_contract()
+        assign = self.assign_contract()
 
         self.assertEquals(ContractStageActionItem.query.count(), 1)
-        detail_view_url = self.build_detail_view(self.contract1)
+        detail_view_url = self.build_detail_view(assign)
         request = self.client.get(detail_view_url)
 
         self.assertTrue('i am a default message' in request.data)
@@ -458,10 +463,10 @@ class TestConductor(TestConductorSetup):
     def test_conductor_send_update(self):
         '''Test sending an email/into the activity stream
         '''
-        self.assign_contract()
+        assign = self.assign_contract()
 
         self.assertEquals(ContractStageActionItem.query.count(), 1)
-        detail_view_url = self.build_detail_view(self.contract1)
+        detail_view_url = self.build_detail_view(assign)
         # make sure the form validators work
         bad_post = self.client.post(detail_view_url + '?form=update', data=dict(
             send_to='bademail', subject='test', body='test'
@@ -483,9 +488,9 @@ class TestConductor(TestConductorSetup):
     def test_conductor_post_to_beacon_validation(self):
         '''Test failure posting to beacon from Conductor
         '''
-        self.assign_contract()
+        assign = self.assign_contract()
 
-        detail_view_url = self.build_detail_view(self.contract1)
+        detail_view_url = self.build_detail_view(assign)
 
         bad1 = self.client.post(detail_view_url + '?form=post', data=dict(contact_email='foo'))
         self.assertTrue('Invalid email address.' in bad1.data)
@@ -499,9 +504,9 @@ class TestConductor(TestConductorSetup):
     def test_conductor_post_to_beacon(self):
         '''Test successful posting to beacon from Conductor
         '''
-        self.assign_contract()
+        assign = self.assign_contract()
 
-        detail_view_url = self.build_detail_view(self.contract1)
+        detail_view_url = self.build_detail_view(assign)
 
         self.client.post(detail_view_url + '?form=post', data=dict(
             contact_email=self.conductor.email, title='foobar', description='barbaz',
@@ -519,9 +524,9 @@ class TestConductor(TestConductorSetup):
     def test_edit_contract_metadata(self):
         '''Test editing a contract's metadata from the conductor detail form
         '''
-        self.assign_contract()
+        assign = self.assign_contract()
 
-        detail_view_url = self.build_detail_view(self.contract1, self.stage1)
+        detail_view_url = self.build_detail_view(assign, self.stage1)
         self.client.post(detail_view_url + '?form=update-metadata', data=dict(
             financial_id=999
         ))
@@ -529,54 +534,54 @@ class TestConductor(TestConductorSetup):
         self.assertEquals(ContractStageActionItem.query.count(), 2)
         for i in ContractStageActionItem.query.all():
             self.assertTrue(i.action_detail is not None)
-        self.assertEquals(self.contract1.financial_id, '999')
+        self.assertEquals(assign.financial_id, '999')
 
     def test_edit_contract_complete(self):
         '''Test the completion views are locked until a contract is in its last stage
         '''
-        self.assign_contract(flow=self.simple_flow)
-        should_redir = self.client.get('/conductor/contract/{}/edit/contract'.format(self.contract1.id))
+        assign = self.assign_contract(flow=self.simple_flow)
+        should_redir = self.client.get('/conductor/contract/{}/edit/contract'.format(assign.id))
         self.assertEquals(should_redir.status_code, 302)
         self.assertEquals(
             should_redir.location,
-            'http://localhost/conductor/contract/{}'.format(self.contract1.id)
+            'http://localhost/conductor/contract/{}'.format(assign.id)
         )
 
-        should_redir = self.client.get('/conductor/contract/{}/edit/company'.format(self.contract1.id))
+        should_redir = self.client.get('/conductor/contract/{}/edit/company'.format(assign.id))
         self.assertEquals(should_redir.status_code, 302)
         self.assertEquals(
             should_redir.location,
-            'http://localhost/conductor/contract/{}/edit/contract'.format(self.contract1.id)
+            'http://localhost/conductor/contract/{}/edit/contract'.format(assign.id)
         )
 
-        should_redir = self.client.get('/conductor/contract/{}/edit/contacts'.format(self.contract1.id))
+        should_redir = self.client.get('/conductor/contract/{}/edit/contacts'.format(assign.id))
         self.assertEquals(should_redir.status_code, 302)
         self.assertEquals(
             should_redir.location,
-            'http://localhost/conductor/contract/{}/edit/contract'.format(self.contract1.id)
+            'http://localhost/conductor/contract/{}/edit/contract'.format(assign.id)
         )
 
     def test_contract_completion_session_set(self):
         '''Test we set the proper session variables on contract completion
         '''
         with self.client as c:
-            self.assign_contract(flow=self.simple_flow)
+            assign = self.assign_contract(flow=self.simple_flow)
 
-            transition_url = self.build_detail_view(self.contract1) + '?transition=true'
+            transition_url = self.build_detail_view(assign) + '?transition=true'
             self.client.get(transition_url)
 
-            self.assertTrue(self.contract1.completed_last_stage())
-            self.assert200(c.get('/conductor/contract/{}/edit/contract'.format(self.contract1.id)))
-            c.post('conductor/contract/{}/edit/contract'.format(self.contract1.id), data=dict(
+            self.assertTrue(assign.completed_last_stage())
+            self.assert200(c.get('/conductor/contract/{}/edit/contract'.format(assign.id)))
+            c.post('conductor/contract/{}/edit/contract'.format(assign.id), data=dict(
                 expiration_date=datetime.date(2020, 1, 1), spec_number='abcd',
                 description='foo'
             ))
 
             self.assertTrue(session['contract'] is not None)
 
-            self.assert200(c.get('/conductor/contract/{}/edit/company'.format(self.contract1.id)))
+            self.assert200(c.get('/conductor/contract/{}/edit/company'.format(assign.id)))
 
-            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+            c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
                 ('companies-0-new_company_controller_number', u'1234'),
                 ('companies-0-company_name', u'__None'),
                 ('companies-0-controller_number', u''),
@@ -584,26 +589,26 @@ class TestConductor(TestConductorSetup):
             ]))
 
             self.assertTrue(session['companies'] is not None)
-            self.assert200(c.get('/conductor/contract/{}/edit/contacts'.format(self.contract1.id)))
+            self.assert200(c.get('/conductor/contract/{}/edit/contacts'.format(assign.id)))
 
     def test_edit_contract_form_validators(self):
         with self.client as c:
 
-            self.assign_contract(flow=self.simple_flow)
+            assign = self.assign_contract(flow=self.simple_flow)
 
-            transition_url = self.build_detail_view(self.contract1) + '?transition=true'
+            transition_url = self.build_detail_view(assign) + '?transition=true'
             self.client.get(transition_url)
 
 
             # set contract session variable so we can post to the company endpoint
-            c.post('conductor/contract/{}/edit/contract'.format(self.contract1.id), data=dict(
+            c.post('conductor/contract/{}/edit/contract'.format(assign.id), data=dict(
                 expiration_date=datetime.date(2020, 1, 1), spec_number='abcd',
                 description='foo'
             ))
             self.assertTrue('companies' not in session.keys())
 
             # assert you can't set both controller numbers
-            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+            c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
                 ('companies-0-new_company_controller_number', u'1234'),
                 ('companies-0-company_name', u'__None'),
                 ('companies-0-controller_number', u'1234'),
@@ -612,7 +617,7 @@ class TestConductor(TestConductorSetup):
             self.assertTrue('companies' not in session.keys())
 
             # assert you can't set both company names
-            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+            c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
                 ('companies-0-new_company_controller_number', u''),
                 ('companies-0-company_name', u'foobar'),
                 ('companies-0-controller_number', u''),
@@ -621,7 +626,7 @@ class TestConductor(TestConductorSetup):
             self.assertTrue('companies' not in session.keys())
 
             # assert you can't set mismatched names/numbers
-            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+            c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
                 ('companies-0-new_company_controller_number', u''),
                 ('companies-0-company_name', u''),
                 ('companies-0-controller_number', u'1234'),
@@ -630,7 +635,7 @@ class TestConductor(TestConductorSetup):
             self.assertTrue('companies' not in session.keys())
 
             # assert new works
-            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+            c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
                 ('companies-0-new_company_controller_number', u'1234'),
                 ('companies-0-company_name', u''),
                 ('companies-0-controller_number', u''),
@@ -640,7 +645,7 @@ class TestConductor(TestConductorSetup):
             session.pop('companies')
 
             # assert old works
-            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+            c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
                 ('companies-0-new_company_controller_number', u''),
                 ('companies-0-company_name', u'foobar'),
                 ('companies-0-controller_number', u'1234'),
@@ -650,7 +655,7 @@ class TestConductor(TestConductorSetup):
             session.pop('companies')
 
             # assert multiple companies work
-            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+            c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
                 ('companies-0-new_company_controller_number', u''),
                 ('companies-0-company_name', u'foobar'),
                 ('companies-0-controller_number', u'1234'),
@@ -670,37 +675,37 @@ class TestConductor(TestConductorSetup):
         with self.client as c:
             self.assertTrue(self.contract1.is_visible)
 
-            self.assign_contract(flow=self.simple_flow)
+            assign = self.assign_contract(flow=self.simple_flow)
 
-            transition_url = self.build_detail_view(self.contract1) + '?transition=true'
+            transition_url = self.build_detail_view(assign) + '?transition=true'
             self.client.get(transition_url)
 
-            c.post('conductor/contract/{}/edit/contract'.format(self.contract1.id), data=dict(
+            c.post('conductor/contract/{}/edit/contract'.format(assign.id), data=dict(
                 expiration_date=datetime.date(2020, 1, 1), spec_number='abcd',
                 description='foo'
             ))
 
-            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+            c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
                 ('companies-0-new_company_controller_number', u'1234'),
                 ('companies-0-company_name', u''),
                 ('companies-0-controller_number', u''),
                 ('companies-0-new_company_name', u'foobar')
             ]))
 
-            c.post('/conductor/contract/{}/edit/contacts'.format(self.contract1.id), data=ImmutableMultiDict([
+            c.post('/conductor/contract/{}/edit/contacts'.format(assign.id), data=ImmutableMultiDict([
                 ('companies-0-contacts-0-first_name', 'foo'),
                 ('companies-0-contacts-0-last_name', 'bar'),
                 ('companies-0-contacts-0-phone_number', '123-456-7890'),
                 ('companies-0-contacts-0-email', 'foo@foo.com'),
             ]))
 
-            self.assertTrue(self.contract1.parent.is_archived)
-            self.assertFalse(self.contract1.parent.is_visible)
-            self.assertTrue(self.contract1.is_visible)
+            self.assertTrue(assign.parent.is_archived)
+            self.assertFalse(assign.parent.is_visible)
+            self.assertTrue(assign.is_visible)
 
             self.assertEquals(ContractBase.query.count(), 3)
-            self.assertEquals(self.contract1.description, 'foo')
-            self.assertEquals(self.contract1.parent.description, 'scuba supplies [Archived]')
+            self.assertEquals(assign.description, 'foo')
+            self.assertEquals(assign.parent.description, 'scuba supplies [Archived]')
 
     def test_actual_contract_completion_multi_company(self):
         '''Test the flow of completing a contract with multiple companies
@@ -708,17 +713,17 @@ class TestConductor(TestConductorSetup):
         with self.client as c:
             self.assertTrue(self.contract1.is_visible)
 
-            self.assign_contract(flow=self.simple_flow)
+            assign = self.assign_contract(flow=self.simple_flow)
 
-            transition_url = self.build_detail_view(self.contract1) + '?transition=true'
+            transition_url = self.build_detail_view(assign) + '?transition=true'
             self.client.get(transition_url)
 
-            c.post('conductor/contract/{}/edit/contract'.format(self.contract1.id), data=dict(
+            c.post('conductor/contract/{}/edit/contract'.format(assign.id), data=dict(
                 expiration_date=datetime.date(2020, 1, 1), spec_number='abcd',
                 description='foo'
             ))
 
-            c.post('conductor/contract/{}/edit/company'.format(self.contract1.id), data=ImmutableMultiDict([
+            c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
                 ('companies-0-new_company_controller_number', u'1234'),
                 ('companies-0-company_name', u''),
                 ('companies-0-controller_number', u''),
@@ -729,7 +734,7 @@ class TestConductor(TestConductorSetup):
                 ('companies-1-new_company_name', u'foobar2')
             ]))
 
-            c.post('/conductor/contract/{}/edit/contacts'.format(self.contract1.id), data=ImmutableMultiDict([
+            c.post('/conductor/contract/{}/edit/contacts'.format(assign.id), data=ImmutableMultiDict([
                 ('companies-0-contacts-0-first_name', 'foo'),
                 ('companies-0-contacts-0-last_name', 'bar'),
                 ('companies-0-contacts-0-phone_number', '123-456-7890'),
@@ -743,11 +748,11 @@ class TestConductor(TestConductorSetup):
 
             # we should create two new contract objects
             self.assertEquals(ContractBase.query.count(), 4)
-            self.assertTrue(self.contract1.parent.is_archived)
-            self.assertFalse(self.contract1.parent.is_visible)
+            self.assertTrue(assign.parent.is_archived)
+            self.assertFalse(assign.parent.is_visible)
 
             # two of the contracts should be children of our parent contract
-            children = self.contract1.parent.children
+            children = assign.parent.children
             self.assertEquals(len(children), 2)
 
             for child in children:
@@ -758,19 +763,19 @@ class TestConductor(TestConductorSetup):
     def test_contract_extension(self):
         '''Test our flow works with contract extensions
         '''
-        self.assign_contract()
-        detail_view_url = self.build_detail_view(self.contract1)
+        assign = self.assign_contract()
+        detail_view_url = self.build_detail_view(assign)
         extend = self.client.get(detail_view_url + '?extend=true')
 
         self.assertEquals(extend.status_code, 302)
         self.assertEquals(
             extend.location,
-            'http://localhost/conductor/contract/{}/edit/contract'.format(self.contract1.parent.id)
+            'http://localhost/conductor/contract/{}/edit/contract'.format(assign.parent.id)
         )
 
-        extend_post = self.client.post('conductor/contract/{}/edit/contract'.format(self.contract1.parent.id), data=dict(
+        extend_post = self.client.post('conductor/contract/{}/edit/contract'.format(assign.parent.id), data=dict(
             expiration_date=datetime.date.today(), spec_number='1234',
-            description=self.contract1.parent.description
+            description=assign.parent.description
         ))
 
         self.assertEquals(extend_post.status_code, 302)
@@ -779,8 +784,8 @@ class TestConductor(TestConductorSetup):
             'http://localhost/conductor/'
         )
 
-        self.assertEquals(self.contract1.parent.expiration_date, datetime.date.today())
+        self.assertEquals(assign.parent.expiration_date, datetime.date.today())
         # our child contract should be untouched
-        self.assertEquals(self.contract1.current_stage_id, self.flow.stage_order[0])
-        self.assertTrue(self.contract1.parent.is_visible)
-        self.assertFalse(self.contract1.is_visible)
+        self.assertEquals(assign.current_stage_id, self.flow.stage_order[0])
+        self.assertTrue(assign.parent.is_visible)
+        self.assertFalse(assign.is_visible)

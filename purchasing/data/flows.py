@@ -4,73 +4,27 @@ import datetime
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import FlushError
+from sqlalchemy.dialects.postgres import ARRAY
 
-from purchasing.database import db
-from purchasing.data.models import (
-    Flow, Stage, ContractStage, ContractBase,
-    ContractStageActionItem
-)
+from purchasing.database import db, Model, Column
+from purchasing.data.contracts import ContractBase
+from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 from purchasing.data.stages import transition_stage
 
-def create_new_flow(flow_data):
-    '''
-    Creates a new flow from the passed flow_data
-    and returns the created flow object.
-    '''
-    try:
-        validate_stages_exist(flow_data.get('stage_order', []))
-        flow = Flow.create(**flow_data)
-        return flow
-    except Exception, e:
-        db.session.rollback()
-        raise e
+class Flow(Model):
+    __tablename__ = 'flow'
 
-def update_flow(flow_id, flow_data):
-    '''
-    Takes an individual flow and updates it with
-    the flow data. Returns the updated flow.
-    '''
-    try:
-        flow = get_one_flow(flow_id)
-        validate_stages_exist(flow_data.get('stage_order', []))
-        flow.update(**flow_data)
-        return flow
-    except Exception, e:
-        db.session.rollback()
-        raise e
+    id = Column(db.Integer, primary_key=True, index=True)
+    flow_name = Column(db.Text, unique=True)
+    contract = db.relationship('ContractBase', backref='flow', lazy='subquery')
+    stage_order = Column(ARRAY(db.Integer))
 
-def delete_flow(flow_id):
-    '''
-    Takes a flow ID and deletes it. Returns True
-    '''
-    flow = get_one_flow(flow_id)
-    flow.delete()
-    return True
+    def __unicode__(self):
+        return self.flow_name
 
-def get_one_flow(flow_id):
-    '''
-    Takes a flow ID and returns the associated flow object
-    '''
-    return Flow.query.get(flow_id)
-
-def get_all_flows():
-    '''
-    Returns a list of flows.
-    TODO: Paginate this
-    '''
-    return Flow.query.all()
-
-def validate_stages_exist(stage_order):
-    if len(stage_order) == 0:
-        return True
-
-    existing_stage_query = db.session.query(Stage.id).filter(Stage.id.in_(stage_order))
-
-    if existing_stage_query.count() == len(stage_order):
-        return True
-    else:
-        not_exist = ','.join([i for i in stage_order if i not in existing_stage_query.all()])
-        raise Exception('Stage in stage_order must exist. These stages do not exist {stages}'.format(stages=not_exist))
+    @classmethod
+    def all_flow_query_factory(cls):
+        return cls.query
 
 def create_contract_stages(flow_id, contract_id, contract=None):
     '''Creates new rows in contract_stage table.
@@ -80,7 +34,7 @@ def create_contract_stages(flow_id, contract_id, contract=None):
     '''
     revert = False
     contract = contract if contract else ContractBase.query.get(contract_id)
-    stages = get_one_flow(flow_id).stage_order
+    stages = Flow.query.get(flow_id).stage_order
     contract_stages = []
     for stage_id in stages:
         try:

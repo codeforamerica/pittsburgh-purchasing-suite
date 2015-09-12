@@ -9,7 +9,7 @@ from purchasing_test.unit.util import (
 )
 from purchasing_test.unit.factories import DepartmentFactory
 
-from purchasing.data.models import ContractBase, LineItem, ContractNote
+from purchasing.data.contracts import ContractBase, LineItem, ContractNote
 
 class TestWexplorer(BaseTestCase):
     render_templates = True

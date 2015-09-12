@@ -3,8 +3,8 @@
 from flask import current_app
 
 from purchasing.data.importer.old_contracts import main
-from purchasing.data.contracts import get_all_contracts
-from purchasing.data.companies import get_all_companies
+from purchasing.data.contracts import ContractBase
+from purchasing.data.companies import Company
 
 from purchasing_test.unit.test_base import BaseTestCase
 
@@ -13,10 +13,10 @@ class TestOldContractsImport(BaseTestCase):
         main(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/old_contracts.csv')
 
         # assert we get all contracts and companies
-        contracts = get_all_contracts()
+        contracts = ContractBase.query.all()
         self.assertEquals(len(contracts), 3)
 
-        companies = get_all_companies()
+        companies = Company.query.all()
         self.assertEquals(len(companies), 3)
 
         controller_nums = ['49020', '49011', '49189']

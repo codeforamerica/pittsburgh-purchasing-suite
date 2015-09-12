@@ -8,11 +8,14 @@ from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
 from flask_admin.form.widgets import Select2Widget
-from purchasing.data.models import (
-    Stage, StageProperty, Flow, ContractBase, ContractProperty, ContractType,
-    Company, CompanyContact, LineItem, company_contract_association_table
-)
-from purchasing.opportunities.models import RequiredBidDocument, Category
+
+from purchasing.data.contracts import ContractBase, ContractProperty, ContractType, LineItem
+from purchasing.data.companies import Company, CompanyContact, company_contract_association_table
+from purchasing.data.flows import Flow
+from purchasing.data.stages import Stage, StageProperty
+
+from purchasing.opportunities.models import RequiredBidDocument
+
 from purchasing.conductor.forms import validate_integer
 from purchasing.extensions import login_manager
 from purchasing.users.models import User, Role, department_query, role_query, Department

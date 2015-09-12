@@ -6,7 +6,7 @@ from purchasing.jobs.job_base import EmailJobBase, JobBase
 from purchasing.notifications import Notification
 from purchasing.tasks import scrape_county_task
 
-from purchasing.data.models import ContractBase
+from purchasing.data.contracts import ContractBase
 
 @JobBase.register
 class CountyScrapeJob(JobBase):

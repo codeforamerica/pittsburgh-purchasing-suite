@@ -11,9 +11,9 @@ from flask_login import current_user
 from purchasing.database import db
 from purchasing.notifications import Notification
 
-from purchasing.data.models import ContractStageActionItem
+from purchasing.data.contracts import ContractBase
+from purchasing.data.contract_stages import ContractStageActionItem
 from purchasing.data.flows import create_contract_stages
-from purchasing.data.contracts import clone_a_contract
 from purchasing.data.stages import transition_stage
 from purchasing.opportunities.models import Opportunity
 from purchasing.users.models import User, Role, Department
@@ -53,7 +53,9 @@ def create_opp_form_obj(contract, contact_email=None):
 
 def update_contract_with_spec(contract, form_data, company=None, clone=False):
     if clone:
-        contract = clone_a_contract(contract, parent_id=contract.parent_id, strip=False)
+        contract = ContractBase.clone(contract, parent_id=contract.parent_id, strip=False)
+        db.session.add(contract)
+        db.session.commit()
 
     spec_number = contract.get_spec_number()
 
@@ -249,6 +251,14 @@ def assign_a_contract(contract, flow, user_id, clone=True):
     # resassign it and continue on
     if contract.assigned_to and not contract.completed_last_stage():
         contract.assigned_to = user_id
+        db.session.commit()
+
+        current_app.logger.info('CONDUCTOR ASSIGN - old contract "{}" assigned to {} with flow {}'.format(
+            contract.description, contract.assigned.email, contract.flow.flow_name
+        ))
+
+        return contract
+
     # otherwise, it's new work. perform the following:
     # 1. create a cloned version of the contract
     # 2. create the relevant contract stages
@@ -256,10 +266,12 @@ def assign_a_contract(contract, flow, user_id, clone=True):
     # 4. assign the contract to the user
     else:
         if clone:
-            contract = clone_a_contract(contract)
+            contract = ContractBase.clone(contract)
+            db.session.add(contract)
+            db.session.commit()
         try:
             stages, _, _ = create_contract_stages(flow.id, contract.id, contract=contract)
-            _, new_contract, _ = transition_stage(
+            transition_stage(
                 contract.id, current_user, contract=contract, stages=stages
             )
             db.session.commit()
@@ -269,20 +281,14 @@ def assign_a_contract(contract, flow, user_id, clone=True):
             db.session.rollback()
             pass
 
-        new_contract.assigned_to = user_id
+        contract.assigned_to = user_id
+        db.session.commit()
 
-    db.session.commit()
-
-    try:
         current_app.logger.info('CONDUCTOR ASSIGN - new contract "{}" assigned to {} with flow {}'.format(
-            new_contract.description, new_contract.assigned.email, new_contract.flow.flow_name
-        ))
-    except UnboundLocalError:
-        current_app.logger.info('CONDUCTOR ASSIGN - old contract "{}" assigned to {} with flow {}'.format(
             contract.description, contract.assigned.email, contract.flow.flow_name
         ))
 
-    return contract
+        return contract
 
 def reshape_metrics_granular(resultset):
     '''Transform long data from database into wide data for consumption

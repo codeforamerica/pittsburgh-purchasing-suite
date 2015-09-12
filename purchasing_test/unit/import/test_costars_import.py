@@ -4,9 +4,8 @@ from flask import current_app
 from collections import defaultdict
 
 from purchasing.data.importer.costars import main
-from purchasing.data.contracts import get_all_contracts
-from purchasing.data.companies import get_all_companies
-from purchasing.data.models import LineItem
+from purchasing.data.contracts import ContractBase, LineItem
+from purchasing.data.companies import Company
 
 from purchasing_test.unit.test_base import BaseTestCase
 
@@ -14,7 +13,7 @@ class TestCostarsImport(BaseTestCase):
     def test_costars_import(self):
         main(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/COSTARS-1.csv', 'COSTARS-1.csv', None, None, None)
 
-        contracts = get_all_contracts()
+        contracts = ContractBase.query.all()
         # assert we got both contracts
         self.assertEquals(len(contracts), 3)
 
@@ -23,7 +22,7 @@ class TestCostarsImport(BaseTestCase):
 
         props = defaultdict(list)
 
-        companies = get_all_companies()
+        companies = Company.query.all()
         self.assertEquals(len(companies), 3)
         for company in companies:
             self.assertEquals(company.contacts.count(), 0)

@@ -13,7 +13,7 @@ from sqlalchemy.orm import backref
 from sqlalchemy.dialects.postgres import ARRAY
 from sqlalchemy.dialects.postgresql import TSVECTOR
 
-from purchasing.data.models import ContractType
+from purchasing.data.contracts import ContractType
 
 category_vendor_association_table = Table(
     'category_vendor_association', Model.metadata,

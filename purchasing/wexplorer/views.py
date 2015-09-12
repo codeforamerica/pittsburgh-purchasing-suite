@@ -13,11 +13,13 @@ from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import Notification
 from purchasing.users.models import get_department_choices, Department, User, Role
+
 from purchasing.wexplorer.forms import SearchForm, FeedbackForm, NoteForm
-from purchasing.data.searches import find_contract_metadata, return_all_contracts
-from purchasing.data.models import (
-    SearchView, ContractNote, ContractBase, ContractType
-)
+
+from purchasing.data.searches import SearchView, find_contract_metadata, return_all_contracts
+from purchasing.data.companies import Company
+from purchasing.data.contracts import ContractBase, ContractNote
+
 from purchasing.wexplorer import blueprint
 
 CRAZY_CHARS = re.compile('[^A-Za-z0-9 ]')

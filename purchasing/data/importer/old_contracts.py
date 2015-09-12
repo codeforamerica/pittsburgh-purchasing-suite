@@ -10,9 +10,9 @@ from purchasing.data.importer import (
     extract, get_or_create, convert_empty_to_none,
     determine_company_contact
 )
-from purchasing.data.models import (
-    CompanyContact, Company, ContractBase, ContractProperty, ContractType
-)
+
+from purchasing.data.contracts import ContractBase, ContractType, ContractProperty
+from purchasing.data.companies import CompanyContact, Company
 
 BASE_CONTRACT_URL = 'http://apps.county.allegheny.pa.us/BidsSearch/pdf/{number}.pdf'
 
