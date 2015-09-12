@@ -152,10 +152,15 @@ class QuerySelect2TagsWidget(Select2Widget):
 
     def __call__(self, field, **kwargs):
         current_stages = field.data
-        stages = Stage.query.filter(Stage.id.in_(current_stages)).all()
+
+        if len(field.data) > 0 and isinstance(field.data[0], int):
+            stages = Stage.query.filter(Stage.id.in_(current_stages)).all()
+        else:
+            stages = field.data
+
         field.data = [y for (x, y) in sorted(zip(current_stages, stages))]
 
-        kwargs.setdefault('data-stage-order', u','.join([unicode(i) for i in current_stages]))
+        kwargs.setdefault('data-stage-order', u','.join([unicode(i) for i in field.data]))
         kwargs.setdefault('data-role', u'select2-tags')
         kwargs.setdefault('multiple', u'multiple')
 
@@ -177,9 +182,9 @@ class FlowAdmin(ConductorAuthMixin, BaseModelViewAdmin):
         )
     }
 
-    def create_model(self, form, model):
+    def create_model(self, form):
         form.stage_order.data = [int(i) for i in request.form.getlist('stage_order')]
-        super(FlowAdmin, self).create_model(form, model)
+        super(FlowAdmin, self).create_model(form)
 
     def update_model(self, form, model):
         form.stage_order.data = [int(i) for i in request.form.getlist('stage_order')]
