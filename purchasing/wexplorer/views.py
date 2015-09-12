@@ -18,11 +18,6 @@ from purchasing.data.searches import find_contract_metadata, return_all_contract
 from purchasing.data.models import (
     SearchView, ContractNote, ContractBase, ContractType
 )
-from purchasing.data.companies import get_one_company
-from purchasing.data.contracts import (
-    get_one_contract, follow_a_contract, unfollow_a_contract
-)
-
 from purchasing.wexplorer import blueprint
 
 CRAZY_CHARS = re.compile('[^A-Za-z0-9 ]')
@@ -229,7 +224,7 @@ def search():
 @blueprint.route('/companies/<int:company_id>')
 @wrap_form(SearchForm, 'search_form', 'wexplorer/company.html')
 def company(company_id):
-    company = get_one_company(company_id)
+    company = Company.query.get(company_id)
 
     if company:
         current_app.logger.info('WEXCOMPANY - Viewed company page {}'.format(company.company_name))
@@ -248,7 +243,7 @@ def contract(contract_id):
     '''Contract profile page
     '''
 
-    contract = get_one_contract(contract_id)
+    contract = ContractBase.query.get(contract_id)
 
     if contract:
         note_form = NoteForm()
@@ -349,10 +344,11 @@ def feedback(contract_id):
 def subscribe(contract_id):
     '''Subscribes a user to receive updates about a particular contract
     '''
-    message, contract = follow_a_contract(contract_id, current_user)
+    contract = ContractBase.query.get(contract_id)
     next_url = request.args.get('next', '/wexplorer')
 
     if contract:
+        message = contract.add_follower(current_user)
         db.session.commit()
         flash(message[0], message[1])
 
@@ -375,10 +371,11 @@ def subscribe(contract_id):
 def unsubscribe(contract_id):
     '''Unsubscribes a user from receiving updates about a particular contract
     '''
-    message, contract = unfollow_a_contract(contract_id, current_user)
+    contract = ContractBase.query.get(contract_id)
     next_url = request.args.get('next', '/wexplorer')
 
     if contract:
+        message = contract.remove_follower(current_user)
         db.session.commit()
         flash(message[0], message[1])
 

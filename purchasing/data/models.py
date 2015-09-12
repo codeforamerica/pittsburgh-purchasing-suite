@@ -197,6 +197,18 @@ class ContractBase(RefreshSearchViewMixin, Model):
             self.current_stage_id == self.flow.stage_order[-1] and \
             self.get_current_stage().exited is not None
 
+    def add_follower(self, user):
+        if user not in self.followers:
+            self.followers.append(user)
+            return ('Successfully subscribed!', 'alert-success')
+        return ('Already subscribed!', 'alert-info')
+
+    def remove_follower(self, user):
+        if user in self.followers:
+            self.followers.remove(user)
+            return ('Successfully unsubscribed', 'alert-success')
+        return ('You haven\'t subscribed to this contract!', 'alert-warning')
+
 class ContractProperty(RefreshSearchViewMixin, Model):
     __tablename__ = 'contract_property'
 

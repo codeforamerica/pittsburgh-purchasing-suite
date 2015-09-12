@@ -63,37 +63,6 @@ def get_all_contracts():
     '''
     return ContractBase.query.all()
 
-def follow_a_contract(contract_id, user):
-    '''
-    Takes in a contract_id and a user model, and associates the
-    user model with the relevant contract. This makes the user
-    "follow" the contract for notification purposes.
-
-    NOTE - normally we would just use the UPDATE method above,
-    but because the user lives on an array, this would prevent
-    multiple users from following one contract
-    '''
-    contract = get_one_contract(contract_id)
-    if contract:
-        if user not in contract.followers:
-            contract.followers.append(user)
-            return ('Successfully subscribed!', 'alert-success'), contract
-        return ('Already subscribed!', 'alert-info'), contract
-    return None, None
-
-def unfollow_a_contract(contract_id, user):
-    '''
-    Takes in a contract_id and a user model, and pops the
-    user out of the list of users.
-    '''
-    contract = get_one_contract(contract_id)
-    if contract:
-        if user in contract.followers:
-            contract.followers.remove(user)
-            return ('Successfully unsubscribed', 'alert-success'), contract
-        return ('You haven\'t subscribed to this contract!', 'alert-warning'), contract
-    return None, None
-
 def extend_a_contract(child_contract_id=None, delete_child=True):
     '''Extends a contract.
 
@@ -120,8 +89,8 @@ def transfer_contract_relationships(parent_contract, child_contract):
     '''
 
     for user in list(parent_contract.followers):
-        unfollow_a_contract(parent_contract.id, user)
-        follow_a_contract(child_contract.id, user)
+        child_contract.add_follower(user)
+        parent_contract.remove_follower(user)
 
     return child_contract
 
