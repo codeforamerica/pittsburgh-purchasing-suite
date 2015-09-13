@@ -14,7 +14,6 @@ from purchasing.notifications import Notification
 from purchasing.data.contracts import ContractBase
 from purchasing.data.contract_stages import ContractStageActionItem
 from purchasing.data.flows import create_contract_stages
-from purchasing.data.stages import transition_stage
 from purchasing.opportunities.models import Opportunity
 from purchasing.users.models import User, Role, Department
 
@@ -271,9 +270,9 @@ def assign_a_contract(contract, flow, user_id, clone=True):
             db.session.commit()
         try:
             stages, _, _ = create_contract_stages(flow.id, contract.id, contract=contract)
-            transition_stage(
-                contract.id, current_user, contract=contract, stages=stages
-            )
+            actions = contract.transition(current_user)
+            for i in actions:
+                db.session.add(i)
             db.session.commit()
         except IntegrityError:
             # we already have the sequence for this, so just

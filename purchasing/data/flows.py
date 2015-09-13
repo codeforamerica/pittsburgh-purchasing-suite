@@ -9,7 +9,6 @@ from sqlalchemy.dialects.postgres import ARRAY
 from purchasing.database import db, Model, Column
 from purchasing.data.contracts import ContractBase
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
-from purchasing.data.stages import transition_stage
 
 class Flow(Model):
     __tablename__ = 'flow'
@@ -121,16 +120,16 @@ def switch_flow(new_flow_id, contract_id, user):
     # remove the current_stage_id from the contract
     # so we can start the new flow
     contract.current_stage_id = None
+    contract.flow_id = new_flow_id
 
     destination = None
     if revert:
         destination = new_stages[0]
 
     # transition into the first stage of the new flow
-    new_stage, new_contract, _ = transition_stage(
-        contract.id, user, contract=contract,
-        stages=new_stages, destination=destination
-    )
+    actions = contract.transition(user, destination=destination)
+    for i in actions:
+        db.session.add(i)
 
     db.session.commit()
-    return new_stage, new_contract
+    return contract.current_stage, contract

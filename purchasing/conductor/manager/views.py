@@ -14,7 +14,7 @@ from purchasing.decorators import requires_roles
 from purchasing.database import db, get_or_create
 from purchasing.notifications import Notification
 
-from purchasing.data.stages import Stage, transition_stage, get_contract_stages
+from purchasing.data.stages import Stage, get_contract_stages
 from purchasing.data.flows import Flow, switch_flow
 from purchasing.data.contracts import ContractBase, ContractProperty, ContractType
 from purchasing.data.companies import Company, CompanyContact
@@ -59,7 +59,8 @@ def index():
         ContractStage.entered != None,
         ContractBase.assigned_to != None,
         ContractStage.flow_id == ContractBase.flow_id,
-        ContractBase.is_visible == False
+        ContractBase.is_visible == False,
+        ContractBase.is_archived == False
     ).all()
 
     all_contracts = db.session.query(
@@ -106,7 +107,6 @@ def index():
 def detail(contract_id, stage_id=-1):
     '''View to control an individual stage update process
     '''
-
     contract = ContractBase.query.get(contract_id)
     if not contract:
         abort(404)
@@ -198,9 +198,9 @@ def transition(contract_id, stage_id):
         request.args.get('destination') else None
 
     try:
-        stage, mod_contract, complete = transition_stage(
-            contract_id, current_user, destination=clicked
-        )
+        actions = contract.transition(current_user, destination=clicked)
+        for action in actions:
+            db.session.add(action)
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
@@ -209,21 +209,16 @@ def transition(contract_id, stage_id):
         db.session.rollback()
         raise
 
-    if complete:
-        url = url_for('conductor.edit', contract_id=mod_contract.id)
-        current_app.logger.info(
-            'CONDUCTOR TRANSITION - Contract for {} (ID: {}) transition to {}'.format(
-                mod_contract.description, mod_contract.id, stage.stage.name
-            )
+    current_app.logger.info(
+        'CONDUCTOR TRANSITION - Contract for {} (ID: {}) transition to {}'.format(
+            contract.description, contract.id, contract.current_stage.name
         )
+    )
 
+    if contract.completed_last_stage():
+        url = url_for('conductor.edit', contract_id=contract.id)
     else:
-        url = url_for('conductor.detail', contract_id=contract_id, stage_id=stage.id)
-        current_app.logger.info(
-            'CONDUCTOR COMPLETE - Contract for {} (ID: {}) transition to {} (last stage)'.format(
-                mod_contract.description, mod_contract.id, stage.stage.name
-            )
-        )
+        url = url_for('conductor.detail', contract_id=contract.id)
 
     return redirect(url)
 

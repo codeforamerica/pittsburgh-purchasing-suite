@@ -1,6 +1,6 @@
 <div class="conductor-detail-title">
   <div class="row">
-    <div class="col-md-9">
+    <div class="col-md-8">
       <h3><strong>{{ active_stage.description|title }}</strong></h3>
       <ul class="text-muted list-unstyled">
         {% if contract.parent.expiration_date %}
@@ -13,7 +13,7 @@
         {% endif %}
       </ul>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
       <h3></h3>
       <p class="text-muted">
         <a href="{{ url_for('conductor.extend', contract_id=contract.id, stage_id=active_stage.id) }}" class="btn btn-default" onclick="return confirm('Please confirm that the contract has already gone through the proper extension process.')">Extend Contract</a></li>

@@ -38,15 +38,69 @@ class ContractStage(Model):
     exited = Column(db.DateTime)
     notes = Column(db.Text)
 
+    @classmethod
+    def get_one(cls, contract_id, flow_id, stage_id):
+        return cls.query.filter(
+            cls.contract_id == contract_id,
+            cls.stage_id == stage_id,
+            cls.flow_id == flow_id
+        ).first()
+
+    @classmethod
+    def get_multiple(cls, contract_id, flow_id, stage_ids):
+        return cls.query.filter(
+            cls.contract_id == contract_id,
+            cls.stage_id.in_(stage_ids),
+            cls.flow_id == flow_id
+        ).order_by(cls.id).all()
+
     def enter(self):
         '''Enter the stage at this point
         '''
         self.entered = datetime.datetime.now()
 
+    def log_enter(self, user):
+        self.enter()
+        return ContractStageActionItem(
+            contract_stage_id=self.id, action_type='entered',
+            taken_by=user.id, taken_at=datetime.datetime.utcnow(),
+            action_detail={
+                'timestamp': self.entered.strftime('%Y-%m-%dT%H:%M:%S'),
+                'date': self.entered.strftime('%Y-%m-%d'),
+                'type': 'entered', 'label': 'Started work',
+                'stage_name': self.stage.name
+            }
+        )
+
     def exit(self):
         '''Exit the stage
         '''
         self.exited = datetime.datetime.now()
+
+    def log_exit(self, user):
+        self.exit()
+        return ContractStageActionItem(
+            contract_stage_id=self.id, action_type='exited',
+            taken_by=user.id, taken_at=datetime.datetime.now(),
+            action_detail={
+                'timestamp': self.exited.strftime('%Y-%m-%dT%H:%M:%S'),
+                'date': self.exited.strftime('%Y-%m-%d'),
+                'type': 'exited', 'label': 'Completed work',
+                'stage_name': self.stage.name
+            }
+        )
+
+    def log_reopen(self, user):
+        return ContractStageActionItem(
+            contract_stage_id=self.id, action_type='reversion',
+            taken_by=user.id, taken_at=datetime.datetime.now(),
+            action_detail={
+                'timestamp': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+                'date': datetime.datetime.now().strftime('%Y-%m-%d'),
+                'type': 'reopened', 'label': 'Restarted work',
+                'stage_name': self.stage.name
+            }
+        )
 
     def full_revert(self):
         '''Clear timestamps for both enter and exit

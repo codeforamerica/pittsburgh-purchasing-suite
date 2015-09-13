@@ -208,6 +208,69 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
         return clone
 
+    def _transition_to_first(self, user):
+        contract_stage = ContractStage.get_one(
+            self.id, self.flow.id, self.flow.stage_order[0]
+        )
+
+        self.current_stage_id = self.flow.stage_order[0]
+        return [contract_stage.log_enter(user)]
+
+    def _transition_to_next(self, user):
+        stages = self.flow.stage_order
+        current_stage_idx = stages.index(self.current_stage.id)
+
+        current_stage = ContractStage.get_one(self.id, self.flow.id, self.current_stage.id)
+
+        next_stage = ContractStage.get_one(
+            self.id, self.flow.id, self.flow.stage_order[current_stage_idx + 1]
+        )
+
+        self.current_stage_id = next_stage.stage_id
+        return [current_stage.log_exit(user), next_stage.log_enter(user)]
+
+    def _transition_to_last(self, user):
+        current_stage = ContractStage.get_one(self.id, self.flow.id, self.current_stage.id)
+        exit = current_stage.log_exit(user)
+        self.parent.complete()
+        return [exit]
+
+    def _transition_backwards_to_destination(self, user, destination):
+        destination_idx = self.flow.stage_order.index(destination)
+        current_stage_idx = self.flow.stage_order.index(self.current_stage_id)
+
+        if destination_idx > current_stage_idx:
+            raise Exception('Skipping stages is not currently supported')
+
+        stages = self.flow.stage_order[destination_idx:current_stage_idx + 1]
+        to_revert = ContractStage.get_multiple(self.id, self.flow_id, stages)
+
+        actions = []
+        for contract_stage_ix, contract_stage in enumerate(to_revert):
+            if contract_stage_ix == 0:
+                actions.append(contract_stage.log_reopen(user))
+                contract_stage.entered = datetime.datetime.now()
+                contract_stage.exited = None
+                self.current_stage_id = contract_stage.stage_id
+            else:
+                contract_stage.full_revert()
+
+        return actions
+
+    def transition(self, user, destination=None, *args, **kwargs):
+        '''Routing method -- figure out which actual method to call
+        '''
+        if self.current_stage_id is None:
+            actions = self._transition_to_first(user)
+        elif destination is not None:
+            actions = self._transition_backwards_to_destination(user, destination)
+        elif self.current_stage_id == self.flow.stage_order[-1]:
+            actions = self._transition_to_last(user)
+        else:
+            actions = self._transition_to_next(user)
+
+        return actions
+
 class ContractType(Model):
     __tablename__ = 'contract_type'
 

@@ -10,6 +10,8 @@ from werkzeug.datastructures import ImmutableMultiDict
 
 from purchasing.data.contracts import ContractBase
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
+from purchasing.data.stages import Stage
+from purchasing.data.flows import Flow
 
 from purchasing.opportunities.models import Opportunity
 from purchasing.extensions import mail
@@ -230,9 +232,6 @@ class TestConductor(TestConductorSetup):
         transition_url = self.build_detail_view(assign) + '/transition'
         transition = self.client.get(transition_url)
         self.assertEquals(transition.status_code, 302)
-        self.assertEquals(
-            transition.location, 'http://localhost' + self.build_detail_view(assign)
-        )
         new_page = self.client.get(self.build_detail_view(assign))
         self.assertTrue('<a href="#post" aria-controls="post" role="tab" data-toggle="tab">' not in new_page.data)
 
@@ -358,7 +357,7 @@ class TestConductor(TestConductorSetup):
                 flow_switch_action += 1
             elif i.action_type == 'restarted':
                 restarted_action += 1
-        self.assertEquals(entered_action, 0)
+        self.assertEquals(entered_action, 1)
         self.assertEquals(flow_switch_action, 2)
         self.assertEquals(restarted_action, 0)
 
