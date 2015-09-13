@@ -4,7 +4,6 @@ import datetime
 
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref
-from sqlalchemy.orm.session import make_transient
 
 from purchasing.database import db, Model, Column, RefreshSearchViewMixin, ReferenceCol
 
@@ -158,16 +157,22 @@ class ContractBase(RefreshSearchViewMixin, Model):
         4. Mark children as not archived and visible
         '''
         self.transfer_followers_to_children()
-
-        self.is_archived = True
-        self.is_visible = False
-
-        if not self.description.endswith(' [Archived]'):
-            self.description += ' [Archived]'
+        self.kill()
 
         for child in self.children:
             child.is_archived = False
             child.is_visible = True
+
+        return self
+
+    def kill(self):
+        '''Remove the contract from the conductor visiblility list
+        '''
+        self.is_visible = False
+        self.is_archived = True
+        if not self.description.endswith(' [Archived]'):
+            self.description += ' [Archived]'
+        return self
 
     @classmethod
     def clone(cls, instance, parent_id=None, strip=True, new_conductor_contract=True):

@@ -79,6 +79,9 @@
           <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
             View on Scout <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search"></i></span>
           </a></li>
+          <li><a href="{{ url_for('conductor.kill_contract', contract_id=contract.id) }}">
+            Kill Contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-times-circle"></i></span>
+          </a></li>
         </ul>
       </div>
       </td><!-- button dropdowns -->

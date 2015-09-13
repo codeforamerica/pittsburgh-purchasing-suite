@@ -13,10 +13,10 @@ class TestConductorMetrics(TestConductorSetup):
 
     def test_metrics_csv_download(self):
         self.assign_contract()
-        transition_url_1 = self.build_detail_view(self.contract1) + '?transition=true'
+        transition_url_1 = self.build_detail_view(self.contract1) + '/transition'
 
         self.assign_contract(contract=self.contract2)
-        transition_url_2 = self.build_detail_view(self.contract2) + '?transition=true'
+        transition_url_2 = self.build_detail_view(self.contract2) + '/transition'
 
         # transition all the way through both stages
         for stage in self.flow.stage_order:

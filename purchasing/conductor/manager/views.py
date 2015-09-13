@@ -111,82 +111,12 @@ def detail(contract_id, stage_id=-1):
     if not contract:
         abort(404)
 
-    if request.args.get('transition'):
-
-        clicked = int(request.args.get('destination')) if \
-            request.args.get('destination') else None
-
-        try:
-            stage, mod_contract, complete = transition_stage(
-                contract_id, current_user, destination=clicked
-            )
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            pass
-        except Exception:
-            db.session.rollback()
-            raise
-
-        if complete:
-            url = url_for('conductor.edit', contract_id=mod_contract.id)
-            current_app.logger.info(
-                'CONDUCTOR TRANSITION - Contract for {} (ID: {}) transition to {}'.format(
-                    mod_contract.description, mod_contract.id, stage.stage.name
-                )
-            )
-
-        else:
-            url = url_for('conductor.detail', contract_id=contract_id, stage_id=stage.id)
-            current_app.logger.info(
-                'CONDUCTOR COMPLETE - Contract for {} (ID: {}) transition to {} (last stage)'.format(
-                    mod_contract.description, mod_contract.id, stage.stage.name
-                )
-            )
-
-        return redirect(url)
-
-    elif request.args.get('extend'):
-        extended_contract = contract.parent.extend(delete_children=False)
-        current_app.logger.info(
-            'CONDUCTOR EXTEND - Contract for {} (ID: {}) extended'.format(
-                extended_contract.description, extended_contract.id
-            )
-        )
-        db.session.commit()
-
-        flash(
-            'This contract has been extended. Please add the new expiration date below.',
-            'alert-warning'
-        )
-
-        session['extend'] = True
-        return redirect(url_for(
-            'conductor.edit', contract_id=extended_contract.id
-        ))
-
-    elif request.args.get('flow_switch'):
-        new_contract_stage, contract = switch_flow(
-            int(request.args.get('flow_switch')), contract_id, current_user
-        )
-        current_app.logger.info(
-            'CONDUCTOR FLOW SWITCH - Contract for {} (ID: {}) switched to new flow {}'.format(
-                contract.description, contract.id, contract.flow.flow_name
-            )
-        )
-        return redirect(url_for(
-            'conductor.detail', contract_id=contract_id, stage_id=new_contract_stage.id
-        ))
+    if contract.completed_last_stage():
+        return redirect(url_for('conductor.edit', contract_id=contract.id))
 
     if stage_id == -1:
         # redirect to the current stage page
-        contract_stage = ContractStage.query.join(
-            ContractBase, ContractBase.id == ContractStage.contract_id
-        ).filter(
-            ContractStage.contract_id == contract_id,
-            ContractStage.stage_id == ContractBase.current_stage_id,
-            ContractStage.flow_id == ContractBase.flow_id
-        ).first()
+        contract_stage = contract.get_current_stage()
 
         if contract_stage:
             return redirect(url_for(
@@ -194,9 +124,6 @@ def detail(contract_id, stage_id=-1):
             ))
         current_app.logger.warning('Could not find stages for this contract, aborting!')
         abort(500)
-
-    if contract.completed_last_stage():
-        return redirect(url_for('conductor.edit', contract_id=contract.id))
 
     stages = get_contract_stages(contract)
 
@@ -258,6 +185,111 @@ def detail(contract_id, stage_id=-1):
             total_subscribers=total_subscribers, categories=categories,
             subcategories=subcategories
         )
+    abort(404)
+
+@blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/transition')
+@requires_roles('conductor', 'admin', 'superadmin')
+def transition(contract_id, stage_id):
+    contract = ContractBase.query.get(contract_id)
+    if not contract:
+        abort(404)
+
+    clicked = int(request.args.get('destination')) if \
+        request.args.get('destination') else None
+
+    try:
+        stage, mod_contract, complete = transition_stage(
+            contract_id, current_user, destination=clicked
+        )
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        pass
+    except Exception:
+        db.session.rollback()
+        raise
+
+    if complete:
+        url = url_for('conductor.edit', contract_id=mod_contract.id)
+        current_app.logger.info(
+            'CONDUCTOR TRANSITION - Contract for {} (ID: {}) transition to {}'.format(
+                mod_contract.description, mod_contract.id, stage.stage.name
+            )
+        )
+
+    else:
+        url = url_for('conductor.detail', contract_id=contract_id, stage_id=stage.id)
+        current_app.logger.info(
+            'CONDUCTOR COMPLETE - Contract for {} (ID: {}) transition to {} (last stage)'.format(
+                mod_contract.description, mod_contract.id, stage.stage.name
+            )
+        )
+
+    return redirect(url)
+
+@blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/extend')
+@requires_roles('conductor', 'admin', 'superadmin')
+def extend(contract_id, stage_id):
+    contract = ContractBase.query.get(contract_id)
+    if not contract:
+        abort(404)
+
+    extended_contract = contract.parent.extend(delete_children=False)
+    current_app.logger.info(
+        'CONDUCTOR EXTEND - Contract for {} (ID: {}) extended'.format(
+            extended_contract.description, extended_contract.id
+        )
+    )
+    db.session.commit()
+
+    flash(
+        'This contract has been extended. Please add the new expiration date below.',
+        'alert-warning'
+    )
+
+    session['extend'] = True
+    return redirect(url_for(
+        'conductor.edit', contract_id=extended_contract.id
+    ))
+
+
+@blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/flow-switch/<int:flow_id>')
+@requires_roles('conductor', 'admin', 'superadmin')
+def flow_switch(contract_id, stage_id, flow_id):
+    contract = ContractBase.query.get(contract_id)
+    if not contract:
+        abort(404)
+
+    new_contract_stage, contract = switch_flow(
+        flow_id, contract_id, current_user
+    )
+
+    current_app.logger.info(
+        'CONDUCTOR FLOW SWITCH - Contract for {} (ID: {}) switched to new flow {}'.format(
+            contract.description, contract.id, contract.flow.flow_name
+        )
+    )
+    return redirect(url_for(
+        'conductor.detail', contract_id=contract_id, stage_id=new_contract_stage.id
+    ))
+
+@blueprint.route('/contract/<int:contract_id>/kill')
+@requires_roles('conductor', 'admin', 'superadmin')
+def kill_contract(contract_id):
+    '''Allow a contract to die on the vine
+    '''
+    contract = ContractBase.query.get(contract_id)
+    if contract:
+        flash_description = contract.description
+        contract.kill()
+        db.session.commit()
+        current_app.logger.info(
+            'CONDUCTOR KILL - Contract for {} (ID: {}) killed'.format(
+                flash_description, contract.id
+            )
+        )
+        flash('Successfully killed {}!'.format(flash_description), 'alert-success')
+        return redirect(url_for('conductor.index'))
     abort(404)
 
 @blueprint.route(

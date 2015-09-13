@@ -210,6 +210,12 @@ class TestContractRenewals(ContractObjectTestBase):
         self.assertTrue(self.child_contract2.delete.called)
         self.assertEquals(len(self.active_contract.children), 0)
 
+    def test_contract_kill(self):
+        self.active_contract.kill()
+        self.assertTrue(self.active_contract.is_archived)
+        self.assertFalse(self.active_contract.is_visible)
+        self.assertTrue(self.active_contract.description, 'test description [Archived]')
+
     def test_contract_complete(self):
         self.active_contract.complete()
 

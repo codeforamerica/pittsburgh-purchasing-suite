@@ -61,6 +61,7 @@ class TestConductorSetup(BaseTestCase):
 
         self.login_user(self.conductor)
         self.detail_view = '/conductor/contract/{}/stage/{}'
+        self.transition_view = '/conductor/contract/{}/stage/{}/'
 
     def assign_contract(self, flow=None, contract=None):
         flow = flow if flow else self.flow
@@ -226,7 +227,7 @@ class TestConductor(TestConductorSetup):
         '''
         assign = self.assign_contract()
 
-        transition_url = self.build_detail_view(assign) + '?transition=true'
+        transition_url = self.build_detail_view(assign) + '/transition'
         transition = self.client.get(transition_url)
         self.assertEquals(transition.status_code, 302)
         self.assertEquals(
@@ -251,7 +252,7 @@ class TestConductor(TestConductorSetup):
         self.assertEquals(ContractStageActionItem.query.count(), 1)
 
         # transition to the third stage
-        transition_url = self.build_detail_view(assign) + '?transition=true'
+        transition_url = self.build_detail_view(assign) + '/transition'
         self.client.get(transition_url)
         self.assertEquals(ContractStageActionItem.query.count(), 3)
         self.client.get(transition_url)
@@ -259,7 +260,7 @@ class TestConductor(TestConductorSetup):
 
         self.assertEquals(assign.current_stage_id, self.stage3.id)
 
-        revert_url = self.build_detail_view(assign) + '?transition=true&destination={}'
+        revert_url = self.build_detail_view(assign) + '/transition?destination={}'
         # revert to the original stage
         self.client.get(revert_url.format(self.stage1.id))
 
@@ -278,7 +279,7 @@ class TestConductor(TestConductorSetup):
         '''Test that we can access completed stages but not non-started ones
         '''
         assign = self.assign_contract()
-        self.client.get(self.detail_view.format(assign.id, self.stage1.id) + '?transition=true')
+        self.client.get(self.detail_view.format(assign.id, self.stage1.id) + '/transition')
 
         # assert the current stage is stage 2
         redir = self.client.get('/conductor/contract/{}'.format(assign.id))
@@ -295,12 +296,12 @@ class TestConductor(TestConductorSetup):
         '''Test flow switching back and forth in conductor
         '''
         assign = self.assign_contract()
-        self.client.get(self.detail_view.format(assign.id, self.stage1.id) + '?transition=true')
+        self.client.get(self.detail_view.format(assign.id, self.stage1.id) + '/transition')
         # we should have three actions -- entered, exited, entered
         self.assertEquals(ContractStageActionItem.query.count(), 3)
 
         self.client.get(self.detail_view.format(assign.id, self.stage2.id) +
-            '?flow_switch={}'.format(self.flow2.id))
+            '/flow-switch/{}'.format(self.flow2.id))
 
         # assert that we have been updated appropriately
         self.assertEquals(assign.flow_id, self.flow2.id)
@@ -339,7 +340,7 @@ class TestConductor(TestConductorSetup):
         # switch back to the first stage
         self.client.get(
             self.detail_view.format(assign.id, current_stage.id) +
-            '?flow_switch={}'.format(self.flow.id)
+            '/flow-switch/{}'.format(self.flow.id)
         )
 
         # assert that our contract properties work as expected
@@ -567,7 +568,7 @@ class TestConductor(TestConductorSetup):
         with self.client as c:
             assign = self.assign_contract(flow=self.simple_flow)
 
-            transition_url = self.build_detail_view(assign) + '?transition=true'
+            transition_url = self.build_detail_view(assign) + '/transition'
             self.client.get(transition_url)
 
             self.assertTrue(assign.completed_last_stage())
@@ -596,9 +597,8 @@ class TestConductor(TestConductorSetup):
 
             assign = self.assign_contract(flow=self.simple_flow)
 
-            transition_url = self.build_detail_view(assign) + '?transition=true'
+            transition_url = self.build_detail_view(assign) + '/transition'
             self.client.get(transition_url)
-
 
             # set contract session variable so we can post to the company endpoint
             c.post('conductor/contract/{}/edit/contract'.format(assign.id), data=dict(
@@ -677,7 +677,7 @@ class TestConductor(TestConductorSetup):
 
             assign = self.assign_contract(flow=self.simple_flow)
 
-            transition_url = self.build_detail_view(assign) + '?transition=true'
+            transition_url = self.build_detail_view(assign) + '/transition'
             self.client.get(transition_url)
 
             c.post('conductor/contract/{}/edit/contract'.format(assign.id), data=dict(
@@ -715,7 +715,7 @@ class TestConductor(TestConductorSetup):
 
             assign = self.assign_contract(flow=self.simple_flow)
 
-            transition_url = self.build_detail_view(assign) + '?transition=true'
+            transition_url = self.build_detail_view(assign) + '/transition'
             self.client.get(transition_url)
 
             c.post('conductor/contract/{}/edit/contract'.format(assign.id), data=dict(
@@ -765,7 +765,7 @@ class TestConductor(TestConductorSetup):
         '''
         assign = self.assign_contract()
         detail_view_url = self.build_detail_view(assign)
-        extend = self.client.get(detail_view_url + '?extend=true')
+        extend = self.client.get(detail_view_url + '/extend')
 
         self.assertEquals(extend.status_code, 302)
         self.assertEquals(
