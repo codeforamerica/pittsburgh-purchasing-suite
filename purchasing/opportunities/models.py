@@ -47,6 +47,12 @@ class Category(Model):
     def __unicode__(self):
         return '{sub} (in {main})'.format(sub=self.category_friendly_name, main=self.category)
 
+    @classmethod
+    def parent_category_query_factory(cls):
+        '''Return all of the parent categories
+        '''
+        return db.session.query(db.distinct(cls.category).label('category')).order_by('category')
+
 class Opportunity(Model):
     __tablename__ = 'opportunity'
 

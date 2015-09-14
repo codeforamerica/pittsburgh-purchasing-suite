@@ -2,6 +2,8 @@
 
 from flask import request
 
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
+
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
@@ -10,7 +12,7 @@ from purchasing.data.models import (
     Stage, StageProperty, Flow, ContractBase, ContractProperty, ContractType,
     Company, CompanyContact, LineItem, company_contract_association_table
 )
-from purchasing.opportunities.models import RequiredBidDocument
+from purchasing.opportunities.models import RequiredBidDocument, Category
 from purchasing.conductor.forms import validate_integer
 from purchasing.extensions import login_manager
 from purchasing.users.models import User, Role, department_query, role_query, Department
@@ -233,6 +235,23 @@ class OpportunityAdmin(AuthMixin, BaseModelViewAdmin):
         'planned_submission_start', 'planned_submission_end', 'is_public'
     ]
 
+class CategoryAdmin(AuthMixin, BaseModelViewAdmin):
+    column_list = ['category', 'category_friendly_name']
+    form_columns = ['category', 'category_friendly_name']
+
+    column_labels = dict(
+        category='Category Group', category_friendly_name='Category Name'
+    )
+
+    form_extra_fields = {
+        'category': QuerySelectField(
+            'Stage Order',
+            query_factory=Category.parent_category_query_factory,
+            get_pk=lambda i: i.category,
+            get_label=lambda i: i.category,
+        )
+    }
+
 admin.add_view(ScoutContractAdmin(
     ContractBase, db.session, name='Contracts', endpoint='contract', category='Scout'
 ))
@@ -258,6 +277,7 @@ admin.add_view(OpportunityAdmin(
 admin.add_view(DocumentAdmin(
     RequiredBidDocument, db.session, name='Bid Document', endpoint='bid_document', category='Beacon'
 ))
+admin.add_view(CategoryAdmin(Category, db.session, name='Categories', endpoint='category', category='Beacon'))
 
 admin.add_view(UserAdmin(User, db.session, name='User', endpoint='user', category='Users'))
 admin.add_view(UserRoleAdmin(User, db.session, name='User w/Roles', endpoint='user-roles', category='Users'))
