@@ -94,6 +94,8 @@ class Opportunity(Model):
     )
     is_public = Column(db.Boolean(), default=False)
 
+    # Date opportunity was actually made public on beacon
+    published_at = Column(db.DateTime, nullable=True)
     publish_notification_sent = Column(db.Boolean, default=False, nullable=False)
 
     opportunity_type_id = ReferenceCol('contract_type', ondelete='SET NULL', nullable=True)
@@ -239,6 +241,12 @@ class Vendor(Model):
         backref='vendors',
         collection_class=set
     )
+
+    subscribed_to_newsletter = Column(db.Boolean(), default=True)
+
+    @classmethod
+    def newsletter_subscribers(cls):
+        return cls.query.filter(cls.subscribed_to_newsletter == True).all()
 
     def __unicode__(self):
         return self.email

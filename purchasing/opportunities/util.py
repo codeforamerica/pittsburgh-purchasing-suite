@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 import os
 import json
 
@@ -244,6 +245,7 @@ def send_publish_email(opportunity):
         ).send(multi=True)
 
         opportunity.publish_notification_sent = True
+        opportunity.published_at = datetime.datetime.utcnow()
         db.session.commit()
 
         current_app.logger.info(

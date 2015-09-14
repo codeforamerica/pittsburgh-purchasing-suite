@@ -7,6 +7,7 @@ from purchasing.notifications import Notification
 from purchasing.jobs.job_base import JobBase, EmailJobBase
 
 from purchasing.opportunities.models import Opportunity, Vendor, Category
+from purchasing.public.models import AppStatus
 
 @JobBase.register
 class BeaconNewOppotunityOpenJob(EmailJobBase):
@@ -39,9 +40,36 @@ class BeaconNewOppotunityOpenJob(EmailJobBase):
             Opportunity.is_public == True
         ).all()
 
+@JobBase.register
 class BeaconBiweeklyDigestJob(EmailJobBase):
-    def build_notifications(self):
-        pass
+    def run_job(self, job):
+        did_run = super(BeaconBiweeklyDigestJob, self).run_job(job)
+        if did_run is not None:
+            current_status = AppStatus.query.first()
+            current_status.update(last_beacon_newsletter=datetime.datetime.utcnow())
 
-    def get_recipients(self):
-        pass
+    def should_run(self):
+        return datetime.datetime.today().day in [1, 15] or self.time_override
+
+    def build_notifications(self):
+        notifications = []
+
+        opportunities = self.get_opportunities()
+        notifications.append(
+            Notification(
+                to_email=set([i.email for i in Vendor.newsletter_subscribers()]),
+                subject='Your biweekly Beacon opportunity summary',
+                html_template='opportunities/emails/biweeklydigest.html',
+                txt_template='opportunities/emails/biweeklydigest.txt',
+                opportunities=opportunities
+            )
+        )
+        return notifications
+
+    def get_opportunities(self):
+        current_status = AppStatus.query.first()
+        return Opportunity.query.filter(
+            Opportunity.published_at > db.func.coalesce(
+                current_status.last_beacon_newsletter, datetime.date(2010, 1, 1)
+            ), Opportunity.is_published == True
+        ).all()

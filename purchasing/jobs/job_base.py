@@ -17,8 +17,9 @@ class JobStatus(Model):
     info = db.Column(db.Text)
 
 class JobBase(object):
-    def __init__(self):
+    def __init__(self, time_override=False):
         self.name = self.__class__.__name__
+        self.time_override = time_override
 
     jobs = []
 
@@ -53,7 +54,7 @@ class JobBase(object):
             hour=time.hour, minute=time.minute, second=time.second, tzinfo=tzinfo
         )
 
-    def schedule_job(self, time_override=False):
+    def schedule_job(self):
         '''Schedule a job.
 
         If the time_override param is set to True, it will override the timing.
@@ -67,32 +68,41 @@ class JobBase(object):
 
         if start_time is None or \
             UTC.localize(datetime.datetime.utcnow()) > start_time.astimezone(UTC) or \
-                time_override is True:
+                self.time_override is True:
 
-                return get_or_create(
+                model, exists = get_or_create(
                     db.session, self.job_status_model, name=self.name,
-                    date=datetime.date.today(), status='new'
+                    date=datetime.date.today()
                 )
+                if not exists:
+                    model.update(status='new')
 
     def run_job(self, job):
         raise NotImplementedError
 
 class EmailJobBase(JobBase):
-    def run_job(self, job):
-        if job:
-            success = True
-            job.update(status='started')
-            notifications = self.build_notifications()
-            for notification in notifications:
-                try:
-                    notification.send(multi=True)
-                except Exception, e:
-                    job.update(status='failed', info=str(e))
-                    success = False
-            if success:
-                job.update(status='success')
+    def should_run(self):
+        return True
 
-        return job
+    def run_job(self, job):
+        if self.should_run():
+            if job:
+                success = True
+                job.update(status='started')
+                notifications = self.build_notifications()
+                for notification in notifications:
+                    try:
+                        notification.send(multi=True)
+                    except Exception, e:
+                        job.update(status='failed', info=str(e))
+                        success = False
+                if success:
+                    job.update(status='success')
+
+            return job
+        else:
+            job.update(status='skipped')
+            return job
 
     def build_notifications(self):
         raise NotImplementedError
