@@ -2,6 +2,8 @@
 
 from flask import request
 
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
+
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
@@ -240,6 +242,15 @@ class CategoryAdmin(AuthMixin, BaseModelViewAdmin):
     column_labels = dict(
         category='Category Group', category_friendly_name='Category Name'
     )
+
+    form_extra_fields = {
+        'category': QuerySelectField(
+            'Stage Order',
+            query_factory=Category.parent_category_query_factory,
+            get_pk=lambda i: i.category,
+            get_label=lambda i: i.category,
+        )
+    }
 
 admin.add_view(ScoutContractAdmin(
     ContractBase, db.session, name='Contracts', endpoint='contract', category='Scout'
