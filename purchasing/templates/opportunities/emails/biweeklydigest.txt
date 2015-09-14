@@ -2,7 +2,7 @@ Your biweekly digest of opportunities on Beacon:
 
  {% if opportunities|length > 0 %}
 
-    Hi there, Beacon subscriber! Here's a list of all the opportunities we've posted to Beacon over the last 2 weeks!  Take a look and apply or share them with your networks. Thanks for your interest!
+    Hi there, Beacon subscriber! Here's a list of all the opportunities we've posted to Beacon over the last 2 weeks. Take a look and apply or share them with your networks. Thanks for your interest!
 
      {% for opportunity in opportunities %}
         - {{ opportunity.title }}, with a deadline to submit proposals on {{ opportunity.planned_submission_end|datetimeformat('%m/%d/%y') }}: {{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}
