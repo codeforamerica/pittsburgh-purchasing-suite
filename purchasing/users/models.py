@@ -16,6 +16,10 @@ class Role(SurrogatePK, Model):
     def __unicode__(self):
         return self.name
 
+    @classmethod
+    def query_factory(cls):
+        return cls.query
+
 class User(UserMixin, SurrogatePK, Model):
 
     __tablename__ = 'users'
@@ -66,6 +70,10 @@ class User(UserMixin, SurrogatePK, Model):
         else:
             return cls.email.split('@')[0]
 
+    @classmethod
+    def conductor_users_query(cls):
+        return [i for i in cls.query.all() if i.is_conductor()]
+
 
 class Department(SurrogatePK, Model):
     __tablename__ = 'department'
@@ -75,22 +83,18 @@ class Department(SurrogatePK, Model):
     def __unicode__(self):
         return self.name
 
+    @classmethod
+    def query_factory(cls):
+        return cls.query.filter(cls.name != 'New User')
+
+    @classmethod
+    def choices(cls, blank=False):
+        departments = [(i.id, i.name) for i in cls.query_factory().all()]
+        if blank:
+            departments = [(None, '-----')] + departments
+        return departments
+
 class AnonymousUser(AnonymousUserMixin):
     role = Role(name='anonymous')
     department = Department(name='anonymous')
     id = -1
-
-def conductor_users_query():
-    return [i for i in User.query.all() if i.is_conductor()]
-
-def role_query():
-    return Role.query
-
-def department_query():
-    return Department.query.filter(Department.name != 'New User')
-
-def get_department_choices(blank=False):
-    departments = [(i.id, i.name) for i in department_query().all()]
-    if blank:
-        departments = [(None, '-----')] + departments
-    return departments

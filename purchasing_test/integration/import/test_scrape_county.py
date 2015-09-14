@@ -12,7 +12,7 @@ from purchasing.data.importer.scrape_county import (
 from purchasing.data.contracts import ContractBase, LineItem, ContractProperty
 from purchasing.data.companies import Company
 
-from purchasing_test.unit.test_base import BaseTestCase
+from purchasing_test.test_base import BaseTestCase
 
 class TestScrapeCounty(BaseTestCase):
     def test_scrape_county(self):

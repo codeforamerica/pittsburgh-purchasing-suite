@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from purchasing_test.unit.conductor.test_conductor import TestConductorSetup
+from purchasing_test.integration.conductor.test_conductor import TestConductorSetup
 
 class TestConductorMetrics(TestConductorSetup):
     render_templates = True

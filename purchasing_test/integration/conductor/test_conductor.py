@@ -16,10 +16,10 @@ from purchasing.data.flows import Flow
 from purchasing.opportunities.models import Opportunity
 from purchasing.extensions import mail
 
-from purchasing_test.unit.factories import ContractTypeFactory, DepartmentFactory
+from purchasing_test.factories import ContractTypeFactory, DepartmentFactory
 
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import (
+from purchasing_test.test_base import BaseTestCase
+from purchasing_test.util import (
     insert_a_contract, insert_a_stage, insert_a_flow,
     insert_a_role, insert_a_user
 )

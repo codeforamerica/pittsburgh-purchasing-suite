@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import (
+from purchasing_test.test_base import BaseTestCase
+from purchasing_test.util import (
     insert_a_user, insert_a_role
 )
 

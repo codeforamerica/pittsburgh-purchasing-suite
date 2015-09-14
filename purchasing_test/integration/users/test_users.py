@@ -3,10 +3,10 @@
 from mock import Mock, patch
 from flask.ext.login import login_user
 
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import insert_a_user, insert_a_role
+from purchasing_test.test_base import BaseTestCase
+from purchasing_test.util import insert_a_user, insert_a_role
 from purchasing.users.models import User
-from purchasing_test.unit.factories import DepartmentFactory
+from purchasing_test.factories import DepartmentFactory
 
 class TestUserAuth(BaseTestCase):
     render_template = True

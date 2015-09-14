@@ -7,7 +7,7 @@ from purchasing.data.importer.costars import main
 from purchasing.data.contracts import ContractBase, LineItem
 from purchasing.data.companies import Company
 
-from purchasing_test.unit.test_base import BaseTestCase
+from purchasing_test.test_base import BaseTestCase
 
 class TestCostarsImport(BaseTestCase):
     def test_costars_import(self):

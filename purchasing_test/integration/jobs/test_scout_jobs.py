@@ -8,8 +8,8 @@ from purchasing.jobs.scout_nightly import (
     ScoutContractsExpireSoonJob, ScoutContractsExpireTodayJob
 )
 
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.factories import ContractBaseFactory, UserFactory
+from purchasing_test.test_base import BaseTestCase
+from purchasing_test.factories import ContractBaseFactory, UserFactory
 
 class TestScoutJobs(BaseTestCase):
     def setUp(self):

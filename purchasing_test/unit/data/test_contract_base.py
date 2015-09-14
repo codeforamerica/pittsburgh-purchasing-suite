@@ -5,10 +5,11 @@ import datetime
 from unittest import TestCase
 from mock import Mock
 
-from purchasing.data import contracts, flows
+from purchasing.data import contracts, flows, stages
 from purchasing.opportunities import models
+from purchasing.users import models
 
-from purchasing_test.unit.factories import (
+from purchasing_test.factories import (
     ContractBaseFactory, UserFactory, ContractPropertyFactory
 )
 
@@ -24,7 +25,7 @@ class ContractObjectTestBase(TestCase):
             financial_id=1234
         )
 
-class ContractObjectTest(ContractObjectTestBase):
+class TestContractObject(ContractObjectTestBase):
     def test_create_new_contract(self):
         '''Test contract object behaves as expected
         '''

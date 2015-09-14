@@ -20,11 +20,11 @@ from purchasing.users.models import User
 from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.util import upload_document
 
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.factories import (
+from purchasing_test.test_base import BaseTestCase
+from purchasing_test.factories import (
     OpportunityDocumentFactory, VendorFactory, DepartmentFactory
 )
-from purchasing_test.unit.util import (
+from purchasing_test.util import (
     insert_a_role, insert_a_user, insert_a_document,
     insert_an_opportunity
 )

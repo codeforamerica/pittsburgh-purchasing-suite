@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import insert_a_user, insert_a_role
-from purchasing_test.unit.factories import UserFactory
+from purchasing_test.test_base import BaseTestCase
+from purchasing_test.util import insert_a_user, insert_a_role
+from purchasing_test.factories import UserFactory
 
 class TestAdmin(BaseTestCase):
     render_templates = False

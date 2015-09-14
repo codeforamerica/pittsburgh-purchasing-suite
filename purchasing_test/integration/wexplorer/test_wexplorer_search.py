@@ -5,12 +5,12 @@ import datetime
 from purchasing.database import Model, RefreshSearchViewMixin, Column
 
 from purchasing.app import db
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import (
+from purchasing_test.test_base import BaseTestCase
+from purchasing_test.util import (
     insert_a_company, insert_a_user, get_a_role
 )
 
-from purchasing_test.unit.factories import ContractTypeFactory, ContractBaseFactory, ContractPropertyFactory
+from purchasing_test.factories import ContractTypeFactory, ContractBaseFactory, ContractPropertyFactory
 
 from purchasing.data.contracts import LineItem
 

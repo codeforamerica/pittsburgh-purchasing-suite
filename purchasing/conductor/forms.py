@@ -15,7 +15,7 @@ from wtforms.validators import (
 
 from purchasing.filters import better_title
 
-from purchasing.users.models import department_query, conductor_users_query
+from purchasing.users.models import Department, User
 from purchasing.data.flows import Flow
 from purchasing.data.companies import get_all_companies_query
 
@@ -57,13 +57,13 @@ class NewContractForm(Form):
         allow_blank=True, blank_text='-----'
     )
     assigned = QuerySelectField(
-        query_factory=conductor_users_query,
+        query_factory=User.conductor_users_query,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.email,
         allow_blank=True, blank_text='-----'
     )
     department = QuerySelectField(
-        query_factory=department_query,
+        query_factory=Department.query_factory,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.name,
         allow_blank=True, blank_text='-----'
@@ -84,7 +84,7 @@ class ContractMetadataForm(Form):
     spec_number = TextField(validators=[Optional()], filters=[lambda x: x or None])
     all_blank = HiddenField(validators=[not_all_hidden])
     department = QuerySelectField(
-        query_factory=department_query,
+        query_factory=Department.query_factory,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.name,
         allow_blank=True, blank_text='-----'

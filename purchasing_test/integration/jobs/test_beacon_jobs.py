@@ -8,8 +8,8 @@ from purchasing.jobs.beacon_nightly import (
     BeaconNewOppotunityOpenJob,
 )
 
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.factories import OpportunityFactory, VendorFactory, CategoryFactory
+from purchasing_test.test_base import BaseTestCase
+from purchasing_test.factories import OpportunityFactory, VendorFactory, CategoryFactory
 
 class TestBeaconJobs(BaseTestCase):
     def setUp(self):

@@ -226,7 +226,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
             self.id, self.flow.id, self.flow.stage_order[current_stage_idx + 1]
         )
 
-        self.current_stage_id = next_stage.stage_id
+        self.current_stage_id = next_stage.stage.id
         return [current_stage.log_exit(user), next_stage.log_enter(user)]
 
     def _transition_to_last(self, user):
@@ -251,7 +251,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
                 actions.append(contract_stage.log_reopen(user))
                 contract_stage.entered = datetime.datetime.now()
                 contract_stage.exited = None
-                self.current_stage_id = contract_stage.stage_id
+                self.current_stage_id = contract_stage.stage.id
             else:
                 contract_stage.full_revert()
 
@@ -285,6 +285,10 @@ class ContractType(Model):
     @classmethod
     def opportunity_type_query(cls):
         return cls.query.filter(cls.allow_opportunities == True)
+
+    @classmethod
+    def query_factory_all(cls):
+        return cls.query.order_by(cls.name)
 
 class ContractProperty(RefreshSearchViewMixin, Model):
     __tablename__ = 'contract_property'

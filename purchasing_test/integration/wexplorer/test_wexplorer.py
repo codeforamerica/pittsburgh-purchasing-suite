@@ -2,12 +2,12 @@
 
 from flask_login import current_user
 from purchasing.extensions import mail
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import (
+from purchasing_test.test_base import BaseTestCase
+from purchasing_test.util import (
     insert_a_company, insert_a_contract,
     insert_a_user, insert_a_role
 )
-from purchasing_test.unit.factories import DepartmentFactory
+from purchasing_test.factories import DepartmentFactory
 
 from purchasing.data.contracts import ContractBase, LineItem, ContractNote
 

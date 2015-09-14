@@ -14,11 +14,11 @@ from purchasing.data.companies import Company, CompanyContact, company_contract_
 from purchasing.data.flows import Flow
 from purchasing.data.stages import Stage, StageProperty
 
-from purchasing.opportunities.models import RequiredBidDocument
+from purchasing.opportunities.models import RequiredBidDocument, Category
 
 from purchasing.conductor.forms import validate_integer
 from purchasing.extensions import login_manager
-from purchasing.users.models import User, Role, department_query, role_query, Department
+from purchasing.users.models import User, Role, Department
 from purchasing.opportunities.models import Opportunity
 
 GLOBAL_EXCLUDE = [
@@ -205,7 +205,7 @@ class UserAdmin(AuthMixin, BaseModelViewAdmin):
 
     form_extra_fields = {
         'department': sqla.fields.QuerySelectField(
-            'Department', query_factory=department_query,
+            'Department', query_factory=Department.query_factory,
             allow_blank=True, blank_text='-----'
         )
     }
@@ -215,11 +215,11 @@ class UserRoleAdmin(SuperAdminMixin, BaseModelViewAdmin):
 
     form_extra_fields = {
         'department': sqla.fields.QuerySelectField(
-            'Department', query_factory=department_query,
+            'Department', query_factory=Department.query_factory,
             allow_blank=True, blank_text='-----'
         ),
         'role': sqla.fields.QuerySelectField(
-            'Role', query_factory=role_query,
+            'Role', query_factory=Role.query_factory,
             allow_blank=True, blank_text='-----'
         )
     }

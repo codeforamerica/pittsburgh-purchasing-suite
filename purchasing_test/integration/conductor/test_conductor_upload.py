@@ -7,8 +7,8 @@ from flask import current_app
 from werkzeug.datastructures import FileStorage, Headers
 from cStringIO import StringIO
 
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import (
+from purchasing_test.test_base import BaseTestCase
+from purchasing_test.util import (
     insert_a_role, insert_a_user
 )
 from purchasing.data.contracts import ContractBase, LineItem

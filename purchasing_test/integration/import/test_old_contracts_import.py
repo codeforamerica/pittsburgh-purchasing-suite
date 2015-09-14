@@ -6,7 +6,7 @@ from purchasing.data.importer.old_contracts import main
 from purchasing.data.contracts import ContractBase
 from purchasing.data.companies import Company
 
-from purchasing_test.unit.test_base import BaseTestCase
+from purchasing_test.test_base import BaseTestCase
 
 class TestOldContractsImport(BaseTestCase):
     def test_old_contracts_import(self):

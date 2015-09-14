@@ -9,7 +9,7 @@ from purchasing.data.stages import Stage
 from purchasing.data.flows import Flow
 
 from purchasing.users.models import Role, User
-from purchasing_test.unit.factories import (
+from purchasing_test.factories import (
     UserFactory, RoleFactory, StageFactory, FlowFactory, DepartmentFactory,
     StagePropertyFactory, ContractBaseFactory, ContractPropertyFactory,
     CompanyFactory, OpportunityFactory, RequiredBidDocumentFactory

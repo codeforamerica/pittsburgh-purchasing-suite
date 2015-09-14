@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from flask import current_app
-from purchasing_test.unit.test_base import BaseTestCase
-from purchasing_test.unit.util import insert_a_user, insert_a_role
+from purchasing_test.test_base import BaseTestCase
+from purchasing_test.util import insert_a_user, insert_a_role
 
 class TestSherpa(BaseTestCase):
 
