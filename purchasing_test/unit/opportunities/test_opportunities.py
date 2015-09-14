@@ -303,7 +303,7 @@ class TestOpportunities(BaseTestCase):
         unsubscribe = self.client.post('/beacon/manage', data=dict(
             email='foo2@foo.com',
             categories=[1, 2],
-            button='Unsubscribe from Checked'
+            button='Update email preferences'
         ))
 
         self.assert200(unsubscribe)
@@ -315,7 +315,7 @@ class TestOpportunities(BaseTestCase):
         unsubscribe_all = self.client.post('/beacon/manage', data=dict(
             email='foo2@foo.com',
             categories=[3, 5, 6],
-            button='Unsubscribe from Checked'
+            button='Update email preferences'
         ))
 
         self.assert200(unsubscribe_all)

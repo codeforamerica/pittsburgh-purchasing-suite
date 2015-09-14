@@ -242,11 +242,11 @@ class Vendor(Model):
         collection_class=set
     )
 
-    subscribed_to_newsletter = Column(db.Boolean(), default=True)
+    unsubscribed_from_newsletter = Column(db.Boolean(), default=False)
 
     @classmethod
     def newsletter_subscribers(cls):
-        return cls.query.filter(cls.subscribed_to_newsletter == True).all()
+        return cls.query.filter(cls.unsubscribed_from_newsletter == False).all()
 
     def __unicode__(self):
         return self.email

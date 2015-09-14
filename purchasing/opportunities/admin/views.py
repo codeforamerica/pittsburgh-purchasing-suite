@@ -78,6 +78,7 @@ def edit(opportunity_id):
                     form_data, publish=request.form.get('save_type'), opportunity=opportunity
                 )
                 db.session.commit()
+                send_publish_email(opportunity)
                 flash('Opportunity successfully updated!', 'alert-success')
 
                 return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))

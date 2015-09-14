@@ -136,6 +136,9 @@ class UnsubscribeForm(Form):
     email = fields.TextField(validators=[DataRequired(), Email(), email_present])
     categories = MultiCheckboxField(coerce=int)
     opportunities = MultiCheckboxField(coerce=int)
+    newsletter_subscription = fields.BooleanField(
+        label='Biweekly update on all opportunities posted to Beacon', validators=[Optional()]
+    )
 
 class OpportunityDocumentForm(Form):
     title = fields.TextField(validators=[RequiredIf('document')])

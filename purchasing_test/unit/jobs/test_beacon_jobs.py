@@ -40,8 +40,8 @@ class TestBeaconJobs(BaseTestCase):
         VendorFactory.create(categories=set([self.category]))
 
     def test_beacon_new_opportunity_nightly(self):
-        nightly = BeaconNewOppotunityOpenJob()
-        scheduled, existing_job = nightly.schedule_job(time_override=True)
+        nightly = BeaconNewOppotunityOpenJob(time_override=True)
+        scheduled, existing_job = nightly.schedule_job()
 
         with mail.record_messages() as outbox:
             nightly.run_job(scheduled)

@@ -6,6 +6,7 @@ from mock import Mock, patch
 from flask.ext.testing import TestCase as FlaskTestCase
 
 from purchasing.app import create_app as _create_app, db
+from purchasing.jobs.job_base import JobStatus
 
 import logging
 logging.getLogger("factory").setLevel(logging.WARN)

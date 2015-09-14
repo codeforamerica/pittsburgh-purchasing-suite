@@ -74,8 +74,11 @@ class JobBase(object):
                     db.session, self.job_status_model, name=self.name,
                     date=datetime.date.today()
                 )
+
                 if not exists:
                     model.update(status='new')
+
+                return model, exists
 
     def run_job(self, job):
         raise NotImplementedError
