@@ -283,7 +283,7 @@ def kill_contract(contract_id):
                 flash_description, contract.id
             )
         )
-        flash('Successfully killed {}!'.format(flash_description), 'alert-success')
+        flash('Successfully removed {} from use!'.format(flash_description), 'alert-success')
         return redirect(url_for('conductor.index'))
     abort(404)
 
