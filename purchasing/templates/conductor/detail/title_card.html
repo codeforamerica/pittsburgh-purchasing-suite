@@ -11,14 +11,17 @@
         {% elif contract.get_spec_number().value %}
         <li class="">Spec Number: {{ contract.get_spec_number().value }}</li>
         {% endif %}
+        <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
+          View on Scout
+        </a></li>
       </ul>
     </div>
     <div class="col-md-4">
       <h3></h3>
-      <p class="text-muted">
+      <p class="text-muted pull-right">
         <a href="{{ url_for('conductor.extend', contract_id=contract.id, stage_id=active_stage.id) }}" class="btn btn-default" onclick="return confirm('Please confirm that the contract has already gone through the proper extension process.')">Extend Contract</a></li>
-        <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}" class="btn btn-default">View on Scout</a>
-        <a href="{{ url_for('conductor.kill_contract', contract_id=contract.parent.id) }}" class="btn btn-default">Kill Contract</a>
+{#         <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}" class="btn btn-default">View on Scout</a> #}
+        <a href="{{ url_for('conductor.kill_contract', contract_id=contract.parent.id) }}" class="btn btn-default">Remove contract from use</a>
       </p>
     </div>
   </div>
