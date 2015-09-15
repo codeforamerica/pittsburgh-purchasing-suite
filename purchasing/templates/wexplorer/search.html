@@ -16,7 +16,6 @@
       </h3>
 
       <form class="form-inline" method="POST" action="{{ url_for('wexplorer.search') }}">
-        <h4>Filter Results:</h4>
         <div class="filter btn-group btn-group-sm" id="js-filter-btn-group" role="group" data-toggle="buttons">
           <label class="btn btn-default">
             {{ search_form.company_name }} <span class="filter-checkbox">Company Name</span>
@@ -40,7 +39,7 @@
         </div>
         {{ search_form.q(placeholder="I'm looking for...", class_="hidden", value=search_for) }}
         <div class="form-group">
-          <button type="submit" class="btn btn-success">Filter</button>
+          <button type="submit" class="btn btn-success">Filter results</button>
         </div>
         </div>
       </form>

@@ -20,7 +20,7 @@ class SearchForm(Form):
         query_factory=ContractType.query_factory_all,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.name,
-        allow_blank=True, blank_text='-----'
+        allow_blank=True, blank_text='Choose type of contract'
     )
 
     def __init__(self, *args, **kwargs):
