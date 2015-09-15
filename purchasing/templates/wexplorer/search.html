@@ -15,31 +15,32 @@
         {% if pagination.pages > 1 %}({{ (results | length) }} shown) {% endif %}<br>
       </h3>
 
-      <form class="form-inline" method="GET" action="{{ url_for('wexplorer.search', q=search_for) }}">
-        <label>Filter Results:</label>
-        <div class="filter">
-          <div class="checkbox">
-            <label>{{ filter_form.company_name }} <span class="filter-checkbox">Company Name</span></label>
-          </div>
-          <div class="checkbox">
-            <label>{{ filter_form.contract_description }} <span class="filter-checkbox">Contract Description</span></label>
-          </div>
-          <div class="checkbox">
-            <label>{{ filter_form.contract_detail }} <span class="filter-checkbox">Contract Detail</span></label>
-          </div>
-          <div class="checkbox">
-            <label>{{ filter_form.line_item }} <span class="filter-checkbox">Line Item</span></label>
-          </div>
-          <div class="checkbox">
-            <label>{{ filter_form.financial_id }} <span class="filter-checkbox">Controller Number</span></label>
-          </div>
-          <div class="checkbox">
-            <label>{{ filter_form.archived }} <span class="filter-checkbox">Include Inactive</span></label>
-          </div>
-          {{ search_form.q(placeholder="I'm looking for...", class_="hidden", value=search_for) }}
-          <div class="form-group">
-            <button type="submit" class="btn btn-success">Filter</button>
-          </div>
+      <form class="form-inline" method="POST" action="{{ url_for('wexplorer.search') }}">
+        <div class="filter btn-group btn-group-sm" id="js-filter-btn-group" role="group" data-toggle="buttons">
+          <label class="btn btn-default">
+            {{ search_form.company_name }} <span class="filter-checkbox">Company Name</span>
+          </label>
+          <label class="btn btn-default">
+            {{ search_form.contract_description }} <span class="filter-checkbox">Contract Description</span>
+          </label>
+          <label class="btn btn-default">
+            {{ search_form.contract_detail }} <span class="filter-checkbox">Contract Detail</span>
+          </label>
+          <label class="btn btn-default">
+            {{ search_form.line_item }} <span class="filter-checkbox">Line Item</span>
+          </label>
+          <label class="btn btn-default">
+            {{ search_form.financial_id }} <span class="filter-checkbox">Controller Number</span>
+          </label>
+          <label class="btn btn-default">
+            {{ search_form.archived }} <span class="filter-checkbox">Include Inactive</span>
+          </label>
+          {{ search_form.contract_type(class_="form-control input-sm") }}
+        </div>
+        {{ search_form.q(placeholder="I'm looking for...", class_="hidden", value=search_for) }}
+        <div class="form-group">
+          <button type="submit" class="btn btn-success">Filter results</button>
+        </div>
         </div>
       </form>
 
@@ -51,7 +52,6 @@
             <th class="js-sortable-th">Company</th>
             <th class="js-sortable-th">Expiration Date</th>
             <th class="js-sortable-th">Controller Number</th>
-
             <th>Subscribe to updates</th>
 
           </tr>
@@ -60,7 +60,7 @@
           {% for result in results %}
           {% set inactive = result.expiration_date and result.expiration_date <= today or result.is_archived %}
           <tr {% if inactive %}class="inactive-search-result"{% endif%} >
-            <td>
+            <td data-sortable="{{ result.rank }}">
               <div class="text-center">
                 {% if result.expiration_date and result.expiration_date <= today %}
                   <i class="fa fa-exclamation-circle text-danger" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="This contract expired {{ format_days_from_today(result.expiration_date) }}!"></i>
@@ -72,8 +72,9 @@
                   <i class="fa fa-check text-success" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="This contract is currently active!"></i>
                 {% endif %}
               </div>
-            </td>
-            <td>
+            </td><!-- active icon -->
+
+            <td data-sortable="{{ result.contract_description }}">
               {% if result.contract_id %}
               <a href="{{ url_for('wexplorer.contract', contract_id=result.contract_id) }}">
                 {{ result.contract_description|title }}
@@ -83,19 +84,19 @@
               <br>
               <span class="text-muted"><small>Matched: <strong>{{ result.found_in }}</strong></small></span>
               {% endif %}
-            </td>
-            <td>
+            </td><!-- contract description -->
+
+            <td data-sortable="{{ result.company_name }}">
               {% if result.company_id %}
               <a href="{{ url_for('wexplorer.company', company_id=result.company_id) }}">
                 {{ result.company_name|title }}
               </a>
               {% endif %}
-            </td>
-            <td>{{ result.expiration_date }}</td>
-            <td>{{ result.financial_id }}</td>
+            </td><!-- company name -->
+            <td data-sortable="{{ result.expiration_date }}">{{ result.expiration_date }}</td><!-- expiration -->
+            <td data-sortable="{{ result.financial_id }}">{{ result.financial_id }}</td><!-- financial id -->
 
             {% if result.contract_id in user_follows %}
-            <td>
               <a href="{{ url_for('wexplorer.unsubscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-danger btn-sm">
                 Stop receiving updates
               </a>
