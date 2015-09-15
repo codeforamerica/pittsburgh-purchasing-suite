@@ -3,9 +3,11 @@
 utilities.
 """
 import datetime
+from flask import current_app
 
 import sqlalchemy
 
+from purchasing.extensions import cache
 from flask_login import current_user
 
 from sqlalchemy.sql.functions import GenericFunction
@@ -132,7 +134,11 @@ class Model(CRUDMixin, db.Model):
 
 def refresh_search_view(mapper, connection, target):
     from purchasing.tasks import rebuild_search_view
-    rebuild_search_view.delay()
+    if cache.get('refresh-lock') is None:
+        cache.set('refresh-lock', True)
+        rebuild_search_view.delay()
+    else:
+        return
 
 # modified from http://stackoverflow.com/questions/12753450/sqlalchemy-mixins-and-event-listener
 class RefreshSearchViewMixin(object):
