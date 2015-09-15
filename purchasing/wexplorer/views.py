@@ -12,16 +12,12 @@ from purchasing.database import db
 from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import Notification
-from purchasing.users.models import get_department_choices, Department, User, Role
+
 from purchasing.wexplorer.forms import SearchForm, FeedbackForm, NoteForm
-from purchasing.data.searches import find_contract_metadata, return_all_contracts
-from purchasing.data.models import (
-    SearchView, ContractNote, ContractBase, ContractType
-)
-from purchasing.data.companies import get_one_company
-from purchasing.data.contracts import (
-    get_one_contract, follow_a_contract, unfollow_a_contract
-)
+from purchasing.users.models import Department, User, Role
+from purchasing.data.searches import SearchView, find_contract_metadata, return_all_contracts
+from purchasing.data.companies import Company
+from purchasing.data.contracts import ContractBase, ContractNote
 
 from purchasing.wexplorer import blueprint
 
@@ -34,7 +30,7 @@ def explore():
     The landing page for wexplorer. Renders the "big search"
     template.
     '''
-    return dict(current_user=current_user, choices=get_department_choices())
+    return dict(current_user=current_user, choices=Department.choices())
 
 @blueprint.route('/filter', methods=['GET'])
 def filter_no_department():
@@ -44,7 +40,7 @@ def filter_no_department():
         'wexplorer/filter.html',
         search_form=SearchForm(),
         results=[],
-        choices=get_department_choices(),
+        choices=Department.choices(),
         path='{path}?{query}'.format(
             path=request.path, query=request.query_string
         )
@@ -97,7 +93,7 @@ def filter(department_id):
         results=results,
         pagination=pagination,
         department=department,
-        choices=get_department_choices(),
+        choices=Department.choices(),
         path='{path}?{query}'.format(
             path=request.path, query=request.query_string
         )
@@ -220,7 +216,7 @@ def search():
         results=contracts[lower_bound_result:upper_bound_result],
         pagination=pagination,
         search_form=search_form,
-        choices=get_department_choices(),
+        choices=Department.choices(),
         path='{path}?{query}'.format(
             path=request.path, query=request.query_string
         )
@@ -229,13 +225,13 @@ def search():
 @blueprint.route('/companies/<int:company_id>')
 @wrap_form(SearchForm, 'search_form', 'wexplorer/company.html')
 def company(company_id):
-    company = get_one_company(company_id)
+    company = Company.query.get(company_id)
 
     if company:
         current_app.logger.info('WEXCOMPANY - Viewed company page {}'.format(company.company_name))
         return dict(
             company=company,
-            choices=get_department_choices(),
+            choices=Department.choices(),
             path='{path}?{query}'.format(
                 path=request.path, query=request.query_string
             )
@@ -248,7 +244,7 @@ def contract(contract_id):
     '''Contract profile page
     '''
 
-    contract = get_one_contract(contract_id)
+    contract = ContractBase.query.get(contract_id)
 
     if contract:
         note_form = NoteForm()
@@ -273,7 +269,7 @@ def contract(contract_id):
 
         return dict(
             contract=contract, departments=departments,
-            choices=get_department_choices(),
+            choices=Department.choices(),
             path='{path}?{query}'.format(
                 path=request.path, query=request.query_string
             ), notes=notes, note_form=note_form
@@ -330,7 +326,7 @@ def feedback_handler(contract_id=None, search_for=None):
             'wexplorer/feedback.html',
             search_form=search_form,
             contract=contract,
-            choices=get_department_choices(),
+            choices=Department.choices(),
             feedback_form=form,
             search_for=search_for
         )
@@ -349,10 +345,11 @@ def feedback(contract_id):
 def subscribe(contract_id):
     '''Subscribes a user to receive updates about a particular contract
     '''
-    message, contract = follow_a_contract(contract_id, current_user)
+    contract = ContractBase.query.get(contract_id)
     next_url = request.args.get('next', '/wexplorer')
 
     if contract:
+        message = contract.add_follower(current_user)
         db.session.commit()
         flash(message[0], message[1])
 
@@ -375,10 +372,11 @@ def subscribe(contract_id):
 def unsubscribe(contract_id):
     '''Unsubscribes a user from receiving updates about a particular contract
     '''
-    message, contract = unfollow_a_contract(contract_id, current_user)
+    contract = ContractBase.query.get(contract_id)
     next_url = request.args.get('next', '/wexplorer')
 
     if contract:
+        message = contract.remove_follower(current_user)
         db.session.commit()
         flash(message[0], message[1])
 

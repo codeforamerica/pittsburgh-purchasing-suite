@@ -10,7 +10,7 @@ from werkzeug import secure_filename
 
 from purchasing.utils import connect_to_s3, upload_file
 from purchasing.database import db
-from purchasing.data.models import ContractBase, ContractType
+from purchasing.data.contracts import ContractBase, ContractType
 from purchasing.data.importer.costars import main as import_costars
 from purchasing.decorators import requires_roles
 from purchasing.conductor.forms import FileUploadForm, ContractUploadForm

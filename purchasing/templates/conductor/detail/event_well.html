@@ -12,7 +12,7 @@
   <button class="btn btn-default btn-detail-target" id="btnActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Change Flow <span class="caret"></span></button>
   <ul class="dropdown-menu" aria-labelledby="btnActions">
   {% for flow in flows %}
-      <li><a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, flow_switch=flow.id) }}">{{ flow }}</a></li>
+      <li><a href="{{ url_for('conductor.flow_switch', contract_id=contract.id, stage_id=active_stage.id, flow_id=flow.id) }}">{{ flow }}</a></li>
   {% endfor %}
   </ul>
 </div>

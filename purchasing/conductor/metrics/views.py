@@ -5,7 +5,7 @@ from flask import render_template, stream_with_context, Response
 from purchasing.database import db
 from purchasing.decorators import requires_roles
 
-from purchasing.data.models import Flow
+from purchasing.data.flows import Flow
 from purchasing.conductor.util import reshape_metrics_granular
 
 from purchasing.conductor.metrics import blueprint

@@ -8,7 +8,7 @@ from mock import patch, Mock, call
 
 from purchasing.jobs.job_base import JobBase, EmailJobBase
 
-from purchasing_test.unit.factories import JobStatusFactory
+from purchasing_test.factories import JobStatusFactory
 
 import logging
 logging.getLogger("factory").setLevel(logging.WARN)

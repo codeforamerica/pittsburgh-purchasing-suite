@@ -9,10 +9,8 @@ from purchasing.data.importer import (
     determine_company_contact
 )
 from purchasing.database import db
-from purchasing.data.models import (
-    CompanyContact, Company, ContractBase, ContractProperty,
-    LineItem, ContractType
-)
+from purchasing.data.contracts import ContractBase, ContractProperty, LineItem, ContractType
+from purchasing.data.companies import Company, CompanyContact
 
 CONSTANT_FIELDS = [
     'CONTROLLER', 'Expiration', 'Company',

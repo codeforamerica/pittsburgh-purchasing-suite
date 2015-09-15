@@ -6,7 +6,7 @@ from wtforms.fields import TextField, TextAreaField, BooleanField, IntegerField
 from wtforms.validators import DataRequired, Email, NumberRange
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
-from purchasing.data.models import ContractType
+from purchasing.data.contracts import ContractType
 
 class SearchForm(Form):
     q = TextField('Search', validators=[DataRequired()])

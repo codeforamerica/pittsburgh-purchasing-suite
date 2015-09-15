@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from purchasing.app import celery
-from purchasing.extensions import mail, db
+from purchasing.extensions import mail, db, cache
 
 from purchasing.data.importer.scrape_county import main as scrape_county
 
@@ -16,14 +16,19 @@ def send_email(messages, multi):
 
 @celery.task
 def rebuild_search_view():
-    session = db.create_scoped_session()
-    session.execute(
-        '''
-        REFRESH MATERIALIZED VIEW CONCURRENTLY search_view
-        '''
-    )
-    session.commit()
-    db.engine.dispose()
+    try:
+        session = db.create_scoped_session()
+        session.execute(
+            '''
+            REFRESH MATERIALIZED VIEW CONCURRENTLY search_view
+            '''
+        )
+        session.commit()
+        db.engine.dispose()
+    except Exception, e:
+        raise e
+    finally:
+        cache.delete('refresh-lock')
 
 @celery.task
 def scrape_county_task(job):

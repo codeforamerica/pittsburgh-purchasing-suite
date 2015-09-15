@@ -65,7 +65,7 @@
           Actions
           <span class="caret"></span>
         </button>
-        <ul class="dropdown-menu" aria-labelledby="actionDropdown-{{ contract.id }}">
+        <ul class="dropdown-menu pull-right" aria-labelledby="actionDropdown-{{ contract.id }}">
           {% if contract.current_stage or contract.assigned %}
           <li><a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
             Update contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search-plus"></i></i></span>
@@ -78,6 +78,9 @@
           {% endif %}
           <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
             View on Scout <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search"></i></span>
+          </a></li>
+          <li><a href="{{ url_for('conductor.kill_contract', contract_id=contract.id) }}">
+            Remove contract from use <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-times-circle"></i></span>
           </a></li>
         </ul>
       </div>

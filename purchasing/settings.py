@@ -46,6 +46,9 @@ class ProdConfig(Config):
     MAIL_MAX_EMAILS = 100
     CELERY_BROKER_URL = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
     CELERY_RESULT_BACKEND = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
+    CACHE_TYPE = 'redis'
+    CACHE_REDIS_URL = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
+    CACHE_DEFAULT_TIMEOUT = 30
 
 class DevConfig(Config):
     """Development configuration."""

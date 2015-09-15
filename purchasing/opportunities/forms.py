@@ -15,8 +15,8 @@ from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from purchasing.opportunities.models import Vendor
 
 from purchasing.utils import RequiredIf
-from purchasing.users.models import User, department_query
-from purchasing.data.models import opportunity_type_query
+from purchasing.users.models import User, Department
+from purchasing.data.contracts import ContractType
 
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
@@ -156,13 +156,13 @@ class OpportunityDocumentForm(Form):
 
 class OpportunityForm(Form):
     department = QuerySelectField(
-        query_factory=department_query,
+        query_factory=Department.query_factory,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.name,
         allow_blank=True, blank_text='-----'
     )
     opportunity_type = QuerySelectField(
-        query_factory=opportunity_type_query,
+        query_factory=ContractType.opportunity_type_query,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.name,
         allow_blank=True, blank_text='-----'
