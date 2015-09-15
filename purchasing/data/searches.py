@@ -21,12 +21,14 @@ def add_archived_filter(contracts, archived):
 
     return contracts
 
-def find_contract_metadata(search_term, case_statements, filter_clauses, archived=False):
+def find_contract_metadata(search_term, case_statements, filter_or, filter_and, archived=False):
     '''
     Takes a search term, case statements, and filter clauses and
     returns out a list of result objects including contract id,
     company id, financial id, expiration date, awarded name
     '''
+
+    import pdb; pdb.set_trace()
 
     rank = db.func.max(db.func.full_text.ts_rank(
         db.func.setweight(db.func.coalesce(SearchView.tsv_company_name, ''), 'A').concat(
@@ -49,8 +51,9 @@ def find_contract_metadata(search_term, case_statements, filter_clauses, archive
     ).filter(
         db.or_(
             db.cast(SearchView.financial_id, db.String) == search_term,
-            *filter_clauses
-        )
+            *filter_or
+        ),
+        *filter_and
     ).group_by(
         SearchView.contract_id,
         SearchView.company_id,
@@ -67,12 +70,14 @@ def find_contract_metadata(search_term, case_statements, filter_clauses, archive
 
     return contracts.all()
 
-def return_all_contracts(archived=False):
+def return_all_contracts(filter_and, archived=False):
     contracts = db.session.query(
         db.distinct(SearchView.contract_id).label('contract_id'), SearchView.company_id,
         SearchView.contract_description, SearchView.financial_id,
         SearchView.expiration_date, SearchView.company_name
-    ).join(ContractBase, ContractBase.id == SearchView.contract_id)
+    ).join(ContractBase, ContractBase.id == SearchView.contract_id).filter(
+        *filter_and
+    )
 
     contracts = add_archived_filter(contracts, archived)
 

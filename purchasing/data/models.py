@@ -99,6 +99,10 @@ class ContractType(Model):
     def __unicode__(self):
         return self.name if self.name else ''
 
+    @classmethod
+    def query_factory_all(cls):
+        return cls.query.order_by(cls.name)
+
 class ContractBase(RefreshSearchViewMixin, Model):
     __tablename__ = 'contract'
 

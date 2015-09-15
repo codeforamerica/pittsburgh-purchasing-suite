@@ -18,7 +18,7 @@ from purchasing.wexplorer.forms import (
 )
 from purchasing.data.searches import find_contract_metadata, return_all_contracts
 from purchasing.data.models import (
-    SearchView, ContractNote, ContractBase
+    SearchView, ContractNote, ContractBase, ContractType
 )
 from purchasing.data.companies import get_one_company
 from purchasing.data.contracts import (
@@ -136,8 +136,7 @@ def build_cases(req_args, fields, search_for, _all):
 @blueprint.route('/search', methods=['GET'])
 def search():
     '''
-    The search results page for wexplorer. Renders the "side search"
-    along with paginated results.
+    The search results page for scout
     '''
     department = request.args.get('department')
     if department and department not in ['', 'None']:
@@ -162,13 +161,20 @@ def search():
         ('line_item', 'Line Item', SearchView.tsv_line_item_description),
         ('contract_description', 'Contract Description', SearchView.tsv_contract_description),
         ('contract_detail', 'Contract Detail', SearchView.tsv_detail_value),
-        ('financial_id', 'Controller Number', SearchView.financial_id)
+        ('financial_id', 'Controller Number', SearchView.financial_id),
     ]
 
-    filter_where = build_filter(
+    filter_or = build_filter(
         request.args, fields, search_for, filter_form,
         not any([request.args.get(name) for name, _, _ in fields])
     )
+
+    filter_and = []
+    if request.args.get('contract_type', None) not in [None, '__None']:
+        filter_and = [
+            ContractBase.contract_type_id == int(request.args.get('contract_type'))
+        ]
+        filter_form.contract_type.data = ContractType.query.get(int(request.args.get('contract_type')))
 
     found_in_case = build_cases(
         request.args, fields, search_for,
@@ -184,12 +190,12 @@ def search():
 
     if search_for != '':
         contracts = find_contract_metadata(
-            search_for, found_in_case, filter_where,
+            search_for, found_in_case, filter_or, filter_and,
             archived
         )
     else:
         contracts = return_all_contracts(
-            archived
+            filter_and, archived
         )
 
     pagination = SimplePagination(page, pagination_per_page, len(contracts))
