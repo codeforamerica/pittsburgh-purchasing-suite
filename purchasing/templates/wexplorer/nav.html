@@ -6,19 +6,10 @@
 
 {% block applinks %}
 <li>
-  <form id="search-box" method="GET" class="form navbar-form" action="{{ url_for('wexplorer.search') }}" role="search">
+  <form id="search-box" method="POST" class="form navbar-form" action="{{ url_for('wexplorer.search') }}" role="search">
     <div class="form-group">
       {{ search_form.q(placeholder="I'm looking for...", class_="form-control") }}
     </div>
-    {% if filter_form %}
-      {{ filter_form.company_name(class_="hidden") }}
-      {{ filter_form.contract_description(class_="hidden") }}
-      {{ filter_form.contract_detail(class_="hidden") }}
-      {{ filter_form.line_item(class_="hidden") }}
-      {{ filter_form.financial_id(class_="hidden") }}
-      {{ filter_form.archived(class_="hidden") }}
-      {{ filter_form.contract_type(class_="hidden") }}
-    {% endif %}
     <button type="submit" class="btn btn-success">Submit</button>
   </form>
 </li>

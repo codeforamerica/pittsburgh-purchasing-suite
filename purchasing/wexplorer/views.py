@@ -13,9 +13,7 @@ from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import Notification
 from purchasing.users.models import get_department_choices, Department, User, Role
-from purchasing.wexplorer.forms import (
-    SearchForm, FeedbackForm, FilterForm, NoteForm
-)
+from purchasing.wexplorer.forms import SearchForm, FeedbackForm, NoteForm
 from purchasing.data.searches import find_contract_metadata, return_all_contracts
 from purchasing.data.models import (
     SearchView, ContractNote, ContractBase, ContractType
@@ -133,17 +131,25 @@ def build_cases(req_args, fields, search_for, _all):
             )
     return clauses
 
-@blueprint.route('/search', methods=['GET'])
+@blueprint.route('/search', methods=['GET', 'POST'])
 def search():
     '''
     The search results page for scout
     '''
+    if request.method == 'POST':
+        args = request.form.to_dict()
+        if args.get('contract_type') == '__None':
+            del args['contract_type']
+
+        return redirect(url_for('wexplorer.search', **args))
+
     department = request.args.get('department')
     if department and department not in ['', 'None']:
         return redirect(url_for('wexplorer.filter', department=department))
 
-    search_form = SearchForm(request.form)
-    search_for = request.args.get('q', '')
+    search_form = SearchForm()
+    search_for = request.args.get('q') or ''
+    search_form.q.data = search_for
 
     # strip out "crazy" characters
     search_for = re.sub(CRAZY_CHARS, '', search_for)
@@ -155,7 +161,6 @@ def search():
     upper_bound_result = lower_bound_result + pagination_per_page
 
     # build filter and filter form
-    filter_form = FilterForm()
     fields = [
         ('company_name', 'Company Name', SearchView.tsv_company_name),
         ('line_item', 'Line Item', SearchView.tsv_line_item_description),
@@ -165,16 +170,16 @@ def search():
     ]
 
     filter_or = build_filter(
-        request.args, fields, search_for, filter_form,
+        request.args, fields, search_for, search_form,
         not any([request.args.get(name) for name, _, _ in fields])
     )
 
     filter_and = []
-    if request.args.get('contract_type', None) not in [None, '__None']:
+    if request.args.get('contract_type') is not None:
         filter_and = [
             ContractBase.contract_type_id == int(request.args.get('contract_type'))
         ]
-        filter_form.contract_type.data = ContractType.query.get(int(request.args.get('contract_type')))
+        search_form.contract_type.data = ContractType.query.get(int(request.args.get('contract_type')))
 
     found_in_case = build_cases(
         request.args, fields, search_for,
@@ -183,7 +188,7 @@ def search():
 
     # determine if we are getting archived contracts
     if request.args.get('archived') == 'y':
-        filter_form['archived'].checked = True
+        search_form['archived'].checked = True
         archived = True
     else:
         archived = False
@@ -210,7 +215,6 @@ def search():
     return render_template(
         'wexplorer/search.html',
         current_user=current_user,
-        filter_form=filter_form,
         user_follows=user_follows,
         search_for=search_for,
         results=contracts[lower_bound_result:upper_bound_result],

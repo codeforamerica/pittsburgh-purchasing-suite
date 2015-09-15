@@ -58,7 +58,7 @@ class DevConfig(Config):
     MAIL_SERVER = 'smtp.gmail.com'  # Use gmail in dev: https://support.google.com/mail/answer/1173270?hl=en
     MAIL_USERNAME = os_env.get('MAIL_USERNAME')
     MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
-    ASSETS_DEBUG = False
+    ASSETS_DEBUG = True
     UPLOAD_S3 = False
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'uploads'))
     MAIL_SUPPRESS_SEND = False

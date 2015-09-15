@@ -28,8 +28,6 @@ def find_contract_metadata(search_term, case_statements, filter_or, filter_and, 
     company id, financial id, expiration date, awarded name
     '''
 
-    import pdb; pdb.set_trace()
-
     rank = db.func.max(db.func.full_text.ts_rank(
         db.func.setweight(db.func.coalesce(SearchView.tsv_company_name, ''), 'A').concat(
             db.func.setweight(db.func.coalesce(SearchView.tsv_contract_description, ''), 'A')

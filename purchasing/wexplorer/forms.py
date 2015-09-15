@@ -10,11 +10,6 @@ from purchasing.data.models import ContractType
 
 class SearchForm(Form):
     q = TextField('Search', validators=[DataRequired()])
-
-    def __init__(self, *args, **kwargs):
-        super(SearchForm, self).__init__(*args, **kwargs)
-
-class FilterForm(Form):
     company_name = BooleanField()
     contract_description = BooleanField()
     contract_detail = BooleanField()
@@ -27,6 +22,9 @@ class FilterForm(Form):
         get_label=lambda i: i.name,
         allow_blank=True, blank_text='-----'
     )
+
+    def __init__(self, *args, **kwargs):
+        super(SearchForm, self).__init__(*args, **kwargs)
 
 class FeedbackForm(Form):
     sender = TextField(validators=[Email()], default='No email provided')
