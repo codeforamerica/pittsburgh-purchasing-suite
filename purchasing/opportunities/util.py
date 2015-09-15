@@ -53,7 +53,6 @@ def fix_form_categories(request, form, cls, validate=None, obj=None,):
     }
 
     # manual fixup for opportunity-department relationship
-
     if form.data.get('department', None):
         form_data['department_id'] = form.data.get('department').id
 

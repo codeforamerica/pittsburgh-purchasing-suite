@@ -210,6 +210,7 @@ class TestOpportunities(BaseTestCase):
             # one to the vendor, one to the admins
             self.assertEquals(len(outbox), 2)
             self.assertEquals(Vendor.query.count(), 1)
+            self.assertTrue(Vendor.query.first().subscribed_to_newsletter)
             self.assertEquals(len(Vendor.query.first().categories), 1)
             self.assert_flashes(
                 'Thank you for signing up! Check your email for more information', 'alert-success'

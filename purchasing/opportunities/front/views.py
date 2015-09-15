@@ -40,6 +40,7 @@ def signup():
     if form.validate_on_submit():
 
         vendor = Vendor.query.filter(Vendor.email == form.data.get('email')).first()
+
         form_data = fix_form_categories(request, form, Vendor, validate='subcategories', obj=vendor)
         if not form.errors:
             if vendor:
@@ -157,19 +158,19 @@ def manage():
 
             vendor.categories = vendor.categories.difference(remove_categories)
             vendor.opportunities = vendor.opportunities.difference(remove_opportunities)
-            if form.data.get('newsletter_subscription'):
-                vendor.unsubscribed_from_newsletter = not vendor.unsubscribed_from_newsletter
+            if form.data.get('subscribed_to_newsletter'):
+                vendor.subscribed_to_newsletter = False
 
             current_app.logger.info(
                 '''OPPMANAGEVIEW - Vendor {} unsubscribed from:
                 Categories: {}
                 Opportunities: {}
-                Unsubscribed from newsletter: {}
+                Subscribed from newsletter: {}
                 '''.format(
                     email,
                     ', '.join([i.category_friendly_name for i in remove_categories if remove_categories and len(remove_categories) > 0]),
                     ', '.join([i.description for i in remove_opportunities if remove_opportunities and len(remove_opportunities) > 0]),
-                    vendor.unsubscribed_from_newsletter
+                    vendor.subscribed_to_newsletter
                 )
             )
 
