@@ -34,8 +34,8 @@ class TestScoutJobs(BaseTestCase):
         )
 
     def test_scout_expiration_nightly(self):
-        nightly = ScoutContractsExpireTodayJob()
-        scheduled, existing_job = nightly.schedule_job(time_override=True)
+        nightly = ScoutContractsExpireTodayJob(time_override=True)
+        scheduled, existing_job = nightly.schedule_job()
         with mail.record_messages() as outbox:
             nightly.run_job(scheduled)
             self.assertEquals(len(outbox), 1)
@@ -45,8 +45,8 @@ class TestScoutJobs(BaseTestCase):
             )
 
     def test_scout_expiration_soon(self):
-        nightly = ScoutContractsExpireSoonJob()
-        scheduled, existing_job = nightly.schedule_job(time_override=True)
+        nightly = ScoutContractsExpireSoonJob(time_override=True)
+        scheduled, existing_job = nightly.schedule_job()
         with mail.record_messages() as outbox:
             nightly.run_job(scheduled)
             self.assertEquals(len(outbox), 1)

@@ -27,9 +27,7 @@
           </div>
         </div><!-- /email lookup group -->
 
-        {% if form.categories.choices|length > 0 or form.opportunities.choices|length > 0 %}
-
-          <h4>Check the boxes you wish to unsubscribe from below:</h4>
+        {% if form.categories.choices|length > 0 or form.opportunities.choices|length > 0 or vendor.subscribed_to_newsletter %}
 
           <div id="js-subcategory-group-0">
 
@@ -45,7 +43,7 @@
             {% if form.categories.choices|length > 0 %}
               <div class="row">
                 <div class="col-sm-12">
-                  <h4>Categories subscribed to:</h4>
+                  <h4>Check the boxes to unsubscribe from the following categories:</h4>
                   {% for subscription in form.categories %}
                     <div class="col-sm-12">
                       <div class="checkbox">
@@ -63,7 +61,7 @@
             {% if form.opportunities.choices|length > 0 %}
               <div class="row">
                 <div class="col-sm-12">
-                  <h4>Opportunities Subscribed to:</h4>
+                  <h4>Check the boxes to unsubscribe from these opportunities:</h4>
                   {% for subscription in form.opportunities %}
                   <div class="col-sm-12">
                     <div class="checkbox">
@@ -76,19 +74,35 @@
               {% endfor %}
             {% endif %}
 
+            <div class="spacer-10"></div>
+
+            {% if vendor.subscribed_to_newsletter %}
+            <div class="row">
+              <div class="col-sm-12">
+                <h4>Check this box to unsubscribe from Beacon biweekly updates:</h4>
+                <div class="col-sm-12">
+                  <div class="checkbox">
+                    {{ macros.with_errors(form.subscribed_to_newsletter) }}
+                    {{ form.subscribed_to_newsletter.label }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
           </div>
 
           <div class="spacer-20"></div>
 
           <div class="form-group">
             <div class="col-sm-6">
-              <input type="submit" class="btn btn-primary form-control" value="Unsubscribe from Checked" name="button">
+              <input type="submit" class="btn btn-primary form-control" value="Update email preferences" name="button">
             </div>
           </div>
 
           <div class="spacer-30"></div>
 
-        {% elif form.email.data and form.email.validate(form) %}
+        {% elif vendor.email %}
           <p>You are not subscribed to anything! Visit the <a href="{{ url_for('opportunities.signup') }}">sign up</a> page to subscribe.</p>
         {% endif %}
 

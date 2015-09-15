@@ -498,3 +498,35 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             # about that category
             self.assertEquals(len(outbox), 1)
             self.assertEquals(outbox[0].subject, '[Pittsburgh Purchasing] A new City of Pittsburgh opportunity from Beacon!')
+
+    def test_update_and_publish_oppportunity_as_admin(self):
+        '''Test that 'publishing' an opportunity sends the proper emails
+        '''
+
+        data = {
+            'department': str(self.department1.id), 'contact_email': self.staff.email,
+            'title': 'test_create_edit_publish', 'description': 'bar',
+            'planned_publish': datetime.date.today(),
+            'planned_submission_start': datetime.date.today(),
+            'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
+            'save_type': 'save', 'subcategories-{}'.format(Category.query.all()[-1].id): 'on'
+        }
+
+        self.login_user(self.admin)
+        self.assertEquals(Opportunity.query.count(), 4)
+
+        with mail.record_messages() as outbox:
+            self.client.post('/beacon/admin/opportunities/new', data=data)
+
+            self.assertEquals(Opportunity.query.count(), 5)
+            # doesn't send the opportunity yet
+            self.assertEquals(len(outbox), 0)
+
+            data.update({'save_type': 'publish'})
+            self.client.post('/beacon/admin/opportunities/{}'.format(
+                Opportunity.query.filter(Opportunity.title == 'test_create_edit_publish').first().id),
+                data=data
+            )
+            # sends the opportunity when updated with the proper save type
+            self.assertEquals(len(outbox), 1)
+            self.assertEquals(outbox[0].subject, '[Pittsburgh Purchasing] A new City of Pittsburgh opportunity from Beacon!')

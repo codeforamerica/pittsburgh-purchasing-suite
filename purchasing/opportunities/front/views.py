@@ -40,6 +40,7 @@ def signup():
     if form.validate_on_submit():
 
         vendor = Vendor.query.filter(Vendor.email == form.data.get('email')).first()
+
         form_data = fix_form_categories(request, form, Vendor, validate='subcategories', obj=vendor)
         if not form.errors:
             if vendor:
@@ -135,6 +136,7 @@ def manage():
     form = init_form(UnsubscribeForm)
     form_categories = []
     form_opportunities = []
+    vendor = None
 
     if form.validate_on_submit():
         email = form.data.get('email')
@@ -146,7 +148,7 @@ def manage():
             )
             form.email.errors = ['We could not find the email {}'.format(email)]
 
-        if request.form.get('button', '').lower() == 'unsubscribe from checked':
+        if request.form.get('button', '').lower() == 'update email preferences':
             remove_categories = set([Category.query.get(i) for i in form.categories.data])
             remove_opportunities = set([Opportunity.query.get(i) for i in form.opportunities.data])
 
@@ -156,15 +158,19 @@ def manage():
 
             vendor.categories = vendor.categories.difference(remove_categories)
             vendor.opportunities = vendor.opportunities.difference(remove_opportunities)
+            if form.data.get('subscribed_to_newsletter'):
+                vendor.subscribed_to_newsletter = False
 
             current_app.logger.info(
                 '''OPPMANAGEVIEW - Vendor {} unsubscribed from:
                 Categories: {}
                 Opportunities: {}
+                Subscribed from newsletter: {}
                 '''.format(
                     email,
                     ', '.join([i.category_friendly_name for i in remove_categories if remove_categories and len(remove_categories) > 0]),
-                    ', '.join([i.description for i in remove_opportunities if remove_opportunities and len(remove_opportunities) > 0])
+                    ', '.join([i.description for i in remove_opportunities if remove_opportunities and len(remove_opportunities) > 0]),
+                    vendor.subscribed_to_newsletter
                 )
             )
 
@@ -177,9 +183,13 @@ def manage():
             for subscription in vendor.opportunities:
                 form_opportunities.append((subscription.id, subscription.title))
 
+    form = init_form(UnsubscribeForm)
     form.opportunities.choices = form_opportunities
     form.categories.choices = form_categories
-    return render_template('opportunities/front/manage.html', form=form)
+    return render_template(
+        'opportunities/front/manage.html', form=form,
+        vendor=vendor if vendor else Vendor()
+    )
 
 class SignupData(object):
     def __init__(self, email, business_name):

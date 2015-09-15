@@ -1,0 +1,29 @@
+{% extends "opportunities/emails/base.html" %}
+
+{% block content %}
+<h2>Your biweekly digest of opportunities on Beacon</h2>
+
+ {% if opportunities|length > 0 %}
+
+    <p>Hi there, Beacon subscriber! Here's a list of all the opportunities we've posted to Beacon over the last 2 weeks.  Take a look and apply or share them with your networks. Thanks for your interest!
+    </p>
+
+    <ul>
+     {% for opportunity in opportunities %}
+        <li><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id, _external=True) }}">{{ opportunity.title }}</a>, with a deadline to submit proposals on {{ opportunity.planned_submission_end|datetimeformat('%m/%d/%y') }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Hi there, Beacon subscriber! Over the last 2 weeks, no new opportunities have been posted on Beacon. All opportunities that were on Beacon are no longer taking submissions. Stay tuned, however! The City posts new opportunities about once a month, so there will be something new in your inbox soon. Thanks for your patience!</p>
+{% endif %}
+
+<p>Have a question? Click on the link at the end of this message to send us an email, and we'll get back to you as soon as we can. If you'd like to change your email settings, manage your subscription <a href="{{ url_for('opportunities.manage', _external=True) }}">here</a>.</p>
+
+<p>Thanks,<br>
+The Beacon team
+</p>
+{% endblock %}
+
+{% block footer %}
+<p><a href="{{ url_for('opportunities.manage', _external=True) }}">Manage your subscription</a> | <a href="mailto:pittsburgh@codeforamerica.org?Subject=Feedback%20from%20Email">Questions? Email us</a>
+{% endblock %}

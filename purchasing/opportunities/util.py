@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 import os
 import json
 
@@ -52,7 +53,6 @@ def fix_form_categories(request, form, cls, validate=None, obj=None,):
     }
 
     # manual fixup for opportunity-department relationship
-
     if form.data.get('department', None):
         form_data['department_id'] = form.data.get('department').id
 
@@ -174,8 +174,8 @@ def build_opportunity(data, publish=None, opportunity=None):
                 Submission Start Date: {}
                 Submission End Date: {}
             '''.format(
-                opportunity.id, opportunity.description,
-                opportunity.department.name if opportunity.department else '',
+                opportunity.id, opportunity.department.name if opportunity.department else '',
+                opportunity.description,
                 str(opportunity.planned_publish),
                 str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
             )
@@ -228,7 +228,7 @@ def build_opportunity(data, publish=None, opportunity=None):
     return opportunity
 
 def send_publish_email(opportunity):
-    if opportunity.is_published:
+    if opportunity.is_published and not opportunity.publish_notification_sent:
         opp_categories = [i.id for i in opportunity.categories]
 
         vendors = Vendor.query.filter(
@@ -244,6 +244,7 @@ def send_publish_email(opportunity):
         ).send(multi=True)
 
         opportunity.publish_notification_sent = True
+        opportunity.published_at = datetime.datetime.utcnow()
         db.session.commit()
 
         current_app.logger.info(

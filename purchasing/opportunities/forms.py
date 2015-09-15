@@ -87,6 +87,10 @@ class VendorSignupForm(SignupForm):
     disadvantaged_owned = fields.BooleanField('Disadvantaged business enterprise')
     subcategories = MultiCheckboxField(coerce=int, choices=[])
     categories = fields.SelectField(choices=[], validators=[])
+    subscribed_to_newsletter = fields.BooleanField(
+        label='Biweekly update on all opportunities posted to Beacon', validators=[Optional()],
+        default="checked"
+    )
 
 class OpportunitySignupForm(SignupForm):
     subcategories = MultiCheckboxField(coerce=int, choices=[])
@@ -136,6 +140,10 @@ class UnsubscribeForm(Form):
     email = fields.TextField(validators=[DataRequired(), Email(), email_present])
     categories = MultiCheckboxField(coerce=int)
     opportunities = MultiCheckboxField(coerce=int)
+    subscribed_to_newsletter = fields.BooleanField(
+        label='Biweekly update on all opportunities posted to Beacon', validators=[Optional()],
+        default='checked'
+    )
 
 class OpportunityDocumentForm(Form):
     title = fields.TextField(validators=[RequiredIf('document')])

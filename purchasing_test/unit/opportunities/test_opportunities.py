@@ -195,7 +195,8 @@ class TestOpportunities(BaseTestCase):
                 'email': 'foo@foo.com',
                 'business_name': 'foo',
                 'subcategories-1': 'on',
-                'categories': 'Apparel'
+                'categories': 'Apparel',
+                'subscribed_to_newsletter': True
             })
 
             with self.client.session_transaction() as session:
@@ -210,6 +211,7 @@ class TestOpportunities(BaseTestCase):
             # one to the vendor, one to the admins
             self.assertEquals(len(outbox), 2)
             self.assertEquals(Vendor.query.count(), 1)
+            self.assertTrue(Vendor.query.first().subscribed_to_newsletter)
             self.assertEquals(len(Vendor.query.first().categories), 1)
             self.assert_flashes(
                 'Thank you for signing up! Check your email for more information', 'alert-success'
@@ -224,7 +226,8 @@ class TestOpportunities(BaseTestCase):
                 'subcategories-3': 'on',
                 'subcategories-4': 'on',
                 'subcategories-5': 'on',
-                'categories': 'Apparel'
+                'categories': 'Apparel',
+                'subscribed_to_newsletter': True
             })
 
             self.assertEquals(success_post_everything.status_code, 302)
@@ -241,7 +244,8 @@ class TestOpportunities(BaseTestCase):
                 'subcategories-1': 'on',
                 'subcategories-2': 'on',
                 'subcategories-3': 'on',
-                'categories': 'Apparel'
+                'categories': 'Apparel',
+                'subscribed_to_newsletter': True
             })
 
             self.assertEquals(success_post_old_email.status_code, 302)
@@ -279,7 +283,8 @@ class TestOpportunities(BaseTestCase):
             'subcategories-1': 'on',
             'subcategories-2': 'on',
             'subcategories-3': 'on',
-            'categories': 'Apparel'
+            'categories': 'Apparel',
+            'subscribed_to_newsletter': True
         })
 
         manage = self.client.post('/beacon/manage', data=dict(
@@ -303,7 +308,7 @@ class TestOpportunities(BaseTestCase):
         unsubscribe = self.client.post('/beacon/manage', data=dict(
             email='foo2@foo.com',
             categories=[1, 2],
-            button='Unsubscribe from Checked'
+            button='Update email preferences'
         ))
 
         self.assert200(unsubscribe)
@@ -315,7 +320,8 @@ class TestOpportunities(BaseTestCase):
         unsubscribe_all = self.client.post('/beacon/manage', data=dict(
             email='foo2@foo.com',
             categories=[3, 5, 6],
-            button='Unsubscribe from Checked'
+            button='Update email preferences',
+            subscribed_to_newsletter=False
         ))
 
         self.assert200(unsubscribe_all)

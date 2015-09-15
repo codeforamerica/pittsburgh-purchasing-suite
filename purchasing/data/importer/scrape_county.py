@@ -203,7 +203,7 @@ def generate_line_item_links(item_table, max_deadline=None):
             continue
 
         _deadline = datetime.datetime.strptime(deadline.text.strip(), '%m/%d/%Y')
-        if max_deadline and _deadline < max_deadline:
+        if max_deadline and _deadline <= max_deadline:
             continue
 
         line_item_links.append((
@@ -332,7 +332,7 @@ def main(_all=None):
             else:
                 skipped += 1
 
-            status.county_max_deadline = max_date
+            status.update(county_max_deadline=max_date)
             db.session.commit()
 
         except scrapelib.HTTPError:

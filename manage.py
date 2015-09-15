@@ -247,18 +247,19 @@ def reset_conductor():
     return
 
 @manager.command
-def schedule_work():
+def schedule_work(ignore_time=False):
     from purchasing.jobs import JobBase
     for job in JobBase.jobs:
-        job().schedule_job()
+        job(time_override=ignore_time).schedule_job()
+        db.session.commit()
 
 @manager.command
-def do_work():
+def do_work(ignore_time=False):
     from purchasing.jobs.job_base import JobStatus
     turn_off_sqlalchemy_events()
     jobs = JobStatus.query.filter(JobStatus.status == 'new').all()
     for job in jobs:
-        task = getattr(nightly_jobs, job.name)()
+        task = getattr(nightly_jobs, job.name)(time_override=ignore_time)
         task.run_job(job)
     turn_on_sqlalchemy_events()
     refresh_search_view()

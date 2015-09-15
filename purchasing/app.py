@@ -172,9 +172,7 @@ def register_logging(app, config_string):
         stdout = logging.StreamHandler(sys.stdout)
         stdout.setFormatter(logging.Formatter(
             '''--------------------------------------------------------------------------------
-%(asctime)s | %(levelname)s in %(module)s [%(funcName)s]
-%(user_id)s | [%(pathname)s:%(lineno)d]
-%(message)s
+%(asctime)s | %(levelname)s in %(module)s [%(funcName)s] | %(user_id)s | [%(pathname)s:%(lineno)d] | %(message)s
 --------------------------------------------------------------------------------'''
         ))
         app.logger.addFilter(_filter)

@@ -6,7 +6,7 @@ import pytz
 from unittest import TestCase
 from mock import patch, Mock, call
 
-from purchasing.jobs.job_base import JobBase, EmailJobBase, EASTERN
+from purchasing.jobs.job_base import JobBase, EmailJobBase
 
 from purchasing_test.unit.factories import JobStatusFactory
 
@@ -23,7 +23,6 @@ class FakeJobBase(JobBase):
     @property
     def job_status_model(self):
         return JobStatusFactory
-
 
 @FakeJobBase.register
 class FakeJob(FakeJobBase):
@@ -49,17 +48,17 @@ class TestJobBase(TestCase):
         self.assertEquals(len(FakeJobBase.jobs), 1)
         self.assertTrue(FakeJob in FakeJobBase.jobs)
 
-    @patch('purchasing.jobs.job_base.get_or_create')
+    @patch('purchasing.jobs.job_base.get_or_create', return_value=[JobStatusFactory.build(), True])
     def test_schedule_timer_no_time(self, get_or_create):
         FakeJob().schedule_job()
         self.assertTrue(get_or_create.called)
 
-    @patch('purchasing.jobs.job_base.get_or_create')
+    @patch('purchasing.jobs.job_base.get_or_create', return_value=[JobStatusFactory.build(), True])
     def test_schedule_timer_past_job(self, get_or_create):
         PastJob().schedule_job()
         self.assertTrue(get_or_create.called)
 
-    @patch('purchasing.jobs.job_base.get_or_create')
+    @patch('purchasing.jobs.job_base.get_or_create', return_value=[JobStatusFactory.build(), True])
     def test_schedule_timer_future_job(self, get_or_create):
         FutureJob().schedule_job()
         self.assertFalse(get_or_create.called)

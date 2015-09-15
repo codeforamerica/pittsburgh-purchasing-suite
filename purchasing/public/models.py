@@ -10,3 +10,4 @@ class AppStatus(Model):
     last_updated = Column(db.DateTime)
     county_max_deadline = Column(db.DateTime)
     message = Column(db.Text)
+    last_beacon_newsletter = Column(db.DateTime)
