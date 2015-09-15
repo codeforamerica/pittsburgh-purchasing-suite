@@ -12,8 +12,6 @@
         _table.append(rows[i]);
       }
     });
-
-
   }
 
   function comparer(index) {
@@ -25,9 +23,17 @@
   }
 
   function getCellValue(row, index) {
-    return $(row).children('td').eq(index).text();
+    return $(row).children('td').eq(index).attr('data-sortable');
   }
 
   $('[data-toggle="tooltip"]').tooltip();
+
+  $('#js-filter-btn-group').children('.btn').each(function(ix, i) {
+    var _this = $(i);
+    var _input = _this.find('input');
+    if (_input.prop('checked') === true) {
+      _this.addClass('active');
+    }
+  });
 
 })();
