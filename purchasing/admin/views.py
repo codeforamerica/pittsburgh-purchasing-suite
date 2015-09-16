@@ -96,6 +96,10 @@ class ScoutContractAdmin(ContractBaseAdmin):
     ]
 
 class ConductorContractStageAdmin(ContractBaseAdmin):
+    column_searchable_list = (
+        ContractBase.description, Stage.name
+    )
+
     column_list = [
         'contract', 'stage', 'entered', 'exited'
     ]
