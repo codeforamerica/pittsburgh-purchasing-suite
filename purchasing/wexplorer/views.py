@@ -17,7 +17,7 @@ from purchasing.wexplorer.forms import SearchForm, FeedbackForm, NoteForm
 from purchasing.users.models import Department, User, Role
 from purchasing.data.searches import SearchView, find_contract_metadata, return_all_contracts
 from purchasing.data.companies import Company
-from purchasing.data.contracts import ContractBase, ContractNote
+from purchasing.data.contracts import ContractBase, ContractNote, ContractType
 
 from purchasing.wexplorer import blueprint
 
