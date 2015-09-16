@@ -43,7 +43,7 @@ def index():
         db.distinct(ContractBase.id).label('id'),
         ContractBase.description, Flow.flow_name,
         Stage.name.label('stage_name'), ContractStage.entered,
-        User.email, User.print_pretty_first_name().label('assigned'),
+        User.first_name, User.email,
         Department.name.label('department')
     ).outerjoin(Department).join(
         ContractStage, db.and_(
@@ -68,7 +68,7 @@ def index():
         ContractBase.financial_id, ContractBase.expiration_date,
         ContractProperty.value.label('spec_number'),
         ContractBase.contract_href, ContractBase.department,
-        User.print_pretty_first_name().label('assigned')
+        User.first_name, User.email
     ).join(ContractType).outerjoin(
         User, User.id == ContractBase.assigned_to
     ).outerjoin(
@@ -318,7 +318,7 @@ def start_work(contract_id=-1):
         if contract_id == -1:
             contract, _ = get_or_create(
                 db.session, ContractBase, description=form.data.get('description'),
-                department=form.data.get('department')
+                department=form.data.get('department'), is_visible=False
             )
         else:
             contract = ContractBase.clone(contract)
@@ -328,6 +328,7 @@ def start_work(contract_id=-1):
             db.session.commit()
 
         assigned = assign_a_contract(contract, form.data.get('flow'), form.data.get('assigned').id, clone=False)
+        db.session.commit()
 
         if assigned:
             flash('Successfully assigned {} to {}!'.format(assigned.description, assigned.assigned.email), 'alert-success')

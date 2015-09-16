@@ -3,6 +3,7 @@
     <div class="col-md-8">
       <h3><strong>{{ active_stage.description|title }}</strong></h3>
       <ul class="text-muted list-unstyled">
+        {% if contract.parent %}
         {% if contract.parent.expiration_date %}
         <li class="">Expires on {{ contract.parent.expiration_date|datetimeformat('%m/%d/%Y') }}</li>
         {% endif %}
@@ -10,6 +11,7 @@
         <li class="">Old Spec Number: {{ contract.parent.get_spec_number().value }}</li>
         {% elif contract.get_spec_number().value %}
         <li class="">Spec Number: {{ contract.get_spec_number().value }}</li>
+        {% endif %}
         {% endif %}
         <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
           View on Scout
@@ -20,8 +22,9 @@
       <h3></h3>
       <p class="text-muted pull-right">
         <a href="{{ url_for('conductor.extend', contract_id=contract.id, stage_id=active_stage.id) }}" class="btn btn-default" onclick="return confirm('Please confirm that the contract has already gone through the proper extension process.')">Extend Contract</a></li>
-{#         <a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}" class="btn btn-default">View on Scout</a> #}
+        {% if contract.parent %}
         <a href="{{ url_for('conductor.kill_contract', contract_id=contract.parent.id) }}" class="btn btn-default">Remove contract from use</a>
+        {% endif %}
       </p>
     </div>
   </div>

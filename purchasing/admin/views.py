@@ -10,6 +10,7 @@ from flask_admin.contrib import sqla
 from flask_admin.form.widgets import Select2Widget
 
 from purchasing.data.contracts import ContractBase, ContractProperty, ContractType, LineItem
+from purchasing.data.contract_stages import ContractStage
 from purchasing.data.companies import Company, CompanyContact, company_contract_association_table
 from purchasing.data.flows import Flow
 from purchasing.data.stages import Stage, StageProperty
@@ -94,17 +95,28 @@ class ScoutContractAdmin(ContractBaseAdmin):
         'companies', 'followers', 'is_archived', 'department'
     ]
 
+class ConductorContractStageAdmin(ContractBaseAdmin):
+    column_list = [
+        'contract', 'stage', 'entered', 'exited'
+    ]
+
+    form_columns = [
+        'contract', 'stage', 'entered', 'exited'
+    ]
+
 class ConductorContractAdmin(ContractBaseAdmin):
-    inline_models = ((ContractProperty, dict(form_excluded_columns=GLOBAL_EXCLUDE)),)
+    inline_models = (
+        (ContractProperty, dict(form_excluded_columns=GLOBAL_EXCLUDE)),
+    )
 
     column_list = [
-        'description', 'expiration_date', 'current_stage', 'current_flow', 'assigned'
+        'description', 'expiration_date', 'current_stage', 'current_flow', 'assigned',
     ]
 
     form_columns = [
         'contract_type', 'description', 'properties',
         'financial_id', 'expiration_date', 'contract_href',
-        'companies', 'followers', 'is_archived', 'assigned'
+        'companies', 'followers', 'is_archived', 'assigned',
     ]
 
     def get_query(self):
@@ -272,6 +284,9 @@ admin.add_view(StageAdmin(Stage, db.session, endpoint='stage', category='Conduct
 admin.add_view(FlowAdmin(Flow, db.session, endpoint='flow', category='Conductor'))
 admin.add_view(ConductorContractAdmin(
     ContractBase, db.session, name='Contracts', endpoint='conductor-contract', category='Conductor'
+))
+admin.add_view(ConductorContractStageAdmin(
+    ContractStage, db.session, name='Contract Stages', endpoint='contract-stages', category='Conductor'
 ))
 
 admin.add_view(OpportunityAdmin(

@@ -132,4 +132,4 @@ def switch_flow(new_flow_id, contract_id, user):
         db.session.add(i)
 
     db.session.commit()
-    return contract.current_stage, contract
+    return new_contract_stages[0], contract
