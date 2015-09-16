@@ -104,6 +104,12 @@ class ConductorContractStageAdmin(ContractBaseAdmin):
         'contract', 'stage', 'entered', 'exited'
     ]
 
+    def init_search(self):
+        super(BaseModelViewAdmin, self).init_search()
+
+    def scaffold_filters(self, name):
+        super(BaseModelViewAdmin, self).scaffold_filters()
+
 class ConductorContractAdmin(ContractBaseAdmin):
     inline_models = (
         (ContractProperty, dict(form_excluded_columns=GLOBAL_EXCLUDE)),
