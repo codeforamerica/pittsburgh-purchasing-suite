@@ -57,7 +57,7 @@ class DevConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing')  # TODO: Change me
     SQLALCHEMY_ECHO = os_env.get('SQLALCHEMY_ECHO', False)
-    DEBUG_TB_ENABLED = False
+    DEBUG_TB_ENABLED = True
     BROWSERID_URL = os_env.get('BROWSERID_URL', 'http://127.0.0.1:9000')
     MAIL_SERVER = 'smtp.gmail.com'  # Use gmail in dev: https://support.google.com/mail/answer/1173270?hl=en
     MAIL_USERNAME = os_env.get('MAIL_USERNAME')

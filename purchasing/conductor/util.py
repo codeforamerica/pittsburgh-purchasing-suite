@@ -106,7 +106,7 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
     if form.validate_on_submit():
         action = ContractStageActionItem(
             contract_stage_id=stage_id, action_type=form_name,
-            taken_by=user.id, taken_at=datetime.datetime.now()
+            taken_by=user.id, taken_at=datetime.datetime.utcnow()
         )
         if form_name == 'activity':
             current_app.logger.info(
@@ -273,7 +273,7 @@ def assign_a_contract(contract, flow, user_id, clone=True):
             actions = contract.transition(current_user)
             for i in actions:
                 db.session.add(i)
-            db.session.commit()
+            db.session.flush()
         except IntegrityError:
             # we already have the sequence for this, so just
             # rollback and pass

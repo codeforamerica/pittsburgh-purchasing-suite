@@ -32,8 +32,6 @@ class ContractStage(Model):
         'contract_stages', lazy='dynamic', cascade='all, delete-orphan'
     ))
 
-    created_at = Column(db.DateTime, default=datetime.datetime.now())
-    updated_at = Column(db.DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
     entered = Column(db.DateTime)
     exited = Column(db.DateTime)
     notes = Column(db.Text)
@@ -57,7 +55,7 @@ class ContractStage(Model):
     def enter(self):
         '''Enter the stage at this point
         '''
-        self.entered = datetime.datetime.now()
+        self.entered = datetime.datetime.utcnow()
 
     def log_enter(self, user):
         self.enter()
@@ -75,13 +73,13 @@ class ContractStage(Model):
     def exit(self):
         '''Exit the stage
         '''
-        self.exited = datetime.datetime.now()
+        self.exited = datetime.datetime.utcnow()
 
     def log_exit(self, user):
         self.exit()
         return ContractStageActionItem(
             contract_stage_id=self.id, action_type='exited',
-            taken_by=user.id, taken_at=datetime.datetime.now(),
+            taken_by=user.id, taken_at=datetime.datetime.utcnow(),
             action_detail={
                 'timestamp': self.exited.strftime('%Y-%m-%dT%H:%M:%S'),
                 'date': self.exited.strftime('%Y-%m-%d'),
@@ -93,10 +91,10 @@ class ContractStage(Model):
     def log_reopen(self, user):
         return ContractStageActionItem(
             contract_stage_id=self.id, action_type='reversion',
-            taken_by=user.id, taken_at=datetime.datetime.now(),
+            taken_by=user.id, taken_at=datetime.datetime.utcnow(),
             action_detail={
-                'timestamp': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
-                'date': datetime.datetime.now().strftime('%Y-%m-%d'),
+                'timestamp': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S'),
+                'date': datetime.datetime.utcnow().strftime('%Y-%m-%d'),
                 'type': 'reopened', 'label': 'Restarted work',
                 'stage_name': self.stage.name
             }
@@ -125,6 +123,9 @@ class ContractStage(Model):
         '''
         return True if self.entered and not self.exited else False
 
+    def __unicode__(self):
+        return '{} - {}'.format(self.contract.description, self.stage.name)
+
 class ContractStageActionItem(Model):
     __tablename__ = 'contract_stage_action_item'
 
@@ -135,7 +136,7 @@ class ContractStageActionItem(Model):
     ))
     action_type = Column(db.String(255))
     action_detail = Column(JSON)
-    taken_at = Column(db.DateTime, default=datetime.datetime.now())
+    taken_at = Column(db.DateTime, default=datetime.datetime.utcnow())
 
     taken_by = ReferenceCol('users', ondelete='SET NULL', nullable=True)
     taken_by_user = db.relationship('User', backref=backref(
@@ -143,7 +144,7 @@ class ContractStageActionItem(Model):
     ), foreign_keys=taken_by)
 
     def __unicode__(self):
-        return self.action
+        return self.action_type
 
     def get_sort_key(self):
         # if we are reversion, we need to get the timestamps from there
