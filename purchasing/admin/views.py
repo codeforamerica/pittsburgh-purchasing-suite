@@ -105,10 +105,10 @@ class ConductorContractStageAdmin(ContractBaseAdmin):
     ]
 
     def init_search(self):
-        super(BaseModelViewAdmin, self).init_search()
+        return super(BaseModelViewAdmin, self).init_search()
 
     def scaffold_filters(self, name):
-        super(BaseModelViewAdmin, self).scaffold_filters()
+        return super(BaseModelViewAdmin, self).scaffold_filters()
 
 class ConductorContractAdmin(ContractBaseAdmin):
     inline_models = (
