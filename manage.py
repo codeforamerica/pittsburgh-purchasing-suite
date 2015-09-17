@@ -264,6 +264,95 @@ def do_work(ignore_time=False):
     turn_on_sqlalchemy_events()
     refresh_search_view()
 
+@manager.command
+def update_conductor():
+    turn_off_sqlalchemy_events()
+    from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
+    try:
+        for contract_stage in ContractStage.query.all():
+            received_rewind = False
+            # actions
+            actions = contract_stage.contract_stage_actions.all()
+            exits = [i for i in actions if i.action_type == 'exited']
+            enters = [i for i in actions if i.action_type == 'entered']
+
+            for action in actions:
+                action.taken_by = contract_stage.contract.assigned_to
+                if action.action_type == 'entered':
+                    try:
+                        action.action_detail = {}
+                        db.session.commit()
+                        action_detail = {
+                            'timestamp': contract_stage.entered.strftime('%Y-%m-%dT%H:%M:%S'),
+                            'date': contract_stage.entered.strftime('%Y-%m-%d'),
+                            'type': 'entered', 'label': 'Started work',
+                            'stage_name': contract_stage.stage.name
+                        }
+                        action.update(action_detail=action_detail)
+                        action.update(taken_at=str(contract_stage.entered.replace(hour=0, minute=0)))
+                    except Exception, e:
+                        action.delete()
+                elif action.action_type == 'exited':
+                    try:
+                        action.action_detail = {}
+                        db.session.commit()
+                        action_detail = {
+                            'timestamp': contract_stage.exited.strftime('%Y-%m-%dT%H:%M:%S'),
+                            'date': contract_stage.exited.strftime('%Y-%m-%d'),
+                            'type': 'exited', 'label': 'Completed work',
+                            'stage_name': contract_stage.stage.name
+                        }
+                        action.update(action_detail=action_detail)
+                        action.update(taken_at=str(contract_stage.exited.replace(hour=0, minute=0)))
+                    except Exception, e:
+                        action.delete()
+                elif action.action_type == 'reversion':
+                    action.delete()
+                elif action.action_type == 'flow_switch':
+                    action.delete()
+
+            if contract_stage.entered or contract_stage.exited:
+                if contract_stage.entered and len(enters) == 0:
+                    db.session.add(
+                        ContractStageActionItem(
+                            contract_stage_id=contract_stage.id, action_type='entered',
+                            taken_by=contract_stage.contract.assigned.id, taken_at=contract_stage.entered,
+                            action_detail={
+                                'timestamp': contract_stage.entered.strftime('%Y-%m-%dT%H:%M:%S'),
+                                'date': contract_stage.entered.strftime('%Y-%m-%d'),
+                                'type': 'entered', 'label': 'Started work',
+                                'stage_name': contract_stage.stage.name
+                            }
+                        )
+                    )
+                if contract_stage.exited and len(exits) == 0:
+                    db.session.add(
+                        ContractStageActionItem(
+                            contract_stage_id=contract_stage.id, action_type='exited',
+                            taken_by=contract_stage.contract.assigned.id, taken_at=contract_stage.exited,
+                            action_detail={
+                                'timestamp': contract_stage.exited.strftime('%Y-%m-%dT%H:%M:%S'),
+                                'date': contract_stage.exited.strftime('%Y-%m-%d'),
+                                'type': 'exited', 'label': 'Completed work',
+                                'stage_name': contract_stage.stage.name
+                            }
+                        )
+                    )
+            if contract_stage.entered and not contract_stage.exited and not received_rewind:
+                contract_stage.contract.current_stage_id = contract_stage.stage.id
+                db.session.commit()
+
+            for enter in enters[1:]:
+                enter.delete()
+            for exit in exits[1:]:
+                exit.delete()
+
+        db.session.commit()
+    except Exception, e:
+        print 'Problem! Message: {}'.format(e)
+        db.session.rollback()
+    turn_on_sqlalchemy_events()
+
 manager.add_command('server', Server(port=os.environ.get('PORT', 9000)))
 manager.add_command('shell', Shell(make_context=_make_context))
 manager.add_command('db', MigrateCommand)

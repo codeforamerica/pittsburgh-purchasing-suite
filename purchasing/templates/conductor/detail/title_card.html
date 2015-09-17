@@ -12,10 +12,10 @@
         {% elif contract.get_spec_number().value %}
         <li class="">Spec Number: {{ contract.get_spec_number().value }}</li>
         {% endif %}
-        {% endif %}
-        <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
+        <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}">
           View on Scout
         </a></li>
+        {% endif %}
       </ul>
     </div>
     <div class="col-md-4">
