@@ -92,7 +92,11 @@ class ContractBase(RefreshSearchViewMixin, Model):
         '''
         return ContractStageActionItem.query.join(ContractStage).filter(
             ContractStage.contract_id == self.id
-        ).order_by(db.text('taken_at asc')).all()
+        ).order_by(
+            ContractStageActionItem.taken_at,
+            ContractStage.id,
+            ContractStageActionItem.id
+        ).all()
 
     def get_current_stage(self):
         '''Returns the details for the current contract stage
