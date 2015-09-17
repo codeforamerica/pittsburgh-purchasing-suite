@@ -165,7 +165,7 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
             # strip the is_public field from the form data, it's not part of the form
             form_data.pop('is_public')
             opportunity = build_opportunity(
-                form_data, publish=request.form.get('save_type'), opportunity=contract.opportunity
+                form_data, publish='publish', opportunity=contract.opportunity
             )
 
             action.action_detail = {
