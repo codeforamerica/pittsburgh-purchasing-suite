@@ -95,7 +95,7 @@ class ScoutContractAdmin(ContractBaseAdmin):
         'companies', 'followers', 'is_archived', 'department'
     ]
 
-class ConductorContractStageAdmin(ContractBaseAdmin):
+class ConductorContractStageAdmin(SuperAdminMixin, ContractBaseAdmin):
     column_searchable_list = (
         ContractBase.description, Stage.name
     )
@@ -124,10 +124,17 @@ class ConductorContractAdmin(ContractBaseAdmin):
     ]
 
     form_columns = [
-        'contract_type', 'description', 'properties',
-        'financial_id', 'expiration_date', 'contract_href',
-        'companies', 'followers', 'is_archived', 'assigned',
+        'contract_type', 'description', 'assigned',
+        'current_stage', 'current_flow', 'parent',
+        'contract_href', 'is_archived',
+        'financial_id', 'expiration_date',
     ]
+
+    form_widget_args = {
+        'current_flow': {'disabled': True},
+        'current_stage': {'disabled': True},
+        'parent': {'disabled': True}
+    }
 
     def get_query(self):
         '''Override default get query to limit to assigned contracts
