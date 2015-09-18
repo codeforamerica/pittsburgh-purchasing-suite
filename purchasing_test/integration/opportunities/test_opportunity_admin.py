@@ -13,10 +13,12 @@ from flask import current_app
 
 from purchasing.database import db
 from purchasing.extensions import mail
+from purchasing.users.models import User
+from purchasing.data.stages import Stage
+from purchasing.data.flows import Flow
 from purchasing.opportunities.models import (
     Opportunity, Vendor, Category, OpportunityDocument
 )
-from purchasing.users.models import User
 from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.util import upload_document
 
@@ -59,7 +61,8 @@ class TestOpportunitiesAdminBase(BaseTestCase):
             contact=self.admin, created_by=self.staff, required_documents=[self.document],
             is_public=True, planned_publish=datetime.date.today(),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
-            planned_submission_end=datetime.date.today() + datetime.timedelta(2)
+            planned_submission_end=datetime.date.today() + datetime.timedelta(2),
+            categories=set([Category.query.first()])
         )
         self.opportunity3 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff, required_documents=[self.document],
@@ -216,6 +219,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
     def test_edit_an_opportunity(self):
         '''Test updating an opportunity
         '''
+        self.assertEquals(len(self.opportunity2.categories), 1)
         self.assertEquals(self.client.get('/beacon/admin/opportunities/{}'.format(
             self.opportunity2.id
         )).status_code, 302)
@@ -232,11 +236,14 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.assertEquals(len(self.get_context_variable('upcoming')), 1)
 
         self.client.post('/beacon/admin/opportunities/{}'.format(self.opportunity2.id), data={
-            'planned_submission_start': datetime.date.today(), 'title': 'Updated', 'is_public': True,
-            'description': 'Updated Contract!', 'save_type': 'public', 'contact_email': self.admin.email
+            'planned_submission_start': datetime.date.today(), 'title': 'Updated',
+            'is_public': True, 'description': 'Updated Contract!', 'save_type': 'public',
+            'contact_email': self.admin.email,
+            'subcategories-{}'.format(Category.query.all()[-1].id): 'on'
         })
 
         self.assert200(self.client.get('/beacon/opportunities'))
+        self.assertEquals(len(self.opportunity2.categories), 2)
         self.assertEquals(len(self.get_context_variable('_open')), 2)
         self.assertEquals(len(self.get_context_variable('upcoming')), 0)
 

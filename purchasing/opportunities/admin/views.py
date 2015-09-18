@@ -11,20 +11,16 @@ from flask_login import current_user
 from purchasing.database import db
 from purchasing.extensions import login_manager
 from purchasing.decorators import requires_roles
-from purchasing.opportunities.models import (
-    Opportunity, Vendor, OpportunityDocument
-)
-from purchasing.users.models import (
-    User
-)
+from purchasing.opportunities.models import Opportunity, Vendor, OpportunityDocument
+from purchasing.users.models import User
 
 from purchasing.opportunities.util import (
     fix_form_categories, generate_opportunity_form, build_opportunity,
     build_vendor_row, send_publish_email
 )
 
-from purchasing.opportunities.admin import blueprint
 from purchasing.notifications import Notification
+from purchasing.opportunities.admin import blueprint
 
 @login_manager.user_loader
 def load_user(userid):
@@ -68,7 +64,7 @@ def edit(opportunity_id):
             form, categories, subcategories = generate_opportunity_form(obj=opportunity)
 
             if form.validate_on_submit():
-                form_data = fix_form_categories(request, form, Opportunity, opportunity)
+                form_data = fix_form_categories(request, form, Opportunity, obj=opportunity)
                 # add the contact email, documents back on because it was stripped by the cleaning
                 form_data['contact_email'] = form.data.get('contact_email')
                 form_data['documents'] = form.documents
