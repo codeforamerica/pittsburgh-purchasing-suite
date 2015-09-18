@@ -32,6 +32,7 @@ class TestWexplorerSearch(BaseTestCase):
         company_2 = insert_a_company(name='boat', insert_contract=False)
 
         contract_type = ContractTypeFactory.create(name='test')
+        self.contract_type2 = ContractTypeFactory.create(name='test2')
 
         self.contract1 = ContractBaseFactory.create(
             description='vessel', companies=[company_2], line_items=[LineItem(description='NAVY')],
@@ -54,7 +55,7 @@ class TestWexplorerSearch(BaseTestCase):
             description='sunfish', financial_id='012',
             properties=[ContractPropertyFactory.create(key='foo', value='engine')],
             expiration_date=datetime.datetime.today() - datetime.timedelta(1), is_archived=False,
-            contract_type=contract_type
+            contract_type=self.contract_type2
         )
 
         # db.session.execute('''
@@ -115,6 +116,10 @@ class TestWexplorerSearch(BaseTestCase):
         # make sure that archived contracts are properly handled
         self.assert200(self.client.get('/scout/search?archived=y&q='))
         self.assertEquals(len(self.get_context_variable('results')), 4)
+
+        # make sure that contract types are properly handled
+        self.assert200(self.client.get('/scout/search?archived=y&contract_type={}&q='.format(self.contract_type2.id)))
+        self.assertEquals(len(self.get_context_variable('results')), 1)
 
 class FakeModel(RefreshSearchViewMixin, Model):
     __tablename__ = 'fakefake'
