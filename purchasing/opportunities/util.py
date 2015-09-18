@@ -11,14 +11,13 @@ from flask import current_app
 from flask_login import current_user
 from werkzeug import secure_filename
 
-from purchasing.utils import (
-    connect_to_s3, _get_aggressive_cache_headers, random_id
-)
+from purchasing.utils import connect_to_s3, _get_aggressive_cache_headers, random_id
 from purchasing.database import db
 from purchasing.notifications import Notification
 from purchasing.opportunities.forms import OpportunityForm
 from purchasing.opportunities.models import (
-    Opportunity, RequiredBidDocument, Category, OpportunityDocument, Vendor
+    Opportunity, RequiredBidDocument, Category,
+    OpportunityDocument, Vendor
 )
 from purchasing.users.models import User, Role
 

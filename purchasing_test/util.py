@@ -131,7 +131,7 @@ def insert_an_opportunity(
     planned_publish=datetime.datetime.today(),
     planned_submission_start=datetime.datetime.today(),
     planned_submission_end=datetime.datetime.today() + datetime.timedelta(1),
-    required_documents=[],
+    required_documents=[], categories=set(),
     created_from_id=None, created_by=None, is_public=True
 ):
     department = department if department else DepartmentFactory()
@@ -141,7 +141,7 @@ def insert_an_opportunity(
         planned_submission_start=planned_submission_start,
         planned_submission_end=planned_submission_end,
         created_from_id=created_from_id, created_by=created_by,
-        is_public=is_public
+        is_public=is_public, categories=categories
     ))
 
     return opportunity
