@@ -5,8 +5,8 @@ import datetime
 from unittest import TestCase
 from mock import Mock
 
-from purchasing.data import contracts, flows, stages
 from purchasing.opportunities import models
+from purchasing.data import contracts, flows, stages
 from purchasing.users import models
 
 from purchasing_test.factories import (

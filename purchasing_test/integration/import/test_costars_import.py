@@ -4,6 +4,8 @@ from flask import current_app
 from collections import defaultdict
 
 from purchasing.data.importer.costars import main
+from purchasing.opportunities import models
+from purchasing.users.models import User
 from purchasing.data.contracts import ContractBase, LineItem
 from purchasing.data.companies import Company
 

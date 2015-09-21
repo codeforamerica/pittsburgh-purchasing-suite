@@ -8,6 +8,7 @@ from mock import Mock, patch
 from flask import session
 from werkzeug.datastructures import ImmutableMultiDict
 
+from purchasing.users.models import User
 from purchasing.data.contracts import ContractBase
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 from purchasing.data.stages import Stage
@@ -512,7 +513,8 @@ class TestConductor(TestConductorSetup):
             contact_email=self.conductor.email, title='foobar', description='barbaz',
             planned_publish=datetime.date.today() + datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
-            planned_submission_end=datetime.date.today() + datetime.timedelta(2)
+            planned_submission_end=datetime.date.today() + datetime.timedelta(2),
+            department=self.department.id
         ))
 
         self.assertEquals(Opportunity.query.count(), 1)

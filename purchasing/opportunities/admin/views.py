@@ -11,13 +11,10 @@ from flask_login import current_user
 from purchasing.database import db
 from purchasing.extensions import login_manager
 from purchasing.decorators import requires_roles
-from purchasing.opportunities.models import Opportunity, Vendor, OpportunityDocument
 from purchasing.users.models import User
 
-from purchasing.opportunities.util import (
-    fix_form_categories, generate_opportunity_form, build_opportunity,
-    build_vendor_row, send_publish_email
-)
+from purchasing.opportunities.models import Opportunity, Vendor, OpportunityDocument
+from purchasing.opportunities.forms import OpportunityForm
 
 from purchasing.notifications import Notification
 from purchasing.opportunities.admin import blueprint
@@ -31,25 +28,28 @@ def load_user(userid):
 def new():
     '''Create a new opportunity
     '''
-    form, categories, subcategories = generate_opportunity_form()
+    form = OpportunityForm()
 
     if form.validate_on_submit():
-        form_data = fix_form_categories(request, form, Opportunity, None)
-        # add the contact email back on because it was stripped by the cleaning
-        form_data['contact_email'] = form.data.get('contact_email')
-        form_data['documents'] = form.documents
-        # strip the is_public field from the form data, it's not part of the form
-        form_data.pop('is_public')
-        opportunity = build_opportunity(form_data, publish=request.form.get('save_type'))
+        opportunity_data = form.data_cleanup()
+        opportunity = Opportunity.create(
+            opportunity_data, current_user,
+            form.documents, request.form.get('save_type') == 'publish'
+        )
+        db.session.add(opportunity)
         db.session.commit()
-        send_publish_email(opportunity)
+
+        opportunity.send_publish_email()
+        db.session.commit()
         flash('Opportunity post submitted to OMB!', 'alert-success')
         return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
 
+    form.display_cleanup()
+
     return render_template(
         'opportunities/admin/opportunity.html', form=form, opportunity=None,
-        subcategories=subcategories,
-        categories=categories
+        subcategories=form.get_subcategories(),
+        categories=form.get_categories()
     )
 
 @blueprint.route('/opportunities/<int:opportunity_id>', methods=['GET', 'POST'])
@@ -58,34 +58,34 @@ def edit(opportunity_id):
     '''Edit an opportunity
     '''
     opportunity = Opportunity.query.get(opportunity_id)
+
     if opportunity:
 
         if opportunity.can_edit(current_user):
-            form, categories, subcategories = generate_opportunity_form(obj=opportunity)
+            form = OpportunityForm(obj=opportunity)
 
             if form.validate_on_submit():
-                form_data = fix_form_categories(request, form, Opportunity, obj=opportunity)
-                # add the contact email, documents back on because it was stripped by the cleaning
-                form_data['contact_email'] = form.data.get('contact_email')
-                form_data['documents'] = form.documents
-                # strip the is_public field from the form data, it's not part of the form
-                form_data.pop('is_public')
-                opportunity = build_opportunity(
-                    form_data, publish=request.form.get('save_type'), opportunity=opportunity
+                opportunity_data = form.data_cleanup()
+                opportunity.update(
+                    opportunity_data, current_user,
+                    form.documents, request.form.get('save_type') == 'publish'
                 )
                 db.session.commit()
-                send_publish_email(opportunity)
+                opportunity.send_publish_email()
+                db.session.commit()
                 flash('Opportunity successfully updated!', 'alert-success')
 
                 return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity.id))
 
-            form.contact_email.data = opportunity.contact.email
+            form.display_cleanup(opportunity)
 
             return render_template(
-                'opportunities/admin/opportunity.html', form=form, opportunity=opportunity,
-                subcategories=subcategories,
-                categories=categories
+                'opportunities/admin/opportunity.html', form=form,
+                opportunity=opportunity,
+                subcategories=form.get_subcategories(),
+                categories=form.get_categories()
             )
+
         flash('This opportunity has been locked for editing by OMB.', 'alert-warning')
         return redirect(url_for('opportunities.detail', opportunity_id=opportunity_id))
     abort(404)
@@ -143,7 +143,8 @@ def publish(opportunity_id):
             )
         )
 
-        send_publish_email(opportunity)
+        opportunity.send_publish_email()
+        db.session.commit()
 
         return redirect(url_for('opportunities_admin.pending'))
     abort(404)
@@ -182,7 +183,7 @@ def signups():
 
         vendors = Vendor.query.all()
         for vendor in vendors:
-            row = build_vendor_row(vendor)
+            row = vendor.build_downloadable_row()
             yield ','.join([str(i) for i in row]) + '\n'
 
     current_app.logger.info('BEACON VENDOR CSV DOWNLOAD')

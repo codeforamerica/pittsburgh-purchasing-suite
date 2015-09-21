@@ -3,6 +3,8 @@
 from flask import current_app
 
 from purchasing.data.importer.old_contracts import main
+from purchasing.opportunities import models
+from purchasing.users.models import User
 from purchasing.data.contracts import ContractBase
 from purchasing.data.companies import Company
 

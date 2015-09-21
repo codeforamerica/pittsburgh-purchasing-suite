@@ -9,6 +9,8 @@ from purchasing.data.importer.scrape_county import (
     grab_line_items, get_contract, save_line_item
 )
 
+from purchasing.opportunities import models
+from purchasing.users.models import User
 from purchasing.data.contracts import ContractBase, LineItem, ContractProperty
 from purchasing.data.companies import Company
 

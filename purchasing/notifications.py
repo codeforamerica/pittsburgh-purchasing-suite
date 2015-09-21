@@ -69,7 +69,7 @@ class Notification(object):
         try:
             current_app.logger.info(
                 'EMAILTRY | Sending message:\nTo: {}\n:From: {}\nSubject: {}'.format(
-                    self.to_email, self.from_email, self.subject
+                    recipient, self.from_email, self.subject
                 )
             )
 

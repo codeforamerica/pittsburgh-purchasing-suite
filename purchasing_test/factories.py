@@ -40,7 +40,7 @@ class DepartmentFactory(BaseFactory):
         model = Department
 
 class UserFactory(BaseFactory):
-    id = factory.Sequence(lambda n: n)
+    id = factory.Sequence(lambda n: n + 100)
     email = factory.Sequence(lambda n: '{}'.format(n))
     created_at = factory.Sequence(lambda n: datetime.datetime.now())
     first_name = factory.Sequence(lambda n: '{}'.format(n))

@@ -15,7 +15,6 @@ from purchasing.opportunities.forms import UnsubscribeForm, VendorSignupForm, Op
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
 from purchasing.opportunities.front import blueprint
-from purchasing.opportunities.util import get_categories, fix_form_categories
 
 from purchasing.users.models import User, Role
 
@@ -32,80 +31,76 @@ def splash():
 def signup():
     '''The signup page for vendors
     '''
-    all_categories = Category.query.all()
-    form = init_form(VendorSignupForm)
-
-    categories, subcategories, form = get_categories(all_categories, form)
+    session_vendor = Vendor.query.filter(
+        Vendor.email == session.get('email'),
+        Vendor.business_name == session.get('business_name')
+    ).first()
+    form = init_form(VendorSignupForm, model=session_vendor)
 
     if form.validate_on_submit():
-
         vendor = Vendor.query.filter(Vendor.email == form.data.get('email')).first()
 
-        form_data = fix_form_categories(request, form, Vendor, validate='subcategories', obj=vendor)
-        if not form.errors:
-            if vendor:
-                current_app.logger.info('''
-                    OPPUPDATEVENDOR - Vendor updated:
-                    EMAIL: {old_email} -> {email} at
-                    BUSINESS: {old_bis} -> {bis_name} signed up for:
-                    CATEGORIES:
-                        {old_cats} ->
-                        {categories}'''.format(
-                    old_email=vendor.email, email=form_data['email'],
-                    old_bis=vendor.business_name, bis_name=form_data['business_name'],
-                    old_cats=[i.__unicode__() for i in vendor.categories],
-                    categories=[i.__unicode__() for i in form_data['categories']]
-                ))
+        if vendor:
+            current_app.logger.info('''
+                OPPUPDATEVENDOR - Vendor updated:
+                EMAIL: {old_email} -> {email} at
+                BUSINESS: {old_bis} -> {bis_name} signed up for:
+                CATEGORIES:
+                    {old_cats} ->
+                    {categories}'''.format(
+                old_email=vendor.email, email=form.data['email'],
+                old_bis=vendor.business_name, bis_name=form.data['business_name'],
+                old_cats=[i.__unicode__() for i in vendor.categories],
+                categories=[i.__unicode__() for i in form.data['categories']]
+            ))
 
-                vendor.update(
-                    **form_data
+            vendor.update(
+                **form.pop_categories(categories=False)
+            )
+
+            flash("You are already signed up! Your profile was updated with this new information", 'alert-info')
+
+        else:
+            current_app.logger.info(
+                'OPPNEWVENDOR - New vendor signed up: EMAIL: {email} at BUSINESS: {bis_name} signed up for:\n' +
+                'CATEGORIES: {categories}'.format(
+                    email=form.data['email'],
+                    bis_name=form.data['business_name'],
+                    categories=[i.__unicode__() for i in form.data['categories']]
                 )
+            )
 
-                flash("You are already signed up! Your profile was updated with this new information", 'alert-info')
+            vendor = Vendor.create(
+                **form.pop_categories(categories=False)
+            )
 
-            else:
-                current_app.logger.info(
-                    'OPPNEWVENDOR - New vendor signed up: EMAIL: {email} at BUSINESS: {bis_name} signed up for:\n' +
-                    'CATEGORIES: {categories}'.format(
-                        email=form_data['email'],
-                        bis_name=form_data['business_name'],
-                        categories=[i.__unicode__() for i in form_data['categories']]
-                    )
-                )
-                vendor = Vendor.create(
-                    **form_data
-                )
+            confirmation_sent = Notification(
+                to_email=vendor.email, subject='Thank you for signing up!',
+                html_template='opportunities/emails/signup.html',
+                txt_template='opportunities/emails/signup.txt',
+                categories=form.data['categories']
+            ).send()
 
-                confirmation_sent = Notification(
-                    to_email=vendor.email, subject='Thank you for signing up!',
-                    from_email=current_app.config['BEACON_SENDER'],
-                    html_template='opportunities/emails/signup.html',
-                    txt_template='opportunities/emails/signup.txt',
-                    categories=form_data['categories']
+            if confirmation_sent:
+                admins = db.session.query(User.email).join(Role, User.role_id == Role.id).filter(
+                    Role.name.in_(['admin', 'superadmin'])
+                ).all()
+
+                Notification(
+                    to_email=admins, subject='A new vendor has signed up on beacon',
+                    categories=form.data['categories'],
+                    vendor=form.data['email'], convert_args=True,
+                    business_name=form.data['business_name']
                 ).send()
 
-                if confirmation_sent:
-                    admins = db.session.query(User.email).join(Role, User.role_id == Role.id).filter(
-                        Role.name.in_(['admin', 'superadmin'])
-                    ).all()
+                flash('Thank you for signing up! Check your email for more information', 'alert-success')
 
-                    Notification(
-                        to_email=admins, subject='A new vendor has signed up on beacon',
-                        from_email=current_app.config['BEACON_SENDER'],
-                        categories=form_data['categories'],
-                        vendor=form_data['email'], convert_args=True,
-                        business_name=form_data['business_name']
-                    ).send()
+            else:
+                flash('Uh oh, something went wrong. We are investigating.', 'alert-danger')
 
-                    flash('Thank you for signing up! Check your email for more information', 'alert-success')
-
-                else:
-
-                    flash('Uh oh, something went wrong. We are investigating.', 'alert-danger')
-
-            session['email'] = form_data.get('email')
-            session['business_name'] = form_data.get('business_name')
-            return redirect(url_for('opportunities.splash'))
+        session['email'] = form.data.get('email')
+        session['business_name'] = form.data.get('business_name')
+        return redirect(url_for('opportunities.splash'))
 
     page_email = request.args.get('email', None)
 
@@ -120,15 +115,12 @@ def signup():
         if not form.email.validate(form):
             session.pop('email', None)
 
-    display_categories = subcategories.keys()
-    display_categories.remove('Select All')
+    form.display_cleanup()
 
     return render_template(
         'opportunities/front/signup.html', form=form,
-        subcategories=json.dumps(subcategories),
-        categories=json.dumps(
-            sorted(display_categories) + ['Select All']
-        )
+        categories=form.get_categories(),
+        subcategories=form.get_subcategories()
     )
 
 @blueprint.route('/manage', methods=['GET', 'POST'])
@@ -198,9 +190,12 @@ class SignupData(object):
         self.email = email
         self.business_name = business_name
 
-def init_form(form):
-    data = SignupData(session.get('email'), session.get('business_name'))
-    return form(obj=data)
+def init_form(form, model=None):
+    if model:
+        return form(obj=model)
+    else:
+        data = SignupData(session.get('email'), session.get('business_name'))
+        return form(obj=data)
 
 def signup_for_opp(form, user, opportunity, multi=False):
     email_opportunities = []
