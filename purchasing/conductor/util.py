@@ -24,6 +24,12 @@ class ContractMetadataObj(object):
         self.spec_number = contract.get_spec_number().value
         self.department = contract.department
 
+class OpportunityFormObj(object):
+    def __init__(self, department, title, contact_email=None):
+        self.department = department
+        self.title = title
+        self.contact_email = contact_email
+
 class UpdateFormObj(object):
     def __init__(self, stage):
         self.send_to_cc = current_user.email

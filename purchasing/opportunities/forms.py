@@ -125,8 +125,9 @@ class CategoryForm(Form):
         self.subcategories.choices = []
         return subcategories
 
-    def display_cleanup(self):
-        subcategories = self.build_categories(Category.query.all())
+    def display_cleanup(self, all_categories=None):
+        all_categories = all_categories if all_categories else Category.query.all()
+        subcategories = self.build_categories(all_categories)
         self._subcategories = json.dumps(subcategories)
         display_categories = subcategories.keys()
         if 'Select All' in display_categories:
