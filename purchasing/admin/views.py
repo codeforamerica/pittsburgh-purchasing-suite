@@ -7,6 +7,7 @@ from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
 from flask_admin.contrib import sqla
+from flask_admin.actions import action
 from flask_admin.form.widgets import Select2Widget
 
 from purchasing.data.contracts import ContractBase, ContractProperty, ContractType, LineItem
@@ -83,11 +84,16 @@ class ContractBaseAdmin(AuthMixin, BaseModelViewAdmin):
 
         return filters
 
+
 class ScoutContractAdmin(ContractBaseAdmin):
     inline_models = (
         (ContractProperty, dict(form_excluded_columns=GLOBAL_EXCLUDE)),
         (LineItem, dict(form_excluded_columns=GLOBAL_EXCLUDE)),
     )
+
+    column_editable_list = [
+        'description', 'expiration_date', 'financial_id'
+    ]
 
     form_columns = [
         'contract_type', 'description', 'properties',
