@@ -36,6 +36,7 @@ class OpportunityFormObj(object):
 
 class UpdateFormObj(object):
     def __init__(self, stage):
+        self.send_to_cc = current_user.email
         self.body = stage.default_message if stage.default_message else ''
 
 def json_serial(obj):
@@ -111,7 +112,7 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
 
             Notification(
                 to_email=[i.strip() for i in form.data.get('send_to').split(';') if i != ''],
-                from_email='conductorbot@buildpgh.com',
+                from_email=current_app.config['CONDUCTOR_SENDER'],
                 reply_to=current_user.email,
                 cc_email=form.data.get('send_to_cc', []),
                 subject=form.data.get('subject'),

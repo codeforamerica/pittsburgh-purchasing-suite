@@ -431,7 +431,8 @@ def edit_company_contacts(contract_id):
 
             Notification(
                 to_email=[i.email for i in contract.followers],
-                from_email=current_user.email,
+                from_email=current_app.config['CONDUCTOR_SENDER'],
+                reply_to=current_user.email,
                 subject='A contract you follow has been updated!',
                 html_template='conductor/emails/new_contract.html',
                 contract=main_contract

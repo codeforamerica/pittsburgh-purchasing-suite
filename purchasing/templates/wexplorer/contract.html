@@ -93,7 +93,7 @@
         <p class="wexplorer-column-header">Departments Following</p>
         {% if contract.followers | length > 0 %}
         <ul>
-        {% for department in departments %}
+        {% for department in departments if department %}
           <li>
             <a href="{{ url_for('wexplorer.filter', department_id=department.id) }}">
               {{ department.name }}
