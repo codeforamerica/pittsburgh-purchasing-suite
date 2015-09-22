@@ -258,41 +258,6 @@ def assign_a_contract(contract, flow, user, clone=True):
 
         return contract
 
-def reshape_metrics_granular(resultset):
-    '''Transform long data from database into wide data for consumption
-
-    Take in a result set (list of tuples), return a dictionary of results.
-    The key for the dictionary is the contract id, and the values are a list
-    of (fieldname, value). Metadata (common to all rows) is listed first, and
-    timing information from each stage is listed afterwords. Sorting is assumed
-    to be done on the database layer
-    '''
-    results = defaultdict(list)
-    headers = []
-
-    for ix, row in enumerate(resultset):
-        if ix == 0:
-            headers.extend(['item_number', 'description', 'assigned_to', 'department'])
-
-        # if this is a new contract row, append metadata
-        if len(results[row.contract_id]) == 0:
-            results[row.contract_id].extend([
-                row.contract_id,
-                row.description,
-                row.email,
-                row.department,
-            ])
-
-        # append the stage date data
-        results[row.contract_id].extend([
-            row.exited.date()
-        ])
-
-        if row.stage_name not in headers:
-            headers.append(row.stage_name)
-
-    return results, headers
-
 def reshape_metrics_csv_rollup(resultset, flow_id):
     '''Transform long data from database into rollup view for quick consumption
 

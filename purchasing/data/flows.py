@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+from collections import defaultdict
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import FlushError
@@ -24,6 +25,91 @@ class Flow(Model):
     @classmethod
     def all_flow_query_factory(cls):
         return cls.query
+
+    def build_metrics_data(self):
+        raw_data, headers = self.reshape_metrics_granular(enter_and_exit=True)
+        cleaned_data = []
+        for i in raw_data.values():
+            cleaned_data.append(dict(zip(
+                headers, [str(v) for v in i]
+            )))
+
+        return cleaned_data
+
+    def reshape_metrics_granular(self, enter_and_exit=False):
+        '''Transform long data from database into wide data for consumption
+
+        Take in a result set (list of tuples), return a dictionary of results.
+        The key for the dictionary is the contract id, and the values are a list
+        of (fieldname, value). Metadata (common to all rows) is listed first, and
+        timing information from each stage is listed afterwords. Sorting is assumed
+        to be done on the database layer
+        '''
+        raw_data = self.get_metrics_csv_data()
+        results = defaultdict(list)
+        headers = []
+
+        for ix, row in enumerate(raw_data):
+            if ix == 0:
+                headers.extend(['item_number', 'description', 'assigned_to', 'department'])
+
+            # if this is a new contract row, append metadata
+            if len(results[row.contract_id]) == 0:
+                results[row.contract_id].extend([
+                    row.contract_id,
+                    row.description,
+                    row.email,
+                    row.department,
+                ])
+
+            # append the stage date data
+            if enter_and_exit:
+                results[row.contract_id].extend([
+                    row.exited, row.entered
+                ])
+                if row.stage_name not in headers:
+                    headers.append(row.stage_name.replace(' ', '_') + '_exit')
+                    headers.append(row.stage_name.replace(' ', '_') + '_enter')
+            else:
+                results[row.contract_id].extend([
+                    row.exited
+                ])
+
+                if row.stage_name not in headers:
+                    headers.append(row.stage_name)
+
+        return results, headers
+
+    def get_metrics_csv_data(self):
+        return db.session.execute('''
+            select
+                x.contract_id, x.description, x.department,
+                x.email, x.stage_name, x.exited, x.entered, x.rn
+
+            from (
+
+                select
+                    c.id as contract_id, c.description, d.name as department,
+                    u.email, s.name as stage_name, cs.exited, cs.entered,
+                    row_number() over (partition by c.id order by cs.entered asc, cs.id asc) as rn
+
+                from contract_stage cs
+                join stage s on cs.stage_id = s.id
+
+                join contract c on cs.contract_id = c.id
+
+                join users u on c.assigned_to = u.id
+                left join department d on c.department_id = d.id
+
+                where cs.entered is not null
+                and cs.exited is not null
+                and cs.flow_id = :flow_id
+
+            ) x
+            order by contract_id, rn desc
+        ''', {
+            'flow_id': self.id
+        }).fetchall()
 
 def create_contract_stages(flow_id, contract_id, contract=None):
     '''Creates new rows in contract_stage table.

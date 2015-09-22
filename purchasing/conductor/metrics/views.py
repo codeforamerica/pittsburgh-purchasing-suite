@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from flask import render_template, stream_with_context, Response
+from flask import render_template, stream_with_context, Response, abort, jsonify
 
-from purchasing.database import db
 from purchasing.decorators import requires_roles
 
 from purchasing.data.flows import Flow
-from purchasing.conductor.util import reshape_metrics_granular
 
 from purchasing.conductor.metrics import blueprint
 
@@ -20,53 +18,41 @@ def index():
 @requires_roles('conductor', 'admin', 'superadmin')
 def download_tsv_flow(flow_id):
     flow = Flow.query.get(flow_id)
+    if flow:
 
-    stages = db.session.execute(
-        '''
-        select
-            x.contract_id, x.description, x.department,
-            x.email, x.stage_name, x.exited, x.rn
+        csv, headers = flow.reshape_metrics_granular()
 
-        from (
+        def stream():
+            yield '\t'.join(headers) + '\n'
+            for contract_id, values in tsv.iteritems():
+                yield '\t'.join([str(i) for i in values]) + '\n'
 
-            select
-                c.id as contract_id, c.description, d.name as department,
-                u.email, s.name as stage_name, cs.exited,
-                row_number() over (partition by c.id order by cs.id asc) as rn
+        resp = Response(
+            stream_with_context(stream()),
+            headers={
+                "Content-Disposition": "attachment; filename=conductor-{}-metrics.tsv".format(flow.flow_name)
+            },
+            mimetype='text/tsv'
+        )
 
-            from contract_stage cs
-            join stage s on cs.stage_id = s.id
+        return resp
+    abort(404)
 
-            join contract c on cs.contract_id = c.id
+@blueprint.route('/overview/<int:flow_id>')
+@requires_roles('conductor', 'admin', 'superadmin')
+def flow_overview(flow_id):
+    flow = Flow.query.get(flow_id)
+    if flow:
+        return render_template('conductor/metrics/overview.html', flow_id=flow_id)
+    abort(404)
 
-            join users u on c.assigned_to = u.id
-            left join department d on c.department_id = d.id
 
-            where cs.entered is not null
-            and cs.exited is not null
-            and cs.flow_id = :flow_id
-
-        ) x
-        order by contract_id, rn desc
-        ''',
-        {
-            'flow_id': flow_id
-        }
-    ).fetchall()
-
-    tsv, headers = reshape_metrics_granular(stages)
-
-    def stream():
-        yield '\t'.join(headers) + '\n'
-        for contract_id, values in tsv.iteritems():
-            yield '\t'.join([str(i) for i in values]) + '\n'
-
-    resp = Response(
-        stream_with_context(stream()),
-        headers={
-            "Content-Disposition": "attachment; filename=conductor-{}-metrics.tsv".format(flow.flow_name)
-        },
-        mimetype='text/tsv'
-    )
-
-    return resp
+@blueprint.route('/overview/<int:flow_id>/data')
+@requires_roles('conductor', 'admin', 'superadmin')
+def flow_data(flow_id):
+    flow = Flow.query.get(flow_id)
+    if flow:
+        return jsonify(
+            {'results': flow.build_metrics_data()}
+        )
+    abort(404)

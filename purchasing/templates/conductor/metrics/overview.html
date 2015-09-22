@@ -1,0 +1,24 @@
+{% extends 'conductor/layout.html' %}
+
+{% block content %}
+
+{{ super() }}
+
+<div class="container">
+</div>
+
+
+{% endblock %}
+
+{% block js %}
+{{ super() }}
+<script>
+$.ajax({
+  url: "{{ url_for('conductor_metrics.flow_data', flow_id=flow_id) }}",
+}).done(function(data, status, xhr) {
+  debugger;
+}).fail(function() {
+
+})
+</script>
+{% endblock %}
