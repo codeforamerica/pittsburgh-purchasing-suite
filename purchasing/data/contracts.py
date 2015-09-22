@@ -87,6 +87,25 @@ class ContractBase(RefreshSearchViewMixin, Model):
         except IndexError:
             return ContractProperty()
 
+    def update_with_spec_number(self, data, company=None):
+        spec_number = self.get_spec_number()
+
+        new_spec = data.pop('spec_number', None)
+        if new_spec:
+            spec_number.key = 'Spec Number'
+            spec_number.value = new_spec
+        else:
+            spec_number.key = 'Spec Number'
+            spec_number.value = None
+        self.properties.append(spec_number)
+
+        if company:
+            self.companies.append(company)
+
+        self.update(**data)
+
+        return spec_number
+
     def build_complete_action_log(self):
         '''Returns the complete action log for this contract
         '''

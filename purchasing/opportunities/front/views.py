@@ -78,6 +78,7 @@ def signup():
 
                 confirmation_sent = Notification(
                     to_email=vendor.email, subject='Thank you for signing up!',
+                    from_email=current_app.config['BEACON_SENDER'],
                     html_template='opportunities/emails/signup.html',
                     txt_template='opportunities/emails/signup.txt',
                     categories=form_data['categories']
@@ -90,6 +91,7 @@ def signup():
 
                     Notification(
                         to_email=admins, subject='A new vendor has signed up on beacon',
+                        from_email=current_app.config['BEACON_SENDER'],
                         categories=form_data['categories'],
                         vendor=form_data['email'], convert_args=True,
                         business_name=form_data['business_name']
@@ -252,6 +254,7 @@ def signup_for_opp(form, user, opportunity, multi=False):
 
     Notification(
         to_email=vendor.email,
+        from_email=current_app.config['BEACON_SENDER'],
         subject='Subscription confirmation from Beacon',
         html_template='opportunities/emails/oppselected.html',
         txt_template='opportunities/emails/oppselected.txt',

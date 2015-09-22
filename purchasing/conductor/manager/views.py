@@ -28,8 +28,7 @@ from purchasing.conductor.forms import (
 )
 
 from purchasing.conductor.util import (
-    update_contract_with_spec, handle_form, ContractMetadataObj,
-    build_subscribers, create_opp_form_obj,
+    handle_form, ContractMetadataObj, build_subscribers, create_opp_form_obj,
     json_serial, parse_companies, UpdateFormObj, assign_a_contract
 )
 
@@ -360,7 +359,7 @@ def edit(contract_id):
             else:
                 # if there is no flow, that means that it is an extended contract
                 # so we will save it and return back to the conductor home page
-                contract, _ = update_contract_with_spec(contract, form.data)
+                contract.update_with_spec_number(form.data)
                 current_app.logger.info('CONDUCTOR CONTRACT COMPLETE - contract metadata for "{}" updated'.format(
                     contract.description
                 ))
@@ -417,10 +416,11 @@ def edit_company_contacts(contract_id):
                     contact, _ = get_or_create(db.session, CompanyContact, **_contact)
 
                 contract_data['financial_id'] = _company['financial_id']
-                contract, _ = update_contract_with_spec(
-                    contract, contract_data,
-                    company=company, clone=(ix > 0),
-                )
+                if ix == 0:
+                    contract.update_with_spec_number(contract_data, company=company)
+                else:
+                    contract = ContractBase.clone(contract, parent_id=contract.parent_id, strip=False)
+                    contract.update_with_spec_number(contract_data, company=company)
 
                 contract.is_visible = True
                 contract.parent.is_archived = True
@@ -431,7 +431,8 @@ def edit_company_contacts(contract_id):
 
             Notification(
                 to_email=[i.email for i in contract.followers],
-                from_email=current_user.email,
+                from_email=current_app.config['CONDUCTOR_SENDER'],
+                reply_to=current_user.email,
                 subject='A contract you follow has been updated!',
                 html_template='conductor/emails/new_contract.html',
                 contract=main_contract

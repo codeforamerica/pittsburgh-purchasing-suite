@@ -186,6 +186,7 @@ def build_opportunity(data, publish=None, opportunity=None):
             # saving a draft as opposed to publishing the opportunity
             Notification(
                 to_email=[current_user.email],
+                from_email=current_app.config['BEACON_SENDER'],
                 subject='Your post has been sent to OMB for approval',
                 html_template='opportunities/emails/staff_postsubmitted.html',
                 txt_template='opportunities/emails/staff_postsubmitted.txt',
@@ -196,6 +197,7 @@ def build_opportunity(data, publish=None, opportunity=None):
                 to_email=db.session.query(User.email).join(Role, User.role_id == Role.id).filter(
                     Role.name.in_(['admin', 'superadmin'])
                 ).all(),
+                from_email=current_app.config['BEACON_SENDER'],
                 subject='A new Beacon post needs review',
                 html_template='opportunities/emails/admin_postforapproval.html',
                 txt_template='opportunities/emails/admin_postforapproval.txt',
@@ -236,6 +238,7 @@ def send_publish_email(opportunity):
 
         Notification(
             to_email=[i.email for i in vendors],
+            from_email=current_app.config['BEACON_SENDER'],
             subject='A new City of Pittsburgh opportunity from Beacon!',
             html_template='opportunities/emails/newopp.html',
             txt_template='opportunities/emails/newopp.txt',

@@ -17,7 +17,9 @@ class Config(object):
     PER_PAGE = 50
     CITY_DOMAIN = 'pittsburghpa.gov'
     ADMIN_EMAIL = os_env.get('ADMIN_EMAIL', 'bsmithgall@codeforamerica.org')
-    MAIL_DEFAULT_SENDER = 'beaconbot@pittsburghpurchasingsuite.com'
+    MAIL_DEFAULT_SENDER = os_env.get('MAIL_DEFAULT_SENDER', 'no-reply@buildpgh.com')
+    BEACON_SENDER = os_env.get('BEACON_SENDER', 'beaconbot@buildpgh.com')
+    CONDUCTOR_SENDER = os_env.get('CONDUCTOR_SENDER', 'conductorbot@buildpgh.com')
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     UPLOAD_S3 = True

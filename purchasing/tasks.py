@@ -12,7 +12,7 @@ def send_email(messages, multi):
             for message in messages:
                 conn.send(message)
     else:
-        mail.send(messages[0])
+        mail.send(messages)
 
 @celery.task
 def rebuild_search_view():
