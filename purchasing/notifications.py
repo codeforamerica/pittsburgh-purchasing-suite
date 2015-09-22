@@ -15,11 +15,12 @@ class Notification(object):
     def __init__(
         self, to_email=[], from_email=None, cc_email=[], subject='',
         html_template='/public/emails/email_admins.html',
-        txt_template=None, attachments=[],
+        txt_template=None, attachments=[], reply_to=None,
         convert_args=False, *args, **kwargs
     ):
         self.to_email = to_email
         self.from_email = from_email if from_email else current_app.config['MAIL_DEFAULT_SENDER']
+        self.reply_to = reply_to
         self.cc_email = cc_email
         self.subject = subject
         self.html_body = self.build_msg_body(html_template, convert_args, *args, **kwargs)
@@ -66,7 +67,7 @@ class Notification(object):
 
     def build_msg(self, recipient):
         try:
-            current_app.logger.debug(
+            current_app.logger.info(
                 'EMAILTRY | Sending message:\nTo: {}\n:From: {}\nSubject: {}'.format(
                     self.to_email, self.from_email, self.subject
                 )
@@ -82,9 +83,8 @@ class Notification(object):
             msg = Message(
                 subject='[Pittsburgh Purchasing] {}'.format(self.subject),
                 html=self.html_body, body=self.txt_body,
-                sender=self.from_email,
-                recipients=recipient,
-                cc=self.cc_email
+                sender=self.from_email, reply_to=self.reply_to,
+                recipients=recipient, cc=self.cc_email
             )
 
             for attachment in self.attachments:
@@ -101,7 +101,7 @@ class Notification(object):
             return msg
 
         except Exception, e:
-            current_app.logger.debug(
+            current_app.logger.info(
                 'EMAILFAIL | Error: {}\nTo: {}\n:From: {}\nSubject: {}'.format(
                     e, self.to_email, self.from_email, self.subject
                 )
@@ -109,13 +109,13 @@ class Notification(object):
             return False
 
     def send(self, multi=False, async=True):
-        # send_mail(Notification, multi)
+
         msgs = []
         if multi:
             for to in self.to_email:
                 msgs.append(self.build_msg(to))
         else:
-            msgs.append(self.build_msg(self.to_email))
+            msgs = self.build_msg(self.to_email)
 
         if async:
             send_email.delay(msgs, multi=multi)

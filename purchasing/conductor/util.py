@@ -50,32 +50,6 @@ def create_opp_form_obj(contract, contact_email=None):
         obj = OpportunityFormObj(contract.department, contract.description, contact_email)
     return obj
 
-def update_contract_with_spec(contract, form_data, company=None, clone=False):
-    if clone:
-        contract = ContractBase.clone(contract, parent_id=contract.parent_id, strip=False)
-        db.session.add(contract)
-        db.session.commit()
-
-    spec_number = contract.get_spec_number()
-
-    data = form_data
-    new_spec = data.pop('spec_number', None)
-
-    if new_spec:
-        spec_number.key = 'Spec Number'
-        spec_number.value = new_spec
-    else:
-        spec_number.key = 'Spec Number'
-        spec_number.value = None
-    contract.properties.append(spec_number)
-
-    if company:
-        contract.companies.append(company)
-
-    contract.update(**data)
-
-    return contract, spec_number
-
 def parse_companies(companies):
     cleaned = []
     for company in companies.get('companies'):
@@ -137,13 +111,14 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
 
             Notification(
                 to_email=[i.strip() for i in form.data.get('send_to').split(';') if i != ''],
-                from_email=current_user.email,
+                from_email='conductorbot@buildpgh.com',
+                reply_to=current_user.email,
                 cc_email=form.data.get('send_to_cc', []),
                 subject=form.data.get('subject'),
                 html_template='conductor/emails/email_update.html',
                 body=form.data.get('body'),
                 attachments=[i.upload.data for i in form.attachments.entries]
-            ).send()
+            ).send(multi=False)
 
         elif form_name == 'post':
             current_app.logger.info(
@@ -184,7 +159,7 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
             data = form.data
             del data['all_blank']
 
-            _, _ = update_contract_with_spec(contract, data)
+            contract.update_with_spec_number(data)
             # this process pops off the spec number, so get it back
             data['spec_number'] = form.data.get('spec_number')
 
