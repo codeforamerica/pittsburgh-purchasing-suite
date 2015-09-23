@@ -13,10 +13,10 @@ Core Pittsburgh Purchasing Suite features are in alpha, with other features in d
 
 | Feature | Status |
 |---------|--------|
-| **Scout** - a tool to look up contracts | [Alpha Deployed](http://pittsburgh-purchasing.herokuapp.com/scout/) |
-| **Atlas** - a tool to explore the procurement process | [Alpha Deployed](http://pittsburgh-purchasing.herokuapp.com/sherpa/) |
-| **Beacon** - a tool to be notified about new opportunities | [Alpha Deployed](http://pittsburgh-purchasing.herokuapp.com/beacon/) |
-| **Conductor** - a tool for managing contracts & contract renewal | [Alpha Deployed](http://pittsburgh-purchasing.herokuapp.com/conductor/) (required login) |
+| **Scout** - a tool to look up contracts | [Alpha Deployed](https://www.buildpgh.com/scout) |
+| **Atlas** - a tool to explore the procurement process | [Alpha Deployed](https://www.buildpgh.com/sherpa) |
+| **Beacon** - a tool to be notified about new opportunities | [Alpha Deployed](https://www.buildpgh.com/beacon) |
+| **Conductor** - a tool for managing contracts & contract renewal | [Alpha Deployed](https://www.buildpgh.com/conductor) (required login) |
 
 ## Who made it?
 The purchasing suite is a project of the 2015 Pittsburgh Code for America [fellowship team](http://codeforamerica.org/governments/pittsburgh).
