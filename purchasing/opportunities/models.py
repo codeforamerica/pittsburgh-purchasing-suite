@@ -122,6 +122,7 @@ class Opportunity(Model):
     @property
     def is_submission_start(self):
         return self.coerce_to_date(self.planned_submission_start) <= datetime.date.today() and \
+            self.coerce_to_date(self.planned_publish) <= datetime.date.today() and \
             not self.is_submission_end and self.is_public
 
     @property
