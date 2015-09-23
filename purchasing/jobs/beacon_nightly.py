@@ -40,6 +40,7 @@ class BeaconNewOppotunityOpenJob(EmailJobBase):
             Opportunity.is_public == True
         ).all()
 
+@JobBase.register
 class BeaconBiweeklyDigestJob(EmailJobBase):
     def run_job(self, job):
         did_run = super(BeaconBiweeklyDigestJob, self).run_job(job)

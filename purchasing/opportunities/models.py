@@ -224,13 +224,7 @@ class Opportunity(Model):
         opportunity = Opportunity(**data)
 
         current_app.logger.info(
-            '''BEACON NEW - New Opportunity Created:
-                ID: {}
-                Department: {}
-                Title: {}
-                Publish Date: {}
-                Submission Start Date: {}
-                Submission End Date: {}
+'''BEACON NEW - New Opportunity Created: Department: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {}
             '''.format(
                 opportunity.id, opportunity.department.name if opportunity.department else '',
                 opportunity.description,
@@ -259,12 +253,7 @@ class Opportunity(Model):
             setattr(self, attr, value)
 
         current_app.logger.info(
-            '''BEACON Update - Opportunity Updated:
-                ID: {}
-                Title: {}
-                Publish Date: {}
-                Submission Start Date: {}
-                Submission End Date: {}
+'''BEACON Update - Opportunity Updated: ID: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {}
             '''.format(
                 self.id, self.description, str(self.planned_publish),
                 str(self.planned_submission_start), str(self.planned_submission_end)
@@ -294,12 +283,7 @@ class Opportunity(Model):
             self.published_at = datetime.datetime.utcnow()
 
             current_app.logger.info(
-                '''BEACON PUBLISHED:
-                ID: {}
-                Title: {}
-                Publish Date: {}
-                Submission Start Date: {}
-                Submission End Date: {}
+'''BEACON PUBLISHED:  ID: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {}
                 '''.format(
                     self.id, self.description, str(self.planned_publish),
                     str(self.planned_submission_start), str(self.planned_submission_end)

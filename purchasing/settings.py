@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import pytz
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 os_env = os.environ
@@ -32,6 +33,7 @@ class Config(object):
     CELERY_IMPORTS = ("purchasing.tasks",)
     BROKER_POOL_LIMIT = None
     SERVER_NAME = os_env.get('BROWSERID_URL')
+    DISPLAY_TIMEZONE = pytz.timezone(os_env.get('DISPLAY_TIMEZONE', 'US/Eastern'))
 
 class ProdConfig(Config):
     """Production configuration."""

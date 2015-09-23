@@ -6,7 +6,7 @@ import re
 
 import pytz
 import dateutil.parser
-from flask import flash, request, url_for
+from flask import flash, request, url_for, current_app
 from flask_login import current_user
 
 from purchasing.compat import basestring
@@ -116,7 +116,8 @@ def datetimeformat(date, fmt='%Y-%m-%d'):
 
     if isinstance(date, basestring):
         date = dateutil.parser.parse(date)
-    elif isinstance(date, datetime.datetime):
-        pass
+
+    if isinstance(date, datetime.datetime):
+        date = current_app.config['DISPLAY_TIMEZONE'].localize(date).date()
 
     return date.strftime(fmt)

@@ -288,7 +288,7 @@ class OpportunityForm(CategoryForm):
     description = fields.TextAreaField(validators=[max_words(), DataRequired()])
     planned_publish = fields.DateField(validators=[DataRequired()])
     planned_submission_start = fields.DateField(validators=[DataRequired()])
-    planned_submission_end = fields.DateField(validators=[DataRequired(), after_today])
+    planned_submission_end = fields.DateTimeField(validators=[DataRequired(), after_today])
     vendor_documents_needed = fields.SelectMultipleField(widget=select_multi_checkbox, coerce=int)
     documents = fields.FieldList(fields.FormField(OpportunityDocumentForm), min_entries=1)
 

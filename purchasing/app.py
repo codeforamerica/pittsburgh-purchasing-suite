@@ -136,7 +136,7 @@ def register_errorhandlers(app):
         if error_code == 500:
             app_status = AppStatus.query.first()
             app_status.status = 'error'
-            app_status.last_updated = datetime.datetime.now()
+            app_status.last_updated = datetime.datetime.utcnow()
             app_status.message = str(error)
             db.session.commit()
 

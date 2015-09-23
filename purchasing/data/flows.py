@@ -105,10 +105,10 @@ def switch_flow(new_flow_id, contract_id, user):
     # log that we are switching flows into the first stage
     switch_log = ContractStageActionItem(
         contract_stage_id=new_contract_stages[0].id, action_type='flow_switch',
-        taken_by=user.id, taken_at=datetime.datetime.now(),
+        taken_by=user.id, taken_at=datetime.datetime.utcnow(),
         action_detail={
-            'timestamp': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
-            'date': datetime.datetime.now().strftime('%Y-%m-%d'),
+            'timestamp': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S'),
+            'date': datetime.datetime.utcnow().strftime('%Y-%m-%d'),
             'type': 'flow_switched', 'old_flow': old_flow,
             'new_flow': contract.flow.flow_name,
             'old_flow_actions': [i.as_dict() for i in old_action_log]
