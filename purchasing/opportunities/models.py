@@ -308,7 +308,6 @@ class Opportunity(Model):
             return True
         return False
 
-
 class OpportunityDocument(Model):
     __tablename__ = 'opportunity_document'
 

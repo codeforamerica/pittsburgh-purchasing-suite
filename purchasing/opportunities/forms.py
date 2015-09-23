@@ -60,6 +60,45 @@ def select_multi_checkbox(field, ul_class='', **kwargs):
     html.append(u'</div>')
     return u''.join(html)
 
+def email_present(form, field):
+    '''Checks that we have a vendor with that email address
+    '''
+    if field.data:
+        vendor = Vendor.query.filter(Vendor.email == field.data).first()
+        if vendor is None:
+            raise ValidationError("We can't find the email {}!".format(field.data))
+
+def city_domain_email(form, field):
+    '''Checks that the email is a current user or a city domain
+    '''
+    if field.data:
+        user = User.query.filter(User.email == field.data).first()
+        if user is None:
+            domain = re.search(DOMAINS, field.data)
+            if domain and domain.group().lstrip('@') != current_app.config.get('CITY_DOMAIN'):
+                raise ValidationError("That's not a valid contact!")
+
+def max_words(max=500):
+    message = 'Text cannot be more than {} words! You had {} words.'
+
+    def _max_words(form, field):
+        l = field.data and len(field.data.split()) or 0
+        if l > max:
+            raise ValidationError(message.format(max, l))
+
+    return _max_words
+
+def after_today(form, field):
+    if isinstance(field.data, datetime.datetime):
+        to_test = field.data.date()
+    elif isinstance(field.data, datetime.date):
+        to_test = field.data
+    else:
+        raise ValidationError('This must be a date')
+
+    if to_test <= datetime.date.today():
+        raise ValidationError('The deadline has to be after today!')
+
 class MultiCheckboxField(fields.SelectMultipleField):
     '''Custom multiple select that displays a list of checkboxes
 
@@ -178,45 +217,6 @@ class OpportunitySignupForm(CategoryForm):
     business_name = fields.TextField(validators=[DataRequired()])
     email = fields.TextField(validators=[DataRequired(), Email()])
     also_categories = fields.BooleanField()
-
-def email_present(form, field):
-    '''Checks that we have a vendor with that email address
-    '''
-    if field.data:
-        vendor = Vendor.query.filter(Vendor.email == field.data).first()
-        if vendor is None:
-            raise ValidationError("We can't find the email {}!".format(field.data))
-
-def city_domain_email(form, field):
-    '''Checks that the email is a current user or a city domain
-    '''
-    if field.data:
-        user = User.query.filter(User.email == field.data).first()
-        if user is None:
-            domain = re.search(DOMAINS, field.data)
-            if domain and domain.group().lstrip('@') != current_app.config.get('CITY_DOMAIN'):
-                raise ValidationError("That's not a valid contact!")
-
-def max_words(max=500):
-    message = 'Text cannot be more than {} words! You had {} words.'
-
-    def _max_words(form, field):
-        l = field.data and len(field.data.split()) or 0
-        if l > max:
-            raise ValidationError(message.format(max, l))
-
-    return _max_words
-
-def after_today(form, field):
-    if isinstance(field.data, datetime.datetime):
-        to_test = field.data.date()
-    elif isinstance(field.data, datetime.date):
-        to_test = field.data
-    else:
-        raise ValidationError('This must be a date')
-
-    if to_test <= datetime.date.today():
-        raise ValidationError('The deadline has to be after today!')
 
 class UnsubscribeForm(Form):
     email = fields.TextField(validators=[DataRequired(), Email(), email_present])
