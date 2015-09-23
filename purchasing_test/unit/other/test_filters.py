@@ -10,7 +10,7 @@ from flask_testing import TestCase as FlaskTestCase
 from purchasing.app import create_app as _create_app
 from purchasing.filters import (
     better_title, format_currency, days_from_today,
-    datetimeformat, format_days_from_today
+    datetimeformat, format_days_from_today, newline_to_br
 )
 
 class TestFilters(TestCase):
@@ -77,3 +77,14 @@ class TestDateTimeFormat(FlaskTestCase):
         self.assertEquals(datetimeformat('2015-01-01T00:00:01'), '2014-12-31')
         self.assertEquals(datetimeformat('2015-01-01T00:00:00'), '2015-01-01')
         self.assertEquals(datetimeformat(None), '')
+
+    def test_newline_to_br(self):
+        self.assertEquals(
+            newline_to_br(None, 'test\r\n\r\ntest\r\n\r\ntest'),
+            '<p>test</p>\n\n<p>test</p>\n\n<p>test</p>'
+        )
+        self.assertEquals(
+            newline_to_br(None, 'test\ntest\r\n\r\ntest\r\n\r\ntest'),
+            '<p>test<br>\ntest</p>\n\n<p>test</p>\n\n<p>test</p>'
+        )
+
