@@ -154,7 +154,7 @@ class Opportunity(Model):
         '''
         return pytz.UTC.localize(self.planned_submission_end).astimezone(
             current_app.config['DISPLAY_TIMEZONE']
-        ).strftime('%B %d, %Y at %I:%M%p')
+        ).strftime('%B %d, %Y at %I:%M%p %Z')
 
     def get_needed_documents(self):
         return RequiredBidDocument.query.filter(

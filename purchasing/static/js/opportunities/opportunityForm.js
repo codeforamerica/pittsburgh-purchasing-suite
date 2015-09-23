@@ -8,7 +8,7 @@
     }
   });
   $('.datetimepicker').datetimepicker({
-    format: 'YYYY-MM-DD h:mm:ssa',
+    format: 'YYYY-MM-DD h:mma',
     widgetPositioning: {
       vertical: 'bottom',
     }
