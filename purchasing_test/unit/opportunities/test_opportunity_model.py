@@ -2,8 +2,9 @@
 
 import datetime
 from unittest import TestCase
+from mock import patch
 
-from purchasing_test.factories import OpportunityFactory, UserFactory, RoleFactory
+from purchasing_test.factories import OpportunityFactory, UserFactory, RoleFactory, DepartmentFactory
 
 class TestOpportunityModel(TestCase):
     def setUp(self):
@@ -87,3 +88,29 @@ class TestOpportunityModel(TestCase):
         self.assertFalse(opportunity.can_edit(staff))
         self.assertFalse(opportunity.can_edit(creator))
         self.assertTrue(opportunity.can_edit(admin))
+
+    @patch('purchasing.notifications.Notification.send')
+    def send_publish_email(self, send):
+        should_send = OpportunityFactory.build(
+            is_public=True, planned_publish=self.yesterday,
+            planned_submission_end=self.tomorrow,
+            publish_notification_sent=False
+        )
+        self.assertTrue(should_send.send_publish_email())
+        self.assertTrue(send.called_once)
+
+        should_not_send = OpportunityFactory.build(
+            is_public=True, planned_publish=self.yesterday,
+            planned_submission_end=self.tomorrow,
+            publish_notification_sent=True
+        )
+        self.assertFalse(should_not_send.send_publish_email())
+        self.assertTrue(send.called_once)
+
+        should_not_send2 = OpportunityFactory.build(
+            is_public=False, planned_publish=self.yesterday,
+            planned_submission_end=self.tomorrow,
+            publish_notification_sent=False
+        )
+        self.assertFalse(should_not_send2.send_publish_email())
+        self.assertTrue(send.called_once)

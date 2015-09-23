@@ -13,7 +13,9 @@ from sqlalchemy.orm import backref
 from sqlalchemy.dialects.postgres import ARRAY
 from sqlalchemy.dialects.postgresql import TSVECTOR
 
-from purchasing.data.contracts import ContractType
+from purchasing.notifications import Notification
+from purchasing.utils import build_downloadable_groups, random_id
+from purchasing.users.models import User, Role
 
 category_vendor_association_table = Table(
     'category_vendor_association', Model.metadata,
@@ -53,6 +55,10 @@ class Category(Model):
         '''
         return db.session.query(db.distinct(cls.category).label('category')).order_by('category')
 
+    @classmethod
+    def query_factory(cls):
+        return cls.query
+
 class Opportunity(Model):
     __tablename__ = 'opportunity'
 
@@ -87,11 +93,6 @@ class Opportunity(Model):
     # documents needed from the vendors
     vendor_documents_needed = Column(ARRAY(db.Integer()))
 
-    created_by_id = ReferenceCol('users', ondelete='SET NULL')
-    created_by = db.relationship(
-        'User', backref=backref('opportunities_created', lazy='dynamic'),
-        foreign_keys='Opportunity.created_by_id'
-    )
     is_public = Column(db.Boolean(), default=False)
 
     # Date opportunity was actually made public on beacon
@@ -175,6 +176,138 @@ class Opportunity(Model):
             }
         ]
 
+    def _handle_uploads(self, documents):
+        opp_documents = self.opportunity_documents.all()
+
+        for document in documents.entries:
+            if document.title.data == '':
+                continue
+
+            _id = self.id if self.id else random_id(6)
+
+            _file = document.document.data
+            if _file.filename in [i.name for i in opp_documents]:
+                continue
+
+            filename, filepath = document.upload_document(_id)
+            if filepath:
+                self.opportunity_documents.append(OpportunityDocument(
+                    name=document.title.data, href=filepath
+                ))
+
+    def _publish(self, publish):
+        if not self.is_public:
+            if publish:
+                self.is_public = True
+
+    def notify_approvals(self, user):
+        Notification(
+            to_email=[user.email],
+            subject='Your post has been sent to OMB for approval',
+            html_template='opportunities/emails/staff_postsubmitted.html',
+            txt_template='opportunities/emails/staff_postsubmitted.txt',
+            opportunity=self
+        ).send(multi=True)
+
+        Notification(
+            to_email=db.session.query(User.email).join(Role, User.role_id == Role.id).filter(
+                Role.name.in_(['conductor', 'admin', 'superadmin'])
+            ).all(),
+            subject='A new Beacon post needs review',
+            html_template='opportunities/emails/admin_postforapproval.html',
+            txt_template='opportunities/emails/admin_postforapproval.txt',
+            opportunity=self
+        ).send(multi=True)
+
+    @classmethod
+    def create(cls, data, user, documents, publish=False):
+        opportunity = Opportunity(**data)
+
+        current_app.logger.info(
+            '''BEACON NEW - New Opportunity Created:
+                ID: {}
+                Department: {}
+                Title: {}
+                Publish Date: {}
+                Submission Start Date: {}
+                Submission End Date: {}
+            '''.format(
+                opportunity.id, opportunity.department.name if opportunity.department else '',
+                opportunity.description,
+                str(opportunity.planned_publish),
+                str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
+            )
+        )
+
+        if not (user.is_conductor() or publish):
+            # only send 'your post has been sent/a new post needs review'
+            # emails when 1. the submitter isn't from OMB and 2. they are
+            # saving a draft as opposed to publishing the opportunity
+            opportunity.notify_approvals(user)
+
+        opportunity._handle_uploads(documents)
+        opportunity._publish(publish)
+
+        return opportunity
+
+    def raw_update(self, **kwargs):
+        super(Opportunity, self).update(**kwargs)
+
+    def update(self, data, user, documents, publish=False):
+        data.pop('publish_notification_sent', None)
+        for attr, value in data.iteritems():
+            setattr(self, attr, value)
+
+        current_app.logger.info(
+            '''BEACON Update - Opportunity Updated:
+                ID: {}
+                Title: {}
+                Publish Date: {}
+                Submission Start Date: {}
+                Submission End Date: {}
+            '''.format(
+                self.id, self.description, str(self.planned_publish),
+                str(self.planned_submission_start), str(self.planned_submission_end)
+            )
+        )
+
+        self._handle_uploads(documents)
+        self._publish(publish)
+
+    def send_publish_email(self):
+        if self.is_published and not self.publish_notification_sent:
+            opp_categories = [i.id for i in self.categories]
+
+            vendors = Vendor.query.filter(
+                Vendor.categories.any(Category.id.in_(opp_categories))
+            ).all()
+
+            Notification(
+                to_email=[i.email for i in vendors],
+                subject='A new City of Pittsburgh opportunity from Beacon!',
+                html_template='opportunities/emails/newopp.html',
+                txt_template='opportunities/emails/newopp.txt',
+                opportunity=self
+            ).send(multi=True)
+
+            self.publish_notification_sent = True
+            self.published_at = datetime.datetime.utcnow()
+
+            current_app.logger.info(
+                '''BEACON PUBLISHED:
+                ID: {}
+                Title: {}
+                Publish Date: {}
+                Submission Start Date: {}
+                Submission End Date: {}
+                '''.format(
+                    self.id, self.description, str(self.planned_publish),
+                    str(self.planned_submission_start), str(self.planned_submission_end)
+                )
+            )
+            return True
+        return False
+
 class OpportunityDocument(Model):
     __tablename__ = 'opportunity_document'
 
@@ -247,6 +380,15 @@ class Vendor(Model):
     @classmethod
     def newsletter_subscribers(cls):
         return cls.query.filter(cls.subscribed_to_newsletter == True).all()
+
+    def build_downloadable_row(self):
+        return [
+            self.first_name, self.last_name, self.business_name,
+            self.email, self.phone_number, self.minority_owned,
+            self.woman_owned, self.veteran_owned, self.disadvantaged_owned,
+            build_downloadable_groups('category_friendly_name', self.categories),
+            build_downloadable_groups('title', self.opportunities)
+        ]
 
     def __unicode__(self):
         return self.email

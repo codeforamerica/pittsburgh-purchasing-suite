@@ -8,6 +8,7 @@ from mock import Mock, patch
 from flask import session
 from werkzeug.datastructures import ImmutableMultiDict
 
+from purchasing.users.models import User
 from purchasing.data.contracts import ContractBase
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 from purchasing.data.stages import Stage
@@ -29,7 +30,7 @@ class TestConductorSetup(BaseTestCase):
         super(TestConductorSetup, self).setUp()
         # create a conductor and general staff person
         self.county_type = ContractTypeFactory.create(**{'name': 'County'})
-        self.department = DepartmentFactory.create(**{'name': 'test'})
+        self.department = DepartmentFactory.create(**{'name': 'test department'})
 
         self.conductor_role_id = insert_a_role('conductor')
         self.staff_role_id = insert_a_role('staff')
@@ -52,7 +53,7 @@ class TestConductorSetup(BaseTestCase):
         self.contract1 = insert_a_contract(
             contract_type=self.county_type, description='scuba supplies', financial_id=123,
             expiration_date=datetime.date.today(), properties=[{'key': 'Spec Number', 'value': '123'}],
-            is_visible=True
+            is_visible=True, department=self.department
         )
         self.contract2 = insert_a_contract(
             contract_type=self.county_type, description='scuba repair', financial_id=456,
@@ -507,12 +508,15 @@ class TestConductor(TestConductorSetup):
         assign = self.assign_contract()
 
         detail_view_url = self.build_detail_view(assign)
+        old_view = self.client.get(detail_view_url)
+        self.assertTrue(self.department.name in old_view.data)
 
         self.client.post(detail_view_url + '?form=post', data=dict(
             contact_email=self.conductor.email, title='foobar', description='barbaz',
             planned_publish=datetime.date.today() + datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
-            planned_submission_end=datetime.date.today() + datetime.timedelta(2)
+            planned_submission_end=datetime.date.today() + datetime.timedelta(2),
+            department=self.department.id
         ))
 
         self.assertEquals(Opportunity.query.count(), 1)

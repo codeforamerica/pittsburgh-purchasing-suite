@@ -16,11 +16,9 @@ from purchasing.extensions import mail
 from purchasing.users.models import User
 from purchasing.data.stages import Stage
 from purchasing.data.flows import Flow
-from purchasing.opportunities.models import (
-    Opportunity, Vendor, Category, OpportunityDocument
-)
+from purchasing.opportunities.models import Opportunity, Vendor, Category, OpportunityDocument
+from purchasing.opportunities.forms import OpportunityDocumentForm
 from purchasing.data.importer.nigp import main as import_nigp
-from purchasing.opportunities.util import upload_document
 
 from purchasing_test.test_base import BaseTestCase
 from purchasing_test.factories import (
@@ -50,28 +48,27 @@ class TestOpportunitiesAdminBase(BaseTestCase):
         self.admin = insert_a_user(email='foo@foo.com', role=self.admin_role)
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role)
 
-        self.document = insert_a_document()
         self.opportunity1 = insert_an_opportunity(
-            contact=self.admin, created_by=self.staff, required_documents=[self.document],
+            contact=self.admin, created_by=self.staff,
             is_public=True, planned_publish=datetime.date.today() + datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
             planned_submission_end=datetime.date.today() + datetime.timedelta(2)
         )
         self.opportunity2 = insert_an_opportunity(
-            contact=self.admin, created_by=self.staff, required_documents=[self.document],
+            contact=self.admin, created_by=self.staff,
             is_public=True, planned_publish=datetime.date.today(),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
             planned_submission_end=datetime.date.today() + datetime.timedelta(2),
             categories=set([Category.query.first()])
         )
         self.opportunity3 = insert_an_opportunity(
-            contact=self.admin, created_by=self.staff, required_documents=[self.document],
+            contact=self.admin, created_by=self.staff,
             is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(2),
             planned_submission_start=datetime.date.today() - datetime.timedelta(2),
             planned_submission_end=datetime.date.today() - datetime.timedelta(1)
         )
         self.opportunity4 = insert_an_opportunity(
-            contact=self.admin, created_by=self.staff, required_documents=[self.document],
+            contact=self.admin, created_by=self.staff,
             is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(1),
             planned_submission_start=datetime.date.today(),
             planned_submission_end=datetime.date.today() + datetime.timedelta(2),
@@ -94,11 +91,13 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         '''Test document uploads properly
         '''
         # assert that we return none without a document
-        no_document = FileStorage(StringIO(''), filename='')
-        self.assertEquals((None, None), upload_document(no_document, 1))
+        form = OpportunityDocumentForm()
+        form.document.data = FileStorage(StringIO(''), filename='')
+        self.assertEquals((None, None), form.upload_document(1))
 
-        document = FileStorage(StringIO('hello world!'), filename='test.txt')
-        upload_document(document, 1)
+        good_form = OpportunityDocumentForm()
+        good_form.document.data = FileStorage(StringIO('hello world!'), filename='test.txt')
+        good_form.upload_document(1)
 
         self.assertTrue('opportunity-1-test.txt' in listdir(current_app.config.get('UPLOAD_DESTINATION')))
 
@@ -238,7 +237,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.client.post('/beacon/admin/opportunities/{}'.format(self.opportunity2.id), data={
             'planned_submission_start': datetime.date.today(), 'title': 'Updated',
             'is_public': True, 'description': 'Updated Contract!', 'save_type': 'public',
-            'contact_email': self.admin.email,
+            'contact_email': self.admin.email, 'department': self.department1.id,
             'subcategories-{}'.format(Category.query.all()[-1].id): 'on'
         })
 
@@ -376,6 +375,9 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             categories=set([Category.query.all()[-1]])
         )
         db.session.commit()
+
+        self.opportunity1.created_by = self.staff
+        self.opportunity3.created_by = self.staff
 
     def test_vendor_signup_unpublished(self):
         '''Test vendors can't signup for unpublished opportunities

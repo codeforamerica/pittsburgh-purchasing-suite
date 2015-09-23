@@ -141,6 +141,7 @@ def insert_an_opportunity(
         planned_submission_start=planned_submission_start,
         planned_submission_end=planned_submission_end,
         created_from_id=created_from_id, created_by=created_by,
+        created_by_id=created_by.id,
         is_public=is_public, categories=categories
     ))
 

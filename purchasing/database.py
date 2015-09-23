@@ -66,14 +66,6 @@ def ReferenceCol(tablename, nullable=False, ondelete=None, pk_name='id', **kwarg
         db.ForeignKey("{0}.{1}".format(tablename, pk_name), ondelete=ondelete),
         nullable=nullable, **kwargs)
 
-def create_time(mapper, connection, target):
-    target.created_at = datetime.datetime.utcnow()
-    target.created_by_id = current_user.id if hasattr(current_user, 'id') else None
-
-def update_time(mapper, connection, target):
-    target.updated_at = datetime.datetime.utcnow()
-    target.updated_by_id = current_user.id if hasattr(current_user, 'id') else None
-
 class Model(CRUDMixin, db.Model):
     """Base model class that includes CRUD convenience methods."""
     __abstract__ = True
@@ -84,7 +76,7 @@ class Model(CRUDMixin, db.Model):
     @declared_attr
     def created_by_id(cls):
         return Column(
-            db.Integer(), db.ForeignKey('users.id', use_alter=True, name='created_by_id_fkey')
+            db.Integer(), db.ForeignKey('users.id', use_alter=True, name='created_by_id_fkey'), nullable=True
         )
 
     @declared_attr
@@ -94,7 +86,7 @@ class Model(CRUDMixin, db.Model):
     @declared_attr
     def updated_by_id(cls):
         return Column(
-            db.Integer(), db.ForeignKey('users.id', use_alter=True, name='updated_by_id_fkey')
+            db.Integer(), db.ForeignKey('users.id', use_alter=True, name='updated_by_id_fkey'), nullable=True
         )
 
     @declared_attr
@@ -117,18 +109,16 @@ class Model(CRUDMixin, db.Model):
             c.name: self.serialize_dates(getattr(self, c.name)) for c in self.__table__.columns
         }
 
-    @classmethod
-    def create_handler(cls, *args, **kwargs):
-        return create_time
+@sqlalchemy.event.listens_for(Model, 'before_insert', propagate=True)
+def before_insert(mapper, connecton, instance):
+    instance.created_at = datetime.datetime.utcnow()
+    instance.created_by_id = current_user.id if hasattr(current_user, 'id') and not current_user.is_anonymous() else None
 
-    @classmethod
-    def update_handler(cls, *args, **kwargs):
-        return update_time
-
-    @classmethod
-    def __declare_last__(cls):
-        sqlalchemy.event.listen(cls, 'before_insert', cls.create_handler)
-        sqlalchemy.event.listen(cls, 'before_update', cls.update_handler)
+@sqlalchemy.event.listens_for(Model, 'before_update', propagate=True)
+def before_update(mapper, connection, instance):
+    if db.session.object_session(instance).is_modified(instance, include_collections=False):
+        instance.updated_at = datetime.datetime.utcnow()
+        instance.updated_by_id = current_user.id if hasattr(current_user, 'id') and not current_user.is_anonymous() else None
 
 
 def refresh_search_view(mapper, connection, target):

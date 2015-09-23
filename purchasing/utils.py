@@ -128,6 +128,15 @@ def _get_aggressive_cache_headers(key):
 
     return metadata
 
+def build_downloadable_groups(val, iterable):
+    '''Sorts and dedupes related lists
+
+    Handles quoting, deduping, and sorting
+    '''
+    return '"' + '; '.join(
+        sorted(list(set([i.__dict__[val] for i in iterable])))
+    ) + '"'
+
 class SimplePagination(object):
     '''
     Simple pagination support

@@ -28,11 +28,10 @@ from purchasing.conductor.forms import (
 )
 
 from purchasing.conductor.util import (
-    handle_form, ContractMetadataObj, build_subscribers, create_opp_form_obj,
+    handle_form, ContractMetadataObj, build_subscribers,
     json_serial, parse_companies, UpdateFormObj, assign_a_contract
 )
 
-from purchasing.opportunities.util import generate_opportunity_form
 from purchasing.conductor.manager import blueprint
 
 @blueprint.route('/')
@@ -136,9 +135,8 @@ def detail(contract_id, stage_id=-1):
 
     note_form = NoteForm()
     update_form = SendUpdateForm(obj=UpdateFormObj(current_stage))
-    opportunity_form, categories, subcategories = generate_opportunity_form(
-        obj=create_opp_form_obj(contract),
-        form=PostOpportunityForm
+    opportunity_form = PostOpportunityForm(
+        obj=contract.opportunity if contract.opportunity else contract
     )
     metadata_form = ContractMetadataForm(obj=ContractMetadataObj(contract))
 
@@ -172,6 +170,8 @@ def detail(contract_id, stage_id=-1):
         )
     )
 
+    opportunity_form.display_cleanup()
+
     if len(stages) > 0:
         return render_template(
             'conductor/detail.html',
@@ -181,8 +181,8 @@ def detail(contract_id, stage_id=-1):
             contract=contract, current_user=current_user,
             active_stage=active_stage, current_stage=current_stage,
             flows=flows, subscribers=subscribers,
-            total_subscribers=total_subscribers, categories=categories,
-            subcategories=subcategories
+            total_subscribers=total_subscribers, categories=opportunity_form.get_categories(),
+            subcategories=opportunity_form.get_subcategories()
         )
     abort(404)
 

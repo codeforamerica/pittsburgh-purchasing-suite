@@ -4,6 +4,8 @@ from flask import current_app
 from purchasing_test.test_base import BaseTestCase
 
 from purchasing.data.importer.nigp import main
+from purchasing.opportunities import models
+from purchasing.users.models import User
 from purchasing.opportunities.models import Category
 
 class TestNigpImport(BaseTestCase):

@@ -2,9 +2,9 @@
 
 from mock import Mock, patch
 
+from purchasing.opportunities.models import Opportunity
 from purchasing.data import contracts, flows, stages
 from purchasing.data.contract_stages import ContractStage
-from purchasing.opportunities import models
 from purchasing.users import models
 
 from purchasing_test.factories import (

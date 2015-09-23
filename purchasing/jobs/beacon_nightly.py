@@ -29,7 +29,7 @@ class BeaconNewOppotunityOpenJob(EmailJobBase):
                     opportunity=opportunity
                 )
             )
-            opportunity.update(publish_notification_sent=True)
+            opportunity.raw_update(publish_notification_sent=True)
 
         return notifications
 

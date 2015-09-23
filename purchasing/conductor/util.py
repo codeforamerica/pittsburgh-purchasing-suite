@@ -17,10 +17,6 @@ from purchasing.data.flows import create_contract_stages
 from purchasing.opportunities.models import Opportunity
 from purchasing.users.models import User, Role, Department
 
-from purchasing.opportunities.util import (
-    build_opportunity, fix_form_categories
-)
-
 class ContractMetadataObj(object):
     def __init__(self, contract):
         self.expiration_date = contract.expiration_date
@@ -132,17 +128,14 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
             if contract.opportunity:
                 label = 'updated'
 
-            form_data = fix_form_categories(request, form, Opportunity, None)
-            # add the contact email, documents back on because it was stripped by the cleaning
-            form_data['contact_email'] = form.data.get('contact_email')
-            form_data['documents'] = form.documents
-            # add the created_by_id
-            form_data['created_from_id'] = contract.id
-            # strip the is_public field from the form data, it's not part of the form
-            form_data.pop('is_public')
-            opportunity = build_opportunity(
-                form_data, publish='publish', opportunity=contract.opportunity
+            opportunity_data = form.data_cleanup()
+            opportunity_data['created_from_id'] = contract.id
+            opportunity = Opportunity.create(
+                opportunity_data, current_user,
+                form.documents, request.form.get('save_type') == 'publish'
             )
+            db.session.add(opportunity)
+            db.session.commit()
 
             action.action_detail = {
                 'opportunity_id': opportunity.id, 'title': opportunity.title,

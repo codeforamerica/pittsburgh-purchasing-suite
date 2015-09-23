@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import os
 import re
 import datetime
+import json
 
-from flask import current_app
+from collections import defaultdict
+
+from werkzeug import secure_filename
+
+from flask import current_app, request
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import widgets, fields
@@ -17,6 +23,10 @@ from purchasing.opportunities.models import Vendor
 from purchasing.utils import RequiredIf
 from purchasing.users.models import User, Department
 from purchasing.data.contracts import ContractType
+from purchasing.opportunities.models import Category, RequiredBidDocument
+from purchasing.opportunities.util import parse_contact
+
+from purchasing.utils import connect_to_s3, _get_aggressive_cache_headers
 
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
@@ -49,53 +59,6 @@ def select_multi_checkbox(field, ul_class='', **kwargs):
         html.append(u'</div>')
     html.append(u'</div>')
     return u''.join(html)
-
-class MultiCheckboxField(fields.SelectMultipleField):
-    '''Custom multiple select that displays a list of checkboxes
-
-    We have a custom pre_validate to handle cases where a
-    user has choices from multiple categories. This will insert
-    those selected choices into the CHOICES on the class, allowing
-    the validation to pass.
-    '''
-    widget = widgets.ListWidget(prefix_label=False)
-    option_widget = widgets.CheckboxInput()
-
-    def pre_validate(self, form):
-        pass
-
-def validate_phone_number(form, field):
-    '''Strips out non-integer characters, checks that it is 10-digits
-    '''
-    if field.data:
-        value = re.sub(ALL_INTEGERS, '', field.data)
-        if len(value) != 10 and len(value) != 0:
-            raise ValidationError('Invalid 10-digit phone number!')
-
-class SignupForm(Form):
-    business_name = fields.TextField(validators=[DataRequired()])
-    email = fields.TextField(validators=[DataRequired(), Email()])
-
-class VendorSignupForm(SignupForm):
-    first_name = fields.TextField()
-    last_name = fields.TextField()
-    phone_number = fields.TextField(validators=[validate_phone_number])
-    fax_number = fields.TextField(validators=[validate_phone_number])
-    woman_owned = fields.BooleanField('Woman-owned business')
-    minority_owned = fields.BooleanField('Minority-owned business')
-    veteran_owned = fields.BooleanField('Veteran-owned business')
-    disadvantaged_owned = fields.BooleanField('Disadvantaged business enterprise')
-    subcategories = MultiCheckboxField(coerce=int, choices=[])
-    categories = fields.SelectField(choices=[], validators=[])
-    subscribed_to_newsletter = fields.BooleanField(
-        label='Biweekly update on all opportunities posted to Beacon', validators=[Optional()],
-        default="checked"
-    )
-
-class OpportunitySignupForm(SignupForm):
-    subcategories = MultiCheckboxField(coerce=int, choices=[])
-    categories = fields.SelectField(choices=[], validators=[Optional()])
-    also_categories = fields.BooleanField()
 
 def email_present(form, field):
     '''Checks that we have a vendor with that email address
@@ -136,6 +99,125 @@ def after_today(form, field):
     if to_test <= datetime.date.today():
         raise ValidationError('The deadline has to be after today!')
 
+class MultiCheckboxField(fields.SelectMultipleField):
+    '''Custom multiple select that displays a list of checkboxes
+
+    We have a custom pre_validate to handle cases where a
+    user has choices from multiple categories. This will insert
+    those selected choices into the CHOICES on the class, allowing
+    the validation to pass.
+    '''
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
+
+    def pre_validate(self, form):
+        pass
+
+class DynamicSelectField(fields.SelectField):
+    def pre_validate(self, form):
+        for category in self.data:
+            if isinstance(category, Category):
+                self.choices.append([category, category])
+                continue
+            else:
+                raise ValidationError('Invalid category!')
+                return False
+        return True
+
+
+def validate_phone_number(form, field):
+    '''Strips out non-integer characters, checks that it is 10-digits
+    '''
+    if field.data:
+        value = re.sub(ALL_INTEGERS, '', field.data)
+        if len(value) != 10 and len(value) != 0:
+            raise ValidationError('Invalid 10-digit phone number!')
+
+class CategoryForm(Form):
+    subcategories = MultiCheckboxField(coerce=int, choices=[])
+    categories = DynamicSelectField(choices=[])
+
+    def get_categories(self):
+        return self._categories
+
+    def get_subcategories(self):
+        return self._subcategories
+
+    def pop_categories(self, categories=True, subcategories=True):
+        cleaned_data = self.data
+        cleaned_data.pop('categories') if categories else None
+        cleaned_data.pop('subcategories') if subcategories else None
+        return cleaned_data
+
+    def build_categories(self, all_categories):
+        '''Build category/subcategory lists/dictionaries
+        '''
+        categories, subcategories = set(), defaultdict(list)
+        for category in all_categories:
+            categories.add(category.category)
+            subcategories['Select All'].append((category.id, category.category_friendly_name))
+            subcategories[category.category].append((category.id, category.category_friendly_name))
+
+        self.categories.choices = list(sorted(zip(categories, categories))) + [('Select All', 'Select All')]
+        self.categories.choices.insert(0, ('', '-- Choose One --'))
+
+        self.subcategories.choices = []
+        return subcategories
+
+    def display_cleanup(self, all_categories=None):
+        all_categories = all_categories if all_categories else Category.query.all()
+        subcategories = self.build_categories(all_categories)
+        self._subcategories = json.dumps(subcategories)
+        display_categories = subcategories.keys()
+        if 'Select All' in display_categories:
+            display_categories.remove('Select All')
+        self._categories = json.dumps(sorted(display_categories))
+
+    def process(self, formdata=None, obj=None, data=None, **kwargs):
+        super(CategoryForm, self).process(request.form, obj, data, **kwargs)
+
+        self.categories.data = obj.categories if obj and hasattr(obj, 'categories') else set()
+        subcats = set()
+
+        for k, v in request.form.iteritems():
+            if not k.startswith('subcategories-'):
+                continue
+            else:
+                subcat_id = int(k.split('-')[1])
+                # make sure the field is checked (or 'on') and we don't have it already
+                if v == 'on' and subcat_id not in subcats:
+                    subcats.add(subcat_id)
+                    subcat = Category.query.get(subcat_id)
+                    # make sure it's a valid category_friendly_name
+                    if subcat is None:
+                        self.errors['subcategories'] = ['{} is not a valid choice!'.format(subcat)]
+                        break
+                    self.categories.data.add(subcat)
+
+        if len(subcats) == 0 and not self.errors.get('subcategories', None):
+            self.errors['categories'] = ['You must choose at least one!']
+
+class VendorSignupForm(CategoryForm):
+    business_name = fields.TextField(validators=[DataRequired()])
+    email = fields.TextField(validators=[DataRequired(), Email()])
+    first_name = fields.TextField()
+    last_name = fields.TextField()
+    phone_number = fields.TextField(validators=[validate_phone_number])
+    fax_number = fields.TextField(validators=[validate_phone_number])
+    woman_owned = fields.BooleanField('Woman-owned business')
+    minority_owned = fields.BooleanField('Minority-owned business')
+    veteran_owned = fields.BooleanField('Veteran-owned business')
+    disadvantaged_owned = fields.BooleanField('Disadvantaged business enterprise')
+    subscribed_to_newsletter = fields.BooleanField(
+        label='Biweekly update on all opportunities posted to Beacon', validators=[Optional()],
+        default="checked"
+    )
+
+class OpportunitySignupForm(CategoryForm):
+    business_name = fields.TextField(validators=[DataRequired()])
+    email = fields.TextField(validators=[DataRequired(), Email()])
+    also_categories = fields.BooleanField()
+
 class UnsubscribeForm(Form):
     email = fields.TextField(validators=[DataRequired(), Email(), email_present])
     categories = MultiCheckboxField(coerce=int)
@@ -154,7 +236,41 @@ class OpportunityDocumentForm(Form):
         ]
     )
 
-class OpportunityForm(Form):
+    def upload_document(self, _id):
+        if self.document.data is None or self.document.data == '':
+            return None, None
+
+        filename = secure_filename(self.document.data.filename)
+
+        if filename == '':
+            return None, None
+
+        _filename = 'opportunity-{}-{}'.format(_id, filename)
+
+        if current_app.config.get('UPLOAD_S3') is True:
+            # upload file to s3
+            conn, bucket = connect_to_s3(
+                current_app.config['AWS_ACCESS_KEY_ID'],
+                current_app.config['AWS_SECRET_ACCESS_KEY'],
+                current_app.config['UPLOAD_DESTINATION']
+            )
+            _document = bucket.new_key(_filename)
+            aggressive_headers = _get_aggressive_cache_headers(_document)
+            _document.set_contents_from_file(self.document.data, headers=aggressive_headers, replace=True)
+            _document.set_acl('public-read')
+            return _document.name, _document.generate_url(expires_in=0, query_auth=False)
+
+        else:
+            try:
+                os.mkdir(current_app.config['UPLOAD_DESTINATION'])
+            except:
+                pass
+
+            filepath = os.path.join(current_app.config['UPLOAD_DESTINATION'], _filename)
+            self.document.data.save(filepath)
+            return _filename, filepath
+
+class OpportunityForm(CategoryForm):
     department = QuerySelectField(
         query_factory=Department.query_factory,
         get_pk=lambda i: i.id,
@@ -174,6 +290,18 @@ class OpportunityForm(Form):
     planned_submission_start = fields.DateField(validators=[DataRequired()])
     planned_submission_end = fields.DateField(validators=[DataRequired(), after_today])
     vendor_documents_needed = fields.SelectMultipleField(widget=select_multi_checkbox, coerce=int)
-    categories = fields.SelectField(choices=[], validators=[Optional()])
-    subcategories = MultiCheckboxField(coerce=int, validators=[Optional()], choices=[])
     documents = fields.FieldList(fields.FormField(OpportunityDocumentForm), min_entries=1)
+
+    def display_cleanup(self, opportunity=None):
+        self.vendor_documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
+        self.contact_email.data = opportunity.contact.email if opportunity else ''
+
+        super(OpportunityForm, self).display_cleanup()
+
+    def data_cleanup(self):
+        opportunity_data = self.pop_categories(categories=False)
+        opportunity_data.pop('documents')
+
+        opportunity_data['department_id'] = self.department.data.id
+        opportunity_data['contact_id'] = parse_contact(opportunity_data.pop('contact_email'), self.department.data)
+        return opportunity_data

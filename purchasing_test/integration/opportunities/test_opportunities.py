@@ -39,7 +39,7 @@ class TestOpportunities(BaseTestCase):
             # filters out non-beacon endpoints
             if (len(_endpoint) > 1 and _endpoint[1] == 'static') or \
                 _endpoint[0] != ('opportunities', 'opportunities_admin'):
-                continue
+                    continue
             else:
                 if '<int:' in rule.rule:
                     response = self.client.get(url_for(rule.endpoint, opportunity_id=opportunity.id))
@@ -149,7 +149,7 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(success_post_everything.location, 'http://localhost/beacon/')
             self.assertEquals(len(outbox), 4)
             self.assertEquals(Vendor.query.count(), 2)
-            self.assertEquals(len(Vendor.query.all()[1].categories), 5)
+            self.assertEquals(len(Vendor.query.filter(Vendor.email == 'foo2@foo.com').first().categories), 5)
             self.assert_flashes('Thank you for signing up! Check your email for more information', 'alert-success')
 
             # successful post with existing email should update the profile, not send message
@@ -167,7 +167,7 @@ class TestOpportunities(BaseTestCase):
             self.assertEquals(success_post_old_email.location, 'http://localhost/beacon/')
             self.assertEquals(len(outbox), 4)
             self.assertEquals(Vendor.query.count(), 2)
-            self.assertEquals(len(Vendor.query.all()[1].categories), 5)
+            self.assertEquals(len(Vendor.query.filter(Vendor.email == 'foo2@foo.com').first().categories), 5)
             self.assert_flashes(
                 "You are already signed up! Your profile was updated with this new information", 'alert-info'
             )
