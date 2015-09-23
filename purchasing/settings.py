@@ -90,3 +90,4 @@ class TestConfig(Config):
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'test_uploads'))
     UPLOAD_FOLDER = UPLOAD_DESTINATION
     CELERY_ALWAYS_EAGER = True
+    DISPLAY_TIMEZONE = pytz.timezone('UTC')

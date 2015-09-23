@@ -2,9 +2,17 @@
   'use strict';
 
   $('.datepicker').datetimepicker({
-    format: 'YYYY-MM-DD'
+    format: 'YYYY-MM-DD',
+    widgetPositioning: {
+      vertical: 'bottom',
+    }
   });
-  $('.datetimepicker').datetimepicker();
+  $('.datetimepicker').datetimepicker({
+    format: 'YYYY-MM-DD h:mm:ssa',
+    widgetPositioning: {
+      vertical: 'bottom',
+    }
+  });
 
   $('[data-toggle="tooltip"]').tooltip();
 

@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from flask import current_app
+import pytz
 import datetime
-from purchasing.database import (
-    Column,
-    Model,
-    db,
-    ReferenceCol,
-)
+
+from flask import current_app
+
+from purchasing.database import Column, Model, db, ReferenceCol
+
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref
 from sqlalchemy.dialects.postgres import ARRAY
@@ -153,7 +152,9 @@ class Opportunity(Model):
     def estimate_submission_end(self):
         '''
         '''
-        return self.planned_submission_end.strftime('%B %d, %Y')
+        return pytz.UTC.localize(self.planned_submission_end).astimezone(
+            current_app.config['DISPLAY_TIMEZONE']
+        ).strftime('%B %d, %Y at %I:%M%p')
 
     def get_needed_documents(self):
         return RequiredBidDocument.query.filter(

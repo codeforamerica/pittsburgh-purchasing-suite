@@ -110,7 +110,7 @@ def format_days_from_today(field):
     else:
         return '{} days ago'.format(abs(days))
 
-def datetimeformat(date, fmt='%Y-%m-%d'):
+def datetimeformat(date, fmt='%Y-%m-%d', to_date=True):
     if date is None:
         return ''
 
@@ -118,6 +118,9 @@ def datetimeformat(date, fmt='%Y-%m-%d'):
         date = dateutil.parser.parse(date)
 
     if isinstance(date, datetime.datetime):
-        date = current_app.config['DISPLAY_TIMEZONE'].localize(date).date()
+        date = pytz.UTC.localize(date).astimezone(current_app.config['DISPLAY_TIMEZONE'])
+
+        if to_date:
+            date = date.date()
 
     return date.strftime(fmt)

@@ -7,7 +7,10 @@
       placeholder: 'Pick one'
     });
     $('.datepicker').datetimepicker({
-      format: 'LTS'
+      format: 'YYYY-MM-DD',
+      widgetPositioning: {
+        vertical: 'bottom',
+      }
     });
     return;
   }

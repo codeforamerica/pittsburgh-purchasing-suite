@@ -4,6 +4,7 @@ import os
 import re
 import datetime
 import json
+import pytz
 
 from collections import defaultdict
 
@@ -13,6 +14,7 @@ from flask import current_app, request
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import widgets, fields
+from wtforms.ext.dateutil.fields import DateTimeField
 from wtforms.validators import (
     DataRequired, Email, ValidationError, Optional
 )
@@ -288,13 +290,18 @@ class OpportunityForm(CategoryForm):
     description = fields.TextAreaField(validators=[max_words(), DataRequired()])
     planned_publish = fields.DateField(validators=[DataRequired()])
     planned_submission_start = fields.DateField(validators=[DataRequired()])
-    planned_submission_end = fields.DateTimeField(validators=[DataRequired(), after_today])
+    planned_submission_end = DateTimeField(validators=[after_today, DataRequired()])
     vendor_documents_needed = fields.SelectMultipleField(widget=select_multi_checkbox, coerce=int)
     documents = fields.FieldList(fields.FormField(OpportunityDocumentForm), min_entries=1)
 
     def display_cleanup(self, opportunity=None):
         self.vendor_documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
         self.contact_email.data = opportunity.contact.email if opportunity else ''
+
+        if self.planned_submission_end.data:
+            self.planned_submission_end.data = pytz.UTC.localize(
+                self.planned_submission_end.data
+            ).astimezone(current_app.config['DISPLAY_TIMEZONE'])
 
         super(OpportunityForm, self).display_cleanup()
 
@@ -305,3 +312,10 @@ class OpportunityForm(CategoryForm):
         opportunity_data['department_id'] = self.department.data.id
         opportunity_data['contact_id'] = parse_contact(opportunity_data.pop('contact_email'), self.department.data)
         return opportunity_data
+
+    def process(self, formdata=None, obj=None, data=None, **kwargs):
+        super(OpportunityForm, self).process(formdata, obj, data, **kwargs)
+        if self.planned_submission_end.data and formdata:
+            self.planned_submission_end.data = current_app.config['DISPLAY_TIMEZONE'].localize(
+                self.planned_submission_end.data
+            ).astimezone(pytz.UTC).replace(tzinfo=None)

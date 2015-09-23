@@ -515,7 +515,7 @@ class TestConductor(TestConductorSetup):
             contact_email=self.conductor.email, title='foobar', description='barbaz',
             planned_publish=datetime.date.today() + datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
-            planned_submission_end=datetime.date.today() + datetime.timedelta(2),
+            planned_submission_end=datetime.datetime.today() + datetime.timedelta(days=2),
             department=self.department.id
         ))
 
