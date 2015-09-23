@@ -153,7 +153,7 @@ def pending():
     ).all()
 
     approved = Opportunity.query.filter(
-        Opportunity.planned_submission_start > datetime.date.today(),
+        Opportunity.planned_publish > datetime.date.today(),
         Opportunity.is_public == True
     ).all()
 
