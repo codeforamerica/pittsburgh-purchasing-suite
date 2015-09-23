@@ -1,6 +1,6 @@
 {% import "macros/with_errors.html" as macros %}
 
-<form class="form form-horizontal" method="POST" action="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, form='update') }}" enctype="multipart/form-data">
+<form class="form form-horizontal" method="POST" action="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, form='update') }}" enctype="multipart/form-data" id="js-send-email-update-form">
 
   <div class="form-group">
     <div class="row">

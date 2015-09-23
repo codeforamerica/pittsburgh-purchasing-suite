@@ -2,7 +2,7 @@
 
 <div class="row">
   <div class="col-md-12">
-    <form method="POST" enctype="multipart/form-data" action="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, form='post') }}">
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, form='post') }}" id="js-conductor-post-opportunity-form">
 
       {% set form = opportunity_form %}
       {{ form.csrf_token() }}
