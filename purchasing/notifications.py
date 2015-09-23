@@ -18,10 +18,10 @@ class Notification(object):
         txt_template=None, attachments=[], reply_to=None,
         convert_args=False, *args, **kwargs
     ):
-        self.to_email = to_email
+        self.to_email = self.handle_recipients(to_email)
         self.from_email = from_email if from_email else current_app.config['MAIL_DEFAULT_SENDER']
         self.reply_to = reply_to
-        self.cc_email = cc_email
+        self.cc_email = self.handle_recipients(cc_email)
         self.subject = subject
         self.html_body = self.build_msg_body(html_template, convert_args, *args, **kwargs)
         if txt_template:
@@ -65,6 +65,15 @@ class Notification(object):
         '''
         return list(self._flatten(l))
 
+    def handle_recipients(self, recipient):
+        if isinstance(recipient, str) or isinstance(recipient, unicode):
+            recipient = [recipient]
+        elif isinstance(recipient, collections.Iterable):
+            recipient = self.flatten(recipient)
+        else:
+            raise Exception('Unsupported recipient type: {}'.format(type(recipient)))
+        return recipient
+
     def build_msg(self, recipient):
         try:
             current_app.logger.info(
@@ -73,18 +82,11 @@ class Notification(object):
                 )
             )
 
-            if isinstance(recipient, str) or isinstance(recipient, unicode):
-                recipient = [recipient]
-            elif isinstance(recipient, collections.Iterable):
-                recipient = self.flatten(recipient)
-            else:
-                raise Exception('Unsupported recipient type: {}'.format(type(recipient)))
-
             msg = Message(
                 subject='[Pittsburgh Purchasing] {}'.format(self.subject),
                 html=self.html_body, body=self.txt_body,
                 sender=self.from_email, reply_to=self.reply_to,
-                recipients=recipient, cc=self.cc_email
+                recipients=self.to_email, cc=self.cc_email
             )
 
             for attachment in self.attachments:
@@ -115,10 +117,10 @@ class Notification(object):
             for to in self.to_email:
                 msgs.append(self.build_msg(to))
         else:
-            msgs = self.build_msg(self.to_email)
+            msgs.append(self.build_msg(self.to_email))
 
         if async:
-            send_email.delay(msgs, multi=multi)
+            send_email.delay(msgs)
         else:
-            send_email.run(msgs, multi=multi)
+            send_email.run(msgs)
         return True

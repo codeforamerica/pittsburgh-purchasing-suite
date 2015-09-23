@@ -14,10 +14,12 @@ class TestNotification(TestCase):
     def test_notification_initialization(self, render_template):
         '''Test notifications properly initialize
         '''
-        notification = Notification(from_email='foo@foo.com')
-        self.assertEquals(notification.to_email, [])
+        notification = Notification(
+            from_email='foo@foo.com', to_email='foobar@bar.com', cc_email=[('bazbar@bar.com',), ('foobar@foo.com',)]
+        )
+        self.assertEquals(notification.to_email, ['foobar@bar.com'])
         self.assertEquals(notification.from_email, 'foo@foo.com')
-        self.assertEquals(notification.cc_email, [])
+        self.assertEquals(notification.cc_email, ['bazbar@bar.com', 'foobar@foo.com'])
         self.assertEquals(notification.subject, '')
         self.assertEquals(notification.html_body, 'a test')
         self.assertEquals(notification.txt_body, '')
