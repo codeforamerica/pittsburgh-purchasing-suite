@@ -57,7 +57,7 @@ opportunitiesjs = Bundle(
     'js/shared/*.js',
     'js/opportunities/*.js',
     filters='uglifyjs',
-    output='public/js/beacon.js'
+    output='public/js/opportunities.js'
 )
 
 wexplorerjs = Bundle(
