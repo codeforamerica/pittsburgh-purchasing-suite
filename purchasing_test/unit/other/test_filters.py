@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import os
 import datetime
+import pytz
+
 from unittest import TestCase
+from flask import current_app
+from flask_testing import TestCase as FlaskTestCase
+from purchasing.app import create_app as _create_app
 from purchasing.filters import (
     better_title, format_currency, days_from_today,
     datetimeformat, format_days_from_today
@@ -49,10 +55,25 @@ class TestFilters(TestCase):
         self.assertEquals(format_days_from_today(datetime.date.today() + datetime.timedelta(2)), '2 days from now')
         self.assertEquals(format_days_from_today(datetime.date.today() - datetime.timedelta(2)), '2 days ago')
 
+
+class TestDateTimeFormat(FlaskTestCase):
+    def create_app(self):
+        os.environ['CONFIG'] = 'purchasing.settings.TestConfig'
+        return _create_app()
+
     def test_datetimeformat(self):
         '''Test datetime format filter
         '''
         self.assertEquals(datetimeformat('2015-01-01T00:00:00'), '2015-01-01')
+        self.assertEquals(datetimeformat('2015-01-01T00:00:00', '%Y-%m-%d %I:%M%p', False), '2015-01-01 12:00AM')
         self.assertEquals(datetimeformat('2015-01-01T00:00:00', '%B %d, %Y'), 'January 01, 2015')
         self.assertEquals(datetimeformat(datetime.date(2015, 1, 1)), '2015-01-01')
+        self.assertEquals(datetimeformat(None), '')
+
+    def test_datetimefilter_timezone(self):
+        '''Test datetime format filter with timezones
+        '''
+        current_app.config['DISPLAY_TIMEZONE'] = pytz.timezone('US/Eastern')
+        self.assertEquals(datetimeformat('2015-01-01T00:00:01'), '2014-12-31')
+        self.assertEquals(datetimeformat('2015-01-01T00:00:00'), '2015-01-01')
         self.assertEquals(datetimeformat(None), '')

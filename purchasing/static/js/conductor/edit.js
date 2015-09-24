@@ -6,11 +6,11 @@
     $('.js-company-name-select2').select2({
       placeholder: 'Pick one'
     });
-    $('.datepicker').datepicker({
-      todayHighlight: true,
-      format: 'yyyy-mm-dd',
-      autoclose: true,
-      orientation: 'auto top'
+    $('.datepicker').datetimepicker({
+      format: 'YYYY-MM-DD',
+      widgetPositioning: {
+        vertical: 'bottom',
+      }
     });
     return;
   }

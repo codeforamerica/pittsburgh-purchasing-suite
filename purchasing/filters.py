@@ -6,7 +6,7 @@ import re
 
 import pytz
 import dateutil.parser
-from flask import flash, request, url_for
+from flask import flash, request, url_for, current_app
 from flask_login import current_user
 
 from purchasing.compat import basestring
@@ -110,13 +110,19 @@ def format_days_from_today(field):
     else:
         return '{} days ago'.format(abs(days))
 
-def datetimeformat(date, fmt='%Y-%m-%d'):
+def datetimeformat(date, fmt='%Y-%m-%d', to_date=True):
     if date is None:
         return ''
 
     if isinstance(date, basestring):
         date = dateutil.parser.parse(date)
-    elif isinstance(date, datetime.datetime):
-        pass
+
+    if isinstance(date, datetime.datetime) and not all(
+        [date.second == 0, date.minute == 0, date.hour == 0, date.microsecond == 0]
+    ):
+        date = pytz.UTC.localize(date).astimezone(current_app.config['DISPLAY_TIMEZONE'])
+
+        if to_date:
+            date = date.date()
 
     return date.strftime(fmt)

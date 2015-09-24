@@ -22,6 +22,16 @@ class TestOpportunityModel(TestCase):
         self.assertTrue(open_opportunity.is_submission_start)
         self.assertFalse(open_opportunity.is_submission_end)
 
+    def test_opportunity_open_not_published(self):
+        open_opportunity = OpportunityFactory.build(
+            is_public=True, planned_publish=self.tomorrow,
+            planned_submission_start=self.today, planned_submission_end=self.tomorrow
+        )
+        self.assertFalse(open_opportunity.is_published)
+        self.assertFalse(open_opportunity.is_upcoming)
+        self.assertFalse(open_opportunity.is_submission_start)
+        self.assertFalse(open_opportunity.is_submission_end)
+
     def test_opportunity_notpublic(self):
         notpublic_opportunity = OpportunityFactory.build(
             is_public=False, planned_publish=self.yesterday,

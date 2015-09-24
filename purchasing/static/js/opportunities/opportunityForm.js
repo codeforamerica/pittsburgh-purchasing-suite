@@ -1,11 +1,17 @@
 (function() {
   'use strict';
 
-  $('.datepicker').datepicker({
-    todayHighlight: true,
-    format: 'yyyy-mm-dd',
-    autoclose: true,
-    orientation: 'auto top'
+  $('.datepicker').datetimepicker({
+    format: 'YYYY-MM-DD',
+    widgetPositioning: {
+      vertical: 'bottom',
+    }
+  });
+  $('.datetimepicker').datetimepicker({
+    format: 'YYYY-MM-DD h:mma',
+    widgetPositioning: {
+      vertical: 'bottom',
+    }
   });
 
   $('[data-toggle="tooltip"]').tooltip();

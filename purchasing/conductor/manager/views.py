@@ -85,9 +85,7 @@ def index():
         User.email != current_user.email
     ).all()
 
-    current_app.logger.info(
-        'CONDUCTOR INDEX - Conductor index page view'
-    )
+    current_app.logger.info('CONDUCTOR INDEX - Conductor index page view')
 
     return render_template(
         'conductor/index.html',
@@ -443,8 +441,7 @@ def edit_company_contacts(contract_id):
             session['success'] = True
 
             current_app.logger.info('''
-                CONDUCTOR CONTRACT COMPLETE - company contacts for contract "{}" assigned.
-                New contract(s) successfully created'''.format(
+CONDUCTOR CONTRACT COMPLETE - company contacts for contract "{}" assigned. |New contract(s) successfully created'''.format(
                 contract.description
             ))
 

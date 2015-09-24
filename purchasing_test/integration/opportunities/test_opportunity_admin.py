@@ -52,26 +52,26 @@ class TestOpportunitiesAdminBase(BaseTestCase):
             contact=self.admin, created_by=self.staff,
             is_public=True, planned_publish=datetime.date.today() + datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
-            planned_submission_end=datetime.date.today() + datetime.timedelta(2)
+            planned_submission_end=datetime.datetime.today() + datetime.timedelta(2)
         )
         self.opportunity2 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
             is_public=True, planned_publish=datetime.date.today(),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
-            planned_submission_end=datetime.date.today() + datetime.timedelta(2),
+            planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
             categories=set([Category.query.first()])
         )
         self.opportunity3 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
             is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(2),
             planned_submission_start=datetime.date.today() - datetime.timedelta(2),
-            planned_submission_end=datetime.date.today() - datetime.timedelta(1)
+            planned_submission_end=datetime.datetime.today() - datetime.timedelta(1)
         )
         self.opportunity4 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
             is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(1),
             planned_submission_start=datetime.date.today(),
-            planned_submission_end=datetime.date.today() + datetime.timedelta(2),
+            planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
             title='TEST TITLE!'
         )
 

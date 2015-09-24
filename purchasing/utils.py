@@ -114,7 +114,7 @@ def _get_aggressive_cache_headers(key):
     # HTTP/1.0 (5 years)
     metadata['Expires'] = '{} GMT'.format(
         email.Utils.formatdate(
-            time.mktime((datetime.datetime.now() + datetime.timedelta(days=365 * 5)).timetuple())
+            time.mktime((datetime.datetime.utcnow() + datetime.timedelta(days=365 * 5)).timetuple())
         )
     )
 

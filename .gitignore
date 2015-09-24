@@ -53,10 +53,11 @@ node_modules/
 # Flask-assets output
 css
 common.js
-beacon.js
+opportunities.js
 wexplorer.js
 conductor.js
 admin.js
+html5shim.js
 
 # App logs (from foreman)
 log

@@ -272,7 +272,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
         for contract_stage_ix, contract_stage in enumerate(to_revert):
             if contract_stage_ix == 0:
                 actions.append(contract_stage.log_reopen(user))
-                contract_stage.entered = datetime.datetime.now()
+                contract_stage.entered = datetime.datetime.utcnow()
                 contract_stage.exited = None
                 self.current_stage_id = contract_stage.stage.id
             else:
@@ -336,9 +336,6 @@ class ContractNote(Model):
     ))
     contract_id = ReferenceCol('contract', ondelete='CASCADE')
     note = Column(db.Text)
-    created_at = Column(db.DateTime, default=datetime.datetime.utcnow())
-    updated_at = Column(db.DateTime, default=datetime.datetime.utcnow(), onupdate=db.func.now())
-
     taken_by_id = ReferenceCol('users', ondelete='SET NULL', nullable=True)
     taken_by = db.relationship('User', backref=backref(
         'contract_note', lazy='dynamic', cascade=None

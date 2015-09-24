@@ -30,7 +30,7 @@ class TestOpportunities(BaseTestCase):
             contact=admin, created_by=admin,
             is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
-            planned_submission_end=datetime.date.today() + datetime.timedelta(2)
+            planned_submission_end=datetime.datetime.today() + datetime.timedelta(2)
         )
 
         for rule in current_app.url_map.iter_rules():

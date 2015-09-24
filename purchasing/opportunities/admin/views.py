@@ -131,13 +131,7 @@ def publish(opportunity_id):
         ).send(multi=True)
 
         current_app.logger.info(
-            '''BEACON APPROVED:
-            ID: {}
-            Title: {}
-            Publish Date: {}
-            Submission Start Date: {}
-            Submission End Date: {}
-            '''.format(
+'''BEACON APPROVED: ID: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {} '''.format(
                 opportunity.id, opportunity.description, str(opportunity.planned_publish),
                 str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
             )
@@ -159,7 +153,7 @@ def pending():
     ).all()
 
     approved = Opportunity.query.filter(
-        Opportunity.planned_submission_start > datetime.date.today(),
+        Opportunity.planned_publish > datetime.date.today(),
         Opportunity.is_public == True
     ).all()
 

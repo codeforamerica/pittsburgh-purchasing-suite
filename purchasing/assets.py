@@ -47,7 +47,8 @@ ie8 = Bundle(
 vendorjs = Bundle(
     'libs/jquery/dist/jquery.js',
     'libs/bootstrap/dist/js/bootstrap.js',
-    'libs/bootstrap-datepicker/js/bootstrap-datepicker.js',
+    'libs/moment/moment.js',
+    'libs/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
     filters='uglifyjs',
     output='public/js/common.js'
 )
@@ -56,7 +57,7 @@ opportunitiesjs = Bundle(
     'js/shared/*.js',
     'js/opportunities/*.js',
     filters='uglifyjs',
-    output='public/js/beacon.js'
+    output='public/js/opportunities.js'
 )
 
 wexplorerjs = Bundle(
@@ -81,7 +82,7 @@ adminjs = Bundle(
     'libs/jquery-ui/ui/mouse.js',
     'libs/jquery-ui/ui/sortable.js',
     'libs/bootstrap/dist/js/bootstrap.js',
-    'libs/bootstrap-datepicker/js/bootstrap-datepicker.js',
+    'libs/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
     'libs/select2/dist/js/select2.full.js',
     'libs/moment/moment.js',
     filters='uglifyjs',

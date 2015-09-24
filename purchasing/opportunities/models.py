@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from flask import current_app
+import pytz
 import datetime
-from purchasing.database import (
-    Column,
-    Model,
-    db,
-    ReferenceCol,
-)
+
+from flask import current_app
+
+from purchasing.database import Column, Model, db, ReferenceCol
+
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref
 from sqlalchemy.dialects.postgres import ARRAY
@@ -123,6 +122,7 @@ class Opportunity(Model):
     @property
     def is_submission_start(self):
         return self.coerce_to_date(self.planned_submission_start) <= datetime.date.today() and \
+            self.coerce_to_date(self.planned_publish) <= datetime.date.today() and \
             not self.is_submission_end and self.is_public
 
     @property
@@ -153,7 +153,9 @@ class Opportunity(Model):
     def estimate_submission_end(self):
         '''
         '''
-        return self.planned_submission_end.strftime('%B %d, %Y')
+        return pytz.UTC.localize(self.planned_submission_end).astimezone(
+            current_app.config['DISPLAY_TIMEZONE']
+        ).strftime('%B %d, %Y at %I:%M%p %Z')
 
     def get_needed_documents(self):
         return RequiredBidDocument.query.filter(
@@ -224,13 +226,7 @@ class Opportunity(Model):
         opportunity = Opportunity(**data)
 
         current_app.logger.info(
-            '''BEACON NEW - New Opportunity Created:
-                ID: {}
-                Department: {}
-                Title: {}
-                Publish Date: {}
-                Submission Start Date: {}
-                Submission End Date: {}
+'''BEACON NEW - New Opportunity Created: Department: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {}
             '''.format(
                 opportunity.id, opportunity.department.name if opportunity.department else '',
                 opportunity.description,
@@ -259,12 +255,7 @@ class Opportunity(Model):
             setattr(self, attr, value)
 
         current_app.logger.info(
-            '''BEACON Update - Opportunity Updated:
-                ID: {}
-                Title: {}
-                Publish Date: {}
-                Submission Start Date: {}
-                Submission End Date: {}
+'''BEACON Update - Opportunity Updated: ID: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {}
             '''.format(
                 self.id, self.description, str(self.planned_publish),
                 str(self.planned_submission_start), str(self.planned_submission_end)
@@ -294,12 +285,7 @@ class Opportunity(Model):
             self.published_at = datetime.datetime.utcnow()
 
             current_app.logger.info(
-                '''BEACON PUBLISHED:
-                ID: {}
-                Title: {}
-                Publish Date: {}
-                Submission Start Date: {}
-                Submission End Date: {}
+'''BEACON PUBLISHED:  ID: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {}
                 '''.format(
                     self.id, self.description, str(self.planned_publish),
                     str(self.planned_submission_start), str(self.planned_submission_end)
