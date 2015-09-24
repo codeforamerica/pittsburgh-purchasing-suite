@@ -48,11 +48,14 @@ class TestOpportunitiesAdminBase(BaseTestCase):
         self.admin = insert_a_user(email='foo@foo.com', role=self.admin_role)
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role)
 
+        self.document = insert_a_document()
+
         self.opportunity1 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
             is_public=True, planned_publish=datetime.date.today() + datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
-            planned_submission_end=datetime.datetime.today() + datetime.timedelta(2)
+            planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
+            documents=[self.document.id]
         )
         self.opportunity2 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,

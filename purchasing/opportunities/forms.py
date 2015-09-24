@@ -18,14 +18,13 @@ from wtforms.ext.dateutil.fields import DateTimeField
 from wtforms.validators import (
     DataRequired, Email, ValidationError, Optional
 )
-from wtforms.ext.sqlalchemy.fields import QuerySelectField
+from wtforms.ext.sqlalchemy.fields import QuerySelectField, QuerySelectMultipleField
 
-from purchasing.opportunities.models import Vendor
+from purchasing.opportunities.models import Vendor, Category, RequiredBidDocument
 
 from purchasing.utils import RequiredIf
 from purchasing.users.models import User, Department
 from purchasing.data.contracts import ContractType
-from purchasing.opportunities.models import Category, RequiredBidDocument
 from purchasing.opportunities.util import parse_contact
 
 from purchasing.utils import connect_to_s3, _get_aggressive_cache_headers
@@ -49,11 +48,11 @@ def select_multi_checkbox(field, ul_class='', **kwargs):
     kwargs.setdefault('type', 'checkbox')
     field_id = kwargs.pop('id', field.id)
     html = [u'<div %s>' % widgets.html_params(id=field_id, class_=ul_class)]
-    for value, label, checked in field.iter_choices():
+    for value, label, _ in field.iter_choices():
         name, description, href = label
         choice_id = u'%s-%s' % (field_id, value)
         options = dict(kwargs, name=field.name, value=value, id=choice_id)
-        if checked:
+        if int(value) in field.data:
             options['checked'] = 'checked'
         html.append(u'<div class="checkbox">')
         html.append(u'<input %s /> ' % widgets.html_params(**options))
@@ -291,7 +290,12 @@ class OpportunityForm(CategoryForm):
     planned_publish = fields.DateField(validators=[DataRequired()])
     planned_submission_start = fields.DateField(validators=[DataRequired()])
     planned_submission_end = DateTimeField(validators=[after_today, DataRequired()])
-    vendor_documents_needed = fields.SelectMultipleField(widget=select_multi_checkbox, coerce=int)
+    vendor_documents_needed = QuerySelectMultipleField(
+        widget=select_multi_checkbox,
+        query_factory=RequiredBidDocument.query_factory,
+        get_pk=lambda i: i[0],
+        get_label=lambda i: i[1]
+    )
     documents = fields.FieldList(fields.FormField(OpportunityDocumentForm), min_entries=1)
 
     def display_cleanup(self, opportunity=None):
@@ -311,6 +315,7 @@ class OpportunityForm(CategoryForm):
 
         opportunity_data['department_id'] = self.department.data.id
         opportunity_data['contact_id'] = parse_contact(opportunity_data.pop('contact_email'), self.department.data)
+        opportunity_data['vendor_documents_needed'] = [int(i[0]) for i in opportunity_data['vendor_documents_needed']]
         return opportunity_data
 
     def process(self, formdata=None, obj=None, data=None, **kwargs):
