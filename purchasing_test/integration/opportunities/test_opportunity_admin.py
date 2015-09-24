@@ -22,7 +22,7 @@ from purchasing.data.importer.nigp import main as import_nigp
 
 from purchasing_test.test_base import BaseTestCase
 from purchasing_test.factories import (
-    OpportunityDocumentFactory, VendorFactory, DepartmentFactory
+    OpportunityDocumentFactory, VendorFactory, DepartmentFactory, CategoryFactory
 )
 from purchasing_test.util import (
     insert_a_role, insert_a_user, insert_a_document,
@@ -55,7 +55,7 @@ class TestOpportunitiesAdminBase(BaseTestCase):
             is_public=True, planned_publish=datetime.date.today() + datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
             planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
-            documents=[self.document.id]
+            documents=[self.document.id], categories=set([Category.query.first()])
         )
         self.opportunity2 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
@@ -68,14 +68,15 @@ class TestOpportunitiesAdminBase(BaseTestCase):
             contact=self.admin, created_by=self.staff,
             is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(2),
             planned_submission_start=datetime.date.today() - datetime.timedelta(2),
-            planned_submission_end=datetime.datetime.today() - datetime.timedelta(1)
+            planned_submission_end=datetime.datetime.today() - datetime.timedelta(1),
+            categories=set([Category.query.first()])
         )
         self.opportunity4 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
             is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(1),
             planned_submission_start=datetime.date.today(),
             planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
-            title='TEST TITLE!'
+            title='TEST TITLE!', categories=set([Category.query.first()])
         )
 
     def tearDown(self):
@@ -156,7 +157,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
             'planned_publish': datetime.date.today(),
             'planned_submission_start': datetime.date.today(),
             'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
-            'is_public': False
+            'is_public': False, 'subcategories-{}'.format(Category.query.first().id): 'on'
         }
 
         # assert that we create a new user when we build with a new email
@@ -181,7 +182,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
             'planned_publish': datetime.date.today(),
             'planned_submission_start': datetime.date.today(),
             'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
-            'save_type': 'save'
+            'save_type': 'save', 'subcategories-{}'.format(Category.query.first().id): 'on'
         }
 
         # assert that you need a title & description
