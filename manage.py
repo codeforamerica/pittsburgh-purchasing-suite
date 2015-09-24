@@ -188,6 +188,18 @@ def upload_assets(user, secret, bucket, _retries=5):
             print 'File {} did not upload'.format(key)
         retries = 0
 
+    for fontfile in os.listdir(os.path.join(current_app.config['APP_DIR'], 'static', 'fonts')):
+        while retries <= _retries:
+            try:
+                upload_file(fontfile, bucket, root=current_app.config['APP_DIR'] + '/static')
+                break
+            except Exception, e:
+                print 'Error: {}'.format(e), 'Retrying...'
+                retries += 1
+        if retries > _retries:
+            print 'File {} did not upload'.format(key)
+        retries = 0
+
     print 'Uploading images...'
     for root, _, files in os.walk(current_app.config['APP_DIR'] + '/static/img'):
         for filepath in files:
