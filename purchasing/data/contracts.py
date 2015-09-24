@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import time
 import datetime
+
+from itertools import groupby, ifilter
 
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref
@@ -116,6 +119,20 @@ class ContractBase(RefreshSearchViewMixin, Model):
             ContractStage.id,
             ContractStageActionItem.id
         ).all()
+
+    def filter_action_log(self):
+        '''Filter actions that have been reverted
+        '''
+        all_actions = sorted(self.build_complete_action_log(), key=lambda x: (x.contract_stage.stage_id, -time.mktime(x.taken_at.timetuple())))
+        filtered_actions = []
+
+        for stage_id, group_of_actions in groupby(all_actions, lambda x: x.contract_stage.stage_id):
+            actions = list(group_of_actions)
+            filtered_actions.append(next(ifilter(lambda x: x.is_start_type and x.contract_stage.happens_before_or_on(self.current_stage_id), actions), []))
+            filtered_actions.append(next(ifilter(lambda x: x.is_exited_type and x.contract_stage.happens_before(self.current_stage_id), actions), []))
+            filtered_actions.extend([x for x in actions if x.is_other_type])
+
+        return sorted(ifilter(lambda x: hasattr(x, 'taken_at'), filtered_actions), key=lambda x: x.taken_at)
 
     def get_current_stage(self):
         '''Returns the details for the current contract stage
