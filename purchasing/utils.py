@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 '''Helper utilities and decorators.'''
 
+import datetime
 import re
 import os
 import random
@@ -8,13 +9,14 @@ import string
 import time
 import email
 from math import ceil
-import datetime
+import pytz
 
 from boto.s3.connection import S3Connection
 
 import sqlalchemy
 from wtforms.validators import InputRequired, StopValidation
 
+from flask import current_app
 from purchasing.database import db, LISTEN_FOR_EVENTS
 
 # modified from https://gist.github.com/bsmithgall/372de43205804a2279c9
@@ -136,6 +138,12 @@ def build_downloadable_groups(val, iterable):
     return '"' + '; '.join(
         sorted(list(set([i.__dict__[val] for i in iterable])))
     ) + '"'
+
+def localize_now():
+    return pytz.UTC.localize(datetime.datetime.now()).astimezone(current_app.config['DISPLAY_TIMEZONE'])
+
+def localize_today():
+    return pytz.UTC.localize(datetime.datetime.today()).astimezone(current_app.config['DISPLAY_TIMEZONE']).date()
 
 class SimplePagination(object):
     '''

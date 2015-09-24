@@ -6,6 +6,7 @@ import datetime
 from flask import current_app
 
 from purchasing.database import Column, Model, db, ReferenceCol
+from purchasing.utils import localize_today
 
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref
@@ -112,22 +113,22 @@ class Opportunity(Model):
 
     @property
     def is_published(self):
-        return self.coerce_to_date(self.planned_publish) <= datetime.date.today() and self.is_public
+        return self.coerce_to_date(self.planned_publish) <= localize_today() and self.is_public
 
     @property
     def is_upcoming(self):
-        return self.coerce_to_date(self.planned_publish) <= datetime.date.today() and \
+        return self.coerce_to_date(self.planned_publish) <= localize_today() and \
             not self.is_submission_start and not self.is_submission_end and self.is_public
 
     @property
     def is_submission_start(self):
-        return self.coerce_to_date(self.planned_submission_start) <= datetime.date.today() and \
-            self.coerce_to_date(self.planned_publish) <= datetime.date.today() and \
+        return self.coerce_to_date(self.planned_submission_start) <= localize_today() and \
+            self.coerce_to_date(self.planned_publish) <= localize_today() and \
             not self.is_submission_end and self.is_public
 
     @property
     def is_submission_end(self):
-        return self.coerce_to_date(self.planned_submission_end) <= datetime.date.today() and self.is_public
+        return self.coerce_to_date(self.planned_submission_end) <= localize_today() and self.is_public
 
     def can_view(self, user):
         '''Check if a user can see opportunity detail
@@ -332,6 +333,10 @@ class RequiredBidDocument(Model):
 
     def get_choices(self):
         return (self.id, [self.display_name, self.description, self.form_href])
+
+    @classmethod
+    def query_factory(cls):
+        return [i.get_choices() for i in cls.query.all()]
 
 class Vendor(Model):
     __tablename__ = 'vendor'

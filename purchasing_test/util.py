@@ -122,6 +122,7 @@ def insert_a_document(name='Foo', description='Bar'):
     document = RequiredBidDocumentFactory.create(**dict(
         display_name=name, description=description
     ))
+    document.save()
 
     return document
 
@@ -131,7 +132,7 @@ def insert_an_opportunity(
     planned_publish=datetime.datetime.today(),
     planned_submission_start=datetime.datetime.today(),
     planned_submission_end=datetime.datetime.today() + datetime.timedelta(1),
-    required_documents=[], categories=set(),
+    required_documents=[], categories=set(), documents=[],
     created_from_id=None, created_by=None, is_public=True
 ):
     department = department if department else DepartmentFactory()
@@ -141,7 +142,7 @@ def insert_an_opportunity(
         planned_submission_start=planned_submission_start,
         planned_submission_end=planned_submission_end,
         created_from_id=created_from_id, created_by=created_by,
-        created_by_id=created_by.id,
+        created_by_id=created_by.id, vendor_documents_needed=documents,
         is_public=is_public, categories=categories
     ))
 
