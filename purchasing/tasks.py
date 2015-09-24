@@ -6,13 +6,10 @@ from purchasing.extensions import mail, db, cache
 from purchasing.data.importer.scrape_county import main as scrape_county
 
 @celery.task
-def send_email(messages, multi):
-    if multi:
-        with mail.connect() as conn:
-            for message in messages:
-                conn.send(message)
-    else:
-        mail.send(messages)
+def send_email(messages):
+    with mail.connect() as conn:
+        for message in messages:
+            conn.send(message)
 
 @celery.task
 def rebuild_search_view():

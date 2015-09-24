@@ -10,6 +10,7 @@ from flask import flash, request, url_for, current_app
 from flask_login import current_user
 
 from purchasing.compat import basestring
+from jinja2 import evalcontextfilter, Markup, escape
 
 # modified from https://gist.github.com/bsmithgall/372de43205804a2279c9
 SMALL_WORDS = re.compile(r'^(a|an|and|as|at|but|by|en|etc|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$', re.I)
@@ -20,6 +21,7 @@ PUNC_REGEX = re.compile(r'[{}]'.format(re.escape(string.punctuation)))
 # taken from python-titlecase: https://github.com/ppannuto/python-titlecase/blob/master/titlecase/__init__.py#L27
 UC_INITIALS = re.compile(r'^(?:[A-Z]{1}\.{1}|[A-Z]{1}\.{1}[A-Z]{1})+$', re.I)
 ONE_LETTER_NUMBERS = re.compile(r'^[A-Za-z]{1}\d+$')
+PARAGRAPH = re.compile(r'(?:\r\n|\r|\n){2,}')
 
 def flash_errors(form, category="warning"):
     '''Flash all errors for a form.'''
@@ -126,3 +128,14 @@ def datetimeformat(date, fmt='%Y-%m-%d', to_date=True):
             date = date.date()
 
     return date.strftime(fmt)
+
+@evalcontextfilter
+def newline_to_br(eval_ctx, value):
+    '''Replaces newline characters with <br> tags
+
+    Adapted from http://flask.pocoo.org/snippets/28/
+    '''
+    result = u'\n\n'.join(u'<p>%s</p>' % p.replace('\n', '<br>\n') for p in PARAGRAPH.split(value))
+    if eval_ctx and eval_ctx.autoescape:
+        result = Markup(result)
+    return result.lstrip()

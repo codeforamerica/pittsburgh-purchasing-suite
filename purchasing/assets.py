@@ -68,6 +68,7 @@ wexplorerjs = Bundle(
 
 conductorjs = Bundle(
     'libs/datatables/media/js/jquery.dataTables.js',
+    'libs/jquery.dirtyforms/jquery.dirtyforms.js',
     'libs/select2/dist/js/select2.js',
     'js/shared/*.js',
     'js/conductor/*.js',

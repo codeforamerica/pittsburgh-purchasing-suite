@@ -1,6 +1,6 @@
 {% import "macros/with_errors.html" as macros %}
 
-<form class="form form-horizontal" method="POST" action="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, form='update-metadata') }}">
+<form class="form form-horizontal" method="POST" action="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=active_stage.id, form='update-metadata') }}" id="js-conductor-update-metadata-form">
 
   {% if metadata_form.errors['all_blank'] %}
   <div class="alert alert-danger alert-dismissible" role="alert">

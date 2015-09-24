@@ -13,16 +13,6 @@
 
   $('.js-filter-btn').on('click', function(e) {
 
-    // var _this = $(this);
-    // _this.attr('data-show') = _this.attr('data-show') === 'show' ? 'show' : 'hide';
-    // // $('.js-filter-btn').filter('data-show') === 'show';
-    // var toFilter = 'js-filter-action-' + _this.attr('data-js-filter');
-    // if (toFilter != 'js-filter-action-clear') {
-    //   $('.' + toFilter).show();
-    // } else {
-    //   $('.action-event').show();
-    // }
-
     // get the classname to show/hide
 
     // show or hide that specific classname
@@ -47,5 +37,7 @@
     }
 
   });
+
+  $('#js-send-email-update-form').dirtyForms();
 
 })();
