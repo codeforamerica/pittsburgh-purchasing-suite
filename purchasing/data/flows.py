@@ -84,7 +84,7 @@ def switch_flow(new_flow_id, contract_id, user):
     # get our contract and its complete action history
     contract = ContractBase.query.get(contract_id)
     old_flow = contract.flow.flow_name
-    old_action_log = contract.build_complete_action_log()
+    old_action_log = contract.filter_action_log()
 
     # fully revert all used stages in the old flow
     for contract_stage in ContractStage.query.filter(

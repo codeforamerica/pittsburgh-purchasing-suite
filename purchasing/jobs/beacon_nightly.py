@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+from flask import current_app
 
 from purchasing.extensions import db
 from purchasing.notifications import Notification
@@ -23,6 +24,7 @@ class BeaconNewOppotunityOpenJob(EmailJobBase):
             notifications.append(
                 Notification(
                     to_email=set([i.email for i in category_vendors] + [i.email for i in opportunity.vendors]),
+                    from_email=current_app.config['BEACON_SENDER'],
                     subject='A new City of Pittsburgh opportunity from Beacon!',
                     html_template='opportunities/emails/newopp.html',
                     txt_template='opportunities/emails/newopp.txt',
@@ -58,6 +60,7 @@ class BeaconBiweeklyDigestJob(EmailJobBase):
         notifications.append(
             Notification(
                 to_email=set([i.email for i in Vendor.newsletter_subscribers()]),
+                from_email=current_app.config['BEACON_SENDER'],
                 subject='Your biweekly Beacon opportunity summary',
                 html_template='opportunities/emails/biweeklydigest.html',
                 txt_template='opportunities/emails/biweeklydigest.txt',

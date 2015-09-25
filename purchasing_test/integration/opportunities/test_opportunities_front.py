@@ -101,6 +101,15 @@ class TestOpportunities(BaseTestCase):
         self.assertTrue(invalid_email_post.data.count('alert-danger'), 1)
         self.assertTrue(invalid_email_post.data.count('Invalid email address.'), 1)
 
+        # assert you need at least one category
+        invalid_no_categories = self.client.post('/beacon/signup', data=dict(
+            email='foo@foo.com',
+            business_name='foo'
+        ))
+        self.assert200(invalid_no_categories)
+        self.assertTrue(invalid_no_categories.data.count('alert-danger'), 1)
+        self.assertTrue(invalid_no_categories.data.count('You must select at least one!'), 1)
+
         # assert valid categories
 
         with mail.record_messages() as outbox:

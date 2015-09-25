@@ -116,6 +116,9 @@ class MultiCheckboxField(fields.SelectMultipleField):
 
 class DynamicSelectField(fields.SelectField):
     def pre_validate(self, form):
+        if len(self.data) == 0:
+            raise ValidationError('You must select at least one!')
+            return False
         for category in self.data:
             if isinstance(category, Category):
                 self.choices.append([category, category])
@@ -124,7 +127,6 @@ class DynamicSelectField(fields.SelectField):
                 raise ValidationError('Invalid category!')
                 return False
         return True
-
 
 def validate_phone_number(form, field):
     '''Strips out non-integer characters, checks that it is 10-digits
@@ -214,7 +216,7 @@ class VendorSignupForm(CategoryForm):
         default="checked"
     )
 
-class OpportunitySignupForm(CategoryForm):
+class OpportunitySignupForm(Form):
     business_name = fields.TextField(validators=[DataRequired()])
     email = fields.TextField(validators=[DataRequired(), Email()])
     also_categories = fields.BooleanField()

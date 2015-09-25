@@ -23,7 +23,7 @@
       <p class="text-muted pull-right">
         <a href="{{ url_for('conductor.extend', contract_id=contract.id, stage_id=active_stage.id) }}" class="btn btn-default" onclick="return confirm('Please confirm that the contract has already gone through the proper extension process.')">Extend Contract</a></li>
         {% if contract.parent %}
-        <a href="{{ url_for('conductor.kill_contract', contract_id=contract.parent.id) }}" class="btn btn-default">Remove contract from use</a>
+        <a href="{{ url_for('conductor.kill_contract', contract_id=contract.id) }}" class="btn btn-default">Remove contract from use</a>
         {% endif %}
       </p>
     </div>

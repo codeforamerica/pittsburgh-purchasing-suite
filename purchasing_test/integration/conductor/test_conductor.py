@@ -17,7 +17,7 @@ from purchasing.data.flows import Flow
 from purchasing.opportunities.models import Opportunity
 from purchasing.extensions import mail
 
-from purchasing_test.factories import ContractTypeFactory, DepartmentFactory
+from purchasing_test.factories import ContractTypeFactory, DepartmentFactory, CategoryFactory
 
 from purchasing_test.test_base import BaseTestCase
 from purchasing_test.util import (
@@ -61,6 +61,8 @@ class TestConductorSetup(BaseTestCase):
             properties=[{'key': 'Spec Number', 'value': '456'}],
             is_visible=True
         )
+
+        self.category = CategoryFactory.create()
 
         self.login_user(self.conductor)
         self.detail_view = '/conductor/contract/{}/stage/{}'
@@ -511,13 +513,14 @@ class TestConductor(TestConductorSetup):
         old_view = self.client.get(detail_view_url)
         self.assertTrue(self.department.name in old_view.data)
 
-        self.client.post(detail_view_url + '?form=post', data=dict(
-            contact_email=self.conductor.email, title='foobar', description='barbaz',
-            planned_publish=datetime.date.today() + datetime.timedelta(1),
-            planned_submission_start=datetime.date.today() + datetime.timedelta(2),
-            planned_submission_end=datetime.datetime.today() + datetime.timedelta(days=2),
-            department=self.department.id
-        ))
+        self.client.post(detail_view_url + '?form=post', data={
+            'contact_email': self.conductor.email, 'title': 'foobar', 'description': 'barbaz',
+            'planned_publish': datetime.date.today() + datetime.timedelta(1),
+            'planned_submission_start': datetime.date.today() + datetime.timedelta(2),
+            'planned_submission_end': datetime.datetime.today() + datetime.timedelta(days=2),
+            'department': self.department.id,
+            'subcategories-{}'.format(self.category.id): 'on'
+        })
 
         self.assertEquals(Opportunity.query.count(), 1)
         self.assertEquals(ContractStageActionItem.query.count(), 2)

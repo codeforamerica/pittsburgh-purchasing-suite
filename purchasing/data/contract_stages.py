@@ -70,6 +70,18 @@ class ContractStage(Model):
             }
         )
 
+    def happens_before(self, target_stage_id):
+        return self.flow.stage_order.index(self.stage_id) < \
+            self.flow.stage_order.index(target_stage_id)
+
+    def happens_before_or_on(self, target_stage_id):
+        return self.flow.stage_order.index(self.stage_id) <= \
+            self.flow.stage_order.index(target_stage_id)
+
+    def happens_after(self, target_stage_id):
+        return self.flow.stage_order.index(self.stage_id) > \
+            self.flow.stage_order.index(target_stage_id)
+
     def exit(self):
         '''Exit the stage
         '''
@@ -164,3 +176,15 @@ class ContractStageActionItem(Model):
     @property
     def non_null_items_count(self):
         return len(self.non_null_items)
+
+    @property
+    def is_start_type(self):
+        return self.action_type in ['entered', 'reversion']
+
+    @property
+    def is_exited_type(self):
+        return self.action_type == 'exited'
+
+    @property
+    def is_other_type(self):
+        return self.action_type not in ['entered', 'reversion', 'exited']

@@ -6,27 +6,32 @@
 
 .event {
   position: relative;
-  border-left: 5px solid @conductor-timeline-dot-default;
-  margin: 5px;
-  padding: 5px;
+  border-left-width: @conductor-timeline-border-left-size;
+  border-left-style: solid;
+  border-left-color: @conductor-timeline-dot-default;
+  margin: @conductor-timeline-dot-margin;
+  padding: @conductor-timeline-dot-margin;
   &:before {
     content: "";
+    font: normal normal normal 16px/1 FontAwesome;
     position: absolute;
-    top: -1px;
-    left: -(@conductor-timeline-dot-radius + @conductor-timeline-border-size)/2;
+    top: -2px;
+    left: -(@conductor-timeline-dot-margin * 2 + @conductor-timeline-border-left-size + 0.5);
     width: @conductor-timeline-dot-radius;
     height: @conductor-timeline-dot-radius;
     border-radius: 50%;
+    background: white;
+    color: @conductor-timeline-dot-default;
     border: @conductor-timeline-border-size solid white;
-    background: @conductor-timeline-dot-default;
   }
 
   &.event-current {
     min-height: 65px;
-    border-left:5px solid @conductor-timeline-dot-current;
+    border-left-color: @conductor-timeline-dot-current;
     padding: 5px;
     &:before {
-      background: @conductor-timeline-dot-current;
+      content: "\f10c";
+      color: @conductor-timeline-dot-current;
     }
   }
 
@@ -38,15 +43,19 @@
 
   &.event-complete {
     min-height: 65px;
-    border-left:5px solid @conductor-timeline-dot-complete;
+    border-left-color: @conductor-timeline-dot-complete;
     padding: 5px;
     &:before {
-      background: @conductor-timeline-dot-complete;
+      content: "\f058";
+      color: @conductor-timeline-dot-complete;
     }
   }
 
   &.event-not-started {
     min-height: 40px;
+    &:before {
+      content: "\f10c";
+    }
   }
 
   span,
