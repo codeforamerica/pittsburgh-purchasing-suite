@@ -181,4 +181,4 @@ class CompanyContactList(NoCSRFForm):
     contacts = FieldList(FormField(CompanyContactForm), min_entries=1)
 
 class CompanyContactListForm(Form):
-    companies = FieldList(FormField(CompanyContactList))
+    companies = FieldList(FormField(CompanyContactList), min_entries=0)

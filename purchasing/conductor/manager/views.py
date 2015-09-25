@@ -410,9 +410,14 @@ def edit_company_contacts(contract_id):
                 else:
                     company = Company.create(company_name=_company.get('company_name'))
                 # contacts should be unique to companies, though
-                for _contact in form.data.get('companies')[ix].get('contacts'):
-                    _contact['company_id'] = company.id
-                    contact, _ = get_or_create(db.session, CompanyContact, **_contact)
+                try:
+                    for _contact in form.data.get('companies')[ix].get('contacts'):
+                        _contact['company_id'] = company.id
+                        contact, _ = get_or_create(db.session, CompanyContact, **_contact)
+                # if there are no contacts, an index error will be thrown for this company
+                # so we catch it and just pass
+                except IndexError:
+                    pass
 
                 contract_data['financial_id'] = _company['financial_id']
                 if ix == 0:
