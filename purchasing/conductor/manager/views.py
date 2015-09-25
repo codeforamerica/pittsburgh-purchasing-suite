@@ -54,9 +54,9 @@ def index():
     ).join(
         Flow, Flow.id == ContractBase.flow_id
     ).join(User, User.id == ContractBase.assigned_to).filter(
+        ContractStage.flow_id == ContractBase.flow_id,
         ContractStage.entered != None,
         ContractBase.assigned_to != None,
-        ContractStage.flow_id == ContractBase.flow_id,
         ContractBase.is_visible == False,
         ContractBase.is_archived == False
     ).all()
@@ -450,6 +450,8 @@ def edit_company_contacts(contract_id):
 CONDUCTOR CONTRACT COMPLETE - company contacts for contract "{}" assigned. |New contract(s) successfully created'''.format(
                 contract.description
             ))
+
+            contract.parent.complete()
 
             return redirect(url_for('conductor.success', contract_id=main_contract.id))
 
