@@ -110,7 +110,7 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
                 to_email=[i.strip() for i in form.data.get('send_to').split(';') if i != ''],
                 from_email=current_app.config['CONDUCTOR_SENDER'],
                 reply_to=current_user.email,
-                cc_email=form.data.get('send_to_cc', []),
+                cc_email=[i.strip() for i in form.data.get('send_to_cc').split(';') if i != ''],
                 subject=form.data.get('subject'),
                 html_template='conductor/emails/email_update.html',
                 body=form.data.get('body'),

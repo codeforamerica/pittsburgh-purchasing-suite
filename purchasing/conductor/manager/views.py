@@ -54,9 +54,9 @@ def index():
     ).join(
         Flow, Flow.id == ContractBase.flow_id
     ).join(User, User.id == ContractBase.assigned_to).filter(
+        ContractStage.flow_id == ContractBase.flow_id,
         ContractStage.entered != None,
         ContractBase.assigned_to != None,
-        ContractStage.flow_id == ContractBase.flow_id,
         ContractBase.is_visible == False,
         ContractBase.is_archived == False
     ).all()
@@ -410,9 +410,14 @@ def edit_company_contacts(contract_id):
                 else:
                     company = Company.create(company_name=_company.get('company_name'))
                 # contacts should be unique to companies, though
-                for _contact in form.data.get('companies')[ix].get('contacts'):
-                    _contact['company_id'] = company.id
-                    contact, _ = get_or_create(db.session, CompanyContact, **_contact)
+                try:
+                    for _contact in form.data.get('companies')[ix].get('contacts'):
+                        _contact['company_id'] = company.id
+                        contact, _ = get_or_create(db.session, CompanyContact, **_contact)
+                # if there are no contacts, an index error will be thrown for this company
+                # so we catch it and just pass
+                except IndexError:
+                    pass
 
                 contract_data['financial_id'] = _company['financial_id']
                 if ix == 0:
@@ -445,6 +450,8 @@ def edit_company_contacts(contract_id):
 CONDUCTOR CONTRACT COMPLETE - company contacts for contract "{}" assigned. |New contract(s) successfully created'''.format(
                 contract.description
             ))
+
+            contract.parent.complete()
 
             return redirect(url_for('conductor.success', contract_id=main_contract.id))
 

@@ -474,19 +474,35 @@ class TestConductor(TestConductorSetup):
         bad_post = self.client.post(detail_view_url + '?form=update', data=dict(
             send_to='bademail', subject='test', body='test'
         ), follow_redirects=True)
+
         self.assertEquals(ContractStageActionItem.query.count(), 1)
         self.assertEquals(bad_post.status_code, 200)
         self.assertTrue('One of the supplied emails is invalid' in bad_post.data)
 
         with mail.record_messages() as outbox:
             good_post = self.client.post(detail_view_url + '?form=update', data=dict(
-                send_to='foo@foo.com; foo2@foo.com', subject='test', body='test'
+                send_to='foo@foo.com; foo2@foo.com', subject='test', body='test',
+                send_to_cc='foo3@foo.com'
             ), follow_redirects=True)
 
             self.assertEquals(len(outbox), 1)
             self.assertEquals(ContractStageActionItem.query.count(), 2)
             self.assertTrue('test' in outbox[0].subject)
             self.assertTrue('with the subject' in good_post.data)
+            self.assertTrue(len(outbox[0].cc), 1)
+            self.assertTrue(len(outbox[0].recipients), 2)
+
+            good_post_ccs = self.client.post(detail_view_url + '?form=update', data=dict(
+                send_to='foo@foo.com', subject='test', body='test',
+                send_to_cc='foo3@foo.com; foo4@foo.com'
+            ), follow_redirects=True)
+
+            self.assertEquals(len(outbox), 2)
+            self.assertEquals(ContractStageActionItem.query.count(), 3)
+            self.assertTrue('test' in outbox[1].subject)
+            self.assertTrue('with the subject' in good_post_ccs.data)
+            self.assertTrue(len(outbox[1].cc), 2)
+            self.assertTrue(len(outbox[1].recipients), 1)
 
     def test_conductor_post_to_beacon_validation(self):
         '''Test failure posting to beacon from Conductor

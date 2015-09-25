@@ -272,7 +272,6 @@ class ContractBase(RefreshSearchViewMixin, Model):
     def _transition_to_last(self, user):
         current_stage = ContractStage.get_one(self.id, self.flow.id, self.current_stage.id)
         exit = current_stage.log_exit(user)
-        self.parent.complete()
         return [exit]
 
     def _transition_backwards_to_destination(self, user, destination):
