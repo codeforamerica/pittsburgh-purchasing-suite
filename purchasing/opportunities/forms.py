@@ -13,7 +13,7 @@ from werkzeug import secure_filename
 from flask import current_app, request
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import widgets, fields
+from wtforms import widgets, fields, Form as NoCSRFForm
 from wtforms.ext.dateutil.fields import DateTimeField
 from wtforms.validators import (
     DataRequired, Email, ValidationError, Optional
@@ -177,7 +177,7 @@ class CategoryForm(Form):
         self._categories = json.dumps(sorted(display_categories))
 
     def process(self, formdata=None, obj=None, data=None, **kwargs):
-        super(CategoryForm, self).process(request.form, obj, data, **kwargs)
+        super(CategoryForm, self).process(formdata, obj, data, **kwargs)
 
         self.categories.data = obj.categories if obj and hasattr(obj, 'categories') else set()
         subcats = set()
@@ -230,7 +230,7 @@ class UnsubscribeForm(Form):
         default='checked'
     )
 
-class OpportunityDocumentForm(Form):
+class OpportunityDocumentForm(NoCSRFForm):
     title = fields.TextField(validators=[RequiredIf('document')])
     document = FileField(
         validators=[FileAllowed(
