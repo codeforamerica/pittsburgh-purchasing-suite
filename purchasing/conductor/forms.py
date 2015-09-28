@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import re
+import datetime
+import pytz
+
+from flask import current_app
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import Form as NoCSRFForm
@@ -8,10 +12,9 @@ from wtforms.fields import (
     TextField, IntegerField, DateField, TextAreaField, HiddenField,
     FieldList, FormField, SelectField
 )
+from wtforms.ext.dateutil.fields import DateTimeField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
-from wtforms.validators import (
-    DataRequired, URL, Optional, ValidationError, Email, Length, Regexp
-)
+from wtforms.validators import DataRequired, URL, Optional, ValidationError, Email, Length, Regexp
 
 from purchasing.filters import better_title
 
@@ -47,6 +50,13 @@ def validate_multiple_emails(form, field):
             elif not re.match(EMAIL_REGEX, email):
                 raise ValidationError('One of the supplied emails is invalid!')
 
+def get_default():
+    return pytz.UTC.localize(
+        datetime.datetime.utcnow()
+    ).astimezone(current_app.config['DISPLAY_TIMEZONE'])
+
+class CompleteForm(Form):
+    complete = DateTimeField(default=get_default)
 
 class NewContractForm(Form):
     description = TextField(validators=[DataRequired()])

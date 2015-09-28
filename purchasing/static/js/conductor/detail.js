@@ -40,4 +40,16 @@
 
   $('#js-send-email-update-form').dirtyForms();
 
+  $('.datetimepicker').datetimepicker({
+    format: 'YYYY-MM-DD h:mma',
+    inline: true,
+    keepOpen: true,
+    minDate: currentStageEnter,
+    maxDate: new Date()
+  });
+
+  $('.datetimepicker').on('click', function(e) {
+    e.stopPropagation();
+  });
+
 })();
