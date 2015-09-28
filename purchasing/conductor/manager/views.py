@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import urllib2
+import datetime
 import json
+import pytz
 
 from flask import (
     render_template, flash, redirect, current_app,
@@ -24,7 +26,7 @@ from purchasing.users.models import User, Role, Department
 from purchasing.conductor.forms import (
     EditContractForm, PostOpportunityForm,
     SendUpdateForm, NoteForm, ContractMetadataForm, CompanyListForm,
-    CompanyContactListForm, NewContractForm
+    CompanyContactListForm, NewContractForm, CompleteForm
 )
 
 from purchasing.conductor.util import (
@@ -137,6 +139,7 @@ def detail(contract_id, stage_id=-1):
         obj=contract.opportunity if contract.opportunity else contract
     )
     metadata_form = ContractMetadataForm(obj=ContractMetadataObj(contract))
+    complete_form = CompleteForm()
 
     forms = {
         'activity': note_form, 'update': update_form,
@@ -170,25 +173,36 @@ def detail(contract_id, stage_id=-1):
     )
 
     opportunity_form.display_cleanup()
-
     if len(stages) > 0:
         return render_template(
             'conductor/detail.html',
             stages=stages, actions=actions, active_tab=active_tab,
             note_form=note_form, update_form=update_form,
             opportunity_form=opportunity_form, metadata_form=metadata_form,
-            contract=contract, current_user=current_user,
-            active_stage=active_stage, current_stage=current_stage,
-            flows=flows, subscribers=subscribers,
-            total_subscribers=total_subscribers, categories=opportunity_form.get_categories(),
+            complete_form=complete_form, contract=contract,
+            current_user=current_user, active_stage=active_stage,
+            current_stage=current_stage, flows=flows, subscribers=subscribers,
+            total_subscribers=total_subscribers,
+            current_stage_enter=pytz.UTC.localize(
+                current_stage.entered
+            ).astimezone(current_app.config['DISPLAY_TIMEZONE']),
+            categories=opportunity_form.get_categories(),
             subcategories=opportunity_form.get_subcategories()
         )
     abort(404)
 
-@blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/transition')
+@blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/transition', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def transition(contract_id, stage_id):
     contract = ContractBase.query.get(contract_id)
+
+    complete_form = CompleteForm()
+
+    if complete_form.validate_on_submit():
+        completed_time = complete_form.complete.data.astimezone(pytz.UTC)
+    else:
+        completed_time = datetime.datetime.utcnow()
+
     if not contract:
         abort(404)
 
@@ -196,7 +210,7 @@ def transition(contract_id, stage_id):
         request.args.get('destination') else None
 
     try:
-        actions = contract.transition(current_user, destination=clicked)
+        actions = contract.transition(current_user, destination=clicked, complete_time=completed_time)
         for action in actions:
             db.session.add(action)
         db.session.commit()

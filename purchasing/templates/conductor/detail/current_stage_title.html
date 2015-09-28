@@ -15,7 +15,18 @@
     <span class="text-bigger btn-share-row">Current stage: <strong>{{ current_stage.name }}</strong></span>
   </div>
   <div class="col-md-3">
-    <a href="{{ url_for('conductor.transition', contract_id=contract.id, stage_id=active_stage.id) }}" id="stage-{{ active_stage.id }}" data-current="true" class="btn btn-detail btn-success js-transition pull-right">Mark complete!</a>
+    <form method="POST" action="{{ url_for('conductor.transition', contract_id=contract.id, stage_id=active_stage.id) }}">
+      {{ complete_form.csrf_token() }}
+      <button type="button" class="btn btn-success js-transition dropdown-toggle pull-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Mark Complete <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu pull-right">
+        <li><a>{{ complete_form.complete(class_='datetimepicker form-control') }}</a></li>
+        <li role="separator" class="divider"></li>
+        <li><a><button class="btn btn-success form-control" type="submit">Save</button></a></li>
+      </ul>
+
+    </form>
   </div>
   {% endif %}
 </div>

@@ -52,16 +52,16 @@ class ContractStage(Model):
             cls.flow_id == flow_id
         ).order_by(cls.id).all()
 
-    def enter(self):
+    def enter(self, enter_time=datetime.datetime.utcnow()):
         '''Enter the stage at this point
         '''
-        self.entered = datetime.datetime.utcnow()
+        self.entered = enter_time
 
-    def log_enter(self, user):
-        self.enter()
+    def log_enter(self, user, enter_time):
+        self.enter(enter_time=enter_time)
         return ContractStageActionItem(
             contract_stage_id=self.id, action_type='entered',
-            taken_by=user.id, taken_at=datetime.datetime.utcnow(),
+            taken_by=user.id, taken_at=enter_time,
             action_detail={
                 'timestamp': self.entered.strftime('%Y-%m-%dT%H:%M:%S'),
                 'date': self.entered.strftime('%Y-%m-%d'),
@@ -82,16 +82,16 @@ class ContractStage(Model):
         return self.flow.stage_order.index(self.stage_id) > \
             self.flow.stage_order.index(target_stage_id)
 
-    def exit(self):
+    def exit(self, exit_time=datetime.datetime.now()):
         '''Exit the stage
         '''
-        self.exited = datetime.datetime.utcnow()
+        self.exited = exit_time
 
-    def log_exit(self, user):
-        self.exit()
+    def log_exit(self, user, exit_time):
+        self.exit(exit_time=exit_time)
         return ContractStageActionItem(
             contract_stage_id=self.id, action_type='exited',
-            taken_by=user.id, taken_at=datetime.datetime.utcnow(),
+            taken_by=user.id, taken_at=exit_time,
             action_detail={
                 'timestamp': self.exited.strftime('%Y-%m-%dT%H:%M:%S'),
                 'date': self.exited.strftime('%Y-%m-%d'),

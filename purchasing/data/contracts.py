@@ -248,15 +248,15 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
         return clone
 
-    def _transition_to_first(self, user):
+    def _transition_to_first(self, user, complete_time):
         contract_stage = ContractStage.get_one(
             self.id, self.flow.id, self.flow.stage_order[0]
         )
 
         self.current_stage_id = self.flow.stage_order[0]
-        return [contract_stage.log_enter(user)]
+        return [contract_stage.log_enter(user, complete_time)]
 
-    def _transition_to_next(self, user):
+    def _transition_to_next(self, user, complete_time):
         stages = self.flow.stage_order
         current_stage_idx = stages.index(self.current_stage.id)
 
@@ -267,11 +267,11 @@ class ContractBase(RefreshSearchViewMixin, Model):
         )
 
         self.current_stage_id = next_stage.stage.id
-        return [current_stage.log_exit(user), next_stage.log_enter(user)]
+        return [current_stage.log_exit(user, complete_time), next_stage.log_enter(user, complete_time)]
 
-    def _transition_to_last(self, user):
+    def _transition_to_last(self, user, complete_time):
         current_stage = ContractStage.get_one(self.id, self.flow.id, self.current_stage.id)
-        exit = current_stage.log_exit(user)
+        exit = current_stage.log_exit(user, complete_time)
         return [exit]
 
     def _transition_backwards_to_destination(self, user, destination):
@@ -296,17 +296,17 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
         return actions
 
-    def transition(self, user, destination=None, *args, **kwargs):
+    def transition(self, user, destination=None, complete_time=datetime.datetime.utcnow()):
         '''Routing method -- figure out which actual method to call
         '''
         if self.current_stage_id is None:
-            actions = self._transition_to_first(user)
+            actions = self._transition_to_first(user, complete_time)
         elif destination is not None:
             actions = self._transition_backwards_to_destination(user, destination)
         elif self.current_stage_id == self.flow.stage_order[-1]:
-            actions = self._transition_to_last(user)
+            actions = self._transition_to_last(user, complete_time)
         else:
-            actions = self._transition_to_next(user)
+            actions = self._transition_to_next(user, complete_time)
 
         return actions
 
