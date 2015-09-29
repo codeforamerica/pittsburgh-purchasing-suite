@@ -54,10 +54,39 @@ class TestNotification(TestCase):
             notification.flatten(test_recips_complex)
         )
 
+    @patch('purchasing.notifications.current_app')
+    @patch('purchasing.notifications.render_template', return_value='a test')
+    def test_notification_build_multi(self, current_app, render_template):
+        '''Test multi-messages only have one recipient
+        '''
+        current_app.logger = Mock(info=Mock())
+        notification = Notification(to_email=['foobar@foo.com', 'foobar2@foo.com'], from_email='foo@foo.com')
+
+        # should build two messages on multi send
+        msgs = notification._build(multi=True)
+        self.assertTrue(len(msgs), 2)
+        for msg in msgs:
+            self.assertEquals(len(msg.recipients), 1)
+
+    @patch('purchasing.notifications.current_app')
+    @patch('purchasing.notifications.render_template', return_value='a test')
+    def test_notification_build_multi(self, current_app, render_template):
+        '''Test single build messages have multiple recipients
+        '''
+        current_app.logger = Mock(info=Mock())
+        notification = Notification(to_email=['foobar@foo.com', 'foobar2@foo.com'], from_email='foo@foo.com')
+
+        # should build two messages on multi send
+        msgs = notification._build(multi=False)
+        self.assertTrue(len(msgs), 1)
+        for msg in msgs:
+            self.assertEquals(len(msg.recipients), 2)
+
+
     @patch('flask_mail.Mail.send')
     @patch('purchasing.notifications.send_email.delay', return_value=True)
     @patch('purchasing.notifications.render_template', return_value='a test')
-    def test_notification_build_multi(self, send, send_email, render_template):
+    def test_notification_send_multi(self, send, send_email, render_template):
         '''Test multi builds multiple message objects
         '''
         notification = Notification(to_email=['foobar@foo.com', 'foobar2@foo.com'], from_email='foo@foo.com')
@@ -73,7 +102,7 @@ class TestNotification(TestCase):
     @patch('flask_mail.Mail.send')
     @patch('purchasing.notifications.send_email.delay')
     @patch('purchasing.notifications.render_template', return_value='a test')
-    def test_notification_build_single(self, send, send_email, render_template):
+    def test_notification_send_single(self, send, send_email, render_template):
         '''Test non-multi only builds one message even with multiple emails
         '''
         notification = Notification(to_email=['foobar@foo.com', 'foobar2@foo.com'], from_email='foo@foo.com')

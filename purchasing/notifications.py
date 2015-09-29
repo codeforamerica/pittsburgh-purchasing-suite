@@ -86,7 +86,7 @@ class Notification(object):
                 subject='[Pittsburgh Purchasing] {}'.format(self.subject),
                 html=self.html_body, body=self.txt_body,
                 sender=self.from_email, reply_to=self.reply_to,
-                recipients=self.to_email, cc=self.cc_email
+                recipients=self.handle_recipients(recipient), cc=self.cc_email
             )
 
             for attachment in self.attachments:
@@ -110,14 +110,18 @@ class Notification(object):
             )
             return False
 
-    def send(self, multi=False, async=True):
-
+    def _build(self, multi=False):
         msgs = []
         if multi:
             for to in self.to_email:
                 msgs.append(self.build_msg(to))
         else:
             msgs.append(self.build_msg(self.to_email))
+
+        return msgs
+
+    def send(self, multi=False, async=True):
+        msgs = self._build(multi)
 
         if async:
             send_email.delay(msgs)
