@@ -8,7 +8,7 @@ import json
 from flask import (
     render_template, jsonify, current_app
 )
-from purchasing.extensions import login_manager
+from purchasing.extensions import login_manager, cache
 from purchasing.users.models import User
 from purchasing.public.models import AppStatus
 
@@ -30,7 +30,7 @@ def about():
 def status():
     response = {
         'status': 'ok',
-        'dependencies': ['Sendgrid', 'Postgres', 'S3'],
+        'dependencies': ['Celery', 'Postgres', 'Redis', 'S3', 'Sendgrid'],
         'resources': {}
     }
 
@@ -45,7 +45,7 @@ def status():
         sendgrid = json.loads(urllib2.urlopen(url).read())
         sent = sum([m['delivered'] + m['repeat_bounces'] for m in sendgrid])
         response['resources']['Sendgrid'] = '{}% used'.format((100 * float(sent)) / int(
-            current_app.config.get('SENDGRID_MONTHLY_LIMIT', 40000)
+            current_app.config.get('SENDGRID_MONTHLY_LIMIT', 12000)
         ))
 
     except Exception, e:
@@ -56,6 +56,13 @@ def status():
         pass
     except Exception, e:
         response['status'] = 'S3 is unavailable: {}'.format(e)
+
+    try:
+        redis_up = cache.cache._client.ping()
+        if not redis_up:
+            response['status'] = 'Redis is down or unavailable'
+    except Exception, e:
+        response['status'] = 'Redis is down or unavailable'
 
     try:
         status = AppStatus.query.first()
