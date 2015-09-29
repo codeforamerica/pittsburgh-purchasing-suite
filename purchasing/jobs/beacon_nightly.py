@@ -24,6 +24,7 @@ class BeaconNewOppotunityOpenJob(EmailJobBase):
             notifications.append(
                 Notification(
                     to_email=set([i.email for i in category_vendors] + [i.email for i in opportunity.vendors]),
+                    cc_email=list(),
                     from_email=current_app.config['BEACON_SENDER'],
                     subject='A new City of Pittsburgh opportunity from Beacon!',
                     html_template='opportunities/emails/newopp.html',
