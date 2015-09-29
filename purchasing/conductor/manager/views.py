@@ -441,10 +441,6 @@ def edit_company_contacts(contract_id):
                     contract.update_with_spec_number(contract_data, company=company)
 
                 contract.is_visible = True
-                contract.parent.is_archived = True
-                if not contract.parent.description.endswith('[Archived]'):
-                    contract.parent.description += ' [Archived]'
-
                 db.session.commit()
 
             Notification(
@@ -465,7 +461,8 @@ CONDUCTOR CONTRACT COMPLETE - company contacts for contract "{}" assigned. |New 
                 contract.description
             ))
 
-            contract.parent.complete()
+            if contract.parent:
+                contract.parent.complete()
 
             return redirect(url_for('conductor.success', contract_id=main_contract.id))
 
