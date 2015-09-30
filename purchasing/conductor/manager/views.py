@@ -199,7 +199,7 @@ def transition(contract_id, stage_id):
     complete_form = CompleteForm()
 
     if complete_form.validate_on_submit():
-        completed_time = complete_form.complete.data.astimezone(pytz.UTC)
+        completed_time = complete_form.complete.data.astimezone(pytz.UTC).replace(tzinfo=None)
     else:
         completed_time = datetime.datetime.utcnow()
 
