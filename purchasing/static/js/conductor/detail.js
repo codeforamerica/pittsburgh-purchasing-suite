@@ -48,9 +48,10 @@
       format: 'YYYY-MM-DD h:mma',
       inline: true,
       keepOpen: true,
-      minDate: currentStageEnter,
-      maxDate: e.val(),
-      showTodayButton: true
+      maxDate: moment(e.val()).toDate(),
+      minDate: moment(currentStageEnter).toDate(),
+      showTodayButton: true,
+      defaultDate: moment(e.val()).toDate()
     });
 
     e.on('click', function(e) {

@@ -70,11 +70,12 @@ class DevConfig(Config):
     UPLOAD_S3 = False
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'uploads'))
     MAIL_SUPPRESS_SEND = False
-    # CELERY_BROKER_URL = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
-    # CELERY_RESULT_BACKEND = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
-    CELERY_ALWAYS_EAGER = True
+    CELERY_BROKER_URL = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
+    CELERY_RESULT_BACKEND = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
+    CELERY_ALWAYS_EAGER = False
     UGLIFYJS_BIN = os.path.join(PROJECT_ROOT, 'node_modules', '.bin', 'uglifyjs')
     LESS_BIN = os.path.join(PROJECT_ROOT, 'node_modules', '.bin', 'lessc')
+    MAIL_SUPPRESS_SEND = True
 
 class TestConfig(Config):
     ADMIN_EMAIL = 'foo@foo.com'
