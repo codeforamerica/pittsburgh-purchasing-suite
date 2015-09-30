@@ -40,16 +40,23 @@
 
   $('#js-send-email-update-form').dirtyForms();
 
-  $('.datetimepicker').datetimepicker({
-    format: 'YYYY-MM-DD h:mma',
-    inline: true,
-    keepOpen: true,
-    minDate: currentStageEnter,
-    maxDate: new Date()
-  });
+  if (currentStageEnter || false) {
 
-  $('.datetimepicker').on('click', function(e) {
-    e.stopPropagation();
-  });
+    var e = $('.datetimepicker');
+
+    e.datetimepicker({
+      format: 'YYYY-MM-DD h:mma',
+      inline: true,
+      keepOpen: true,
+      minDate: currentStageEnter,
+      maxDate: e.val(),
+      showTodayButton: true
+    });
+
+    e.on('click', function(e) {
+      e.stopPropagation();
+    });
+
+  }
 
 })();
