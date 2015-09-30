@@ -75,6 +75,7 @@ class DevConfig(Config):
     CELERY_ALWAYS_EAGER = True
     UGLIFYJS_BIN = os.path.join(PROJECT_ROOT, 'node_modules', '.bin', 'uglifyjs')
     LESS_BIN = os.path.join(PROJECT_ROOT, 'node_modules', '.bin', 'lessc')
+    # MAIL_SUPPRESS_SEND = True
 
 class TestConfig(Config):
     ADMIN_EMAIL = 'foo@foo.com'
