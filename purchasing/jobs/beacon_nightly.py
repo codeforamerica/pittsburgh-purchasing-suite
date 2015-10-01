@@ -58,6 +58,7 @@ class BeaconBiweeklyDigestJob(EmailJobBase):
         notifications = []
 
         opportunities = self.get_opportunities()
+
         notifications.append(
             Notification(
                 to_email=set([i.email for i in Vendor.newsletter_subscribers()]),
@@ -75,5 +76,5 @@ class BeaconBiweeklyDigestJob(EmailJobBase):
         return Opportunity.query.filter(
             Opportunity.published_at > db.func.coalesce(
                 current_status.last_beacon_newsletter, datetime.date(2010, 1, 1)
-            ), Opportunity.is_published == True
+            ), Opportunity.is_public == True
         ).all()
