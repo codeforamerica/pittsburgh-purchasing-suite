@@ -47,7 +47,7 @@ class BeaconNewOppotunityOpenJob(EmailJobBase):
 class BeaconBiweeklyDigestJob(EmailJobBase):
     def run_job(self, job):
         did_run = super(BeaconBiweeklyDigestJob, self).run_job(job)
-        if did_run is not None:
+        if did_run.status == 'success':
             current_status = AppStatus.query.first()
             current_status.update(last_beacon_newsletter=datetime.datetime.utcnow())
 
