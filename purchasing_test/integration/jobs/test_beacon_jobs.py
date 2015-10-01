@@ -2,11 +2,13 @@
 
 import datetime
 
+from mock import patch, Mock
+
 from purchasing.extensions import mail
 
-from purchasing.jobs.beacon_nightly import (
-    BeaconNewOppotunityOpenJob,
-)
+from purchasing.public.models import AppStatus
+from purchasing.jobs.beacon_nightly import BeaconNewOppotunityOpenJob, BeaconBiweeklyDigestJob
+from purchasing.jobs.job_base import JobStatus
 
 from purchasing_test.test_base import BaseTestCase
 from purchasing_test.factories import OpportunityFactory, VendorFactory, CategoryFactory, UserFactory
@@ -61,3 +63,16 @@ class TestBeaconJobs(BaseTestCase):
         self.assertTrue(self.opportunity in opportunities)
         self.assertFalse(self.opportunity2 in opportunities)
         self.assertFalse(self.opportunity3 in opportunities)
+
+    @patch('purchasing.jobs.job_base.EmailJobBase.run_job', side_effect=[JobStatus(status='skipped'), JobStatus(status='success')])
+    @patch('purchasing.jobs.beacon_nightly.AppStatus')
+    def test_beacon_nightly_update(self, status, run_job):
+        status.query.first.return_value = AppStatus()
+        AppStatus.update = Mock()
+
+        biweekly = BeaconBiweeklyDigestJob()
+        biweekly.run_job(JobStatus(status='new'))
+        self.assertFalse(AppStatus.update.called)
+
+        biweekly.run_job(JobStatus(status='new'))
+        self.assertTrue(AppStatus.update.called)
