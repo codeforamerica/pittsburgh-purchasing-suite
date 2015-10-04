@@ -8,9 +8,15 @@
       <form method="POST" enctype="multipart/form-data" action="{% if opportunity.id %}{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}{% else %}{{ url_for('opportunities_admin.new') }}{% endif %}" id="js-opportunity-form">
 
         {{ form.csrf_token() }}
+
         {% include "includes/flashes.html" %}
 
-         <div class="spacer-20"></div>
+        {% if form.errors.keys()|length > 0 %}
+        <div class="alert alert-danger alert-dismissible flashed-alert fade in" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <i class="fa fa-exclamation-triangle"></i> There were problems submitting your opportunity! Please check below and correct them.
+        </div>
+        {% endif %}
 
         <h4>Post an Opportunity</h4>
         <h3>Fill out this form, and OMB will publish your opportunity to the City of Pittsburgh's new Opportunities website.</h3>
