@@ -359,20 +359,20 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
 
         self.login_user(self.staff)
         request = self.client.get('/beacon/admin/signups')
-        self.assertEquals(request.mimetype, 'text/csv')
+        self.assertEquals(request.mimetype, 'text/tsv')
         self.assertEquals(
             request.headers.get('Content-Disposition'),
-            'attachment; filename=vendors-{}.csv'.format(datetime.date.today())
+            'attachment; filename=vendors-{}.tsv'.format(datetime.date.today())
         )
 
         # python adds an extra return character to the end,
         # so we chop it off. we should have the header row and
         # the two rows we inserted above
-        csv_data = request.data.split('\n')[:-1]
+        tsv_data = request.data.split('\n')[:-1]
 
-        self.assertEquals(len(csv_data), 3)
-        for row in csv_data:
-            self.assertEquals(len(row.split(',')), 11)
+        self.assertEquals(len(tsv_data), 3)
+        for row in tsv_data:
+            self.assertEquals(len(row.split('\t')), 11)
 
 class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
     def setUp(self):
