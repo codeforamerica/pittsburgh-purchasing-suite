@@ -286,8 +286,9 @@ def browse():
     current_app.logger.info('BEACON FRONT OPPORTUNITY BROWSE VIEW')
     return render_template(
         'opportunities/browse.html', opportunities=opportunities,
-        _open=_open, upcoming=upcoming, current_user=current_user,
-        signup_form=signup_form
+        current_user=current_user, signup_form=signup_form,
+        _open=sorted(_open, key=lambda i: i.planned_submission_end),
+        upcoming=sorted(upcoming, key=lambda i: i.planned_submission_start),
     )
 
 @blueprint.route('/opportunities/<int:opportunity_id>', methods=['GET', 'POST'])

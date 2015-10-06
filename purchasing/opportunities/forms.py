@@ -158,7 +158,7 @@ class CategoryForm(Form):
         categories, subcategories = set(), defaultdict(list)
         for category in all_categories:
             categories.add(category.category)
-            subcategories['Select All'].append((category.id, category.category_friendly_name))
+            subcategories['Select All'].append((category.id, '{} - {}'.format(category.category_friendly_name, category.category)))
             subcategories[category.category].append((category.id, category.category_friendly_name))
 
         self.categories.choices = list(sorted(zip(categories, categories))) + [('Select All', 'Select All')]
