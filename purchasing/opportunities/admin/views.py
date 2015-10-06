@@ -171,23 +171,23 @@ def signups():
     '''
     def stream():
         # yield the title columns
-        yield 'first_name,last_name,business_name,email,phone_number,' +\
-            'minority_owned,woman_owned,veteran_owned,' +\
-            'disadvantaged_owned,categories,opportunities\n'
+        yield 'first_name\tlast_name\tbusiness_name\temail\tphone_number\t' +\
+            'minority_owned\twoman_owned\tveteran_owned\t' +\
+            'disadvantaged_owned\tcategories\topportunities\n'
 
         vendors = Vendor.query.all()
         for vendor in vendors:
             row = vendor.build_downloadable_row()
-            yield ','.join([str(i) for i in row]) + '\n'
+            yield '\t'.join([str(i) for i in row]) + '\n'
 
     current_app.logger.info('BEACON VENDOR CSV DOWNLOAD')
 
     resp = Response(
         stream_with_context(stream()),
         headers={
-            "Content-Disposition": "attachment; filename=vendors-{}.csv".format(datetime.date.today())
+            "Content-Disposition": "attachment; filename=vendors-{}.tsv".format(datetime.date.today())
         },
-        mimetype='text/csv'
+        mimetype='text/tsv'
     )
 
     return resp
