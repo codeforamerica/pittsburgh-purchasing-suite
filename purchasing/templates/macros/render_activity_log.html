@@ -62,6 +62,7 @@
     on {{ action.taken_at|datetimeformat('%m/%d/%y') }}
   </div>
 
+  {# flow switch handling #}
   {%- elif action.action_type == 'flow_switch' -%}
   <div class="action-event js-filter-action-flow-switch">
     <span class="event-icon"><i class="fa fa-exchange"></i></span>
@@ -70,6 +71,14 @@
     {% for _action in action.action_detail.old_flow_actions %}
       {{ render_activity_log(_action, current_user, contract, false) }}
     {% endfor %}
+  </div>
+
+  {# extension handling #}
+  {%- elif action.action_type == 'extension' -%}
+  <div class="action-event js-filter-action-extension">
+    <span class="event-icon"><i class="fa fa-arrows-h"></i></span>
+    {{ pn.print_name(action, current_user) }}
+    extended the contract on {{ action.taken_at|datetimeformat('%m/%d/%y') }}.
   </div>
 
   {%- endif -%}

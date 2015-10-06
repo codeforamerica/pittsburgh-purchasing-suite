@@ -241,12 +241,14 @@ def extend(contract_id, stage_id):
     if not contract:
         abort(404)
 
-    extended_contract = contract.parent.extend(delete_children=False)
+    extend_action = contract.parent.extend(delete_children=False)
     current_app.logger.info(
         'CONDUCTOR EXTEND - Contract for {} (ID: {}) extended'.format(
-            extended_contract.description, extended_contract.id
+            contract.parent.description, contract.parent.id
         )
     )
+    extend_action = contract.current_contract_stage.log_extension(current_user)
+    db.session.add(extend_action)
     db.session.commit()
 
     flash(
@@ -256,7 +258,7 @@ def extend(contract_id, stage_id):
 
     session['extend'] = True
     return redirect(url_for(
-        'conductor.edit', contract_id=extended_contract.id
+        'conductor.edit', contract_id=contract.parent.id
     ))
 
 
@@ -516,7 +518,9 @@ def assign(contract_id, flow_id, user_id):
 
     assigned = assign_a_contract(contract, flow, user_id)
     if assigned:
-        flash('Successfully assigned {} to {}!'.format(assigned.description, assigned.assigned.email), 'alert-success')
+        flash('Successfully assigned {} to {}!'.format(
+            assigned.description, assigned.assigned.email
+        ), 'alert-success')
         return redirect(url_for('conductor.index'))
     else:
         flash("That flow doesn't exist!", 'alert-danger')
