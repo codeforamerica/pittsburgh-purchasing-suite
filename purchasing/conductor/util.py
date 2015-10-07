@@ -210,7 +210,7 @@ def build_subscribers(contract):
     }
     return subscribers, sum([len(i) for i in subscribers.values()])
 
-def assign_a_contract(contract, flow, user_id, clone=True):
+def assign_a_contract(contract, flow, user, clone=True):
     # if we don't have a flow, stop and throw an error
     if not flow:
         return False
@@ -218,7 +218,7 @@ def assign_a_contract(contract, flow, user_id, clone=True):
     # if the contract is already assigned,
     # resassign it and continue on
     if contract.assigned_to and not contract.completed_last_stage():
-        contract.assigned_to = user_id
+        contract.assigned_to = user.id
         db.session.commit()
 
         current_app.logger.info('CONDUCTOR ASSIGN - old contract "{}" assigned to {} with flow {}'.format(
@@ -239,7 +239,7 @@ def assign_a_contract(contract, flow, user_id, clone=True):
             db.session.commit()
         try:
             stages, _, _ = create_contract_stages(flow.id, contract.id, contract=contract)
-            actions = contract.transition(current_user)
+            actions = contract.transition(user)
             for i in actions:
                 db.session.add(i)
             db.session.flush()
@@ -249,7 +249,7 @@ def assign_a_contract(contract, flow, user_id, clone=True):
             db.session.rollback()
             pass
 
-        contract.assigned_to = user_id
+        contract.assigned_to = user.id
         db.session.commit()
 
         current_app.logger.info('CONDUCTOR ASSIGN - new contract "{}" assigned to {} with flow {}'.format(

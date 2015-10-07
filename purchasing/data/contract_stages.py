@@ -112,6 +112,17 @@ class ContractStage(Model):
             }
         )
 
+    def log_extension(self, user):
+        return ContractStageActionItem(
+            contract_stage_id=self.id, action_type='extension',
+            taken_by=user.id, taken_at=datetime.datetime.utcnow(),
+            action_detail={
+                'timestamp': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S'),
+                'date': datetime.datetime.utcnow().strftime('%Y-%m-%d'),
+                'type': 'extension', 'stage_name': self.stage.name
+            }
+        )
+
     def full_revert(self):
         '''Clear timestamps for both enter and exit
         '''
