@@ -320,6 +320,20 @@ def delete_note(contract_id, stage_id, note_id):
         flash('Something went wrong: {}'.format(e.message), 'alert-danger')
     return redirect(url_for('conductor.detail', contract_id=contract_id))
 
+@blueprint.route('/contract/<int:contract_id>/assign/<int:user_id>')
+@requires_roles('conductor', 'admin', 'superadmin')
+def reassign(contract_id, user_id):
+    contract = ContractBase.query.get(contract_id)
+    assignee = User.query.get(user_id)
+
+    if not all([contract, assignee]):
+        abort(404)
+
+    contract.assigned_to = assignee
+    db.session.commit()
+    flash('Successfully assigned {} to {}!'.format(contract.description, assignee.email), 'alert-success')
+    return redirect(url_for('conductor.index'))
+
 @blueprint.route('/contract/new', methods=['GET', 'POST'])
 @blueprint.route('/contract/<int:contract_id>/start', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
@@ -341,7 +355,7 @@ def start_work(contract_id=-1):
             db.session.add(contract)
             db.session.commit()
 
-        assigned = assign_a_contract(contract, form.data.get('flow'), form.data.get('assigned').id, clone=False)
+        assigned = assign_a_contract(contract, form.data.get('flow'), form.data.get('assigned'), clone=False)
         db.session.commit()
 
         if assigned:
@@ -507,21 +521,3 @@ def url_exists(contract_id):
         return jsonify({'status': response.getcode()})
     except urllib2.HTTPError, e:
         return jsonify({'status': e.getcode()})
-
-@blueprint.route('/contract/<int:contract_id>/assign/<int:user_id>/flow/<int:flow_id>')
-@requires_roles('conductor', 'admin', 'superadmin')
-def assign(contract_id, flow_id, user_id):
-    '''Assign & start work on a contract to an admin or a conductor
-    '''
-    contract = ContractBase.query.get(contract_id)
-    flow = Flow.query.get(flow_id)
-
-    assigned = assign_a_contract(contract, flow, user_id)
-    if assigned:
-        flash('Successfully assigned {} to {}!'.format(
-            assigned.description, assigned.assigned.email
-        ), 'alert-success')
-        return redirect(url_for('conductor.index'))
-    else:
-        flash("That flow doesn't exist!", 'alert-danger')
-        return redirect(url_for('conductor.index'))
