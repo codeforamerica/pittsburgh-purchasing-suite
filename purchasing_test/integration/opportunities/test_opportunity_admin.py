@@ -22,7 +22,8 @@ from purchasing.data.importer.nigp import main as import_nigp
 
 from purchasing_test.test_base import BaseTestCase
 from purchasing_test.factories import (
-    OpportunityDocumentFactory, VendorFactory, DepartmentFactory, CategoryFactory
+    OpportunityDocumentFactory, VendorFactory, DepartmentFactory, CategoryFactory,
+    ContractTypeFactory
 )
 from purchasing_test.util import (
     insert_a_role, insert_a_user, insert_a_document,
@@ -44,6 +45,7 @@ class TestOpportunitiesAdminBase(BaseTestCase):
         self.admin_role = insert_a_role('admin')
         self.staff_role = insert_a_role('staff')
         self.department1 = DepartmentFactory(name='test')
+        self.opportunity_type = ContractTypeFactory.create(allow_opportunities=True)
 
         self.admin = insert_a_user(email='foo@foo.com', role=self.admin_role)
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role)
@@ -116,7 +118,8 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
             'planned_submission_start': datetime.date.today(),
             'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
             'is_public': False, 'subcategories-1': 'on', 'subcategories-2': 'on',
-            'subcategories-3': 'on', 'subcategories-4': 'on'
+            'subcategories-3': 'on', 'subcategories-4': 'on',
+            'opportunity_type': self.opportunity_type.id
         }
 
         self.client.post('/beacon/admin/opportunities/new', data=data)
@@ -157,7 +160,8 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
             'planned_publish': datetime.date.today(),
             'planned_submission_start': datetime.date.today(),
             'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
-            'is_public': False, 'subcategories-{}'.format(Category.query.first().id): 'on'
+            'is_public': False, 'subcategories-{}'.format(Category.query.first().id): 'on',
+            'opportunity_type': self.opportunity_type.id
         }
 
         # assert that we create a new user when we build with a new email
@@ -182,7 +186,8 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
             'planned_publish': datetime.date.today(),
             'planned_submission_start': datetime.date.today(),
             'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
-            'save_type': 'save', 'subcategories-{}'.format(Category.query.first().id): 'on'
+            'save_type': 'save', 'subcategories-{}'.format(Category.query.first().id): 'on',
+            'opportunity_type': self.opportunity_type.id
         }
 
         # assert that you need a title & description
@@ -242,7 +247,8 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
             'planned_submission_start': datetime.date.today(), 'title': 'Updated',
             'is_public': True, 'description': 'Updated Contract!', 'save_type': 'public',
             'contact_email': self.admin.email, 'department': self.department1.id,
-            'subcategories-{}'.format(Category.query.all()[-1].id): 'on'
+            'subcategories-{}'.format(Category.query.all()[-1].id): 'on',
+            'opportunity_type': self.opportunity_type.id
         })
 
         self.assert200(self.client.get('/beacon/opportunities'))
@@ -353,20 +359,20 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
 
         self.login_user(self.staff)
         request = self.client.get('/beacon/admin/signups')
-        self.assertEquals(request.mimetype, 'text/csv')
+        self.assertEquals(request.mimetype, 'text/tsv')
         self.assertEquals(
             request.headers.get('Content-Disposition'),
-            'attachment; filename=vendors-{}.csv'.format(datetime.date.today())
+            'attachment; filename=vendors-{}.tsv'.format(datetime.date.today())
         )
 
         # python adds an extra return character to the end,
         # so we chop it off. we should have the header row and
         # the two rows we inserted above
-        csv_data = request.data.split('\n')[:-1]
+        tsv_data = request.data.split('\n')[:-1]
 
-        self.assertEquals(len(csv_data), 3)
-        for row in csv_data:
-            self.assertEquals(len(row.split(',')), 11)
+        self.assertEquals(len(tsv_data), 3)
+        for row in tsv_data:
+            self.assertEquals(len(row.split('\t')), 11)
 
 class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
     def setUp(self):
@@ -503,7 +509,8 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
                 'planned_publish': datetime.date.today(),
                 'planned_submission_start': datetime.date.today(),
                 'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
-                'save_type': 'publish', 'subcategories-{}'.format(Category.query.all()[-1].id): 'on'
+                'save_type': 'publish', 'subcategories-{}'.format(Category.query.all()[-1].id): 'on',
+                'opportunity_type': self.opportunity_type.id
             })
 
             self.assertEquals(Opportunity.query.count(), 5)
@@ -522,7 +529,8 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             'planned_publish': datetime.date.today(),
             'planned_submission_start': datetime.date.today(),
             'planned_submission_end': datetime.date.today() + datetime.timedelta(1),
-            'save_type': 'save', 'subcategories-{}'.format(Category.query.all()[-1].id): 'on'
+            'save_type': 'save', 'subcategories-{}'.format(Category.query.all()[-1].id): 'on',
+            'opportunity_type': self.opportunity_type.id
         }
 
         self.login_user(self.admin)

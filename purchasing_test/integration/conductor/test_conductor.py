@@ -30,7 +30,7 @@ class TestConductorSetup(BaseTestCase):
     def setUp(self):
         super(TestConductorSetup, self).setUp()
         # create a conductor and general staff person
-        self.county_type = ContractTypeFactory.create(**{'name': 'County'})
+        self.county_type = ContractTypeFactory.create(**{'name': 'County', 'allow_opportunities': True})
         self.department = DepartmentFactory.create(**{'name': 'test department'})
 
         self.conductor_role_id = insert_a_role('conductor')
@@ -531,7 +531,8 @@ class TestConductor(TestConductorSetup):
             'planned_submission_start': datetime.date.today() + datetime.timedelta(2),
             'planned_submission_end': datetime.datetime.today() + datetime.timedelta(days=2),
             'department': self.department.id,
-            'subcategories-{}'.format(self.category.id): 'on'
+            'subcategories-{}'.format(self.category.id): 'on',
+            'opportunity_type': self.county_type.id
         })
 
         self.assertEquals(Opportunity.query.count(), 1)

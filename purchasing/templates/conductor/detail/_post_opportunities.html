@@ -9,6 +9,13 @@
 
       <h4>Post opportunity to Beacon</h4>
 
+      {% if form.errors.keys()|length > 0 %}
+      <div class="alert alert-danger alert-dismissible flashed-alert fade in" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <i class="fa fa-exclamation-triangle"></i> There were problems submitting your opportunity! Please check below and correct them.
+      </div>
+      {% endif %}
+
       <div class="form-group">
         <label for="department" class="control-label">Department <span class="form-required">*</span></label>
         <p class="help-block">Who is the using department for this opportunity?</p>
