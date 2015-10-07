@@ -1,0 +1,49 @@
+{% extends "opportunities/layout.html" %}
+
+{% block page_title %}
+   {{ super() }} - Expired City of Pittsburgh opportunities
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+
+      {% include 'includes/flashes.html' %}
+
+      <form class="form form-horizontal" method="POST" action="#">
+
+      <div class="spacer-20"></div>
+
+        <h4>Expired Opportunities</h4>
+
+        <h3><strong>Opportunities no longer accepting submissions</strong></h3>
+
+        <div class="table-responsive">
+          <table class="table table-striped table-beacon">
+            <thead>
+              <tr>
+                <th>Opportunity</th>
+                <th>Department</th>
+                <th>Response deadline</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for opportunity in expired %}
+              <tr>
+                <td class="col-md-5"><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
+                <td class="col-md-3">{{ opportunity.department }}</td>
+                <td class="col-md-2">{{ opportunity.estimate_submission_end()|datetimeformat('%m/%d/%y') }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="spacer-50"></div>
+
+{% endblock %}
