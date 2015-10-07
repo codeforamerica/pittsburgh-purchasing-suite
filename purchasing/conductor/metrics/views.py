@@ -18,7 +18,7 @@ def index():
 
 @blueprint.route('/download/<int:flow_id>')
 @requires_roles('conductor', 'admin', 'superadmin')
-def download_csv_flow(flow_id):
+def download_tsv_flow(flow_id):
     flow = Flow.query.get(flow_id)
 
     stages = db.session.execute(
@@ -54,19 +54,19 @@ def download_csv_flow(flow_id):
         }
     ).fetchall()
 
-    csv, headers = reshape_metrics_granular(stages)
+    tsv, headers = reshape_metrics_granular(stages)
 
     def stream():
-        yield ','.join(headers) + '\n'
-        for contract_id, values in csv.iteritems():
-            yield ','.join([str(i) for i in values]) + '\n'
+        yield '\t'.join(headers) + '\n'
+        for contract_id, values in tsv.iteritems():
+            yield '\t'.join([str(i) for i in values]) + '\n'
 
     resp = Response(
         stream_with_context(stream()),
         headers={
-            "Content-Disposition": "attachment; filename=conductor-{}-metrics.csv".format(flow.flow_name)
+            "Content-Disposition": "attachment; filename=conductor-{}-metrics.tsv".format(flow.flow_name)
         },
-        mimetype='text/csv'
+        mimetype='text/tsv'
     )
 
     return resp
