@@ -2,9 +2,8 @@
 
 import datetime
 
-from os import mkdir, listdir, rmdir
+from os import listdir
 from cStringIO import StringIO
-from shutil import rmtree
 
 from werkzeug.datastructures import MultiDict
 from werkzeug.datastructures import FileStorage
@@ -14,83 +13,14 @@ from flask import current_app
 from purchasing.database import db
 from purchasing.extensions import mail
 from purchasing.users.models import User
-from purchasing.data.stages import Stage
-from purchasing.data.flows import Flow
 from purchasing.opportunities.models import Opportunity, Vendor, Category, OpportunityDocument
 from purchasing.opportunities.forms import OpportunityDocumentForm
-from purchasing.data.importer.nigp import main as import_nigp
 
-from purchasing_test.test_base import BaseTestCase
-from purchasing_test.factories import (
-    OpportunityDocumentFactory, VendorFactory, DepartmentFactory, CategoryFactory,
-    ContractTypeFactory
-)
-from purchasing_test.util import (
-    insert_a_role, insert_a_user, insert_a_document,
-    insert_an_opportunity
-)
+from purchasing_test.factories import OpportunityDocumentFactory, VendorFactory
 
-class TestOpportunitiesAdminBase(BaseTestCase):
-    def setUp(self):
-        super(TestOpportunitiesAdminBase, self).setUp()
+from purchasing_test.integration.opportunities.test_opportunities_base import TestOpportunitiesBase
 
-        try:
-            mkdir(current_app.config.get('UPLOAD_DESTINATION'))
-        except OSError:
-            rmtree(current_app.config.get('UPLOAD_DESTINATION'))
-            mkdir(current_app.config.get('UPLOAD_DESTINATION'))
-
-        import_nigp(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
-
-        self.admin_role = insert_a_role('admin')
-        self.staff_role = insert_a_role('staff')
-        self.department1 = DepartmentFactory(name='test')
-        self.opportunity_type = ContractTypeFactory.create(allow_opportunities=True)
-
-        self.admin = insert_a_user(email='foo@foo.com', role=self.admin_role)
-        self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role)
-
-        self.document = insert_a_document()
-
-        self.opportunity1 = insert_an_opportunity(
-            contact=self.admin, created_by=self.staff,
-            is_public=True, planned_publish=datetime.date.today() + datetime.timedelta(1),
-            planned_submission_start=datetime.date.today() + datetime.timedelta(2),
-            planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
-            documents=[self.document.id], categories=set([Category.query.first()])
-        )
-        self.opportunity2 = insert_an_opportunity(
-            contact=self.admin, created_by=self.staff,
-            is_public=True, planned_publish=datetime.date.today(),
-            planned_submission_start=datetime.date.today() + datetime.timedelta(2),
-            planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
-            categories=set([Category.query.first()])
-        )
-        self.opportunity3 = insert_an_opportunity(
-            contact=self.admin, created_by=self.staff,
-            is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(2),
-            planned_submission_start=datetime.date.today() - datetime.timedelta(2),
-            planned_submission_end=datetime.datetime.today() - datetime.timedelta(1),
-            categories=set([Category.query.first()])
-        )
-        self.opportunity4 = insert_an_opportunity(
-            contact=self.admin, created_by=self.staff,
-            is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(1),
-            planned_submission_start=datetime.date.today(),
-            planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
-            title='TEST TITLE!', categories=set([Category.query.first()])
-        )
-
-    def tearDown(self):
-        super(TestOpportunitiesAdminBase, self).tearDown()
-        # clear out the uploads folder
-        rmtree(current_app.config.get('UPLOAD_DESTINATION'))
-        try:
-            rmdir(current_app.config.get('UPLOAD_DESTINATION'))
-        except OSError:
-            pass
-
-class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
+class TestOpportunitiesAdmin(TestOpportunitiesBase):
     render_templates = True
 
     def test_document_upload(self):
@@ -374,7 +304,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         for row in tsv_data:
             self.assertEquals(len(row.split('\t')), 11)
 
-class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
+class TestOpportunitiesPublic(TestOpportunitiesBase):
     def setUp(self):
         super(TestOpportunitiesPublic, self).setUp()
         self.opportunity3.is_public = False
