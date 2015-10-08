@@ -15,6 +15,7 @@ from purchasing.utils import (
 )
 
 from purchasing.public.models import AppStatus
+from purchasing.data.importer.stages_and_flows import seed_stages_and_flows
 
 from purchasing import jobs as nightly_jobs
 
@@ -229,6 +230,8 @@ def all_clear():
     print 'All clear!'
     return
 
+
+
 @manager.option('-r', '--s3user', dest='user')
 @manager.option('-p', '--s3secret', dest='secret')
 @manager.option('-t', '--s3bucket', dest='bucket')
@@ -241,6 +244,8 @@ def seed(user=None, secret=None, bucket=None):
     bucket = bucket if bucket else os.environ.get('S3_BUCKET_NAME')
     # import seed contracts
     import_old_contracts('./purchasing/data/importer/seed/2015-07-01-seed-contracts.csv')
+    # seed a sample stage/flow with basic names
+    seed_stages_and_flows()
     # scrape line items
     scrape(True)
     # import seed costars
