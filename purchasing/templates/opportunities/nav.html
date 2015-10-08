@@ -10,7 +10,17 @@
 {% endblock %}
 
 {% block applinks_right %}
-<li><a href="{{ url_for('opportunities.browse') }}" class="navbar-link">Browse opportunities</a></li>
+<li class="dropdown">
+  <a class="dropdown-toggle navbar-link" data-toggle="dropdown" aria-expanded="false">
+    Browse opportunities
+    <span class="caret"></span>
+    <span class="sr-only">Toggle dropdown</span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li><a href="{{ url_for('opportunities.browse') }}" class="navbar-link">Available opportunities</a></li>
+    <li><a href="{{ url_for('opportunities.expired') }}" class="navbar-link">Closed opportunities</a></li>
+  </ul>
+</li>
 <li><a href="{{ url_for('opportunities.signup') }}" class="navbar-link">Subscribe</a></li>
 <li><a href="{{ url_for('opportunities.manage') }}" class="navbar-link">Manage subscriptions</a></li>
 {% if not current_user.is_anonymous() %}
