@@ -283,7 +283,7 @@ def browse():
         elif opportunity.is_upcoming:
             upcoming.append(opportunity)
 
-    current_app.logger.info('BEACON FRONT OPPORTUNITY BROWSE VIEW')
+    current_app.logger.info('BEACON FRONT OPEN OPPORTUNITY VIEW')
     return render_template(
         'opportunities/browse.html', opportunities=opportunities,
         current_user=current_user, signup_form=signup_form,
@@ -300,7 +300,7 @@ def expired():
         Opportunity.is_public == True
     ).all()
 
-    current_app.logger.info('BEACON FRONT OPPORTUNITY BROWSE EXPIRED VIEW')
+    current_app.logger.info('BEACON FRONT CLOSED OPPORTUNITY VIEW')
 
     return render_template(
         'opportunities/front/expired.html', expired=expired
