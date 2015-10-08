@@ -1,7 +1,7 @@
 <table class="display" id="js-table-progress">
   <thead>
     <th></th>
-    <th>Item #</th>
+    <th>Spec #</th>
     <th>Name</th>
     <th>Current Step</th>
     <th>Current Step Started Sort (Hidden)</th>
@@ -17,10 +17,21 @@
     {%- elif days_from_today(contract.entered) < -7 -%}contract-row-expiring-warning
     {%- endif -%}" data-department="{{ contract.department }}"
     data-controller="{{ contract.financial_id or 'Not set' }}"
-    data-full-description="{{ contract.description|title }}">
+    data-full-description="{{ contract.description|title }}"
+    data-item-number="{{ contract.id }}">
 
       <td class="details-control"><i class="fa fa-plus"></i></td>
-      <td>{{ contract.id }}</td>
+
+      <td>
+        {% if contract[1].get_spec_number().value %}
+        {{ contract[1].get_spec_number().value }}
+        {% elif contract[1].get_spec_number().value %}
+        {{ contract[1].parent }}
+        {% else %}
+        {{ contract.id }} <br>
+        <span class="text-muted"><small>No spec number, <br>displaying item #</small></span>
+        {% endif %}
+      </td>
 
       <td>
         <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>{{ contract.description|title|truncate(40) }}</span>

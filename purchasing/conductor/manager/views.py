@@ -41,6 +41,7 @@ from purchasing.conductor.manager import blueprint
 def index():
     in_progress = db.session.query(
         db.distinct(ContractBase.id).label('id'),
+        ContractBase,
         ContractBase.description, Flow.flow_name,
         Stage.name.label('stage_name'), ContractStage.entered,
         User.first_name, User.email,
@@ -55,6 +56,8 @@ def index():
         Stage, Stage.id == ContractBase.current_stage_id
     ).join(
         Flow, Flow.id == ContractBase.flow_id
+    ).outerjoin(
+        ContractProperty, ContractProperty.contract_id == ContractBase.id
     ).join(User, User.id == ContractBase.assigned_to).filter(
         ContractStage.flow_id == ContractBase.flow_id,
         ContractStage.entered != None,

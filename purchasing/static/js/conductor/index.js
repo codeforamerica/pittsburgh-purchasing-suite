@@ -36,9 +36,10 @@ $(document).ready(function() {
     progressTable.draw();
   });
 
-  function format(description, department, controller) {
+  function format(itemNumber, description, department, controller) {
     return '<table class="table table-condensed">' +
       '<tbody>' +
+        '<tr><td class="dropdown-table-border-right"><strong>Item #</strong></td><td>' + itemNumber + '</td></tr>' +
         '<tr><td class="dropdown-table-border-right"><strong>Full Description</strong></td><td>' + description + '</td></tr>' +
         '<tr><td class="dropdown-table-border-right"><strong>Department</strong></td><td>' + department + '</td></tr>' +
         '<tr><td class="dropdown-table-border-right"><strong>Controller #</strong></td><td>' + controller + '</td></tr>' +
@@ -57,7 +58,10 @@ $(document).ready(function() {
       tr.removeClass('shown');
       clicked.find('.fa').removeClass('fa-minus').addClass('fa-plus');
     } else {
-      row.child( format( tr.attr('data-full-description'), tr.attr('data-department'), tr.attr('data-controller') ) ).show();
+      row.child(format(
+        tr.attr('data-item-number'), tr.attr('data-full-description'),
+        tr.attr('data-department'), tr.attr('data-controller')
+      )).show();
       tr.addClass('shown');
       clicked.find('.fa').removeClass('fa-plus').addClass('fa-minus');
     }
