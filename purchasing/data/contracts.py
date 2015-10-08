@@ -4,6 +4,7 @@ import time
 import datetime
 
 from itertools import groupby, ifilter
+from flask_login import current_user
 
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref
@@ -81,6 +82,10 @@ class ContractBase(RefreshSearchViewMixin, Model):
         elif self.is_archived:
             return 'archived'
         return 'active'
+
+    @property
+    def current_contract_stage(self):
+        return ContractStage.get_one(self.id, self.flow.id, self.current_stage.id)
 
     def get_spec_number(self):
         '''Returns the spec number for a given contract
@@ -186,8 +191,6 @@ class ContractBase(RefreshSearchViewMixin, Model):
                 child.delete()
             self.children = []
 
-        return self
-
     def complete(self):
         '''Do the steps to mark a contract as complete:
 
@@ -203,8 +206,6 @@ class ContractBase(RefreshSearchViewMixin, Model):
             child.is_archived = False
             child.is_visible = True
 
-        return self
-
     def kill(self):
         '''Remove the contract from the conductor visiblility list
         '''
@@ -212,7 +213,6 @@ class ContractBase(RefreshSearchViewMixin, Model):
         self.is_archived = True
         if not self.description.endswith(' [Archived]'):
             self.description += ' [Archived]'
-        return self
 
     @classmethod
     def clone(cls, instance, parent_id=None, strip=True, new_conductor_contract=True):
@@ -260,8 +260,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
         stages = self.flow.stage_order
         current_stage_idx = stages.index(self.current_stage.id)
 
-        current_stage = ContractStage.get_one(self.id, self.flow.id, self.current_stage.id)
-
+        current_stage = self.current_contract_stage
         next_stage = ContractStage.get_one(
             self.id, self.flow.id, self.flow.stage_order[current_stage_idx + 1]
         )
@@ -270,8 +269,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
         return [current_stage.log_exit(user, complete_time), next_stage.log_enter(user, complete_time)]
 
     def _transition_to_last(self, user, complete_time):
-        current_stage = ContractStage.get_one(self.id, self.flow.id, self.current_stage.id)
-        exit = current_stage.log_exit(user, complete_time)
+        exit = self.current_contract_stage.log_exit(user, complete_time)
         return [exit]
 
     def _transition_backwards_to_destination(self, user, destination):

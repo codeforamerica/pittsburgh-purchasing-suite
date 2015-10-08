@@ -36,7 +36,17 @@
       </td><!-- formatted expiration date -->
 
       <td>
-        {% if contract.first_name %}{{ contract.first_name }}{% else %}Unassigned{% endif %}
+        <div class="dropdown">
+          <button id="dLabel-{{ contract.id }}" class="btn btn-default btn-sm btn-assigned" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {% if contract.first_name %}{{ contract.first_name }}{% else %}Unassigned{% endif %}
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel-{{ contract.id }}">
+            {% for conductor in conductors %}
+              <li><a href="{{ url_for('conductor.reassign', contract_id=contract.id, user_id=conductor.id) }}">{{ conductor.print_pretty_name() }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
       </td>
 
       <td>

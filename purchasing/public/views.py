@@ -2,6 +2,7 @@
 '''Public section, including homepage and signup.'''
 
 import time
+import datetime
 import urllib2
 import json
 
@@ -37,9 +38,10 @@ def status():
     # order the try/except blocks in the reverse order of seriousness
     # in terms of an outage
     try:
-        url = 'https://sendgrid.com/api/stats.get.json?api_user={user}&api_key={_pass}&days=30'.format(
+        url = 'https://sendgrid.com/api/stats.get.json?api_user={user}&api_key={_pass}&days={days}'.format(
             user=current_app.config['MAIL_USERNAME'],
-            _pass=current_app.config['MAIL_PASSWORD']
+            _pass=current_app.config['MAIL_PASSWORD'],
+            days=datetime.date.today().day
         )
 
         sendgrid = json.loads(urllib2.urlopen(url).read())

@@ -158,7 +158,7 @@ class CategoryForm(Form):
         categories, subcategories = set(), defaultdict(list)
         for category in all_categories:
             categories.add(category.category)
-            subcategories['Select All'].append((category.id, category.category_friendly_name))
+            subcategories['Select All'].append((category.id, '{} - {}'.format(category.category_friendly_name, category.category)))
             subcategories[category.category].append((category.id, category.category_friendly_name))
 
         self.categories.choices = list(sorted(zip(categories, categories))) + [('Select All', 'Select All')]
@@ -172,6 +172,7 @@ class CategoryForm(Form):
         subcategories = self.build_categories(all_categories)
         self._subcategories = json.dumps(subcategories)
         display_categories = subcategories.keys()
+
         if 'Select All' in display_categories:
             display_categories.remove('Select All')
         self._categories = json.dumps(sorted(display_categories))
@@ -196,9 +197,6 @@ class CategoryForm(Form):
                         self.errors['subcategories'] = ['{} is not a valid choice!'.format(subcat)]
                         break
                     self.categories.data.add(subcat)
-
-        if len(subcats) == 0 and not self.errors.get('subcategories', None):
-            self.errors['categories'] = ['You must choose at least one!']
 
 class VendorSignupForm(CategoryForm):
     business_name = fields.TextField(validators=[DataRequired()])
@@ -231,12 +229,11 @@ class UnsubscribeForm(Form):
     )
 
 class OpportunityDocumentForm(NoCSRFForm):
-    title = fields.TextField(validators=[RequiredIf('document')])
-    document = FileField(
-        validators=[FileAllowed(
-            ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
-            '.pdf, Word (.doc/.docx), and Excel (.xls/.xlsx) documents only!')
-        ]
+    title = fields.TextField(label='Document Name', validators=[RequiredIf('document')])
+    document = FileField('Document', validators=[FileAllowed(
+        ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
+        '.pdf, Word (.doc/.docx), and Excel (.xls/.xlsx) documents only!'),
+        RequiredIf('title')]
     )
 
     def upload_document(self, _id):
@@ -278,13 +275,15 @@ class OpportunityForm(CategoryForm):
         query_factory=Department.query_factory,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.name,
-        allow_blank=True, blank_text='-----'
+        allow_blank=True, blank_text='-----',
+        validators=[DataRequired()]
     )
     opportunity_type = QuerySelectField(
         query_factory=ContractType.opportunity_type_query,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.name,
-        allow_blank=True, blank_text='-----'
+        allow_blank=True, blank_text='-----',
+        validators=[DataRequired()]
     )
     contact_email = fields.TextField(validators=[Email(), city_domain_email, DataRequired()])
     title = fields.TextField(validators=[DataRequired()])
@@ -302,7 +301,8 @@ class OpportunityForm(CategoryForm):
 
     def display_cleanup(self, opportunity=None):
         self.vendor_documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
-        self.contact_email.data = opportunity.contact.email if opportunity else ''
+        if opportunity and not self.contact_email.data:
+            self.contact_email.data = opportunity.contact.email
 
         if self.planned_submission_end.data:
             self.planned_submission_end.data = pytz.UTC.localize(

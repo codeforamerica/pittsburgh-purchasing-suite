@@ -16,6 +16,7 @@ from purchasing.data.flows import Flow
 
 from purchasing.opportunities.models import Opportunity
 from purchasing.extensions import mail
+from purchasing.conductor.util import assign_a_contract
 
 from purchasing_test.factories import ContractTypeFactory, DepartmentFactory, CategoryFactory
 
@@ -29,7 +30,7 @@ class TestConductorSetup(BaseTestCase):
     def setUp(self):
         super(TestConductorSetup, self).setUp()
         # create a conductor and general staff person
-        self.county_type = ContractTypeFactory.create(**{'name': 'County'})
+        self.county_type = ContractTypeFactory.create(**{'name': 'County', 'allow_opportunities': True})
         self.department = DepartmentFactory.create(**{'name': 'test department'})
 
         self.conductor_role_id = insert_a_role('conductor')
@@ -71,9 +72,8 @@ class TestConductorSetup(BaseTestCase):
     def assign_contract(self, flow=None, contract=None):
         flow = flow if flow else self.flow
         contract = contract if contract else self.contract1
-        self.client.get('/conductor/contract/{}/assign/{}/flow/{}'.format(
-            contract.id, self.conductor.id, flow.id
-        ))
+
+        assign_a_contract(contract, flow, self.conductor)
 
         return contract.children[0]
 
@@ -181,10 +181,6 @@ class TestConductor(TestConductorSetup):
         self.assertEquals(ContractStage.query.count(), len(self.flow.stage_order))
         self.assertEquals(assign.current_stage_id, self.flow.stage_order[0])
         self.assertEquals(assign.assigned_to, self.conductor.id)
-
-        self.assert_flashes('Successfully assigned {} to {}!'.format(
-            assign.description, self.conductor.email
-        ), 'alert-success')
 
         # re-assigning shouldn't cause problems
         self.assign_contract()
@@ -535,7 +531,8 @@ class TestConductor(TestConductorSetup):
             'planned_submission_start': datetime.date.today() + datetime.timedelta(2),
             'planned_submission_end': datetime.datetime.today() + datetime.timedelta(days=2),
             'department': self.department.id,
-            'subcategories-{}'.format(self.category.id): 'on'
+            'subcategories-{}'.format(self.category.id): 'on',
+            'opportunity_type': self.county_type.id
         })
 
         self.assertEquals(Opportunity.query.count(), 1)

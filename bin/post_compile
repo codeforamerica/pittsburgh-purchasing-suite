@@ -48,4 +48,11 @@ if [ -f bin/bundle_assets ]; then
     bin/bundle_assets
 fi
 
+# Bundle assets
+if [ -f bin/all_clear ]; then
+    echo "-----> Setting all clear"
+    chmod +x bin/clear
+    bin/all_clear
+fi
+
 echo "-----> Post-compile done"

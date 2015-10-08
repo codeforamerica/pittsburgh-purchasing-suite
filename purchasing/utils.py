@@ -196,7 +196,7 @@ class RequiredIf(InputRequired):
             )
         if bool(other_field.data) and not bool(field.data):
             raise StopValidation(
-                'You must also fill out "%s" if you want to fill this out.' %
+                'You filled out "%s" but left this blank -- please fill this out as well.' %
                 other_field.label.text if other_field.label else self.other_field_name
             )
 

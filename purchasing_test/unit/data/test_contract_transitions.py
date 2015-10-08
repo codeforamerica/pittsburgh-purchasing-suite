@@ -77,10 +77,12 @@ class TestContractTransition(ContractObjectTestBase):
         self.active_contract.current_stage = self.stage1
 
         action = self.active_contract.transition(self.user)
-        self.assertEquals(_get.call_count, 2)
         self.assertEquals(len(action), 2)
+        self.assertTrue(_get.called)
         self.assertEquals(action[0].action_type, 'exited')
+        self.assertEquals(action[0].action_detail['stage_name'], self.stage1.name)
         self.assertEquals(action[1].action_type, 'entered')
+        self.assertEquals(action[1].action_detail['stage_name'], self.stage2.name)
         self.assertEquals(self.active_contract.current_stage_id, self.stage2.id)
 
     @patch('purchasing.data.contracts.ContractBase.complete')
