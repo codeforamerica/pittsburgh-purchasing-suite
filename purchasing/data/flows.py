@@ -84,7 +84,9 @@ class Flow(Model):
         return db.session.execute('''
             select
                 x.contract_id, x.description, x.department,
-                x.email, x.stage_name, x.exited, x.entered, x.rn
+                x.email, x.stage_name, x.rn,
+                min(x.entered) as entered,
+                max(x.exited) as exited
 
             from (
 
@@ -106,6 +108,7 @@ class Flow(Model):
                 and cs.flow_id = :flow_id
 
             ) x
+            group by 1,2,3,4,5,6
             order by contract_id, rn desc
         ''', {
             'flow_id': self.id
