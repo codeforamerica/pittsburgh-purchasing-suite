@@ -8,6 +8,7 @@ from sqlalchemy.orm.exc import FlushError
 from sqlalchemy.dialects.postgres import ARRAY
 
 from purchasing.database import db, Model, Column
+from purchasing.utils import localize_datetime
 from purchasing.data.contracts import ContractBase
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 
@@ -27,16 +28,38 @@ class Flow(Model):
         return cls.query
 
     def build_metrics_data(self):
-        raw_data, headers = self.reshape_metrics_granular(enter_and_exit=True)
-        cleaned_data = []
-        for i in raw_data.values():
-            cleaned_data.append(dict(zip(
-                headers, [str(v) for v in i]
-            )))
+        return self.reshape_metrics_nested().values()
 
-        return cleaned_data
+    def reshape_metrics_nested(self):
+        raw_data = self.get_metrics_csv_data()
+        results = {}
 
-    def reshape_metrics_granular(self, enter_and_exit=False):
+        for ix, row in enumerate(raw_data):
+
+            try:
+                results[row.contract_id]['stages'].append({
+                    'name': row.stage_name,
+                    'entered': localize_datetime(row.entered).isoformat(),
+                    'exited': localize_datetime(row.exited).isoformat(),
+                    'seconds': max([(row.exited - row.entered).total_seconds(), 0])
+                })
+            except KeyError:
+                results[row.contract_id] = {
+                    'description': row.description,
+                    'email': row.email,
+                    'department': row.department,
+                    'contract_id': row.contract_id,
+                    'stages': [{
+                        'name': row.stage_name,
+                        'entered': localize_datetime(row.entered).isoformat(),
+                        'exited': localize_datetime(row.exited).isoformat(),
+                        'seconds': max([(row.exited - row.entered).total_seconds(), 0])
+                    }]
+                }
+
+        return results
+
+    def reshape_metrics_granular(self, enter_and_exit=False, flat=True):
         '''Transform long data from database into wide data for consumption
 
         Take in a result set (list of tuples), return a dictionary of results.
@@ -65,14 +88,15 @@ class Flow(Model):
             # append the stage date data
             if enter_and_exit:
                 results[row.contract_id].extend([
-                    row.exited, row.entered
+                    localize_datetime(row.exited),
+                    localize_datetime(row.entered)
                 ])
-                if row.stage_name not in headers:
+                if row.stage_name + '_exit' not in headers:
                     headers.append(row.stage_name.replace(' ', '_') + '_exit')
                     headers.append(row.stage_name.replace(' ', '_') + '_enter')
             else:
                 results[row.contract_id].extend([
-                    row.exited
+                    localize_datetime(row.exited)
                 ])
 
                 if row.stage_name not in headers:

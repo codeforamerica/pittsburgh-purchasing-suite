@@ -20,7 +20,7 @@ def download_tsv_flow(flow_id):
     flow = Flow.query.get(flow_id)
     if flow:
 
-        csv, headers = flow.reshape_metrics_granular()
+        tsv, headers = flow.reshape_metrics_granular()
 
         def stream():
             yield '\t'.join(headers) + '\n'

@@ -5,6 +5,7 @@
 {{ super() }}
 
 <div class="container">
+  <div id="js-average-time-chart"></div>
 </div>
 
 
@@ -16,7 +17,48 @@
 $.ajax({
   url: "{{ url_for('conductor_metrics.flow_data', flow_id=flow_id) }}",
 }).done(function(data, status, xhr) {
-  debugger;
+  var chartDataObj = {}, chartRows = [['Stages']], chartCategories = [];
+  d3.map(data.results).forEach(function(ix, i) {
+    return d3.map(i.stages).forEach(function(idx, d) {
+      if (chartDataObj[d.name]) {
+        chartDataObj[d.name].push(d.seconds)
+      } else {
+        chartDataObj[d.name] = [d.name, d.seconds]
+      }
+    })
+  })
+  d3.map(chartDataObj).values().forEach(function(d) {
+    chartCategories.push(d[0]);
+    chartRows[0].push(d3.mean(d.slice(0).map(function(e) {
+      return d3.round(e/60/60/24, 1);
+    })));
+  })
+
+  var chart = c3.generate({
+    bindto: '#js-average-time-chart',
+    data: {
+      columns: chartRows, type: 'bar'
+    },
+    size: { height: 360 },
+    axis: {
+      x: { type: 'category', categories: chartCategories },
+      y: {
+        label: { text: 'Average Days Spent in Stage', position: 'outer-middle' },
+        format: '.1f'
+      }
+    },
+    legend: { show: false },
+    tooltip: {
+      format: {
+        value: function (value, ratio, id) {
+          var formatter = d3.format('.1f')
+          return formatter(value) + ' Days';
+        },
+        name: function(name, ratio, id, index) { return chartCategories[index]; },
+        title: function(d) { return '' }
+      },
+    }
+  });
 }).fail(function() {
 
 })
