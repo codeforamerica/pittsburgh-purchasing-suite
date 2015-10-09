@@ -254,10 +254,14 @@ class TestOpportunities(BaseTestCase):
         self.assertTrue('You are not subscribed to anything!' in unsubscribe_all.data)
 
 class TestExpiredOpportunities(TestOpportunitiesBase):
+    render_templates = True
+
+    def setUp(self):
+        super(TestOpportunitiesBase, self).setUp()
 
     def test_expired_opportunity(self):
-        '''Tests that expired view works and only expired opportunity is posted
+        '''Tests that expired view works
         '''
-        expired = self.client.get('/beacon/opportunities/expired/')
+
+        expired = self.client.get('/beacon/opportunities/expired')
         self.assert200(expired)
-        self.assert_template_used('/opportunities/front/expired.html')
