@@ -27,35 +27,40 @@ class Flow(Model):
     def all_flow_query_factory(cls):
         return cls.query
 
-    def build_metrics_data(self):
-        return self.reshape_metrics_nested().values()
+    def _build_row(self, row, exited, data_dict):
+        try:
+            data_dict[row.contract_id]['stages'].append({
+                'name': row.stage_name, 'id': row.stage_id,
+                'entered': localize_datetime(row.entered).isoformat(),
+                'exited': localize_datetime(exited).isoformat(),
+                'seconds': max([(exited - row.entered).total_seconds(), 0]),
+            })
+        except KeyError:
+            data_dict[row.contract_id] = {
+                'description': row.description,
+                'email': row.email,
+                'department': row.department,
+                'contract_id': row.contract_id,
+                'stages': [{
+                    'name': row.stage_name, 'id': row.stage_id,
+                    'entered': localize_datetime(row.entered).isoformat(),
+                    'exited': localize_datetime(exited).isoformat(),
+                    'seconds': max([(exited - row.entered).total_seconds(), 0]),
+                }]
+            }
 
-    def reshape_metrics_nested(self):
+        return data_dict
+
+    def build_metrics_data(self):
         raw_data = self.get_metrics_csv_data()
-        results = {}
+        results = {'current': {}, 'complete': {}}
 
         for ix, row in enumerate(raw_data):
-
-            try:
-                results[row.contract_id]['stages'].append({
-                    'name': row.stage_name,
-                    'entered': localize_datetime(row.entered).isoformat(),
-                    'exited': localize_datetime(row.exited).isoformat(),
-                    'seconds': max([(row.exited - row.entered).total_seconds(), 0])
-                })
-            except KeyError:
-                results[row.contract_id] = {
-                    'description': row.description,
-                    'email': row.email,
-                    'department': row.department,
-                    'contract_id': row.contract_id,
-                    'stages': [{
-                        'name': row.stage_name,
-                        'entered': localize_datetime(row.entered).isoformat(),
-                        'exited': localize_datetime(row.exited).isoformat(),
-                        'seconds': max([(row.exited - row.entered).total_seconds(), 0])
-                    }]
-                }
+            exited = row.exited if row.exited else datetime.datetime.utcnow()
+            if row.exited is None:
+                results['current'] = self._build_row(row, exited, results['current'])
+            else:
+                results['complete'] = self._build_row(row, exited, results['complete'])
 
         return results
 
@@ -86,7 +91,7 @@ class Flow(Model):
                 ])
 
             # append the stage date data
-            if enter_and_exit:
+            if enter_and_exit and row.exited:
                 results[row.contract_id].extend([
                     localize_datetime(row.exited),
                     localize_datetime(row.entered)
@@ -108,7 +113,7 @@ class Flow(Model):
         return db.session.execute('''
             select
                 x.contract_id, x.description, x.department,
-                x.email, x.stage_name, x.rn,
+                x.email, x.stage_name, x.rn, x.stage_id,
                 min(x.entered) as entered,
                 max(x.exited) as exited
 
@@ -116,7 +121,7 @@ class Flow(Model):
 
                 select
                     c.id as contract_id, c.description, d.name as department,
-                    u.email, s.name as stage_name, cs.exited, cs.entered,
+                    u.email, s.name as stage_name, s.id as stage_id, cs.exited, cs.entered,
                     row_number() over (partition by c.id order by cs.entered asc, cs.id asc) as rn
 
                 from contract_stage cs
@@ -128,12 +133,11 @@ class Flow(Model):
                 left join department d on c.department_id = d.id
 
                 where cs.entered is not null
-                and cs.exited is not null
                 and cs.flow_id = :flow_id
 
             ) x
-            group by 1,2,3,4,5,6
-            order by contract_id, rn desc
+            group by 1,2,3,4,5,6,7
+            order by contract_id, rn asc
         ''', {
             'flow_id': self.id
         }).fetchall()

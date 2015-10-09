@@ -52,7 +52,12 @@ def flow_overview(flow_id):
 def flow_data(flow_id):
     flow = Flow.query.get(flow_id)
     if flow:
+        results = flow.build_metrics_data()
         return jsonify(
-            {'results': flow.build_metrics_data()}
+            {
+                'complete': results['complete'].values(),
+                'current': results['current'].values(),
+                'stage_order': flow.stage_order
+            }
         )
     abort(404)
