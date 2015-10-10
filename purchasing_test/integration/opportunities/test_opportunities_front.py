@@ -4,7 +4,6 @@ import json
 import datetime
 from flask import current_app, url_for
 
-from purchasing.database import db
 from purchasing.extensions import mail
 from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.models import Vendor
