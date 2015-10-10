@@ -4,6 +4,7 @@ import json
 import datetime
 from flask import current_app, url_for
 
+from purchasing.database import db
 from purchasing.extensions import mail
 from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.models import Vendor
@@ -254,14 +255,12 @@ class TestOpportunities(BaseTestCase):
         self.assertTrue('You are not subscribed to anything!' in unsubscribe_all.data)
 
 class TestExpiredOpportunities(TestOpportunitiesBase):
-    render_templates = True
-
-    def setUp(self):
-        super(TestOpportunitiesBase, self).setUp()
 
     def test_expired_opportunity(self):
         '''Tests that expired view works
         '''
 
-        expired = self.client.get('/beacon/opportunities/expired')
-        self.assert200(expired)
+        self.opportunity3.planned_submission_end = datetime.datetime.today() - datetime.timedelta(days=1)
+
+        self.assert200(self.client.get('/beacon/opportunities/expired'))
+        self.assertEquals(len(self.get_context_variable('expired')), 1)
