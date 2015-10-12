@@ -51,7 +51,7 @@ fi
 # Bundle assets
 if [ -f bin/all_clear ]; then
     echo "-----> Setting all clear"
-    chmod +x bin/clear
+    chmod +x bin/all_clear
     bin/all_clear
 fi
 
