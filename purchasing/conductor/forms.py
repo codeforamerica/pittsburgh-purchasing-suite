@@ -55,6 +55,13 @@ def get_default():
         datetime.datetime.utcnow()
     ).astimezone(current_app.config['DISPLAY_TIMEZONE'])
 
+def validate_integer(form, field):
+    if field.data:
+        try:
+            int(field.data)
+        except:
+            raise ValidationError('This must be an integer!')
+
 class CompleteForm(Form):
     complete = DateTimeField(default=get_default)
 
@@ -142,7 +149,12 @@ class CompanyContactForm(NoCSRFForm):
     state = SelectField(validators=[Optional(), RequiredIf('city')], choices=[('', '---')] +
         [(state, state) for state in STATE_ABBREV]
     )
-    zip_code = IntegerField(validators=[Optional(), RequiredIf('city'), Length(min=5, max=5)])
+    zip_code = TextField(
+        validators=[
+            validate_integer, Optional(),
+            RequiredIf('city'), Length(min=5, max=5, message='Field must be 5 characters long.')
+        ]
+    )
     phone_number = TextField(validators=[DataRequired(), Regexp(
         US_PHONE_REGEX, message='Please enter numbers in XXX-XXX-XXXX format'
     )])
@@ -150,13 +162,6 @@ class CompanyContactForm(NoCSRFForm):
         US_PHONE_REGEX, message='Please enter numbers in XXX-XXX-XXXX format'
     )])
     email = TextField(validators=[Email(), DataRequired()])
-
-def validate_integer(form, field):
-    if field.data:
-        try:
-            int(field.data)
-        except:
-            raise ValidationError('This must be an integer!')
 
 class CompanyForm(NoCSRFForm):
     new_company_controller_number = TextField('New Company Controller Number', validators=[

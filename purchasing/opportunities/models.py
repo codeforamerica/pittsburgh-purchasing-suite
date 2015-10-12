@@ -366,7 +366,7 @@ class Vendor(Model):
         collection_class=set
     )
 
-    subscribed_to_newsletter = Column(db.Boolean(), default=False)
+    subscribed_to_newsletter = Column(db.Boolean(), default=False, nullable=False)
 
     @classmethod
     def newsletter_subscribers(cls):
