@@ -119,10 +119,13 @@ def datetimeformat(date, fmt='%Y-%m-%d', to_date=True):
     if isinstance(date, basestring):
         date = dateutil.parser.parse(date)
 
-    elif isinstance(date, datetime.datetime) and not all(
+    if isinstance(date, datetime.datetime) and not all(
         [date.second == 0, date.minute == 0, date.hour == 0, date.microsecond == 0]
     ):
-        date = pytz.UTC.localize(date).astimezone(current_app.config['DISPLAY_TIMEZONE'])
+        if date.tzinfo is not None:
+            date = date.astimezone(current_app.config['DISPLAY_TIMEZONE'])
+        else:
+            date = pytz.UTC.localize(date).astimezone(current_app.config['DISPLAY_TIMEZONE'])
 
         if to_date:
             date = date.date()
