@@ -283,12 +283,27 @@ def browse():
         elif opportunity.is_upcoming:
             upcoming.append(opportunity)
 
-    current_app.logger.info('BEACON FRONT OPPORTUNITY BROWSE VIEW')
+    current_app.logger.info('BEACON FRONT OPEN OPPORTUNITY VIEW')
     return render_template(
         'opportunities/browse.html', opportunities=opportunities,
         current_user=current_user, signup_form=signup_form,
         _open=sorted(_open, key=lambda i: i.planned_submission_end),
         upcoming=sorted(upcoming, key=lambda i: i.planned_submission_start),
+    )
+
+@blueprint.route('/opportunities/expired', methods=['GET'])
+def expired():
+    '''View expired contracts
+    '''
+    expired = Opportunity.query.filter(
+        Opportunity.planned_submission_end < datetime.date.today(),
+        Opportunity.is_public == True
+    ).all()
+
+    current_app.logger.info('BEACON FRONT CLOSED OPPORTUNITY VIEW')
+
+    return render_template(
+        'opportunities/front/expired.html', expired=expired
     )
 
 @blueprint.route('/opportunities/<int:opportunity_id>', methods=['GET', 'POST'])

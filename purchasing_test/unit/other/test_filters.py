@@ -73,10 +73,15 @@ class TestDateTimeFormat(FlaskTestCase):
     def test_datetimefilter_timezone(self):
         '''Test datetime format filter with timezones
         '''
-        current_app.config['DISPLAY_TIMEZONE'] = pytz.timezone('US/Eastern')
+        EASTERN = pytz.timezone('US/Eastern')
+        current_app.config['DISPLAY_TIMEZONE'] = EASTERN
         self.assertEquals(datetimeformat('2015-01-01T00:00:01'), '2014-12-31')
         self.assertEquals(datetimeformat('2015-01-01T00:00:00'), '2015-01-01')
         self.assertEquals(datetimeformat(None), '')
+        self.assertEquals(
+            datetimeformat(EASTERN.localize(datetime.datetime(2015, 1, 1))),
+            '2015-01-01'
+        )
 
     def test_newline_to_br(self):
         self.assertEquals(
@@ -87,4 +92,3 @@ class TestDateTimeFormat(FlaskTestCase):
             newline_to_br(None, 'test\ntest\r\n\r\ntest\r\n\r\ntest'),
             '<p>test<br>\ntest</p>\n\n<p>test</p>\n\n<p>test</p>'
         )
-

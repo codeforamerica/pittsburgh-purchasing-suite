@@ -11,6 +11,8 @@ from purchasing.opportunities.models import Vendor
 from purchasing_test.test_base import BaseTestCase
 from purchasing_test.util import insert_a_role, insert_a_user, insert_an_opportunity
 
+from purchasing_test.integration.opportunities.test_opportunities_base import TestOpportunitiesBase
+
 class TestOpportunities(BaseTestCase):
     render_templates = True
 
@@ -250,3 +252,14 @@ class TestOpportunities(BaseTestCase):
 
         self.assert200(unsubscribe_all)
         self.assertTrue('You are not subscribed to anything!' in unsubscribe_all.data)
+
+class TestExpiredOpportunities(TestOpportunitiesBase):
+
+    def test_expired_opportunity(self):
+        '''Tests that expired view works
+        '''
+
+        self.opportunity3.planned_submission_end = datetime.datetime.today() - datetime.timedelta(days=1)
+
+        self.assert200(self.client.get('/beacon/opportunities/expired'))
+        self.assertEquals(len(self.get_context_variable('expired')), 1)
