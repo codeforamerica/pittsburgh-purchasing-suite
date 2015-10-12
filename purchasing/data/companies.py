@@ -41,7 +41,7 @@ class CompanyContact(RefreshSearchViewMixin, Model):
     addr2 = Column(db.String(255))
     city = Column(db.String(255))
     state = Column(db.String(255))
-    zip_code = Column(db.Integer)
+    zip_code = Column(db.String(255))
     phone_number = Column(db.String(255))
     fax_number = Column(db.String(255))
     email = Column(db.String(255))
