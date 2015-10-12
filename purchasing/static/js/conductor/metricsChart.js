@@ -6,6 +6,20 @@
     order: ['< 1 day', '< 7 days', '8 - 15 days', '16 - 30 days', '30+ days']
   };
 
+  function makeBuckets(stage) {
+    var newBuckets = $.extend({}, defaultBuckets);
+    stage.forEach(function(d) {
+      switch (true) {
+        case d < dayInSeconds: newBuckets['< 1 day'] += 1 ; break;
+        case d < dayInSeconds * 7:  newBuckets['< 7 days'] += 1 ; break;
+        case d < dayInSeconds * 15: newBuckets['8 - 15 days'] += 1 ; break;
+        case d < dayInSeconds * 30: newBuckets['16 - 30 days'] += 1 ; break;
+        default: newBuckets['30+ days'] += 1;
+      }
+    });
+    return newBuckets;
+  }
+
   function buildChartData(data) {
     var chartDataObj = {}, chartData = [];
     d3.map(data).forEach(function(ix, i) {
@@ -17,26 +31,6 @@
         }
       });
     });
-
-    var defaultBuckets = {
-      '< 1 day': 0, '< 7 days': 0, '8 - 15 days': 0,
-      '16 - 30 days': 0, '30+ days': 0,
-      order: ['< 1 day', '< 7 days', '8 - 15 days', '16 - 30 days', '30+ days']
-    };
-
-    function makeBuckets(stage) {
-      var newBuckets = $.extend({}, defaultBuckets);
-      stage.forEach(function(d) {
-        switch (true) {
-          case d < dayInSeconds: newBuckets['< 1 day'] += 1 ; break;
-          case d < dayInSeconds * 7:  newBuckets['< 7 days'] += 1 ; break;
-          case d < dayInSeconds * 15: newBuckets['8 - 15 days'] += 1 ; break;
-          case d < dayInSeconds * 30: newBuckets['16 - 30 days'] += 1 ; break;
-          default: newBuckets['30+ days'] += 1;
-        }
-      });
-      return newBuckets;
-    }
 
     d3.map(chartDataObj).values().forEach(function(d) {
       chartData.push({
@@ -102,6 +96,7 @@
           format: 'f'
         }
       },
+      order: null
     });
   }
 
@@ -109,13 +104,18 @@
     url: ajaxUrl,
   }).done(function(data, status, xhr) {
 
-    currentData = buildChartData(data.current);
-    completeData = buildChartData(data.complete);
+    var averageDaysChart = drawAverageChart(buildChartData(data.complete));
+    var bucketDaysChart = drawBucketChart(buildChartData(data.current));
 
-    var averageDaysChart = drawAverageChart(completeData);
-    var bucketDaysChart = drawBucketChart(currentData);
-
+    $('#js-metrics-container').children('.chart-container').removeClass('hidden');
   }).fail(function() {
-
+    $('#js-chart-error-container').html(
+      '<div class="alert alert-danger alert-dismissible" role="alert">' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+          'Something went wrong fetching the charts. We are working on it. Please try again later.' +
+      '</div>'
+    ).removeClass('hidden');
+  }).complete(function() {
+    $('#js-metrics-loading').addClass('hidden');
   });
 })();

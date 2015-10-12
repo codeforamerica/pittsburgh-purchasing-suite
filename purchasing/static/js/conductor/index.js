@@ -83,7 +83,7 @@ $(document).ready(function() {
     showHideAdditionalInformation(this, allTable);
   });
 
-  $('.hidden').removeClass('hidden');
+  $('.js-conductor-init-hidden').removeClass('hidden');
   $('#js-loading-spinner').addClass('hidden');
 
   // custom styling for datatables

@@ -5,17 +5,24 @@
 {{ super() }}
 
 <div class="container">
-  <div class="chart-container">
-    <h4 class="text-center">Average days spent in stage (Completed stages only)</h4>
-    <div id="js-average-time-chart"></div>
-  </div>
 
-  <div class="chart-container">
-    <h4 class="text-center">Count of contracts by days spent in given step (In progress stages only)</h4>
-    <div id="js-contract-bucket-chart"></div>
+  <div id="js-metrics-loading"></div>
+
+  <div id="js-metrics-container">
+    <div id="js-chart-error-container" class="hidden">
+    </div>
+
+    <div class="chart-container hidden">
+      <h4 class="text-center">Average days spent in stage (Completed stages only)</h4>
+      <div id="js-average-time-chart"></div>
+    </div>
+
+    <div class="chart-container hidden">
+      <h4 class="text-center">Count of contracts by days spent in given step (In progress stages only)</h4>
+      <div id="js-contract-bucket-chart"></div>
+    </div>
   </div>
 </div>
-
 
 {% endblock %}
 
