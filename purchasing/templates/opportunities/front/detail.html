@@ -148,7 +148,7 @@
 
         <h3><strong>Have a question?</strong></h3>
         <div class="">
-          <p>We'd be happy to answer it! Send it in to {% if opportunity.contact.first_name and opportunity.contact.last_name %}{{ opportunity.contact.first_name }} {{ opportunity.contact.last_name }} at {% endif %} <a href="mailto:{{ opportunity.contact.email }}">{{ opportunity.contact.email }}</a>.{% if has_docs %}</p><p> Please refer to the timeline section of the opportunity documents to see when the question &amp; answer period opens and closes.{% endif %}</p>
+          <p>We'd be happy to answer it! Send it in to {% if opportunity.contact.first_name and opportunity.contact.last_name %}{{ opportunity.contact.first_name }} {{ opportunity.contact.last_name }} at {% endif %} <a href="mailto:{{ opportunity.contact.email }}">{{ opportunity.contact.email }}</a>.{% if opportunity.has_docs %}</p><p> Please refer to the timeline section of the opportunity documents to see when the question &amp; answer period opens and closes.{% endif %}</p>
         </div>
 
       </div>
