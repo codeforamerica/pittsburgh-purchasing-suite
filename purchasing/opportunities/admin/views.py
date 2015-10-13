@@ -149,7 +149,8 @@ def pending():
     '''View which contracts are currently pending approval
     '''
     pending = Opportunity.query.filter(
-        Opportunity.is_public == False
+        Opportunity.is_public == False,
+        Opportunity.planned_submission_end >= datetime.date.today(),
     ).all()
 
     approved = Opportunity.query.filter(

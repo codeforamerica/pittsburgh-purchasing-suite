@@ -26,7 +26,6 @@ class TestOpportunitiesFrontBase(BaseTestCase):
 class TestOpportunitiesAdminBase(BaseTestCase):
     def setUp(self):
         super(TestOpportunitiesAdminBase, self).setUp()
-
         try:
             mkdir(current_app.config.get('UPLOAD_DESTINATION'))
         except OSError:

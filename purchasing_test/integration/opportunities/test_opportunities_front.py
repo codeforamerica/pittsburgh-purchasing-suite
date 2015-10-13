@@ -3,6 +3,7 @@
 import json
 import datetime
 from flask import current_app, url_for
+from werkzeug.datastructures import MultiDict
 
 from purchasing.extensions import mail
 from purchasing.opportunities.models import Vendor
@@ -207,7 +208,7 @@ class TestOpportunities(TestOpportunitiesFrontBase):
             'subscribed_to_newsletter': True
         })
         self.assertEquals(Vendor.query.count(), 1)
-        self.assertEquals(Vendor.query.first().business_name, 'foo2@foo.com')
+        self.assertEquals(Vendor.query.first().email, 'foo2@foo.com')
         self.assertEquals(Vendor.query.first().business_name, 'foo')
 
         self.client.post('/beacon/signup', data={
@@ -220,7 +221,7 @@ class TestOpportunities(TestOpportunitiesFrontBase):
             'subscribed_to_newsletter': True
         })
         self.assertEquals(Vendor.query.count(), 1)
-        self.assertEquals(Vendor.query.first().business_name, 'foo2@foo.com')
+        self.assertEquals(Vendor.query.first().email, 'foo2@foo.com')
         self.assertEquals(Vendor.query.first().business_name, 'bar')
 
     def test_manage_subscriptions(self):
@@ -277,6 +278,54 @@ class TestOpportunities(TestOpportunitiesFrontBase):
         self.assertTrue('You are not subscribed to anything!' in unsubscribe_all.data)
 
 class TestOpportunitiesSubscriptions(TestOpportunitiesAdminBase):
+    def test_signup_for_multiple_opportunities(self):
+        '''Test signup for multiple opportunities
+        '''
+        self.assertEquals(Vendor.query.count(), 1)
+        # duplicates should get filtered out
+        post = self.client.post('/beacon/opportunities', data=MultiDict([
+            ('email', 'new@foo.com'), ('business_name', 'foo'),
+            ('opportunity', str(self.opportunity3.id)),
+            ('opportunity', str(self.opportunity4.id)),
+            ('opportunity', str(self.opportunity3.id))
+        ]))
+
+        self.assertEquals(Vendor.query.count(), 2)
+
+        # should subscribe that vendor to the opportunity
+        self.assertEquals(len(Vendor.query.filter(Vendor.email == 'new@foo.com').first().opportunities), 2)
+        for i in Vendor.query.get(1).opportunities:
+            self.assertTrue(i.id in [self.opportunity3.id, self.opportunity4.id])
+
+        # should redirect and flash properly
+        self.assertEquals(post.status_code, 302)
+        self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
+
+    def test_signup_for_opportunity(self):
+        '''Test signup for individual opportunities
+        '''
+        with mail.record_messages() as outbox:
+            self.assertEquals(Vendor.query.count(), 1)
+            post = self.client.post('/beacon/opportunities/{}'.format(self.opportunity3.id), data={
+                'email': 'new@foo.com', 'business_name': 'foo'
+            })
+            # should create a new vendor
+            self.assertEquals(Vendor.query.count(), 2)
+
+            # should subscribe that vendor to the opportunity
+            self.assertEquals(len(Vendor.query.filter(Vendor.email == 'new@foo.com').first().opportunities), 1)
+            self.assertTrue(
+                self.opportunity3.id in [
+                    i.id for i in Vendor.query.filter(Vendor.email == 'new@foo.com').first().opportunities
+                ]
+            )
+
+            # should redirect and flash properly
+            self.assertEquals(post.status_code, 302)
+            self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
+
+            self.assertEquals(len(outbox), 1)
+
     def test_signup_for_opportunity_session(self):
         self.client.post('/beacon/opportunities', data={
             'business_name': 'NEW NAME',
@@ -290,24 +339,6 @@ class TestOpportunitiesSubscriptions(TestOpportunitiesAdminBase):
         with self.client.session_transaction() as session:
             self.assertEquals(session['email'], 'new@foo.com')
             self.assertEquals(session['business_name'], 'NEW NAME')
-
-    def test_signup_for_opportunity_mail(self):
-        with mail.record_messages() as outbox:
-            self.client.post('/beacon/opportunities', data={
-                'business_name': 'NEW NAME',
-                'email': 'new@foo.com',
-                'opportunity': self.opportunity2.id
-            })
-
-            self.assertEquals(len(outbox), 1)
-
-            self.client.post('/beacon/opportunities', data={
-                'business_name': 'NEW NAME',
-                'email': 'new@foo.com',
-                'opportunity': self.opportunity2.id
-            })
-
-            self.assertEquals(len(outbox), 1)
 
     def test_opportunity_subscription_different_business_name(self):
         with self.client.session_transaction() as session:
