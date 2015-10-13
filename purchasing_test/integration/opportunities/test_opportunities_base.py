@@ -7,7 +7,7 @@ from shutil import rmtree
 
 from flask import current_app
 
-from purchasing.opportunities.models import Category
+from purchasing.opportunities.models import Category, Vendor
 from purchasing.data.importer.nigp import main as import_nigp
 
 from purchasing_test.test_base import BaseTestCase
@@ -18,10 +18,14 @@ from purchasing_test.util import (
     insert_an_opportunity
 )
 
-class TestOpportunitiesBase(BaseTestCase):
+class TestOpportunitiesFrontBase(BaseTestCase):
     def setUp(self):
-        super(TestOpportunitiesBase, self).setUp()
+        super(TestOpportunitiesFrontBase, self).setUp()
+        import_nigp(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
 
+class TestOpportunitiesAdminBase(BaseTestCase):
+    def setUp(self):
+        super(TestOpportunitiesAdminBase, self).setUp()
         try:
             mkdir(current_app.config.get('UPLOAD_DESTINATION'))
         except OSError:
@@ -39,6 +43,8 @@ class TestOpportunitiesBase(BaseTestCase):
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role)
 
         self.document = insert_a_document()
+
+        self.vendor = Vendor.create(email='foo@foo.com', business_name='foo2')
 
         self.opportunity1 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
@@ -70,7 +76,7 @@ class TestOpportunitiesBase(BaseTestCase):
         )
 
     def tearDown(self):
-        super(TestOpportunitiesBase, self).tearDown()
+        super(TestOpportunitiesAdminBase, self).tearDown()
         # clear out the uploads folder
         rmtree(current_app.config.get('UPLOAD_DESTINATION'))
         try:

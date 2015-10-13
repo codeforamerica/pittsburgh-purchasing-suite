@@ -69,9 +69,9 @@
                       {{ subscription.label }} - <a href="{{ url_for('opportunities.detail', opportunity_id=subscription.object_data) }}">View details</a>
                     </div>
                   </div><!-- opportunities -->
+                  {% endfor %}
                 </div>
               </div>
-              {% endfor %}
             {% endif %}
 
             <div class="spacer-10"></div>

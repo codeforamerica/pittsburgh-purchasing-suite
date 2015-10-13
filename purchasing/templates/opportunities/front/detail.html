@@ -99,7 +99,7 @@
 
         {% endif %}
 
-        {% if has_docs > 0 %}
+        {% if opportunity.has_docs %}
         <div class="row">
           <h3><strong>Download Opportunity Documents</strong></h3>
           <p>Not sure where to start? The document labeled as an RFP (Request for Proposals), RFQ (Request for Qualifications), or IFB (Invitation for Bid) will contained more detailed instructions about the project timeline, what we're looking for, and how to put together a proposal.</p>
@@ -148,7 +148,7 @@
 
         <h3><strong>Have a question?</strong></h3>
         <div class="">
-          <p>We'd be happy to answer it! Send it in to {% if opportunity.contact.first_name and opportunity.contact.last_name %}{{ opportunity.contact.first_name }} {{ opportunity.contact.last_name }} at {% endif %} <a href="mailto:{{ opportunity.contact.email }}">{{ opportunity.contact.email }}</a>.{% if has_docs > 0 %}</p><p> Please refer to the timeline section of the opportunity documents to see when the question &amp; answer period opens and closes.{% endif %}</p>
+          <p>We'd be happy to answer it! Send it in to {% if opportunity.contact.first_name and opportunity.contact.last_name %}{{ opportunity.contact.first_name }} {{ opportunity.contact.last_name }} at {% endif %} <a href="mailto:{{ opportunity.contact.email }}">{{ opportunity.contact.email }}</a>.{% if opportunity.has_docs %}</p><p> Please refer to the timeline section of the opportunity documents to see when the question &amp; answer period opens and closes.{% endif %}</p>
         </div>
 
       </div>

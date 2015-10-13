@@ -198,6 +198,7 @@ def init_form(form, model=None):
         return form(obj=data)
 
 def signup_for_opp(form, user, opportunity, multi=False):
+    send_email = True
     email_opportunities = []
     if opportunity is None or (isinstance(opportunity, list) and len(opportunity) == 0):
         form.errors['opportunities'] = ['You must select at least one opportunity!']
@@ -207,8 +208,7 @@ def signup_for_opp(form, user, opportunity, multi=False):
     session['business_name'] = form.data.get('business_name')
     # subscribe the vendor to the opportunity
     vendor = Vendor.query.filter(
-        Vendor.email == form.data.get('email'),
-        Vendor.business_name == form.data.get('business_name')
+        Vendor.email == form.data.get('email')
     ).first()
 
     if vendor is None:
@@ -218,6 +218,8 @@ def signup_for_opp(form, user, opportunity, multi=False):
         )
         db.session.add(vendor)
         db.session.commit()
+    else:
+        vendor.update(business_name=form.data.get('business_name'))
 
     if multi:
         for opp in opportunity:
@@ -226,11 +228,17 @@ def signup_for_opp(form, user, opportunity, multi=False):
                 db.session.rollback()
                 form.errors['opportunities'] = ['That\'s not a valid choice.']
                 return False
-            vendor.opportunities.add(_opp)
-            email_opportunities.append(_opp)
+            if _opp in vendor.opportunities:
+                send_email = False
+            else:
+                vendor.opportunities.add(_opp)
+                email_opportunities.append(_opp)
     else:
-        vendor.opportunities.add(opportunity)
-        email_opportunities.append(opportunity)
+        if opportunity in vendor.opportunities:
+            send_email = False
+        else:
+            vendor.opportunities.add(opportunity)
+            email_opportunities.append(opportunity)
 
     if form.data.get('also_categories'):
         # TODO -- add support for categories
@@ -247,14 +255,15 @@ def signup_for_opp(form, user, opportunity, multi=False):
         )
     )
 
-    Notification(
-        to_email=vendor.email,
-        from_email=current_app.config['BEACON_SENDER'],
-        subject='Subscription confirmation from Beacon',
-        html_template='opportunities/emails/oppselected.html',
-        txt_template='opportunities/emails/oppselected.txt',
-        opportunities=email_opportunities
-    ).send()
+    if send_email:
+        Notification(
+            to_email=vendor.email,
+            from_email=current_app.config['BEACON_SENDER'],
+            subject='Subscription confirmation from Beacon',
+            html_template='opportunities/emails/oppselected.html',
+            txt_template='opportunities/emails/oppselected.txt',
+            opportunities=email_opportunities
+        ).send()
 
     return True
 
@@ -289,6 +298,7 @@ def browse():
         current_user=current_user, signup_form=signup_form,
         _open=sorted(_open, key=lambda i: i.planned_submission_end),
         upcoming=sorted(upcoming, key=lambda i: i.planned_submission_start),
+        session_vendor=session.get('email')
     )
 
 @blueprint.route('/opportunities/expired', methods=['GET'])
@@ -319,14 +329,12 @@ def detail(opportunity_id):
                 flash('Successfully subscribed for updates!', 'alert-success')
                 return redirect(url_for('opportunities.detail', opportunity_id=opportunity.id))
 
-        has_docs = opportunity.opportunity_documents.count() > 0
-
         current_app.logger.info('BEACON FRONT OPPORTUNITY DETAIL VIEW | Opportunity {} (ID: {})'.format(
             opportunity.description, opportunity.id
         ))
 
         return render_template(
             'opportunities/front/detail.html', opportunity=opportunity,
-            current_user=current_user, signup_form=signup_form, has_docs=has_docs
+            current_user=current_user, signup_form=signup_form,
         )
     abort(404)

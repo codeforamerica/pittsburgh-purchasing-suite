@@ -111,6 +111,9 @@ class Opportunity(Model):
             return field
         return field
 
+    def get_vendor_emails(self):
+        return [i.email for i in self.vendors]
+
     @property
     def is_published(self):
         return self.coerce_to_date(self.planned_publish) <= localize_today() and self.is_public
@@ -129,6 +132,10 @@ class Opportunity(Model):
     @property
     def is_submission_end(self):
         return self.coerce_to_date(self.planned_submission_end) <= localize_today() and self.is_public
+
+    @property
+    def has_docs(self):
+        self.opportunity_documents.count() > 0
 
     def can_view(self, user):
         '''Check if a user can see opportunity detail
@@ -230,7 +237,7 @@ class Opportunity(Model):
 '''BEACON NEW - New Opportunity Created: Department: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {}
             '''.format(
                 opportunity.id, opportunity.department.name if opportunity.department else '',
-                opportunity.description,
+                opportunity.description.encode('ascii', 'ignore'),
                 str(opportunity.planned_publish),
                 str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
             )

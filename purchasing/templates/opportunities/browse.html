@@ -43,7 +43,7 @@
             <tbody>
               {% for opportunity in _open %}
               <tr>
-                <td class="col-md-1"><input type="checkbox" name="opportunity" value="{{ opportunity.id }}"></td>
+                <td class="col-md-1"><input type="checkbox" name="opportunity" value="{{ opportunity.id }}" {% if session_vendor in opportunity.get_vendor_emails() %}checked="true"{% endif %}></td>
                 <td class="col-md-5"><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
                 <td class="col-md-3">{{ opportunity.department }}</td>
                 <td class="col-md-2">{{ opportunity.planned_submission_end|datetimeformat('%m/%d/%y') }}</td>
@@ -83,7 +83,7 @@
             <tbody>
               {% for opportunity in upcoming %}
               <tr>
-                <td class="col-md-1"><input type="checkbox" name="opportunity" value="{{ opportunity.id }}"></td>
+                <td class="col-md-1"><input type="checkbox" name="opportunity" value="{{ opportunity.id }}" {% if session_vendor in opportunity.get_vendor_emails() %}checked="true"{% endif %}></td>
                 <td class="col-md-5"><a href="{{ url_for('opportunities.detail', opportunity_id=opportunity.id) }}">{{ opportunity.title }}</a></td>
                 <td class="col-md-3">{{ opportunity.department }}</td>
                 <td class="col-md-2">{{ opportunity.planned_submission_start|datetimeformat('%m/%d/%y') }}</td>
