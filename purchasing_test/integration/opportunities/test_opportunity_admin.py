@@ -18,9 +18,9 @@ from purchasing.opportunities.forms import OpportunityDocumentForm
 
 from purchasing_test.factories import OpportunityDocumentFactory, VendorFactory
 
-from purchasing_test.integration.opportunities.test_opportunities_base import TestOpportunitiesBase
+from purchasing_test.integration.opportunities.test_opportunities_base import TestOpportunitiesAdminBase
 
-class TestOpportunitiesAdmin(TestOpportunitiesBase):
+class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
     render_templates = True
 
     def test_document_upload(self):
@@ -304,7 +304,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesBase):
         for row in tsv_data:
             self.assertEquals(len(row.split('\t')), 11)
 
-class TestOpportunitiesPublic(TestOpportunitiesBase):
+class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
     def setUp(self):
         super(TestOpportunitiesPublic, self).setUp()
         self.opportunity3.is_public = False
@@ -481,3 +481,13 @@ class TestOpportunitiesPublic(TestOpportunitiesBase):
             # sends the opportunity when updated with the proper save type
             self.assertEquals(len(outbox), 1)
             self.assertEquals(outbox[0].subject, '[Pittsburgh Purchasing] A new City of Pittsburgh opportunity from Beacon!')
+
+class TestExpiredOpportunities(TestOpportunitiesAdminBase):
+    def test_expired_opportunity(self):
+        '''Tests that expired view works
+        '''
+
+        self.opportunity3.planned_submission_end = datetime.datetime.today() - datetime.timedelta(days=1)
+
+        self.assert200(self.client.get('/beacon/opportunities/expired'))
+        self.assertEquals(len(self.get_context_variable('expired')), 1)

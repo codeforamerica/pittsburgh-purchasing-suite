@@ -111,6 +111,9 @@ class Opportunity(Model):
             return field
         return field
 
+    def get_vendor_emails(self):
+        return [i.email for i in self.vendors]
+
     @property
     def is_published(self):
         return self.coerce_to_date(self.planned_publish) <= localize_today() and self.is_public

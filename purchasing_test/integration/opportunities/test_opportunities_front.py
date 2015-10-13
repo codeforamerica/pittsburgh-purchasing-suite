@@ -5,21 +5,16 @@ import datetime
 from flask import current_app, url_for
 
 from purchasing.extensions import mail
-from purchasing.data.importer.nigp import main as import_nigp
 from purchasing.opportunities.models import Vendor
 
-from purchasing_test.test_base import BaseTestCase
 from purchasing_test.util import insert_a_role, insert_a_user, insert_an_opportunity
 
-from purchasing_test.integration.opportunities.test_opportunities_base import TestOpportunitiesBase
+from purchasing_test.integration.opportunities.test_opportunities_base import (
+    TestOpportunitiesFrontBase, TestOpportunitiesAdminBase
+)
 
-class TestOpportunities(BaseTestCase):
+class TestOpportunities(TestOpportunitiesFrontBase):
     render_templates = True
-
-    def setUp(self):
-        super(TestOpportunities, self).setUp()
-        # import our test categories
-        import_nigp(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/nigp.csv')
 
     def test_templates(self):
         '''Test templates used, return 200
@@ -199,10 +194,38 @@ class TestOpportunities(BaseTestCase):
                 self.assertEquals(session['email'], 'foo2@foo.com')
                 self.assertEquals(session['business_name'], 'foo')
 
+    def test_signup_different_business_name(self):
+        '''Signing up with a different business name shouldn't break it
+        '''
+        self.client.post('/beacon/signup', data={
+            'email': 'foo2@foo.com',
+            'business_name': 'foo',
+            'subcategories-1': 'on',
+            'subcategories-2': 'on',
+            'subcategories-3': 'on',
+            'categories': 'Apparel',
+            'subscribed_to_newsletter': True
+        })
+        self.assertEquals(Vendor.query.count(), 1)
+        self.assertEquals(Vendor.query.first().business_name, 'foo2@foo.com')
+        self.assertEquals(Vendor.query.first().business_name, 'foo')
+
+        self.client.post('/beacon/signup', data={
+            'email': 'foo2@foo.com',
+            'business_name': 'bar',
+            'subcategories-1': 'on',
+            'subcategories-2': 'on',
+            'subcategories-3': 'on',
+            'categories': 'Apparel',
+            'subscribed_to_newsletter': True
+        })
+        self.assertEquals(Vendor.query.count(), 1)
+        self.assertEquals(Vendor.query.first().business_name, 'foo2@foo.com')
+        self.assertEquals(Vendor.query.first().business_name, 'bar')
+
     def test_manage_subscriptions(self):
         '''Test subscription and unsubscription management
         '''
-
         self.client.post('/beacon/signup', data={
             'email': 'foo2@foo.com',
             'business_name': 'foo',
@@ -253,13 +276,49 @@ class TestOpportunities(BaseTestCase):
         self.assert200(unsubscribe_all)
         self.assertTrue('You are not subscribed to anything!' in unsubscribe_all.data)
 
-class TestExpiredOpportunities(TestOpportunitiesBase):
+class TestOpportunitiesSubscriptions(TestOpportunitiesAdminBase):
+    def test_signup_for_opportunity_session(self):
+        self.client.post('/beacon/opportunities', data={
+            'business_name': 'NEW NAME',
+            'email': 'new@foo.com',
+            'opportunity': self.opportunity2.id
+        })
 
-    def test_expired_opportunity(self):
-        '''Tests that expired view works
-        '''
+        self.assertEquals(Vendor.query.count(), 2)
+        self.assertEquals(len(Vendor.query.filter(Vendor.email == 'new@foo.com').first().opportunities), 1)
 
-        self.opportunity3.planned_submission_end = datetime.datetime.today() - datetime.timedelta(days=1)
+        with self.client.session_transaction() as session:
+            self.assertEquals(session['email'], 'new@foo.com')
+            self.assertEquals(session['business_name'], 'NEW NAME')
 
-        self.assert200(self.client.get('/beacon/opportunities/expired'))
-        self.assertEquals(len(self.get_context_variable('expired')), 1)
+    def test_signup_for_opportunity_mail(self):
+        with mail.record_messages() as outbox:
+            self.client.post('/beacon/opportunities', data={
+                'business_name': 'NEW NAME',
+                'email': 'new@foo.com',
+                'opportunity': self.opportunity2.id
+            })
+
+            self.assertEquals(len(outbox), 1)
+
+            self.client.post('/beacon/opportunities', data={
+                'business_name': 'NEW NAME',
+                'email': 'new@foo.com',
+                'opportunity': self.opportunity2.id
+            })
+
+            self.assertEquals(len(outbox), 1)
+
+    def test_opportunity_subscription_different_business_name(self):
+        with self.client.session_transaction() as session:
+            session['email'] = self.vendor.email
+            session['business_name'] = self.vendor.business_name
+
+            self.client.post('/beacon/opportunities', data={
+                'business_name': 'NEW NAME',
+                'email': self.vendor.email,
+                'opportunity': self.opportunity2.id
+            })
+
+            self.assertEquals(Vendor.query.count(), 1)
+            self.assertEquals(Vendor.query.first().business_name, 'NEW NAME')
