@@ -57,7 +57,8 @@ def flow_data(flow_id):
             {
                 'complete': results['complete'].values(),
                 'current': results['current'].values(),
-                'stage_order': flow.stage_order
+                'stageDataObj': [{i.id: {'name': i.name, 'id': i.id}} for i in flow.build_detailed_stage_order()],
+                'stageOrder': flow.stage_order
             }
         )
     abort(404)

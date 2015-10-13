@@ -20,27 +20,38 @@
     return newBuckets;
   }
 
-  function buildChartData(data) {
+  function buildChartData(data, defaultObj, stageOrder) {
     var chartDataObj = {}, chartData = [];
     d3.map(data).forEach(function(ix, i) {
       return d3.map(i.stages).forEach(function(idx, d) {
-        if (chartDataObj[d.name]) {
-          chartDataObj[d.name].push(d.seconds);
+        if (chartDataObj[d.id]) {
+          chartDataObj[d.id].push(d.seconds);
         } else {
-          chartDataObj[d.name] = [{name: d.name, id: d.id}, d.seconds];
+          chartDataObj[d.id] = [{name: d.name, id: d.id}, d.seconds];
         }
       });
     });
 
-    d3.map(chartDataObj).values().forEach(function(d) {
-      chartData.push({
-        category: {name: d[0].name, id: d[0]},
-        average: d3.mean(d.slice(1).map(function(e) {
-          return d3.round(e/dayInSeconds, 1);
-        })),
-        count: d.slice(1).length,
-        buckets: makeBuckets(d.slice(1))
-      });
+    d3.map(defaultObj).values().forEach(function(d, idx) {
+      var stage = chartDataObj[d3.map(d).keys()[0]];
+      if (stage) {
+        console.log(stage.slice(1));
+        chartData.push({
+          category: {name: stage[0].name, id: stage[0].id},
+          average: d3.mean(stage.slice(1).map(function(e) {
+            return d3.round(e/dayInSeconds, 1);
+          })),
+          count: stage.slice(1).length,
+          buckets: makeBuckets(stage.slice(1))
+        });
+      } else {
+        var stageIdx = +d3.map(d).keys()[0];
+        stage = defaultObj[stageOrder.indexOf(+stageIdx)][stageIdx];
+        chartData.push({
+          category: {name: stage.name, id: stage.id},
+          buckets: makeBuckets([])
+        });
+      }
     });
 
     return chartData;
@@ -104,8 +115,8 @@
     url: ajaxUrl,
   }).done(function(data, status, xhr) {
 
-    var averageDaysChart = drawAverageChart(buildChartData(data.complete));
-    var bucketDaysChart = drawBucketChart(buildChartData(data.current));
+    var averageDaysChart = drawAverageChart(buildChartData(data.complete, data.stageDataObj, data.stageOrder));
+    var bucketDaysChart = drawBucketChart(buildChartData(data.current, data.stageDataObj, data.stageOrder));
 
     $('#js-metrics-container').children('.chart-container').removeClass('hidden');
   }).fail(function() {

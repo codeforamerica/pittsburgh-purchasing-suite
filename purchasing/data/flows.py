@@ -11,6 +11,7 @@ from purchasing.database import db, Model, Column
 from purchasing.utils import localize_datetime
 from purchasing.data.contracts import ContractBase
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
+from purchasing.data.stages import Stage
 
 class Flow(Model):
     __tablename__ = 'flow'
@@ -26,6 +27,13 @@ class Flow(Model):
     @classmethod
     def all_flow_query_factory(cls):
         return cls.query
+
+    def build_detailed_stage_order(self):
+        return [
+            x for (y, x) in sorted(zip(
+                self.stage_order, Stage.query.filter(Stage.id.in_(self.stage_order)).all()
+            ))
+        ]
 
     def _build_row(self, row, exited, data_dict):
         try:
