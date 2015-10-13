@@ -38,7 +38,7 @@
       <td>
         <div class="dropdown">
           <button id="dLabel-{{ contract.id }}" class="btn btn-default btn-sm btn-assigned" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            {% if contract.first_name %}{{ contract.first_name }}{% else %}Unassigned{% endif %}
+            {% if contract.first_name %}{{ contract.first_name }}{% elif contract.email %}{{ contract.email.split('@')[0] }}{% else %}Unassigned{% endif %}
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel-{{ contract.id }}">

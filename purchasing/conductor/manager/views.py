@@ -332,7 +332,7 @@ def reassign(contract_id, user_id):
     if not all([contract, assignee]):
         abort(404)
 
-    contract.assigned_to = assignee
+    contract.assigned = assignee
     db.session.commit()
     flash('Successfully assigned {} to {}!'.format(contract.description, assignee.email), 'alert-success')
     return redirect(url_for('conductor.index'))
