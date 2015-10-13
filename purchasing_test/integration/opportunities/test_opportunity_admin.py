@@ -142,7 +142,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.assert200(new_contract)
         self.assertTrue('Text cannot be more than 500 words!' in new_contract.data)
 
-        bad_data['description'] = 'Just right.'
+        bad_data['description'] = 'Just right. utf-8 is ¡gréät!'
         bad_data['planned_submission_end'] = datetime.date.today() + datetime.timedelta(1)
 
         new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
@@ -151,7 +151,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.assertEquals(Opportunity.query.count(), 5)
 
         self.assertFalse(
-            Opportunity.query.filter(Opportunity.description == 'Just right.').first().is_public
+            Opportunity.query.filter(Opportunity.description == 'Just right. utf-8 is ¡gréät!').first().is_public
         )
 
     def test_edit_an_opportunity(self):
