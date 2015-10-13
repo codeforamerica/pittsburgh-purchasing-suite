@@ -29,11 +29,7 @@ class Flow(Model):
         return cls.query
 
     def build_detailed_stage_order(self):
-        return [
-            x for (y, x) in sorted(zip(
-                self.stage_order, Stage.query.filter(Stage.id.in_(self.stage_order)).all()
-            ))
-        ]
+        return [Stage.query.get(i) for i in self.stage_order]
 
     def _build_row(self, row, exited, data_dict):
         try:

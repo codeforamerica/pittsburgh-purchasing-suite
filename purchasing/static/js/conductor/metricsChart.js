@@ -35,7 +35,6 @@
     d3.map(defaultObj).values().forEach(function(d, idx) {
       var stage = chartDataObj[d3.map(d).keys()[0]];
       if (stage) {
-        console.log(stage.slice(1));
         chartData.push({
           category: {name: stage[0].name, id: stage[0].id},
           average: d3.mean(stage.slice(1).map(function(e) {
