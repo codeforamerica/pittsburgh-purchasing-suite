@@ -3,18 +3,19 @@
     <div class="col-md-8">
       <h3><strong>{{ active_stage.description|title }}</strong></h3>
       <ul class="text-muted list-unstyled">
-        {% if contract.parent %}
-        {% if contract.parent.expiration_date %}
-        <li class="">Expires on {{ contract.parent.expiration_date|datetimeformat('%m/%d/%Y') }}</li>
-        {% endif %}
-        {% if contract.parent.get_spec_number().value %}
-        <li class="">Old Spec Number: {{ contract.parent.get_spec_number().value }}</li>
-        {% elif contract.get_spec_number().value %}
+        {% if contract.get_spec_number().value %}
         <li class="">Spec Number: {{ contract.get_spec_number().value }}</li>
+        {% elif contract.parent and contract.parent.get_spec_number().value %}
+        <li class="">Old Spec Number: {{ contract.parent.get_spec_number().value }}</li>
         {% endif %}
-        <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}">
-          View on Scout
-        </a></li>
+
+        {% if contract.parent %}
+          {% if contract.parent.expiration_date %}
+            <li class="">Expires on {{ contract.parent.expiration_date|datetimeformat('%m/%d/%Y') }}</li>
+          {% endif %}
+          <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.parent.id) }}">
+            View on Scout
+          </a></li>
         {% endif %}
       </ul>
     </div>
