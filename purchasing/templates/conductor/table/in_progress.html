@@ -1,5 +1,6 @@
 <table class="display" id="js-table-progress">
   <thead>
+    <th>Assigned To Filter (Hidden)</th>
     <th></th>
     <th>Spec #</th>
     <th>Name</th>
@@ -9,7 +10,6 @@
     <th>Current Step Started Sort (Hidden)</th>
     <th>Current Step Started</th>
     <th>Assigned To</th>
-    <th>Assigned To Filter (Hidden)</th>
     <th>Actions</th>
 
   </thead>
@@ -21,6 +21,8 @@
     data-controller="{{ contract.financial_id or 'Not set' }}"
     data-full-description="{{ contract.description|title }}"
     data-item-number="{{ contract.id }}">
+
+      <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
 
       <td class="details-control"><i class="fa fa-plus"></i></td>
 
@@ -81,7 +83,6 @@
           </ul>
         </div>
       </td>
-      <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
 
       <td>
       <div class="dropdown">

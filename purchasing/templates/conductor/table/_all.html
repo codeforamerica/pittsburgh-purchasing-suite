@@ -1,5 +1,6 @@
 <table class="display" id="js-table-all">
   <thead>
+    <th>Assigned To Filter (Hidden)</th>
     <th></th>
     <th>Item #</th>
     <th>Name</th>
@@ -17,6 +18,7 @@
     {%- endif -%}"
     data-full-description="{{ contract.description|title }}">
 
+      <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
       <td class="details-control"><i class="fa fa-plus"></i></td>
       <td>{{ contract.id }}</td>
 
@@ -52,7 +54,7 @@
             {% endfor %}
           </ul>
         </div>
-      </td>
+      </td><!-- assigned to -->
 
       <td>
       <div class="dropdown">

@@ -1,8 +1,8 @@
 $(document).ready(function() {
   $.fn.dataTableExt.afnFiltering.push(function (oSettings, aData, iDataIndex) {
-    if (oSettings.sTableId === "js-table-progress") {
-      if ($('#js-show-only-mine').is(':checked')) {
-        return aData[7] === currentUser;
+    if (oSettings.sTableId === "js-table-progress" || oSettings.sTableId === "js-table-all") {
+      if ($('#' + oSettings.sTableId + '-container').find('.js-show-only-mine').is(':checked')) {
+        return aData[0] === currentUser;
       }
       return true;
     }
@@ -11,30 +11,35 @@ $(document).ready(function() {
 
   var progressTable = $('#js-table-progress').DataTable({
     // order by expiration date -- column 4
-    'order': [[7, 'asc']],
+    'order': [[8, 'asc']],
 
     'aoColumnDefs': [
-      { 'orderable': false, 'aTargets': [0] },
-      { 'bVisible': false, 'aTargets': [3, 6, 9] },
-      { 'iDataSort': 6, 'aTargets': [7] },
+      { 'orderable': false, 'aTargets': [1] },
+      { 'bVisible': false, 'aTargets': [0, 4, 7] },
+      { 'iDataSort': 7, 'aTargets': [8] },
       { 'iDataSort': 3, 'aTargets': [4] }
     ],
   });
 
   var allTable = $('#js-table-all').DataTable({
     // order by expiration date -- column 4
-    'order': [[5, 'asc']],
+    'order': [[7, 'asc']],
     // use column 3 (actual timestamps) as a sort proxy for
     // column 4 (formatted "days since")
     'aoColumnDefs': [
-      { 'orderable': false, 'aTargets': [0] },
-      { 'bVisible': false, 'aTargets': [5] },
-      { 'iDataSort': 5, 'aTargets': [6] }
+      { 'orderable': false, 'aTargets': [1] },
+      { 'bVisible': false, 'aTargets': [0, 5] },
+      { 'iDataSort': 6, 'aTargets': [7] }
     ],
   });
 
-  $('#js-show-only-mine').on('change', function() {
-    progressTable.draw();
+  $('.js-show-only-mine').on('change', function() {
+    var checked = $(this);
+    if (checked.attr('data-table-name') === 'progress') {
+      progressTable.draw();
+    } else if (checked.attr('data-table-name') === 'all') {
+      allTable.draw();
+    }
   });
 
   function format(itemNumber, description, department, controller) {
