@@ -92,8 +92,15 @@ class ScoutContractAdmin(ContractBaseAdmin):
     form_columns = [
         'contract_type', 'description', 'properties',
         'financial_id', 'expiration_date', 'contract_href',
-        'companies', 'followers', 'is_archived', 'department'
+        'companies', 'followers', 'is_archived', 'department',
+        'is_visible'
     ]
+
+    column_labels = dict(
+        contract_href='Link to Contract PDF', financial_id='Controller #',
+        properties='Contract Properties', expiration_date='Expiration', is_archived='Archived',
+        is_visible='Visible in Conductor'
+    )
 
     def get_query(self):
         '''Override default get query to limit to assigned contracts
@@ -221,6 +228,8 @@ class QuerySelect2TagsWidget(Select2Widget):
 class FlowAdmin(ConductorAuthMixin, BaseModelViewAdmin):
     edit_template = 'admin/purchasing_edit.html'
     create_template = 'admin/purchasing_create.html'
+    can_edit = False
+    can_delete = False
 
     form_columns = ['flow_name', 'stage_order']
 
@@ -244,6 +253,7 @@ class FlowAdmin(ConductorAuthMixin, BaseModelViewAdmin):
 
 class StageAdmin(ConductorAuthMixin, BaseModelViewAdmin):
     inline_models = ((StageProperty, dict(form_excluded_columns=GLOBAL_EXCLUDE)), )
+    can_delete = False
 
     form_columns = ['name', 'post_opportunities', 'default_message']
 
