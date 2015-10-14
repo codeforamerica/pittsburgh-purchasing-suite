@@ -25,11 +25,12 @@
       <td>
         {% if contract[1].get_spec_number().value %}
         {{ contract[1].get_spec_number().value }}
-        {% elif contract[1].get_spec_number().value %}
-        {{ contract[1].parent }}
+        {% elif contract[1].parent %}
+        {{ contract[1].parent.get_spec_number().value }}<br>
+        <span class="text-muted"><small>Displaying old <br>spec number</small></span>
         {% else %}
         {{ contract.id }} <br>
-        <span class="text-muted"><small>No spec number, <br>displaying item #</small></span>
+        <span class="text-muted"><small>No spec number,<br>displaying item #</small></span>
         {% endif %}
       </td>
 
