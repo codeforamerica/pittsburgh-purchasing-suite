@@ -332,9 +332,13 @@ def reassign(contract_id, user_id):
     if not all([contract, assignee]):
         abort(404)
 
-    contract.assigned = assignee
-    db.session.commit()
-    flash('Successfully assigned {} to {}!'.format(contract.description, assignee.email), 'alert-success')
+    if assignee.is_conductor():
+        contract.assigned = assignee
+        db.session.commit()
+        flash('Successfully assigned {} to {}!'.format(contract.description, assignee.email), 'alert-success')
+    else:
+        flash('That user does not have the right permissions to be assigned a contract', 'alert-danger')
+
     return redirect(url_for('conductor.index'))
 
 @blueprint.route('/contract/new', methods=['GET', 'POST'])

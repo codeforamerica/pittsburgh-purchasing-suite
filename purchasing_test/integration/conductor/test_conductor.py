@@ -37,6 +37,7 @@ class TestConductorSetup(BaseTestCase):
         self.staff_role_id = insert_a_role('staff')
         self.conductor = insert_a_user(email='foo@foo.com', role=self.conductor_role_id)
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role_id)
+        self.conductor2 = insert_a_user(email='foo3@foo.com', role=self.conductor_role_id)
 
         # create three stages, and set up a flow between them
         self.stage1 = insert_a_stage(
@@ -184,6 +185,37 @@ class TestConductor(TestConductorSetup):
 
         # re-assigning shouldn't cause problems
         self.assign_contract()
+
+    def test_conductor_assign_unstarted_contract(self):
+        self.client.get('/conductor/contract/{}/assign/{}'.format(
+            self.contract1.id, self.staff.id
+        ))
+        self.assert_flashes(
+            'That user does not have the right permissions to be assigned a contract', 'alert-danger'
+        )
+        self.assertTrue(self.contract1.assigned is None)
+
+        self.client.get('/conductor/contract/{}/assign/{}'.format(
+            self.contract1.id, self.conductor.id
+        ))
+        self.assert_flashes(
+            'Successfully assigned {} to {}!'.format(self.contract1.description, self.conductor.email),
+            'alert-success'
+        )
+        self.assertTrue(self.contract1.assigned is not None)
+        self.assertEquals(self.contract1.assigned, self.conductor)
+
+    def test_conductor_reassign_in_progress(self):
+        self.assign_contract(contract=self.contract1)
+        self.client.get('/conductor/contract/{}/assign/{}'.format(
+            self.contract1.id, self.conductor2.id
+        ))
+        self.assert_flashes(
+            'Successfully assigned {} to {}!'.format(self.contract1.description, self.conductor2.email),
+            'alert-success'
+        )
+        self.assertTrue(self.contract1.assigned is not None)
+        self.assertEquals(self.contract1.assigned, self.conductor2)
 
     def test_conductor_contract_detail_view(self):
         '''Test basic conductor detail view
