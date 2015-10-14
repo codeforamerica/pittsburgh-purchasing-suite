@@ -3,6 +3,8 @@
     <th></th>
     <th>Spec #</th>
     <th>Name</th>
+    <th>Expiration Sort (Hidden)</th>
+    <th>Expiration Date</th>
     <th>Current Step</th>
     <th>Current Step Started Sort (Hidden)</th>
     <th>Current Step Started</th>
@@ -27,29 +29,43 @@
         {{ contract[1].get_spec_number().value }}
         {% elif contract[1].parent %}
         {{ contract[1].parent.get_spec_number().value }}<br>
-        <span class="text-muted"><small>Displaying old <br>spec number</small></span>
+        <span class="text-muted text-normal"><small>Old spec</small></span>
         {% else %}
         {{ contract.id }} <br>
-        <span class="text-muted"><small>No spec number,<br>displaying item #</small></span>
+        <span class="text-muted text-normal"><small>Item #</small></span>
         {% endif %}
       </td>
 
       <td>
-        <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>{{ contract.description|title|truncate(40) }}</span>
-        <span class="pull-right">
-          <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}" class="btn btn-primary btn-sm">
-            Update
-          </a>
-        </span>
+        <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>
+          {{ contract.description|title|truncate(35) }}
+        </span><br />
+        <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
+          <small><strong>Update</strong></small>
+        </a>
       </td>
+
+      <td>{{ contract[1].parent.expiration_date }}</td><!-- expiration date for sorting -->
+      <td>
+        {% if contract[1].parent.expiration_date %}
+        <strong class="highlight">{{ format_days_from_today(contract[1].parent.expiration_date) }}</strong><br>
+        <span class="text-muted text-normal">
+          <small>{{ contract[1].parent.expiration_date|datetimeformat('%m/%d/%Y') }}</small>
+        </span>
+        {% else %}
+        --
+        {% endif %}
+      </td><!-- formatted expiration date -->
 
       <td>{{ contract.stage_name }}</td><!-- current stage -->
 
       <td>{{ contract.entered }}</td><!-- current stage started for sorting, hidden by datatables -->
 
       <td>
-        <strong>{{ format_days_from_today(contract.entered) }}</strong><br />
-        <span class="text-muted">{{ contract.entered|datetimeformat('%m/%d/%Y') }}</span>
+        <strong class="highlight">{{ format_days_from_today(contract.entered) }}</strong><br />
+        <span class="text-muted">
+          <small>Started: {{ contract.entered|datetimeformat('%m/%d/%Y') }}</small>
+        </span>
       </td><!-- formatted current stage started -->
 
       <td>
@@ -69,7 +85,7 @@
 
       <td>
       <div class="dropdown">
-        <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        <button class="btn btn-default btn-sm dropdown-toggle highlight" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
           Actions
           <span class="caret"></span>
         </button>

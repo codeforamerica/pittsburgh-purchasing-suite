@@ -11,13 +11,13 @@ $(document).ready(function() {
 
   var progressTable = $('#js-table-progress').DataTable({
     // order by expiration date -- column 4
-    'order': [[5, 'asc']],
-    // use column 3 (actual timestamps) as a sort proxy for
-    // column 4 (formatted "days since")
+    'order': [[7, 'asc']],
+
     'aoColumnDefs': [
       { 'orderable': false, 'aTargets': [0] },
-      { 'bVisible': false, 'aTargets': [4, 7] },
-      { 'iDataSort': 4, 'aTargets': [5] }
+      { 'bVisible': false, 'aTargets': [3, 6, 9] },
+      { 'iDataSort': 6, 'aTargets': [7] },
+      { 'iDataSort': 3, 'aTargets': [4] },
     ],
   });
 

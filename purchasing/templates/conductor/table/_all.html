@@ -18,7 +18,7 @@
       <td>{{ contract.id }}</td>
 
       <td>
-        <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>{{ contract.description|title|truncate(40) }}</span>
+        <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>{{ contract.description|title|truncate(50) }}</span>
       </td>
 
       <td>{{ contract.spec_number}}</td><!-- spec number -->
@@ -28,8 +28,10 @@
       <td>{{ contract.expiration_date }}</td><!-- expiration date for sorting -->
       <td>
         {% if contract.expiration_date %}
-        <strong>{{ format_days_from_today(contract.expiration_date) }}</strong><br>
-        <span class="text-muted">{{ contract.expiration_date|datetimeformat('%m/%d/%Y') }}</span>
+        <strong class="highlight">{{ format_days_from_today(contract.expiration_date) }}</strong><br>
+        <span class="text-muted">
+          <small>{{ contract.expiration_date|datetimeformat('%m/%d/%Y') }}</small>
+        </span>
         {% else %}
         --
         {% endif %}
@@ -51,7 +53,7 @@
 
       <td>
       <div class="dropdown">
-        <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        <button class="btn btn-default btn-sm dropdown-toggle highlight" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
           Actions
           <span class="caret"></span>
         </button>
