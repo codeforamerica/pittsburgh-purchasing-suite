@@ -17,7 +17,7 @@ $(document).ready(function() {
       { 'orderable': false, 'aTargets': [0] },
       { 'bVisible': false, 'aTargets': [3, 6, 9] },
       { 'iDataSort': 6, 'aTargets': [7] },
-      { 'iDataSort': 3, 'aTargets': [4] },
+      { 'iDataSort': 3, 'aTargets': [4] }
     ],
   });
 
