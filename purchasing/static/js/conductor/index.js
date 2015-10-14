@@ -23,12 +23,13 @@ $(document).ready(function() {
 
   var allTable = $('#js-table-all').DataTable({
     // order by expiration date -- column 4
-    'order': [[4, 'asc']],
+    'order': [[5, 'asc']],
     // use column 3 (actual timestamps) as a sort proxy for
     // column 4 (formatted "days since")
     'aoColumnDefs': [
-      { 'bVisible': false, 'aTargets': [4] },
-      { 'iDataSort': 4, 'aTargets': [5] }
+      { 'orderable': false, 'aTargets': [0] },
+      { 'bVisible': false, 'aTargets': [5] },
+      { 'iDataSort': 5, 'aTargets': [6] }
     ],
   });
 
@@ -37,21 +38,20 @@ $(document).ready(function() {
   });
 
   function format(itemNumber, description, department, controller) {
-    return '<table class="table table-condensed">' +
-      '<tbody>' +
-        '<tr><td class="dropdown-table-border-right"><strong>Item #</strong></td><td>' + itemNumber + '</td></tr>' +
-        '<tr><td class="dropdown-table-border-right"><strong>Full Description</strong></td><td>' + description + '</td></tr>' +
-        '<tr><td class="dropdown-table-border-right"><strong>Department</strong></td><td>' + department + '</td></tr>' +
-        '<tr><td class="dropdown-table-border-right"><strong>Controller #</strong></td><td>' + controller + '</td></tr>' +
-      '</tbody>' +
-    '</table>';
+    var table = '<table class="table table-condensed"><tbody>';
+    if (itemNumber) { table += '<tr><td class="dropdown-table-border-right col-md-3"><strong>Item #</strong></td><td>' + itemNumber + '</td></tr>' }
+    if (description) { table += '<tr><td class="dropdown-table-border-right col-md-3"><strong>Full Description</strong></td><td>' + description + '</td></tr>' }
+    if (department) { table += '<tr><td class="dropdown-table-border-right col-md-3"><strong>Department</strong></td><td>' + department + '</td></tr>' }
+    if (controller) { table += '<tr><td class="dropdown-table-border-right col-md-3"><strong>Controller #</strong></td><td>' + controller + '</td></tr>' }
+    table += '</tbody></table></div>';
+
+    return table;
   }
 
-  $('#js-table-progress tbody').on('click', 'td.details-control', function() {
-    var clicked = $(this);
+  function showHideAdditionalInformation(clickedElem, table, formatMethod) {
+    var clicked = $(clickedElem);
     var tr = clicked.closest('tr');
-    var row = progressTable.row(tr);
-    var child = row.child;
+    var row = table.row(tr);
 
     if (row.child.isShown()) {
       row.child.hide();
@@ -65,6 +65,14 @@ $(document).ready(function() {
       tr.addClass('shown');
       clicked.find('.fa').removeClass('fa-plus').addClass('fa-minus');
     }
+  }
+
+  $('#js-table-progress tbody').on('click', 'td.details-control', function() {
+    showHideAdditionalInformation(this, progressTable);
+  });
+
+  $('#js-table-all tbody').on('click', 'td.details-control', function() {
+    showHideAdditionalInformation(this, allTable);
   });
 
   $('.hidden').removeClass('hidden');

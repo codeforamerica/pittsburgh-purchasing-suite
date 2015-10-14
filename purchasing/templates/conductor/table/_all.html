@@ -1,5 +1,6 @@
 <table class="display" id="js-table-all">
   <thead>
+    <th></th>
     <th>Item #</th>
     <th>Name</th>
     <th>Spec #</th>
@@ -13,8 +14,10 @@
     {% for contract in _all %}
     <tr class="{%- if days_from_today(contract.expiration_date) < 60 -%}contract-row-expiring-danger
     {%- elif days_from_today(contract.expiration_date) < 120 -%}contract-row-expiring-warning
-    {%- endif -%}">
+    {%- endif -%}"
+    data-full-description="{{ contract.description|title }}">
 
+      <td class="details-control"><i class="fa fa-plus"></i></td>
       <td>{{ contract.id }}</td>
 
       <td>
