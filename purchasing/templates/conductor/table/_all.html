@@ -59,18 +59,21 @@
         </button>
         <ul class="dropdown-menu pull-right" aria-labelledby="actionDropdown-{{ contract.id }}">
           <li><a href="{{ url_for('conductor.start_work', contract_id=contract.id) }}">
-            Start work <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-play-circle-o"></i></span>
+            <span class="fa-stack"><i class="fa fa-fw fa-play-circle-o"></i></span> Start work
           </a></li>
           {% if contract.contract_href %}
           <li><a href="{{ contract.contract_href }}" target="_blank">
-            View contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-file-pdf-o"></i></span>
+            <span class="fa-stack"><i class="fa fa-fw fa-file-pdf-o"></i></span> View contract
           </a></li>
           {% endif %}
           <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
-            View on Scout <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search"></i></span>
+            <span class="fa-stack"><i class="fa fa-fw fa-search"></i></span> View on Scout
+          </a></li>
+          <li><a href="{{ url_for('conductor.remove', contract_id=contract.id) }}">
+            <span class="fa-stack"><i class="fa fa-fw fa-chain-broken"></i></span> Remove contract from Conductor only
           </a></li>
           <li><a href="{{ url_for('conductor.kill_contract', contract_id=contract.id) }}">
-            Remove contract from use <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-times-circle"></i></span>
+            <span class="fa-stack"><i class="fa fa-fw fa-times-circle"></i></span> Remove contract from Scout and Conductor
           </a></li>
         </ul>
       </div>
