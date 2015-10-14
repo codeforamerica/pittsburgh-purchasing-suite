@@ -290,3 +290,16 @@ class TestContractRenewals(ContractObjectTestBase):
         self.assertEquals(len(self.active_contract.followers), 1)
         self.assertEquals(len(clone.companies), 0)
         self.assertEquals(len(clone.followers), 0)
+
+    def test_contract_clone_keep_assignment(self):
+        self.active_contract.assigned_to = self.user1.id
+
+        clone = contracts.ContractBase.clone(self.active_contract)
+
+        self.assertTrue(clone.id is None)
+        self.assertTrue(clone.expiration_date is None)
+        self.assertTrue(clone.financial_id is None)
+        self.assertFalse(clone.is_visible)
+        self.assertFalse(clone.is_archived)
+        self.assertEquals(clone.parent_id, self.active_contract.id)
+        self.assertEquals(clone.assigned_to, self.user1.id)
