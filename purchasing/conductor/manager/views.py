@@ -285,6 +285,28 @@ def flow_switch(contract_id, stage_id, flow_id):
         'conductor.detail', contract_id=contract_id, stage_id=new_contract_stage.id
     ))
 
+@blueprint.route('/contract/<int:contract_id>/remove')
+@requires_roles('conductor', 'admin', 'superadmin')
+def remove(contract_id):
+    '''Remove a contract from conductor
+
+    We do this by setting the `is_visible` flag to False,
+    which will keep the contract available to view on scout but
+    remove it from the conductor list
+    '''
+    contract = ContractBase.query.get(contract_id)
+    if contract:
+        contract.is_visible = False
+        db.session.commit()
+        current_app.logger.info(
+            'CONDUCTOR REMOVE - Contract for {} (ID: {}) killed'.format(
+                contract.description, contract.id
+            )
+        )
+        flash('Successfully removed {} from conductor!'.format(contract.description), 'alert-success')
+        return redirect(url_for('conductor.index'))
+    abort(404)
+
 @blueprint.route('/contract/<int:contract_id>/kill')
 @requires_roles('conductor', 'admin', 'superadmin')
 def kill_contract(contract_id):
