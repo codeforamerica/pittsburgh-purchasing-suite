@@ -2,11 +2,14 @@
   <div class="row">
     <div class="col-md-8">
       <h3><strong>{{ active_stage.description|title }}</strong></h3>
-      <ul class="text-muted list-unstyled">
+      <ul class="list-unstyled">
         {% if contract.get_spec_number().value %}
-        <li class="">Spec Number: {{ contract.get_spec_number().value }}</li>
-        {% elif contract.parent and contract.parent.get_spec_number().value %}
-        <li class="">Old Spec Number: {{ contract.parent.get_spec_number().value }}</li>
+        <li>Spec Number: {{ contract.get_spec_number().value }}</li>
+        {% else %}--
+        {% endif %}
+        {% if contract.parent and contract.parent.get_spec_number().value %}
+        <li>Old Spec Number: {{ contract.parent.get_spec_number().value }}</li>
+        {% else %}--
         {% endif %}
 
         {% if contract.parent %}

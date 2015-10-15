@@ -20,7 +20,9 @@
     {%- endif -%}" data-department="{{ contract.department }}"
     data-controller="{{ contract.financial_id or 'Not set' }}"
     data-full-description="{{ contract.description|title }}"
-    data-item-number="{{ contract.id }}">
+    data-item-number="{{ contract.id }}"
+    data-spec-number="{{ contract[1].get_spec_number().value }}"
+    data-parent-spec-number="{{ contract[1].parent.get_spec_number().value }}">
 
       <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
 

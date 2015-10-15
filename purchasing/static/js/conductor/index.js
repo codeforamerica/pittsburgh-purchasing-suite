@@ -42,12 +42,14 @@ $(document).ready(function() {
     }
   });
 
-  function format(itemNumber, description, department, controller) {
-    var table = '<table class="table table-condensed"><tbody>';
+  function format(itemNumber, description, department, controller, spec, parentSpec) {
+    var table = '<table class="table table-condensed table-bordered"><tbody>';
     if (itemNumber) { table += '<tr><td class="dropdown-table-border-right col-md-3"><strong>Item #</strong></td><td>' + itemNumber + '</td></tr>' }
     if (description) { table += '<tr><td class="dropdown-table-border-right col-md-3"><strong>Full Description</strong></td><td>' + description + '</td></tr>' }
     if (department) { table += '<tr><td class="dropdown-table-border-right col-md-3"><strong>Department</strong></td><td>' + department + '</td></tr>' }
     if (controller) { table += '<tr><td class="dropdown-table-border-right col-md-3"><strong>Controller #</strong></td><td>' + controller + '</td></tr>' }
+    if (spec) { table += '<tr><td class="dropdown-table-border-right col-md-3"><strong>Spec #</strong></td><td>' + spec + '</td></tr>' }
+    if (parentSpec) { table += '<tr><td class="dropdown-table-border-right col-md-3"><strong>Old Spec #</strong></td><td>' + parentSpec + '</td></tr>' }
     table += '</tbody></table></div>';
 
     return table;
@@ -65,7 +67,8 @@ $(document).ready(function() {
     } else {
       row.child(format(
         tr.attr('data-item-number'), tr.attr('data-full-description'),
-        tr.attr('data-department'), tr.attr('data-controller')
+        tr.attr('data-department'), tr.attr('data-controller'),
+        tr.attr('data-spec-number'), tr.attr('data-parent-spec-number')
       )).show();
       tr.addClass('shown');
       clicked.find('.fa').removeClass('fa-plus').addClass('fa-minus');
