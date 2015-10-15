@@ -1,5 +1,7 @@
 <table class="display" id="js-table-all">
   <thead>
+    <th>Assigned To Filter (Hidden)</th>
+    <th></th>
     <th>Item #</th>
     <th>Name</th>
     <th>Spec #</th>
@@ -13,12 +15,15 @@
     {% for contract in _all %}
     <tr class="{%- if days_from_today(contract.expiration_date) < 60 -%}contract-row-expiring-danger
     {%- elif days_from_today(contract.expiration_date) < 120 -%}contract-row-expiring-warning
-    {%- endif -%}">
+    {%- endif -%}"
+    data-full-description="{{ contract.description|title }}">
 
+      <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
+      <td class="details-control"><i class="fa fa-plus"></i></td>
       <td>{{ contract.id }}</td>
 
       <td>
-        <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>{{ contract.description|title|truncate(40) }}</span>
+        <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>{{ contract.description|title|truncate(50) }}</span>
       </td>
 
       <td>{{ contract.spec_number}}</td><!-- spec number -->
@@ -28,8 +33,10 @@
       <td>{{ contract.expiration_date }}</td><!-- expiration date for sorting -->
       <td>
         {% if contract.expiration_date %}
-        <strong>{{ format_days_from_today(contract.expiration_date) }}</strong><br>
-        <span class="text-muted">{{ contract.expiration_date|datetimeformat('%m/%d/%Y') }}</span>
+        <strong class="highlight">{{ format_days_from_today(contract.expiration_date) }}</strong><br>
+        <span class="text-muted">
+          <small>{{ contract.expiration_date|datetimeformat('%m/%d/%Y') }}</small>
+        </span>
         {% else %}
         --
         {% endif %}
@@ -47,28 +54,31 @@
             {% endfor %}
           </ul>
         </div>
-      </td>
+      </td><!-- assigned to -->
 
       <td>
       <div class="dropdown">
-        <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        <button class="btn btn-default btn-sm dropdown-toggle highlight" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
           Actions
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu pull-right" aria-labelledby="actionDropdown-{{ contract.id }}">
           <li><a href="{{ url_for('conductor.start_work', contract_id=contract.id) }}">
-            Start work <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-play-circle-o"></i></span>
+            <span class="fa-stack"><i class="fa fa-fw fa-play-circle-o"></i></span> Start work
           </a></li>
           {% if contract.contract_href %}
           <li><a href="{{ contract.contract_href }}" target="_blank">
-            View contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-file-pdf-o"></i></span>
+            <span class="fa-stack"><i class="fa fa-fw fa-file-pdf-o"></i></span> View contract
           </a></li>
           {% endif %}
           <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
-            View on Scout <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search"></i></span>
+            <span class="fa-stack"><i class="fa fa-fw fa-search"></i></span> View on Scout
+          </a></li>
+          <li><a href="{{ url_for('conductor.remove', contract_id=contract.id) }}">
+            <span class="fa-stack"><i class="fa fa-fw fa-chain-broken"></i></span> Remove contract from Conductor only
           </a></li>
           <li><a href="{{ url_for('conductor.kill_contract', contract_id=contract.id) }}">
-            Remove contract from use <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-times-circle"></i></span>
+            <span class="fa-stack"><i class="fa fa-fw fa-times-circle"></i></span> Remove contract from Scout and Conductor
           </a></li>
         </ul>
       </div>

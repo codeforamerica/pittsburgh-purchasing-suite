@@ -810,6 +810,7 @@ class TestConductor(TestConductorSetup):
                 self.assertTrue(child.is_visible)
                 self.assertEquals(child.description, 'foo')
                 self.assertEquals(child.parent.description, 'scuba supplies [Archived]')
+                self.assertEquals(assign.assigned, child.assigned)
 
     def test_contract_extension(self):
         '''Test our flow works with contract extensions

@@ -1,13 +1,15 @@
 <table class="display" id="js-table-progress">
   <thead>
+    <th>Assigned To Filter (Hidden)</th>
     <th></th>
     <th>Spec #</th>
     <th>Name</th>
+    <th>Expiration Sort (Hidden)</th>
+    <th>Expiration Date</th>
     <th>Current Step</th>
     <th>Current Step Started Sort (Hidden)</th>
     <th>Current Step Started</th>
     <th>Assigned To</th>
-    <th>Assigned To Filter (Hidden)</th>
     <th>Actions</th>
 
   </thead>
@@ -18,37 +20,56 @@
     {%- endif -%}" data-department="{{ contract.department }}"
     data-controller="{{ contract.financial_id or 'Not set' }}"
     data-full-description="{{ contract.description|title }}"
-    data-item-number="{{ contract.id }}">
+    data-item-number="{{ contract.id }}"
+    data-spec-number="{{ contract[1].get_spec_number().value }}"
+    data-parent-spec-number="{{ contract[1].parent.get_spec_number().value }}">
+
+      <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
 
       <td class="details-control"><i class="fa fa-plus"></i></td>
 
       <td>
         {% if contract[1].get_spec_number().value %}
         {{ contract[1].get_spec_number().value }}
-        {% elif contract[1].get_spec_number().value %}
-        {{ contract[1].parent }}
+        {% elif contract[1].parent %}
+        {{ contract[1].parent.get_spec_number().value }}<br>
+        <span class="text-muted text-normal"><small>Old spec</small></span>
         {% else %}
         {{ contract.id }} <br>
-        <span class="text-muted"><small>No spec number, <br>displaying item #</small></span>
+        <span class="text-muted text-normal"><small>Item #</small></span>
         {% endif %}
       </td>
 
       <td>
-        <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>{{ contract.description|title|truncate(40) }}</span>
-        <span class="pull-right">
-          <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}" class="btn btn-primary btn-sm">
-            Update
-          </a>
-        </span>
+        <span {% if contract.stage_name -%}class="title-update-span"{%- endif -%}>
+          {{ contract.description|title|truncate(35) }}
+        </span><br />
+        <a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
+          <small><strong>Update</strong></small>
+        </a>
       </td>
+
+      <td>{{ contract[1].parent.expiration_date }}</td><!-- expiration date for sorting -->
+      <td>
+        {% if contract[1].parent.expiration_date %}
+        <strong class="highlight">{{ format_days_from_today(contract[1].parent.expiration_date) }}</strong><br>
+        <span class="text-muted text-normal">
+          <small>{{ contract[1].parent.expiration_date|datetimeformat('%m/%d/%Y') }}</small>
+        </span>
+        {% else %}
+        --
+        {% endif %}
+      </td><!-- formatted expiration date -->
 
       <td>{{ contract.stage_name }}</td><!-- current stage -->
 
       <td>{{ contract.entered }}</td><!-- current stage started for sorting, hidden by datatables -->
 
       <td>
-        <strong>{{ format_days_from_today(contract.entered) }}</strong><br />
-        <span class="text-muted">{{ contract.entered|datetimeformat('%m/%d/%Y') }}</span>
+        <strong class="highlight">{{ format_days_from_today(contract.entered) }}</strong><br />
+        <span class="text-muted">
+          <small>Started: {{ contract.entered|datetimeformat('%m/%d/%Y') }}</small>
+        </span>
       </td><!-- formatted current stage started -->
 
       <td>
@@ -64,30 +85,30 @@
           </ul>
         </div>
       </td>
-      <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
 
       <td>
       <div class="dropdown">
-        <button class="btn btn-default btn-sm dropdown-toggle" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        <button class="btn btn-default btn-sm dropdown-toggle highlight" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
           Actions
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu pull-right" aria-labelledby="actionDropdown-{{ contract.id }}">
-          {% if contract.current_stage or contract.assigned %}
           <li><a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
-            Update contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search-plus"></i></i></span>
+            <span class="fa-stack"><i class="fa fa-fw fa-search-plus"></i></i></span> Update contract
           </a></li>
-          {% endif %}
-          {% if contract.contract_href %}
-          <li><a href="{{ contract.contract_href }}" target="_blank">
-            View Contract <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-file-pdf-o"></i></span>
+          {% if contract[1].parent.contract_href %}
+          <li><a href="{{ contract[1].parent.contract_href }}" target="_blank">
+            <span class="fa-stack"><i class="fa fa-fw fa-file-pdf-o"></i></span> View Contract
           </a></li>
           {% endif %}
           <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
-            View on Scout <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-search"></i></span>
+            <span class="fa-stack"><i class="fa fa-fw fa-search"></i></span> View on Scout
+          </a></li>
+          <li><a href="{{ url_for('conductor.remove', contract_id=contract.id) }}">
+            <span class="fa-stack"><i class="fa fa-fw fa-chain-broken"></i></span> Remove contract from Conductor only
           </a></li>
           <li><a href="{{ url_for('conductor.kill_contract', contract_id=contract.id) }}">
-            Remove contract from use <span class="fa-stack" style="padding-left:5px;"><i class="fa fa-times-circle"></i></span>
+            <span class="fa-stack"><i class="fa fa-fw fa-times-circle"></i></span> Remove contract from Scout and Conductor
           </a></li>
         </ul>
       </div>

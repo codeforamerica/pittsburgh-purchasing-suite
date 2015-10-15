@@ -219,7 +219,6 @@ class ContractBase(RefreshSearchViewMixin, Model):
         '''Takes a contract object and clones it
 
         The clone always strips the following properties:
-            + Assigned To
             + Current Stage
 
         If the strip flag is set to true, the following are also stripped
@@ -236,7 +235,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
             + Properties, Notes, Line Items, Companies, Stars, Follows kept on old
         '''
         clone = cls(**instance.as_dict())
-        clone.id, clone.assigned_to, clone.current_stage = None, None, None
+        clone.id, clone.current_stage = None, None
 
         clone.parent_id = parent_id if parent_id else instance.id
 
