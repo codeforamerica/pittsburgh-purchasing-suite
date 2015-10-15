@@ -148,7 +148,9 @@ def localize_today():
 def localize_datetime(date):
     '''Take a naive (UTC) datetime object and normalize it to the display timezone
     '''
-    return pytz.UTC.localize(date).astimezone(current_app.config['DISPLAY_TIMEZONE'])
+    if date:
+        return pytz.UTC.localize(date).astimezone(current_app.config['DISPLAY_TIMEZONE'])
+    return ''
 
 class SimplePagination(object):
     '''

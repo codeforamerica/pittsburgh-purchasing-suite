@@ -6,7 +6,17 @@
 
 <div class="container">
 
-  <div id="js-metrics-loading"></div>
+  <div class="row">
+    <div class="col-md-12">
+      <h3>{{ flow.flow_name }}</h3>
+      <a href="{{ url_for('conductor_metrics.index') }}">Home</a> |
+      <a href="{{ url_for('conductor_metrics.download_tsv_flow', flow_id=flow.id) }}">Download raw data</a>
+    </div>
+  </div>
+
+  <div id="js-metrics-loading" class="spinner-container text-center">
+    <i class="fa fa-5x fa-spinner fa-spin"></i>
+  </div>
 
   <div id="js-metrics-container">
     <div id="js-chart-error-container" class="hidden">
@@ -29,6 +39,6 @@
 {% block jsvars %}
 {{ super() }}
 <script type="text/javascript">
-  var ajaxUrl = '{{ url_for('conductor_metrics.flow_data', flow_id=flow_id) }}';
+  var ajaxUrl = '{{ url_for('conductor_metrics.flow_data', flow_id=flow.id) }}';
 </script>
 {% endblock %}

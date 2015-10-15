@@ -43,7 +43,7 @@ def download_tsv_flow(flow_id):
 def flow_overview(flow_id):
     flow = Flow.query.get(flow_id)
     if flow:
-        return render_template('conductor/metrics/overview.html', flow_id=flow_id)
+        return render_template('conductor/metrics/overview.html', flow=flow)
     abort(404)
 
 
