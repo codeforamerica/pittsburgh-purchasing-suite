@@ -5,7 +5,6 @@ from flask.ext.login import UserMixin, AnonymousUserMixin
 
 from purchasing.database import Column, db, Model, ReferenceCol, SurrogatePK
 from sqlalchemy.orm import backref
-from sqlalchemy.ext.hybrid import hybrid_property
 
 class Role(SurrogatePK, Model):
     __tablename__ = 'roles'
@@ -20,6 +19,10 @@ class Role(SurrogatePK, Model):
     @classmethod
     def query_factory(cls):
         return cls.query
+
+    @classmethod
+    def no_admins(cls):
+        return cls.query.filter(~cls.name.in_(['superadmin', 'admin']))
 
 class User(UserMixin, SurrogatePK, Model):
 

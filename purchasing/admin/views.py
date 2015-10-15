@@ -89,6 +89,10 @@ class ScoutContractAdmin(ContractBaseAdmin):
         (LineItem, dict(form_excluded_columns=GLOBAL_EXCLUDE)),
     )
 
+    column_editable_list = [
+        'description', 'expiration_date', 'financial_id'
+    ]
+
     form_columns = [
         'contract_type', 'description', 'properties',
         'financial_id', 'expiration_date', 'contract_href',
@@ -258,14 +262,36 @@ class StageAdmin(ConductorAuthMixin, BaseModelViewAdmin):
     form_columns = ['name', 'post_opportunities', 'default_message']
 
 class UserAdmin(AuthMixin, BaseModelViewAdmin):
-    form_columns = ['email', 'first_name', 'last_name', 'department']
+    form_columns = ['email', 'first_name', 'last_name', 'department', 'role']
 
     form_extra_fields = {
         'department': sqla.fields.QuerySelectField(
             'Department', query_factory=Department.query_factory,
             allow_blank=True, blank_text='-----'
+        ),
+        'role': sqla.fields.QuerySelectField(
+            'Role', query_factory=Role.no_admins,
+            allow_blank=True, blank_text='-----'
         )
     }
+
+    def get_query(self):
+        '''Override default get query to limit to assigned contracts
+        '''
+        return super(UserAdmin, self).get_query().join(
+            Role, User.role_id == Role.id
+        ).filter(
+            db.func.lower(Role.name) != 'superadmin'
+        )
+
+    def get_count_query(self):
+        '''Override default get count query to conform to above
+        '''
+        return super(UserAdmin, self).get_count_query().join(
+            Role, User.role_id == Role.id
+        ).filter(
+            db.func.lower(Role.name) != 'superadmin'
+        )
 
 class UserRoleAdmin(SuperAdminMixin, BaseModelViewAdmin):
     form_columns = ['email', 'first_name', 'last_name', 'department', 'role']
