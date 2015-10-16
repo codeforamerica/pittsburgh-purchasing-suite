@@ -76,5 +76,6 @@ class BeaconBiweeklyDigestJob(EmailJobBase):
         return Opportunity.query.filter(
             Opportunity.published_at > db.func.coalesce(
                 current_status.last_beacon_newsletter, datetime.date(2010, 1, 1)
-            ), Opportunity.is_public == True
+            ), Opportunity.is_public == True,
+            Opportunity.planned_submission_end >= datetime.date.today()
         ).all()
