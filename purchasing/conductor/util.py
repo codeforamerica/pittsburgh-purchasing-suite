@@ -210,7 +210,7 @@ def build_subscribers(contract):
     }
     return subscribers, sum([len(i) for i in subscribers.values()])
 
-def assign_a_contract(contract, flow, user, clone=True):
+def assign_a_contract(contract, flow, user, start_time=None, clone=True):
     # if we don't have a flow, stop and throw an error
     if not flow:
         return False
@@ -239,7 +239,7 @@ def assign_a_contract(contract, flow, user, clone=True):
             db.session.commit()
         try:
             stages, _, _ = create_contract_stages(flow.id, contract.id, contract=contract)
-            actions = contract.transition(user)
+            actions = contract.transition(user, complete_time=start_time)
             for i in actions:
                 db.session.add(i)
             db.session.flush()

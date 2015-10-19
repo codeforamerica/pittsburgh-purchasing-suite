@@ -85,6 +85,7 @@ class NewContractForm(Form):
         get_label=lambda i: i.name,
         allow_blank=True, blank_text='-----'
     )
+    start = DateTimeField(default=get_default)
 
 class EditContractForm(Form):
     '''Form to control details needed to finalize a new/renewed contract

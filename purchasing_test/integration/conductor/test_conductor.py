@@ -74,7 +74,7 @@ class TestConductorSetup(BaseTestCase):
         flow = flow if flow else self.flow
         contract = contract if contract else self.contract1
 
-        assign_a_contract(contract, flow, self.conductor)
+        assign_a_contract(contract, flow, self.conductor, start_time=datetime.datetime.now())
 
         return contract.children[0]
 
