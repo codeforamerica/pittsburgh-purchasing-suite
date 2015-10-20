@@ -32,12 +32,38 @@
           {{ macros.with_errors(form.department, class_="form-control") }}
         </div><!-- department -->
 
-        <button type="submit" class="btn btn-success">
-          Start work on contract
+        <button type="button" class="btn btn-success js-transition dropdown-toggle pull-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Start Work <span class="caret"></span>
         </button>
+        <ul class="dropdown-menu pull-right">
+          <li><a>{{ form.start(class_='datetimepicker form-control') }}</a></li>
+          <li role="separator" class="divider"></li>
+          <li><a><button class="btn btn-success form-control" type="submit">Start</button></a></li>
+        </ul>
       </form>
     </div>
   </div>
 </div>
 
+{% endblock %}
+
+{% block js %}
+  {{ super() }}
+  <script type="text/javascript">
+    var e = $('.datetimepicker');
+
+    e.datetimepicker({
+      format: 'YYYY-MM-DD h:mma',
+      inline: true,
+      keepOpen: true,
+      maxDate: moment(e.val()).toDate(),
+      showTodayButton: true,
+      defaultDate: moment(e.val()).toDate()
+    });
+
+    e.on('click', function(e) {
+      e.stopPropagation();
+    });
+
+  </script>
 {% endblock %}

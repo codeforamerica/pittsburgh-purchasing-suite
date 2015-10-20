@@ -384,7 +384,11 @@ def start_work(contract_id=-1):
             db.session.add(contract)
             db.session.commit()
 
-        assigned = assign_a_contract(contract, form.data.get('flow'), form.data.get('assigned'), clone=False)
+        assigned = assign_a_contract(
+            contract, form.data.get('flow'), form.data.get('assigned'),
+            start_time=form.data.get('start').astimezone(pytz.UTC),
+            clone=False
+        )
         db.session.commit()
 
         if assigned:
