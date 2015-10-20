@@ -341,6 +341,13 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.assert200(admin_pending)
         self.assertEquals(len(self.get_context_variable('pending')), 0)
 
+    def test_pending_hidden_if_archived(self):
+        self.opportunity3.is_archived = True
+        db.session.commit()
+        self.login_user(self.admin)
+        admin_archived = self.client.get('beacon/admin/opportunities/pending')
+        self.assertEquals(len(self.get_context_variable('pending')), 0)
+
     def test_approved_opportunity(self):
         '''Test approved opportunities work as expected for city staff
         '''
