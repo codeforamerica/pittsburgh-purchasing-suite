@@ -48,7 +48,7 @@ class TestOpportunitiesAdminBase(BaseTestCase):
 
         self.opportunity1 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
-            title='tést unïcode title', description='tést unïcode déscription',
+            title=u'tést unïcode title', description=u'tést unïcode déscription',
             is_public=True, is_archived=False, planned_publish=datetime.date.today() + datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
             planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
