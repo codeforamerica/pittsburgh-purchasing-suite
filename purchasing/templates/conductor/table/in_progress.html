@@ -18,11 +18,11 @@
     <tr class="{%- if days_from_today(contract.entered) < -14 -%}contract-row-expiring-danger
     {%- elif days_from_today(contract.entered) < -7 -%}contract-row-expiring-warning
     {%- endif -%}" data-department="{{ contract.department }}"
-    data-controller="{{ contract.financial_id or 'Not set' }}"
+    data-controller="{{ contract.financial_id or 'None' }}"
     data-full-description="{{ contract.description|title }}"
     data-item-number="{{ contract.id }}"
     data-spec-number="{{ contract[1].get_spec_number().value }}"
-    data-parent-spec-number="{{ contract[1].parent.get_spec_number().value }}">
+    data-parent-spec-number={% if contract[1].parent %}"{{ contract[1].parent.get_spec_number().value }}"}{% else %}"--"{% endif %}>
 
       <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
 
