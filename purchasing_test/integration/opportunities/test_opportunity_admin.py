@@ -345,7 +345,7 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.opportunity3.is_archived = True
         db.session.commit()
         self.login_user(self.admin)
-        admin_archived = self.client.get('beacon/admin/opportunities/pending')
+        self.client.get('beacon/admin/opportunities/pending')
         self.assertEquals(len(self.get_context_variable('pending')), 0)
 
     def test_approved_opportunity(self):
