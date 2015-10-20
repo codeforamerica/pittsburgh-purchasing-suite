@@ -53,6 +53,10 @@
               </div>
             </div><!-- dates -->
 
+            <div class="row">
+              <div class="col-xs-4">
+                <a href="{{ url_for('opportunities_admin.archive', opportunity_id=opportunity.id) }}" class="btn btn-primary"  onclick="return confirm('Are you sure you want to archive this?')" >Archive opportunity<i class="fa fa-trash-o" style="padding-left:10px;"></i></a>
+              </div>
           </div>
 
         </div>

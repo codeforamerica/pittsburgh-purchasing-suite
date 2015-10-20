@@ -93,7 +93,11 @@ class Opportunity(Model):
     # documents needed from the vendors
     vendor_documents_needed = Column(ARRAY(db.Integer()))
 
+    # Whether opportunity is visible to non-City staff
     is_public = Column(db.Boolean(), default=False)
+
+    # Archiving opportunities, mostly for removing duplicates in pending
+    is_archived = Column(db.Boolean(), default=False)
 
     # Date opportunity was actually made public on beacon
     published_at = Column(db.DateTime, nullable=True)

@@ -151,11 +151,14 @@ def pending():
     pending = Opportunity.query.filter(
         Opportunity.is_public == False,
         Opportunity.planned_submission_end >= datetime.date.today(),
+        Opportunity.is_archived == False
     ).all()
 
     approved = Opportunity.query.filter(
         Opportunity.planned_publish > datetime.date.today(),
-        Opportunity.is_public == True
+        Opportunity.is_public == True,
+        Opportunity.planned_submission_end >= datetime.date.today(),
+        Opportunity.is_archived == False
     ).all()
 
     current_app.logger.info('BEACON PENDING VIEW')
@@ -164,6 +167,29 @@ def pending():
         'opportunities/admin/pending.html', pending=pending,
         approved=approved, current_user=current_user
     )
+
+@blueprint.route('/opportunities/<int:opportunity_id>/archive')
+@requires_roles('admin', 'superadmin', 'conductor')
+def archive(opportunity_id):
+    '''Archives opportunities in pending view
+    '''
+    opportunity = Opportunity.query.get(opportunity_id)
+    if opportunity:
+        opportunity.is_archived = True
+        db.session.commit()
+
+        current_app.logger.info(
+            '''BEACON ARCHIVED: ID: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {} '''.format(
+                opportunity.id, opportunity.title.encode('ascii', 'ignore'), str(opportunity.planned_publish),
+                str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
+            )
+        )
+
+        flash('Opportunity successfully archived!', 'alert-success')
+
+        return redirect(url_for('opportunities_admin.pending'))
+
+    abort(404)
 
 @blueprint.route('/signups')
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
