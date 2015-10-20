@@ -237,7 +237,7 @@ class Opportunity(Model):
 '''BEACON NEW - New Opportunity Created: Department: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {}
             '''.format(
                 opportunity.id, opportunity.department.name if opportunity.department else '',
-                opportunity.description.encode('ascii', 'ignore'),
+                opportunity.title.encode('ascii', 'ignore'),
                 str(opportunity.planned_publish),
                 str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
             )
@@ -265,7 +265,7 @@ class Opportunity(Model):
         current_app.logger.info(
 '''BEACON Update - Opportunity Updated: ID: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {}
             '''.format(
-                self.id, self.description, str(self.planned_publish),
+                self.id, self.title.encode('ascii', 'ignore'), str(self.planned_publish),
                 str(self.planned_submission_start), str(self.planned_submission_end)
             )
         )
@@ -295,7 +295,7 @@ class Opportunity(Model):
             current_app.logger.info(
 '''BEACON PUBLISHED:  ID: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {}
                 '''.format(
-                    self.id, self.description, str(self.planned_publish),
+                    self.id, self.title.encode('ascii', 'ignore'), str(self.planned_publish),
                     str(self.planned_submission_start), str(self.planned_submission_end)
                 )
             )
