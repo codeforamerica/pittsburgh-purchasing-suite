@@ -132,7 +132,7 @@ def publish(opportunity_id):
 
         current_app.logger.info(
 '''BEACON APPROVED: ID: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {} '''.format(
-                opportunity.id, opportunity.description, str(opportunity.planned_publish),
+                opportunity.id, opportunity.title.encode('ascii', 'ignore'), str(opportunity.planned_publish),
                 str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
             )
         )
