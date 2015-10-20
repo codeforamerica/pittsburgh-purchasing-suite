@@ -314,11 +314,12 @@ class DocumentAdmin(AuthMixin, BaseModelViewAdmin):
     pass
 
 class OpportunityAdmin(AuthMixin, BaseModelViewAdmin):
-    column_list = ['contact', 'department', 'title', 'description', 'is_public']
+    column_list = ['contact', 'department', 'title', 'description', 'is_public', 'is_archived']
 
     form_columns = [
         'contact', 'department', 'title', 'description', 'planned_publish',
-        'planned_submission_start', 'planned_submission_end', 'is_public'
+        'planned_submission_start', 'planned_submission_end', 'is_public',
+        'is_archived'
     ]
 
 class CategoryAdmin(AuthMixin, BaseModelViewAdmin):

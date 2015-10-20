@@ -24,7 +24,7 @@ def upgrade():
 
     connection = op.get_bind()
 
-    for opportunity in connection.execute(Opportunity.__table__.select()):
+    for opportunity in connection.execute('''select * from opportunity''').fetchall():
         if opportunity.is_public:
             connection.execute(Opportunity.__table__.update().where(
                 Opportunity.__table__.c.id == opportunity.id

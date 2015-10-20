@@ -49,28 +49,28 @@ class TestOpportunitiesAdminBase(BaseTestCase):
         self.opportunity1 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
             title='tést unïcode title', description='tést unïcode déscription',
-            is_public=True, planned_publish=datetime.date.today() + datetime.timedelta(1),
+            is_public=True, is_archived=False, planned_publish=datetime.date.today() + datetime.timedelta(1),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
             planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
             documents=[self.document.id], categories=set([Category.query.first()])
         )
         self.opportunity2 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
-            is_public=True, planned_publish=datetime.date.today(),
+            is_public=True, is_archived=False, planned_publish=datetime.date.today(),
             planned_submission_start=datetime.date.today() + datetime.timedelta(2),
             planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
             categories=set([Category.query.first()])
         )
         self.opportunity3 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
-            is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(2),
+            is_public=True, is_archived=False, planned_publish=datetime.date.today() - datetime.timedelta(2),
             planned_submission_start=datetime.date.today() - datetime.timedelta(2),
             planned_submission_end=datetime.datetime.today() - datetime.timedelta(1),
             categories=set([Category.query.first()])
         )
         self.opportunity4 = insert_an_opportunity(
             contact=self.admin, created_by=self.staff,
-            is_public=True, planned_publish=datetime.date.today() - datetime.timedelta(1),
+            is_public=True, is_archived=False, planned_publish=datetime.date.today() - datetime.timedelta(1),
             planned_submission_start=datetime.date.today(),
             planned_submission_end=datetime.datetime.today() + datetime.timedelta(2),
             title='TEST TITLE!', categories=set([Category.query.first()])
