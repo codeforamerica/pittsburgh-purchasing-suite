@@ -22,6 +22,9 @@
               </div>
               <div class="col-sm-5">
                 <div class="pull-right">
+                {% if not current_user.is_anonymous() and current_user.is_conductor() %}
+                  <a href="{{ url_for('opportunities_admin.archive', opportunity_id=opportunity.id) }}" onclick="return confirm('Click ok to archive this opportunity. Otherwise hit cancel to keep it in pending.')" style="padding-right:10px;">Archive</a>
+                {% endif %}
                 {% if opportunity.can_edit(current_user) %}
                 <a class="pending-opportunity-edit" href="{{ url_for('opportunities_admin.edit', opportunity_id=opportunity.id) }}">
                   <strong>Edit</strong>
@@ -52,12 +55,6 @@
                 <p>{{ opportunity.planned_submission_end|datetimeformat('%m/%d/%y') }}</p>
               </div>
             </div><!-- dates -->
-
-            <div class="row">
-              <div class="col-xs-4">
-                <a href="{{ url_for('opportunities_admin.archive', opportunity_id=opportunity.id) }}" class="btn btn-primary"  onclick="return confirm('Are you sure you want to archive this?')" >Archive opportunity<i class="fa fa-trash-o" style="padding-left:10px;"></i></a>
-              </div>
-          </div>
 
         </div>
       </div><!-- pending opportunity card -->
