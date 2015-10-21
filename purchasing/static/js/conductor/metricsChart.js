@@ -1,10 +1,16 @@
 (function() {
+  'use strict';
+
+  var flowData;
   var dayInSeconds = 60 * 60 * 24;
   var defaultBuckets = {
     '< 1 day': 0, '< 7 days': 0, '8 - 15 days': 0,
     '16 - 30 days': 0, '30+ days': 0,
     order: ['< 1 day', '< 7 days', '8 - 15 days', '16 - 30 days', '30+ days']
   };
+  var stageData = d3.map();
+
+  var circleScale = d3.scale.linear().range([3, 7]);
 
   function makeBuckets(stage) {
     var newBuckets = $.extend({}, defaultBuckets);
@@ -41,7 +47,7 @@
             return d3.round(e/dayInSeconds, 1);
           })),
           count: stage.slice(1).length,
-          buckets: makeBuckets(stage.slice(1))
+          buckets: makeBuckets(stage.slice(1)),
         });
       } else {
         var stageIdx = +d3.map(d).keys()[0];
@@ -57,12 +63,129 @@
     return chartData;
   }
 
+  function getStageBreakouts(clickedStage) {
+    if (stageData.keys().indexOf(clickedStage.id) > -1) {
+      return stageData[clickedStage.id];
+    } else {
+      var stages = [];
+      flowData.complete.forEach(function(i, ix) {
+        var stage = i.stages.filter(function(d) {
+          return d.id == clickedStage.id;
+        });
+        if (stage.length === 1) {
+          var newStage = stage[0];
+          newStage.description = i.description;
+          newStage.contractId = i.contract_id;
+          stages.push(newStage);
+        }
+      });
+      stageData[clickedStage.id] = stages;
+      return stages;
+    }
+  }
+
+  function rollUpStages(stageBreakouts) {
+    var rollup = {};
+    stageBreakouts.forEach(function(d) {
+      var xVal = d3.round(d.seconds/dayInSeconds, 0);
+      if (rollup[xVal]) {
+        rollup[xVal].count += 1;
+        rollup[xVal].contracts.push(d.description);
+      } else {
+        rollup[xVal] = {
+          count: 1,
+          contracts: [d.description]
+        };
+      }
+    });
+
+    return d3.map(rollup);
+  }
+
+  function renderError() {
+    $('#js-chart-error-container').html(
+      '<div class="alert alert-danger alert-dismissible" role="alert">' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+          'Something went wrong fetching the charts. We are working on it. Please try again later.' +
+      '</div>'
+    ).removeClass('hidden');
+  }
+
+  function renderDistributionTable(stage) {
+    var rows = '';
+
+
+    stage.sort(function(a, b) {
+      return b.seconds - a.seconds;
+    }).forEach(function(d) {
+      rows += '<tr>' +
+        '<td><a href="/conductor/contract/' + d.contractId + '">' + d.description + '</a></td>' +
+        '<td>' + d3.round(d.seconds/dayInSeconds, 0) + ' days</td>' +
+      '</tr>';
+    });
+
+    $('#js-distribution-contracts-table tbody').html(rows);
+
+    return;
+  }
+
+  function drawDistributionChart(stage) {
+    return c3.generate({
+      bindto: '#js-distribution-chart',
+      size: { height: 90, width: 848 },
+      padding: { left: 20, right: 20 },
+      data: {
+        xs: { contracts: 'contracts_x' },
+        columns: [
+          ['contracts_x'].concat(stage.keys()),
+          ['contracts'].concat(stage.keys().map(function(d) { return 1; }))
+        ]
+      },
+      point: {
+        r: function(d) {
+          circleScale.domain(
+            d3.extent(stage.values().map(function(d) { return d.count; }))
+          );
+          return circleScale(stage.get(d.x).count);
+        }
+      },
+      legend: { show: false },
+      axis: {
+        x: { label: { text: 'Days Spent', position: 'outer-right' } },
+        y: { show: false, max: 2, min: 0 }
+      },
+      tooltip: {
+        contents: function(d, defaultTitleFormat, defaultValueFormat, color) {
+          var days = stage.values()[d[0].index];
+          return '<div class="c3-tooltip-container">' +
+              '<table class="c3-tooltip"><tbody>' +
+                '<tr class="c3-tooltip-name-Stages">' +
+                  '<td class="name">' +
+                    days.count + ' contract(s) took ' + d[0].x + ' day(s).' +
+                  '</td>' +
+                '</tr>' +
+              '</tbody></table>' +
+            '</div>';
+        }
+      }
+    });
+  }
+
   function drawAverageChart(data) {
     return c3.generate({
       bindto: '#js-average-time-chart',
       padding: { bottom: 40 },
       data: {
-        columns: [['Stages'].concat(data.map(function(d) { return d.average; }))], type: 'bar'
+        columns: [['Stages'].concat(data.map(function(d) { return d.average; }))], type: 'bar',
+        onclick: function(d, element) {
+          var stage = data[d.index].category;
+          $('#js-distribution-modal-title').text('Time distribution for "' + stage.name + '"');
+          var stageBreakouts = getStageBreakouts(stage);
+          var stageRollup = rollUpStages(stageBreakouts);
+          drawDistributionChart(stageRollup);
+          renderDistributionTable(stageBreakouts);
+          $('#js-distribution-modal').modal('show');
+        }
       },
       size: { height: 400 },
       axis: {
@@ -77,7 +200,7 @@
         format: {
           value: function (value, ratio, id, index) {
             var formatter = d3.format('.1f');
-            return formatter(value) + ' Days (' + data[index].count + ' contracts)';
+            return formatter(value) + ' Days (' + data[index].count + ' contracts). <br />Click for more details.';
           },
           name: function(name, ratio, id, index) { return data[index].category.name; },
           title: function(d) { return ''; }
@@ -117,18 +240,14 @@
   $.ajax({
     url: ajaxUrl,
   }).done(function(data, status, xhr) {
+    flowData = data;
 
-    var averageDaysChart = drawAverageChart(buildChartData(data.complete, data.stageDataObj, data.stageOrder));
-    var bucketDaysChart = drawBucketChart(buildChartData(data.current, data.stageDataObj, data.stageOrder));
+    var averageDaysChart = drawAverageChart(buildChartData(flowData.complete, flowData.stageDataObj, flowData.stageOrder));
+    var bucketDaysChart = drawBucketChart(buildChartData(flowData.current, flowData.stageDataObj, flowData.stageOrder));
 
     $('#js-metrics-container').children('.chart-container').removeClass('hidden');
   }).fail(function() {
-    $('#js-chart-error-container').html(
-      '<div class="alert alert-danger alert-dismissible" role="alert">' +
-        '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-          'Something went wrong fetching the charts. We are working on it. Please try again later.' +
-      '</div>'
-    ).removeClass('hidden');
+    renderError();
   }).complete(function() {
     $('#js-metrics-loading').addClass('hidden');
   });

@@ -7,15 +7,25 @@
 <div class="container">
 
   <h3>Choose a flow to view and download</h3>
-  <ul>
-    {% for flow in flows %}
-      <li>
-        <strong>{{ flow.flow_name }}</strong>:
-        <a href="{{ url_for('conductor_metrics.flow_overview', flow_id=flow.id) }}">View dashboard</a> |
-        <a href="{{ url_for('conductor_metrics.download_tsv_flow', flow_id=flow.id) }}">Download raw data</a>
-      </li>
-    {% endfor %}
-  </ul>
+
+  {% for flow in flows %}
+    <div class="col-md-4">
+
+      <h3 class="text-center">{{ flow.flow_name }}</h3>
+
+      <div class="row">
+        <a class="btn btn-primary col-md-8 col-md-offset-2" href="{{ url_for('conductor_metrics.flow_overview', flow_id=flow.id) }}">View dashboard</a> <br />
+      </div>
+
+      <div class="spacer-10"></div>
+
+      <div class="row">
+        <a class="btn btn-default col-md-8 col-md-offset-2" href="{{ url_for('conductor_metrics.download_tsv_flow', flow_id=flow.id) }}">Download raw data</a>
+      </div>
+
+    </div>
+
+  {% endfor %}
 
 </div>
 

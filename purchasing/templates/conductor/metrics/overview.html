@@ -7,10 +7,14 @@
 <div class="container">
 
   <div class="row">
-    <div class="col-md-12">
-      <h3>{{ flow.flow_name }}</h3>
-      <a href="{{ url_for('conductor_metrics.index') }}">Home</a> |
-      <a href="{{ url_for('conductor_metrics.download_tsv_flow', flow_id=flow.id) }}">Download raw data</a>
+    <div class="col-sm-10">
+      <ol class="breadcrumb conductor-head-breadcrumb">
+        <li><a href="{{ url_for('conductor_metrics.index') }}">Home</a></li>
+        <li class="active">{{ flow.flow_name }}</li>
+      </ol>
+    </div>
+    <div class="col-sm-2">
+      <a class="btn btn-primary pull-right" href="{{ url_for('conductor_metrics.download_tsv_flow', flow_id=flow.id) }}">Download raw data</a>
     </div>
   </div>
 
@@ -23,14 +27,37 @@
     </div>
 
     <div class="chart-container hidden">
-      <h4 class="text-center">Average days spent in stage (Completed stages only)</h4>
+      <p class="lead text-center"><strong>Average days spent in stage (Completed stages only)</strong></p>
       <div id="js-average-time-chart"></div>
     </div>
 
+    <div class="spacer-50"></div>
+
     <div class="chart-container hidden">
-      <h4 class="text-center">Count of contracts by days spent in given step (In progress stages only)</h4>
+      <p class="lead text-center"><strong>Count of contracts by days spent in given step (In progress stages only)</strong></p>
       <div id="js-contract-bucket-chart"></div>
     </div>
+
+    {# modal to hold distribution graphs #}
+    <div class="modal fade" id="js-distribution-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="js-distribution-modal-title"></h4>
+          </div>
+          <div class="modal-body">
+            <div id="js-distribution-chart"></div>
+            <table id="js-distribution-contracts-table" class="table table-condensed">
+              <thead><tr><th>Contract Name</th><th>Days</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {# close modal #}
+
   </div>
 </div>
 
