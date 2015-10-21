@@ -275,6 +275,31 @@ class TestConductor(TestConductorSetup):
             elif stage.id == self.stage3.id:
                 self.assertTrue(stage.entered is None and stage.exited is None)
 
+    def test_conductor_transition_complete_date_validation(self):
+        '''Test completing a stage validates appropriately
+        '''
+        assign = self.assign_contract()
+        transition_url = self.build_detail_view(assign) + '/transition'
+
+        early = self.client.post(transition_url, data={
+            'complete': datetime.datetime.now() - datetime.timedelta(days=1)
+        }, follow_redirects=True)
+        self.assertTrue('Date conflicts! Replaced with' in early.data)
+
+        late = self.client.post(transition_url, data={
+            'complete': datetime.datetime.now() + datetime.timedelta(days=1)
+        }, follow_redirects=True)
+        self.assertTrue('Date conflicts! Replaced with' in late.data)
+
+        contract_stages = ContractStage.query.all()
+        for stage in contract_stages:
+            if stage.id == self.stage1.id:
+                self.assertTrue(stage.entered is not None and stage.exited is not None)
+            elif stage.id == self.stage2.id:
+                self.assertTrue(stage.entered is not None and stage.exited is None)
+            elif stage.id == self.stage3.id:
+                self.assertTrue(stage.entered is None and stage.exited is None)
+
     def test_conductor_directed_transition(self):
         '''Test conductor stage transition backwards/to specific point
         '''

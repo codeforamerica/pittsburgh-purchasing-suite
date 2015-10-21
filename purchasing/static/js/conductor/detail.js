@@ -1,4 +1,4 @@
-(function() {
+$(document).ready(function() {
 
   'use strict';
 
@@ -46,18 +46,16 @@
 
     e.datetimepicker({
       format: 'YYYY-MM-DD h:mma',
-      inline: true,
-      keepOpen: true,
-      maxDate: moment(e.val()).toDate(),
-      minDate: moment(currentStageEnter).toDate(),
-      showTodayButton: true,
-      defaultDate: moment(e.val()).toDate()
-    });
-
-    e.on('click', function(e) {
-      e.stopPropagation();
+      maxDate: moment(e.attr('data-maximum'), 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm'),
+      minDate: moment(e.attr('data-started'), 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm'),
+      defaultDate: moment(e.attr('data-maximum'), 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm'),
+      keepInvalid: true
+    }).on('dp.error', function(e) {
+      $('.js-datepicker-validator').removeClass('hidden');
+    }).on('dp.change', function(e) {
+      $('.js-datepicker-validator').addClass('hidden');
     });
 
   }
 
-})();
+});
