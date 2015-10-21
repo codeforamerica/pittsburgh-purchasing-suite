@@ -98,6 +98,9 @@
         type: 'bar',
         groups: [defaultBuckets.order]
       },
+      color: {
+        pattern: ['#feedde','#fdbe85','#fd8d3c','#e6550d','#a63603']
+      },
       size: { height: 400 },
       axis: {
         x: { type: 'category', categories: data.map(function(d) { return d.category.name; }) },
