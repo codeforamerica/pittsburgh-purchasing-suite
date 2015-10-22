@@ -48,7 +48,8 @@
         stage = defaultObj[stageOrder.indexOf(+stageIdx)][stageIdx];
         chartData.push({
           category: {name: stage.name, id: stage.id},
-          buckets: makeBuckets([])
+          buckets: makeBuckets([]),
+          average: 0
         });
       }
     });
