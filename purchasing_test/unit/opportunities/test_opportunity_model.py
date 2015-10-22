@@ -2,9 +2,14 @@
 
 import datetime
 from unittest import TestCase
-from mock import patch
+from mock import patch, Mock
 
-from purchasing_test.factories import OpportunityFactory, UserFactory, RoleFactory, DepartmentFactory
+from purchasing.opportunities.models import Opportunity
+
+from purchasing_test.factories import (
+    OpportunityFactory, UserFactory, RoleFactory, DepartmentFactory,
+    OpportunityDocumentFactory
+)
 
 class TestOpportunityModel(TestCase):
     def setUp(self):
@@ -98,6 +103,21 @@ class TestOpportunityModel(TestCase):
         self.assertFalse(opportunity.can_edit(staff))
         self.assertFalse(opportunity.can_edit(creator))
         self.assertTrue(opportunity.can_edit(admin))
+
+    def test_opportunity_has_docs_true(self):
+        opp = OpportunityFactory.build(
+            is_public=False, planned_publish=self.yesterday,
+            planned_submission_start=self.today, planned_submission_end=self.tomorrow,
+            opportunity_documents=[OpportunityDocumentFactory.build()]
+        )
+        self.assertTrue(opp.has_docs)
+
+    def test_opportunity_has_docs_false(self):
+        opp = OpportunityFactory.build(
+            is_public=False, planned_publish=self.yesterday,
+            planned_submission_start=self.today, planned_submission_end=self.tomorrow
+        )
+        self.assertFalse(opp.has_docs)
 
     @patch('purchasing.notifications.Notification.send')
     def send_publish_email(self, send):

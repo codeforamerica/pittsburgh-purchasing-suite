@@ -139,7 +139,7 @@ class Opportunity(Model):
 
     @property
     def has_docs(self):
-        self.opportunity_documents.count() > 0
+        return self.opportunity_documents.count() > 0
 
     def can_view(self, user):
         '''Check if a user can see opportunity detail
