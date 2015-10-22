@@ -48,7 +48,8 @@
         stage = defaultObj[stageOrder.indexOf(+stageIdx)][stageIdx];
         chartData.push({
           category: {name: stage.name, id: stage.id},
-          buckets: makeBuckets([])
+          buckets: makeBuckets([]),
+          average: 0
         });
       }
     });
@@ -97,6 +98,9 @@
         }),
         type: 'bar',
         groups: [defaultBuckets.order]
+      },
+      color: {
+        pattern: ['#feedde','#fdbe85','#fd8d3c','#e6550d','#a63603']
       },
       size: { height: 400 },
       axis: {
