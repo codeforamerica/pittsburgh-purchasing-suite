@@ -62,8 +62,20 @@ def validate_integer(form, field):
         except:
             raise ValidationError('This must be an integer!')
 
+def validate_date(form, field):
+    if field.data:
+        if field.data < form.started or field.data > form.maximum:
+            raise ValidationError("Date conflicts! Replaced with today's date.")
+
 class CompleteForm(Form):
-    complete = DateTimeField(default=get_default)
+    complete = DateTimeField(
+        validators=[validate_date]
+    )
+
+    def __init__(self, started=None, *args, **kwargs):
+        super(CompleteForm, self).__init__(*args, **kwargs)
+        self.started = started
+        self.maximum = datetime.datetime.utcnow()
 
 class NewContractForm(Form):
     description = TextField(validators=[DataRequired()])

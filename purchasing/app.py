@@ -9,6 +9,8 @@ import datetime
 from pkgutil import iter_modules
 from importlib import import_module
 
+import pytz
+
 from werkzeug.utils import import_string
 
 from flask import Flask, render_template, Blueprint
@@ -121,6 +123,7 @@ def register_jinja_extensions(app):
     app.jinja_env.globals['url_for_other_page'] = url_for_other_page
     app.jinja_env.globals['thispage'] = thispage
     app.jinja_env.globals['_current_user'] = current_user
+    app.jinja_env.globals['now'] = pytz.UTC.localize(datetime.datetime.utcnow()).astimezone(app.config['DISPLAY_TIMEZONE'])
     app.jinja_env.globals['today'] = datetime.date.today()
     app.jinja_env.globals['days_from_today'] = days_from_today
     app.jinja_env.globals['format_days_from_today'] = format_days_from_today

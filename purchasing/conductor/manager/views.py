@@ -144,6 +144,9 @@ def detail(contract_id, stage_id=-1):
     metadata_form = ContractMetadataForm(obj=ContractMetadataObj(contract))
     complete_form = CompleteForm()
 
+    if session.get('invalid_date', False):
+        complete_form.errors['complete'] = session.pop('invalid_date')
+
     forms = {
         'activity': note_form, 'update': update_form,
         'post': opportunity_form, 'update-metadata': metadata_form
@@ -197,45 +200,51 @@ def detail(contract_id, stage_id=-1):
 @blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/transition', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def transition(contract_id, stage_id):
+
     contract = ContractBase.query.get(contract_id)
+    complete_form = CompleteForm(started=contract.get_current_stage().entered)
 
-    complete_form = CompleteForm()
+    if (request.method == 'POST' and complete_form.validate_on_submit()) or (request.method == 'GET'):
+        if request.method == 'POST':
+            completed_time = current_app.config['DISPLAY_TIMEZONE'].localize(
+                complete_form.complete.data
+            ).astimezone(pytz.UTC).replace(tzinfo=None)
+        else:
+            completed_time = datetime.datetime.utcnow()
 
-    if complete_form.validate_on_submit():
-        completed_time = complete_form.complete.data.astimezone(pytz.UTC).replace(tzinfo=None)
-    else:
-        completed_time = datetime.datetime.utcnow()
+        if not contract:
+            abort(404)
 
-    if not contract:
-        abort(404)
+        clicked = int(request.args.get('destination')) if \
+            request.args.get('destination') else None
 
-    clicked = int(request.args.get('destination')) if \
-        request.args.get('destination') else None
+        try:
+            actions = contract.transition(current_user, destination=clicked, complete_time=completed_time)
+            for action in actions:
+                db.session.add(action)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            pass
+        except Exception:
+            db.session.rollback()
+            raise
 
-    try:
-        actions = contract.transition(current_user, destination=clicked, complete_time=completed_time)
-        for action in actions:
-            db.session.add(action)
-        db.session.commit()
-    except IntegrityError:
-        db.session.rollback()
-        pass
-    except Exception:
-        db.session.rollback()
-        raise
-
-    current_app.logger.info(
-        'CONDUCTOR TRANSITION - Contract for {} (ID: {}) transition to {}'.format(
-            contract.description, contract.id, contract.current_stage.name
+        current_app.logger.info(
+            'CONDUCTOR TRANSITION - Contract for {} (ID: {}) transition to {}'.format(
+                contract.description, contract.id, contract.current_stage.name
+            )
         )
-    )
 
-    if contract.completed_last_stage():
-        url = url_for('conductor.edit', contract_id=contract.id)
-    else:
-        url = url_for('conductor.detail', contract_id=contract.id)
+        if contract.completed_last_stage():
+            url = url_for('conductor.edit', contract_id=contract.id)
+        else:
+            url = url_for('conductor.detail', contract_id=contract.id)
 
-    return redirect(url)
+        return redirect(url)
+
+    session['invalid_date'] = complete_form.errors['complete'][0]
+    return redirect(url_for('conductor.detail', contract_id=contract.id))
 
 @blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/extend')
 @requires_roles('conductor', 'admin', 'superadmin')

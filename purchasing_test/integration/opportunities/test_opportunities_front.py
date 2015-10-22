@@ -301,6 +301,12 @@ class TestOpportunitiesSubscriptions(TestOpportunitiesAdminBase):
         self.assertEquals(post.status_code, 302)
         self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
 
+    def test_unicode_get(self):
+        '''Test that you can view a page w/unicode encoded data
+        '''
+        self.login_user(self.admin)
+        self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity1.id)))
+
     def test_signup_for_opportunity(self):
         '''Test signup for individual opportunities
         '''
