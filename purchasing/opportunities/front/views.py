@@ -330,7 +330,7 @@ def detail(opportunity_id):
                 return redirect(url_for('opportunities.detail', opportunity_id=opportunity.id))
 
         current_app.logger.info('BEACON FRONT OPPORTUNITY DETAIL VIEW | Opportunity {} (ID: {})'.format(
-            opportunity.description.encode('ascii', 'ignore'), opportunity.id
+            opportunity.title.encode('ascii', 'ignore'), opportunity.id
         ))
 
         return render_template(
