@@ -1,3 +1,5 @@
+{% import "macros/with_errors.html" as macros %}
+
 <div class="row">
   {% if active_stage.id != current_stage.id %}
   <div class="col-md-9">
@@ -11,20 +13,31 @@
   </div>
   <div class="spacer-10"></div>
   {% else %}
-  <div class="col-md-9">
+  <div class="col-md-7">
     <span class="text-bigger btn-share-row">Current stage: <strong>{{ current_stage.name }}</strong></span>
   </div>
-  <div class="col-md-3">
-    <form method="POST" action="{{ url_for('conductor.transition', contract_id=contract.id, stage_id=active_stage.id) }}">
+  <div class="col-md-5">
+    <form class="form-inline pull-right" method="POST" action="{{ url_for('conductor.transition', contract_id=contract.id, stage_id=active_stage.id) }}">
       {{ complete_form.csrf_token() }}
-      <button type="button" class="btn btn-success js-transition dropdown-toggle pull-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        Mark Complete <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu pull-right">
-        <li><a>{{ complete_form.complete(class_='datetimepicker form-control') }}</a></li>
-        <li role="separator" class="divider"></li>
-        <li><a><button class="btn btn-success form-control" type="submit">Save</button></a></li>
-      </ul>
+
+      {% if complete_form.errors['complete'] %}
+      <div class="alert alert-danger alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        {{ complete_form.errors['complete'] }}
+      </div>
+      {% endif %}
+
+      <div class="alert alert-danger alert-dismissable hidden js-datepicker-validator">
+        This date creates conflicts.
+      </div>
+
+      {{ macros.with_errors(complete_form.complete, **{
+        'class': 'datetimepicker form-control',
+        'data-started': active_stage.entered,
+        'data-maximum': now
+      } )}}
+
+      <button type="submit" class="btn btn-success js-transition">Save</button>
 
     </form>
   </div>
