@@ -1,9 +1,17 @@
 {% if current_user.email %}
-  {% if current_user.is_conductor() %}
-  <li><a class="navbar-link" href="{{ url_for('admin.index') }}">Admin</a></li>
-  {% endif %}
-  <li><a class="navbar-link" href="{{ url_for('users.profile') }}">Profile</a></li>
-  <li><a class="navbar-link js-signout" href="#"><i class="fa fa-sign-out"></i> Sign out</a></li>
-{% else %}
-  <li><a href="#" class="navbar-link js-signin">City staff login</a></li>
+<li class="dropdown">
+    {% block dropdown %}
+    {% if current_user.is_conductor() %}
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login<span class="caret"></span></a>
+    <span class="sr-only">Toggle Dropdown</span>
+    </a>
+    <ul class="dropdown-menu" role="menu">
+        <li><a class="navbar-link" href="{{ url_for('admin.index') }}">Admin</a></li>
+        <li><a class="navbar-link" href="{{ url_for('users.profile') }}">Profile</a></li>
+        <li><a class="navbar-link js-signout" href="#"><i class="fa fa-sign-out"></i> Sign out</a></li>
+    {% else %}
+        <li><a href="#" class="navbar-link js-signin">City staff login</a></li>
+    </ul>
+    {% endif %}
+    {% endblock %}
 {% endif %}
