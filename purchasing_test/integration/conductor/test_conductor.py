@@ -337,7 +337,7 @@ class TestConductor(TestConductorSetup):
         '''Test that we can access completed stages but not non-started ones
         '''
         assign = self.assign_contract()
-        self.client.get(self.detail_view.format(assign.id, self.stage1.id) + '/transition')
+        self.client.get(self.detail_view.format(assign.id, assign.get_current_stage().id) + '/transition')
 
         # assert the current stage is stage 2
         redir = self.client.get('/conductor/contract/{}'.format(assign.id))
@@ -354,7 +354,7 @@ class TestConductor(TestConductorSetup):
         '''Test flow switching back and forth in conductor
         '''
         assign = self.assign_contract()
-        self.client.get(self.detail_view.format(assign.id, self.stage1.id) + '/transition')
+        self.client.get(self.detail_view.format(assign.id, assign.get_current_stage().id) + '/transition')
         # we should have three actions -- entered, exited, entered
         self.assertEquals(ContractStageActionItem.query.count(), 3)
 

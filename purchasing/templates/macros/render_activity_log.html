@@ -35,19 +35,19 @@
   {%- elif action.action_type == 'entered' -%}
   <div class="action-event action-event-date js-filter-action-stage">
     <span class="event-icon"><i class="fa fa-circle-o"></i></span>
-    {{ pn.print_name(action, current_user) }} started work on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
+    {{ pn.print_name(action, current_user) }} started work on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }} (marked complete on {{ action.taken_at|datetimeformat('%m/%d/%y') }}).
   </div>
 
   {%- elif action.action_type == 'exited' and action.action_detail -%}
   <div class="action-event action-event-date js-filter-action-stage">
     <span class="event-icon"><i class="fa fa-check-circle"></i></span>
-    {{ pn.print_name(action, current_user) }} completed work on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
+    {{ pn.print_name(action, current_user) }} completed work on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }} (marked complete on {{ action.taken_at|datetimeformat('%m/%d/%y') }}).
   </div>
 
   {%- elif action.action_type == 'reversion' -%}
   <div class="action-event action-event-date js-filter-action-stage">
     <span class="event-icon"><i class="fa fa-repeat"></i></span>
-    {{ action.action_detail.label }} on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }}.
+    {{ action.action_detail.label }} on "<strong>{{ action.action_detail.stage_name }}</strong>" on {{ action.action_detail.timestamp|datetimeformat('%m/%d/%y') }} (marked complete on {{ action.taken_at|datetimeformat('%m/%d/%y') }}).
   </div>
 
   {# metadata update handling #}

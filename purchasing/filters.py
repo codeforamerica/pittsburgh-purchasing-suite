@@ -55,6 +55,9 @@ def _current_user():
     args['_current_user'] = current_user
     return url_for(request.endpoint, **args)
 
+def now():
+    return pytz.UTC.localize(datetime.datetime.utcnow()).astimezone(current_app.config['DISPLAY_TIMEZONE'])
+
 def better_title(string):
     '''drop in replacement for jinja default title filter
 
