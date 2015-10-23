@@ -31,7 +31,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
     current_flow = db.relationship('Flow', lazy='subquery')
     flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
     current_stage = db.relationship('Stage', lazy='subquery')
-    current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True)
+    current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True, index=True)
     followers = db.relationship(
         'User',
         secondary=contract_user_association_table,
@@ -48,7 +48,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
         'assignments', lazy='dynamic', cascade='none'
     ), foreign_keys=assigned_to)
 
-    department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True)
+    department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True, index=True)
     department = db.relationship('Department', backref=backref(
         'contracts', lazy='dynamic', cascade='none'
     ))

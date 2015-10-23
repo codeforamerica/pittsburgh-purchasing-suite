@@ -97,7 +97,7 @@ class Opportunity(Model):
     is_public = Column(db.Boolean(), default=False)
 
     # Archiving opportunities, mostly for removing duplicates in pending
-    is_archived = Column(db.Boolean(), default=False)
+    is_archived = Column(db.Boolean(), default=False, nullable=False)
 
     # Date opportunity was actually made public on beacon
     published_at = Column(db.DateTime, nullable=True)

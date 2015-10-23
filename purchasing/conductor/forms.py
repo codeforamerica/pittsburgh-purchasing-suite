@@ -64,7 +64,8 @@ def validate_integer(form, field):
 
 def validate_date(form, field):
     if field.data:
-        if field.data < form.started or field.data > form.maximum:
+        utc_data = current_app.config['DISPLAY_TIMEZONE'].localize(field.data).astimezone(pytz.UTC).replace(tzinfo=None)
+        if utc_data < form.started or utc_data > form.maximum:
             raise ValidationError("Date conflicts! Replaced with today's date.")
 
 class CompleteForm(Form):
@@ -74,7 +75,7 @@ class CompleteForm(Form):
 
     def __init__(self, started=None, *args, **kwargs):
         super(CompleteForm, self).__init__(*args, **kwargs)
-        self.started = started
+        self.started = started.replace(second=0, microsecond=0) if started else None
         self.maximum = datetime.datetime.utcnow()
 
 class NewContractForm(Form):
