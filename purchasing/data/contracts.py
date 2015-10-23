@@ -28,9 +28,9 @@ class ContractBase(RefreshSearchViewMixin, Model):
     expiration_date = Column(db.Date)
     description = Column(db.Text, index=True)
     contract_href = Column(db.Text)
-    current_flow = db.relationship('Flow', lazy='subquery')
+    current_flow = db.relationship('Flow', lazy='joined')
     flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
-    current_stage = db.relationship('Stage', lazy='subquery')
+    current_stage = db.relationship('Stage', lazy='joined')
     current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True, index=True)
     followers = db.relationship(
         'User',
@@ -60,7 +60,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
     parent_id = Column(db.Integer, db.ForeignKey('contract.id'))
     children = db.relationship('ContractBase', backref=backref(
-        'parent', remote_side=[id]
+        'parent', remote_side=[id], lazy='subquery'
     ))
 
     def __unicode__(self):
@@ -331,7 +331,7 @@ class ContractProperty(RefreshSearchViewMixin, Model):
 
     id = Column(db.Integer, primary_key=True, index=True)
     contract = db.relationship('ContractBase', backref=backref(
-        'properties', lazy='subquery', cascade='all, delete-orphan'
+        'properties', lazy='joined', cascade='all, delete-orphan'
     ))
     contract_id = ReferenceCol('contract', ondelete='CASCADE')
     key = Column(db.String(255), nullable=False)

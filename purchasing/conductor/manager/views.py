@@ -39,9 +39,24 @@ from purchasing.conductor.manager import blueprint
 @blueprint.route('/')
 @requires_roles('conductor', 'admin', 'superadmin')
 def index():
+
+    parent_specs = db.session.query(
+        ContractBase.id, ContractProperty.value,
+        ContractBase.expiration_date, ContractBase.contract_href
+    ).join(
+        ContractProperty,
+        ContractBase.parent_id == ContractProperty.contract_id
+    ).filter(
+        db.func.lower(ContractProperty.key) == 'spec number',
+        ContractType.name == 'County'
+    ).subquery()
+
     in_progress = db.session.query(
         db.distinct(ContractBase.id).label('id'),
-        ContractBase,
+        ContractProperty.value.label('spec_number'),
+        parent_specs.c.value.label('parent_spec'),
+        parent_specs.c.expiration_date.label('parent_expiration'),
+        parent_specs.c.contract_href.label('parent_contract_href'),
         ContractBase.description, Flow.flow_name,
         Stage.name.label('stage_name'), ContractStage.entered,
         User.first_name, User.email,
@@ -58,6 +73,8 @@ def index():
         Flow, Flow.id == ContractBase.flow_id
     ).outerjoin(
         ContractProperty, ContractProperty.contract_id == ContractBase.id
+    ).outerjoin(
+        parent_specs, ContractBase.id == parent_specs.c.id
     ).join(User, User.id == ContractBase.assigned_to).filter(
         ContractStage.flow_id == ContractBase.flow_id,
         ContractStage.entered != None,
