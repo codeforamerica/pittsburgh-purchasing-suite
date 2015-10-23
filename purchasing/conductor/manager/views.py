@@ -22,6 +22,8 @@ from purchasing.data.contracts import ContractBase, ContractProperty, ContractTy
 from purchasing.data.companies import Company, CompanyContact
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 
+from sqlalchemy.orm import aliased
+
 from purchasing.users.models import User, Role, Department
 from purchasing.conductor.forms import (
     EditContractForm, PostOpportunityForm,
@@ -40,12 +42,16 @@ from purchasing.conductor.manager import blueprint
 @requires_roles('conductor', 'admin', 'superadmin')
 def index():
 
+    parent = aliased(ContractBase)
+
     parent_specs = db.session.query(
         ContractBase.id, ContractProperty.value,
-        ContractBase.expiration_date, ContractBase.contract_href
+        parent.expiration_date, parent.contract_href
     ).join(
         ContractProperty,
         ContractBase.parent_id == ContractProperty.contract_id
+    ).join(
+        parent, ContractBase.parent
     ).filter(
         db.func.lower(ContractProperty.key) == 'spec number',
         ContractType.name == 'County'
