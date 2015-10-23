@@ -132,6 +132,9 @@ def datetimeformat(date, fmt='%Y-%m-%d', to_date=True):
 
     return date.strftime(fmt)
 
+def localize(date):
+    return pytz.UTC.localize(date).astimezone(current_app.config['DISPLAY_TIMEZONE'])
+
 @evalcontextfilter
 def newline_to_br(eval_ctx, value):
     '''Replaces newline characters with <br> tags

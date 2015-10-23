@@ -27,7 +27,7 @@ from purchasing.users.models import AnonymousUser
 from purchasing.filters import (
     url_for_other_page, thispage, format_currency, better_title,
     days_from_today, datetimeformat, format_days_from_today,
-    newline_to_br
+    newline_to_br, localize
 )
 
 # import models so that flask-migrate can auto-detect
@@ -123,13 +123,14 @@ def register_jinja_extensions(app):
     app.jinja_env.globals['url_for_other_page'] = url_for_other_page
     app.jinja_env.globals['thispage'] = thispage
     app.jinja_env.globals['_current_user'] = current_user
-    app.jinja_env.globals['now'] = pytz.UTC.localize(datetime.datetime.utcnow()).astimezone(app.config['DISPLAY_TIMEZONE'])
+    app.jinja_env.globals['_now'] = pytz.UTC.localize(datetime.datetime.utcnow()).astimezone(app.config['DISPLAY_TIMEZONE'])
     app.jinja_env.globals['today'] = datetime.date.today()
     app.jinja_env.globals['days_from_today'] = days_from_today
     app.jinja_env.globals['format_days_from_today'] = format_days_from_today
     app.jinja_env.filters['currency'] = format_currency
     app.jinja_env.filters['title'] = better_title
     app.jinja_env.filters['datetimeformat'] = datetimeformat
+    app.jinja_env.filters['localize'] = localize
     app.jinja_env.filters['newline_to_br'] = newline_to_br
     return None
 
