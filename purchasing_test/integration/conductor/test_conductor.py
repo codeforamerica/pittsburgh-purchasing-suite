@@ -143,7 +143,10 @@ class TestConductor(TestConductorSetup):
         })
 
         self.assertEquals(ContractStage.query.count(), len(self.flow.stage_order))
-        self.assertEquals(ContractBase.query.all()[-1].current_stage_id, self.flow.stage_order[0])
+        self.assertEquals(
+            ContractBase.query.filter(ContractBase.description == 'totally new wow').first().current_stage_id,
+            self.flow.stage_order[0]
+        )
         self.assertEquals(ContractBase.query.count(), 3)
 
     def test_conductor_start_existing(self):

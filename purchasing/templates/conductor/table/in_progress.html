@@ -21,18 +21,18 @@
     data-controller="{{ contract.financial_id or 'None' }}"
     data-full-description="{{ contract.description|title }}"
     data-item-number="{{ contract.id }}"
-    data-spec-number="{{ contract[1].get_spec_number().value }}"
-    data-parent-spec-number={% if contract[1].parent %}"{{ contract[1].parent.get_spec_number().value }}"}{% else %}"--"{% endif %}>
+    data-spec-number="{{ contract.spec_number }}"
+    data-parent-spec-number={% if contract.parent_spec %}"{{ contract.parent_spec }}"}{% else %}"--"{% endif %}>
 
       <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
 
       <td class="details-control"><i class="fa fa-plus"></i></td>
 
       <td>
-        {% if contract[1].get_spec_number().value %}
-        {{ contract[1].get_spec_number().value }}
-        {% elif contract[1].parent %}
-        {{ contract[1].parent.get_spec_number().value }}<br>
+        {% if contract.spec_number %}
+        {{ contract.spec_number }}
+        {% elif contract.parent_spec %}
+        {{ contract.parent_spec }}<br>
         <span class="text-muted text-normal"><small>Old spec</small></span>
         {% else %}
         {{ contract.id }} <br>
@@ -49,12 +49,12 @@
         </a>
       </td>
 
-      <td>{{ contract[1].parent.expiration_date }}</td><!-- expiration date for sorting -->
+      <td>{{ contract.parent_expiration }}</td><!-- expiration date for sorting -->
       <td>
-        {% if contract[1].parent.expiration_date %}
-        <strong class="highlight">{{ format_days_from_today(contract[1].parent.expiration_date) }}</strong><br>
+        {% if contract.parent_expiration %}
+        <strong class="highlight">{{ format_days_from_today(contract.parent_expiration) }}</strong><br>
         <span class="text-muted text-normal">
-          <small>{{ contract[1].parent.expiration_date|datetimeformat('%m/%d/%Y') }}</small>
+          <small>{{ contract.parent_expiration|datetimeformat('%m/%d/%Y') }}</small>
         </span>
         {% else %}
         --
@@ -96,8 +96,8 @@
           <li><a href="{{ url_for('conductor.detail', contract_id=contract.id) }}">
             <span class="fa-stack"><i class="fa fa-fw fa-search-plus"></i></i></span> Update contract
           </a></li>
-          {% if contract[1].parent.contract_href %}
-          <li><a href="{{ contract[1].parent.contract_href }}" target="_blank">
+          {% if contract.parent_contract_href %}
+          <li><a href="{{ contract.parent_contract_href }}" target="_blank">
             <span class="fa-stack"><i class="fa fa-fw fa-file-pdf-o"></i></span> View Contract
           </a></li>
           {% endif %}

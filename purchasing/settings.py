@@ -59,7 +59,7 @@ class DevConfig(Config):
     """Development configuration."""
     ENV = 'dev'
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing')  # TODO: Change me
+    SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing_prod')  # TODO: Change me
     SQLALCHEMY_ECHO = os_env.get('SQLALCHEMY_ECHO', False)
     DEBUG_TB_ENABLED = True
     BROWSERID_URL = os_env.get('BROWSERID_URL', 'http://127.0.0.1:9000')

@@ -22,6 +22,8 @@ from purchasing.data.contracts import ContractBase, ContractProperty, ContractTy
 from purchasing.data.companies import Company, CompanyContact
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 
+from sqlalchemy.orm import aliased
+
 from purchasing.users.models import User, Role, Department
 from purchasing.conductor.forms import (
     EditContractForm, PostOpportunityForm,
@@ -39,9 +41,28 @@ from purchasing.conductor.manager import blueprint
 @blueprint.route('/')
 @requires_roles('conductor', 'admin', 'superadmin')
 def index():
+
+    parent = aliased(ContractBase)
+
+    parent_specs = db.session.query(
+        ContractBase.id, ContractProperty.value,
+        parent.expiration_date, parent.contract_href
+    ).join(
+        ContractProperty,
+        ContractBase.parent_id == ContractProperty.contract_id
+    ).join(
+        parent, ContractBase.parent
+    ).filter(
+        db.func.lower(ContractProperty.key) == 'spec number',
+        ContractType.name == 'County'
+    ).subquery()
+
     in_progress = db.session.query(
         db.distinct(ContractBase.id).label('id'),
-        ContractBase,
+        ContractProperty.value.label('spec_number'),
+        parent_specs.c.value.label('parent_spec'),
+        parent_specs.c.expiration_date.label('parent_expiration'),
+        parent_specs.c.contract_href.label('parent_contract_href'),
         ContractBase.description, Flow.flow_name,
         Stage.name.label('stage_name'), ContractStage.entered,
         User.first_name, User.email,
@@ -58,6 +79,8 @@ def index():
         Flow, Flow.id == ContractBase.flow_id
     ).outerjoin(
         ContractProperty, ContractProperty.contract_id == ContractBase.id
+    ).outerjoin(
+        parent_specs, ContractBase.id == parent_specs.c.id
     ).join(User, User.id == ContractBase.assigned_to).filter(
         ContractStage.flow_id == ContractBase.flow_id,
         ContractStage.entered != None,
