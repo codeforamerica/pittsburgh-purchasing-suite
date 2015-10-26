@@ -15,9 +15,11 @@ path.c3-line-contracts {
 
 .conductor-head-breadcrumb {
   background-color: @body-bg;
+  li + li:before {
+    color: @conductor-metrics-breadcrumbs-color;
+  }
 
   .active {
-    color: @text-color;
-    font-weight: bold;
+    color: @conductor-metrics-breadcrumbs-color;
   }
 }
