@@ -137,7 +137,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
             filtered_actions.append(next(ifilter(lambda x: x.is_exited_type and x.contract_stage.happens_before(self.current_stage_id), actions), []))
             filtered_actions.extend([x for x in actions if x.is_other_type])
 
-        return sorted(ifilter(lambda x: hasattr(x, 'taken_at'), filtered_actions), key=lambda x: x.taken_at)
+        return sorted(ifilter(lambda x: hasattr(x, 'taken_at'), filtered_actions), key=lambda x: x.get_sort_key())
 
     def get_current_stage(self):
         '''Returns the details for the current contract stage
@@ -271,7 +271,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
         exit = self.current_contract_stage.log_exit(user, complete_time)
         return [exit]
 
-    def _transition_backwards_to_destination(self, user, destination):
+    def _transition_backwards_to_destination(self, user, destination, complete_time):
         destination_idx = self.flow.stage_order.index(destination)
         current_stage_idx = self.flow.stage_order.index(self.current_stage_id)
 
@@ -284,8 +284,8 @@ class ContractBase(RefreshSearchViewMixin, Model):
         actions = []
         for contract_stage_ix, contract_stage in enumerate(to_revert):
             if contract_stage_ix == 0:
-                actions.append(contract_stage.log_reopen(user))
-                contract_stage.entered = datetime.datetime.utcnow()
+                actions.append(contract_stage.log_reopen(user, complete_time))
+                contract_stage.entered = complete_time
                 contract_stage.exited = None
                 self.current_stage_id = contract_stage.stage.id
             else:
@@ -299,7 +299,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
         if self.current_stage_id is None:
             actions = self._transition_to_first(user, complete_time)
         elif destination is not None:
-            actions = self._transition_backwards_to_destination(user, destination)
+            actions = self._transition_backwards_to_destination(user, destination, complete_time)
         elif self.current_stage_id == self.flow.stage_order[-1]:
             actions = self._transition_to_last(user, complete_time)
         else:

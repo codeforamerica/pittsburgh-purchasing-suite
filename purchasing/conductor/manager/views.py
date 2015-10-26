@@ -225,7 +225,8 @@ def detail(contract_id, stage_id=-1):
 def transition(contract_id, stage_id):
 
     contract = ContractBase.query.get(contract_id)
-    complete_form = CompleteForm(started=contract.get_current_stage().entered)
+    stage = ContractStage.query.filter(ContractStage.id == stage_id).first()
+    complete_form = CompleteForm(started=stage.entered)
 
     if (request.method == 'POST' and complete_form.validate_on_submit()) or (request.method == 'GET'):
         if request.method == 'POST':

@@ -2,42 +2,80 @@
 
 <div class="row">
   {% if active_stage.id != current_stage.id %}
-  <div class="col-md-9">
-    <span class="text-bigger"><strong>{{ current_stage.name }}</strong></span> <br/>
-    <span>
-      This stage has been completed. <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=current_stage.id) }}">View current stage</a>
+
+  <div class="col-md-7">
+    <h3 class="stage-title"><strong>{{ active_stage.name }}</strong></h3>
+    <span class="text-muted">
+      This stage has been completed. <a href="{{ url_for('conductor.detail', contract_id=contract.id, stage_id=current_stage.id) }}">View current stage</a>.
     </span>
   </div>
-  <div class="col-md-3 pull-right">
-    <a href="{{ url_for('conductor.transition', contract_id=contract.id, stage_id=active_stage.id, destination=active_stage.stage_id) }}" class="btn btn-detail btn-primary">Revert to this stage</a></span>
-  </div>
-  <div class="spacer-10"></div>
-  {% else %}
-  <div class="col-md-7">
-    <span class="text-bigger btn-share-row">Current stage: <strong>{{ current_stage.name }}</strong></span>
-  </div>
+
   <div class="col-md-5">
-    <form class="form-inline pull-right" method="POST" action="{{ url_for('conductor.transition', contract_id=contract.id, stage_id=active_stage.id) }}">
+    <form class="form pull-right" method="POST" action="{{ url_for('conductor.transition', contract_id=contract.id, stage_id=active_stage.id, destination=active_stage.stage_id) }}">
       {{ complete_form.csrf_token() }}
 
       {% if complete_form.errors['complete'] %}
-      <div class="alert alert-danger alert-dismissable">
+      <div class="alert alert-small form-group-small-stack alert-danger alert-dismissable">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         {{ complete_form.errors['complete'] }}
       </div>
       {% endif %}
 
-      <div class="alert alert-danger alert-dismissable hidden js-datepicker-validator">
+      <div class="alert alert-small form-group-small-stack alert-danger alert-dismissable hidden js-datepicker-validator">
         This date creates conflicts.
       </div>
 
-      {{ macros.with_errors(complete_form.complete, **{
-        'class': 'datetimepicker form-control',
-        'data-started': active_stage.entered|localize,
-        'data-maximum': _now
-      } )}}
+      <div class="form-group form-group-small-stack">
+        {{ macros.with_errors(complete_form.complete, **{
+          'class': 'datetimepicker form-control',
+          'data-started': active_stage.entered|localize,
+          'data-maximum': _now()
+        } )}}
+      </div>
 
-      <button type="submit" class="btn btn-success js-transition">Save</button>
+      <div class="form-group form-group-small-stack">
+        <button type="submit" class="btn btn-default js-transition form-control">Revert</button>
+      </div>
+
+    </form>
+  </div>
+
+  <div class="spacer-10"></div>
+
+  {% else %}
+
+  <div class="col-md-7">
+    <h3 class="stage-title"><strong>{{ current_stage.name }}</strong></h3>
+    <span class="text-muted">
+      Current stage.
+    </span>
+  </div>
+  <div class="col-md-5">
+    <form class="form pull-right" method="POST" action="{{ url_for('conductor.transition', contract_id=contract.id, stage_id=active_stage.id) }}">
+      {{ complete_form.csrf_token() }}
+
+      {% if complete_form.errors['complete'] %}
+      <div class="alert alert-small form-group-small-stack alert-danger alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        {{ complete_form.errors['complete'] }}
+      </div>
+      {% endif %}
+
+      <div class="alert alert-small form-group-small-stack alert-danger alert-dismissable hidden js-datepicker-validator">
+        This date creates conflicts.
+      </div>
+
+      <div class="form-group form-group-small-stack">
+        {{ macros.with_errors(complete_form.complete, **{
+          'class': 'datetimepicker form-control',
+          'data-started': active_stage.entered|localize,
+          'data-maximum': _now()
+        } )}}
+      </div>
+
+      <div class="form-group form-group-small-stack">
+        <button type="submit" class="btn btn-success js-transition form-control">Mark complete</button>
+      </div>
 
     </form>
   </div>

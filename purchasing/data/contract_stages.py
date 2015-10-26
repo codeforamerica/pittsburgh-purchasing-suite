@@ -61,7 +61,7 @@ class ContractStage(Model):
         self.enter(enter_time=enter_time)
         return ContractStageActionItem(
             contract_stage_id=self.id, action_type='entered',
-            taken_by=user.id, taken_at=enter_time,
+            taken_by=user.id, taken_at=datetime.datetime.utcnow(),
             action_detail={
                 'timestamp': self.entered.strftime('%Y-%m-%dT%H:%M:%S'),
                 'date': self.entered.strftime('%Y-%m-%d'),
@@ -91,7 +91,7 @@ class ContractStage(Model):
         self.exit(exit_time=exit_time)
         return ContractStageActionItem(
             contract_stage_id=self.id, action_type='exited',
-            taken_by=user.id, taken_at=exit_time,
+            taken_by=user.id, taken_at=datetime.datetime.utcnow(),
             action_detail={
                 'timestamp': self.exited.strftime('%Y-%m-%dT%H:%M:%S'),
                 'date': self.exited.strftime('%Y-%m-%d'),
@@ -100,15 +100,15 @@ class ContractStage(Model):
             }
         )
 
-    def log_reopen(self, user):
+    def log_reopen(self, user, restart_time):
         return ContractStageActionItem(
             contract_stage_id=self.id, action_type='reversion',
             taken_by=user.id, taken_at=datetime.datetime.utcnow(),
             action_detail={
-                'timestamp': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S'),
+                'timestamp': restart_time.strftime('%Y-%m-%dT%H:%M:%S'),
                 'date': datetime.datetime.utcnow().strftime('%Y-%m-%d'),
                 'type': 'reopened', 'label': 'Restarted work',
-                'stage_name': self.stage.name
+                'stage_name': self.stage.name,
             }
         )
 
@@ -171,14 +171,14 @@ class ContractStageActionItem(Model):
 
     def get_sort_key(self):
         # if we are reversion, we need to get the timestamps from there
-        if self.action_type == 'reversion':
+        if self.action_type in ['reversion', 'entered', 'exited']:
             return datetime.datetime.strptime(
                 self.action_detail['timestamp'],
                 '%Y-%m-%dT%H:%M:%S'
             )
         # otherwise, return the taken_at time
         else:
-            return self.taken_at if self.taken_at else datetime.datetime(1970, 1, 1)
+            return self.taken_at
 
     @property
     def non_null_items(self):
