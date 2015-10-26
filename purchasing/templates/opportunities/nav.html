@@ -2,12 +2,17 @@
 
 {% block brandhref %}{{ url_for('opportunities.splash') }}{% endblock %}
 
+{% block app_dropdown %}
+  {% if current_user.is_anonymous() %}
+    <a href="{{ url_for('opportunities.splash') }}" class="btn nav-dropdown-btn navbar-brand">Beacon</a>
+  {% else %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
 {% block brand %}Beacon{% endblock %}
 
-{% block dropdown %}{% endblock %}
-
-{% block navlogin %}
-{% endblock %}
+{% block nav_login %}{% endblock %}
 
 {% block applinks_right %}
 <li class="dropdown">
@@ -23,6 +28,7 @@
 </li>
 <li><a href="{{ url_for('opportunities.signup') }}" class="navbar-link">Subscribe</a></li>
 <li><a href="{{ url_for('opportunities.manage') }}" class="navbar-link">Manage subscriptions</a></li>
+
 {% if not current_user.is_anonymous() %}
 <li class="dropdown">
   <a class="dropdown-toggle navbar-link" data-toggle="dropdown" aria-expanded="false">

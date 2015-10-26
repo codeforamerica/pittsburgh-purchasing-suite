@@ -25,6 +25,12 @@
   {% endif %}
 </li>
 
-<li><a class="navbar-link" href="https://docs.google.com/document/d/1hV5_yHKWWgU2qgtPI011cdiWOvXewRJK3v-MaXEXEkA/export?format=pdf">How to use Scout</a></li>
+{% endblock %}
 
+{% block nav_login %}
+  {% include "includes/nav-login.html" %}
+  {% if not current_user.is_anonymous() %}
+  <li role="separator" class="divider"></li>
+  <li><a class="navbar-link" href="https://docs.google.com/document/d/1hV5_yHKWWgU2qgtPI011cdiWOvXewRJK3v-MaXEXEkA/export?format=pdf"><i class="fa fa-file-pdf-o"></i> How to use Scout</a></li>
+  {% endif %}
 {% endblock %}
