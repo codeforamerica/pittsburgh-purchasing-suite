@@ -1,7 +1,5 @@
 {% extends "includes/nav.html" %}
 
-{% block app_dropdown %}{{ super() }}{% endblock %}
-
 {% block brandhref %}{{ url_for('wexplorer.explore') }}{% endblock %}
 
 {% block brand %}<img class="nav-logo" src="{{ url_for('static', filename='img/scout_logo_binoculars.png') }}"><strong>Scout</strong>{% endblock %}
@@ -28,7 +26,6 @@
 </li>
 
 {% endblock %}
-
 
 {% block nav_login %}
   {% include "includes/nav-login.html" %}
