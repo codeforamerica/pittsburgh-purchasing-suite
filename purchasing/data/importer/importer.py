@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import csv
-import datetime
 
 def convert_empty_to_none(val):
     return val if val not in ['', 'None'] else None
