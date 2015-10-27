@@ -200,7 +200,8 @@
         format: {
           value: function (value, ratio, id, index) {
             var formatter = d3.format('.1f');
-            return formatter(value) + ' Days (' + data[index].count + ' contracts). <br />Click for more details.';
+            return '<strong>' + formatter(value) + ' days</strong> ' +
+              '(average time spent by ' + data[index].count + ' contracts)';
           },
           name: function(name, ratio, id, index) { return data[index].category.name; },
           title: function(d) { return ''; }

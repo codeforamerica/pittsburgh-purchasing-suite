@@ -27,14 +27,20 @@
     </div>
 
     <div class="chart-container hidden">
-      <p class="lead text-center"><strong>Average days spent in stage (Completed stages only)</strong></p>
+      <p class="text-center">
+        <span class="lead"><strong>Average days spent in stage</strong></span> <br />
+        <small class="text-muted">Completed stages only -- click a bar for more detail</small>
+      </p>
       <div id="js-average-time-chart"></div>
     </div>
 
     <div class="spacer-50"></div>
 
     <div class="chart-container hidden">
-      <p class="lead text-center"><strong>Count of contracts by days spent in given step (In progress stages only)</strong></p>
+      <p class="text-center">
+        <span class="lead"><strong>Count of contracts by days spent in given step</strong></span> <br />
+        <small class="text-muted">In progress stages only</small>
+      </p>
       <div id="js-contract-bucket-chart"></div>
     </div>
 
@@ -48,7 +54,7 @@
           </div>
           <div class="modal-body">
             <div id="js-distribution-chart"></div>
-            <table id="js-distribution-contracts-table" class="table table-condensed">
+            <table id="js-distribution-contracts-table" class="table table-condensed table-striped">
               <thead><tr><th>Contract Name</th><th>Days</th></tr></thead>
               <tbody></tbody>
             </table>
