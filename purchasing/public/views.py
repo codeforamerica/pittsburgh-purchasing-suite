@@ -7,7 +7,7 @@ import urllib2
 import json
 
 from flask import (
-    render_template, jsonify, current_app
+    render_template, jsonify, current_app, send_from_directory, request
 )
 from purchasing.extensions import login_manager, cache
 from purchasing.users.models import User
@@ -26,6 +26,10 @@ def home():
 @blueprint.route("/about/")
 def about():
     return render_template("public/about.html")
+
+@blueprint.route('/robots.txt')
+def static_from_root():
+    return send_from_directory(current_app.static_folder, request.path[1:])
 
 @blueprint.route('/_status')
 def status():
