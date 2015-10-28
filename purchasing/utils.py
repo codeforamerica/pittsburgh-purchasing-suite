@@ -64,14 +64,12 @@ def get_all_refresh_mixin_models():
     return RefreshSearchViewMixin.__subclasses__()
 
 def turn_off_sqlalchemy_events():
-    print 'Disabling sqlalchemy events...'
     models = get_all_refresh_mixin_models()
     for model in models:
         for event in LISTEN_FOR_EVENTS:
             sqlalchemy.event.remove(model, event, model.event_handler)
 
 def turn_on_sqlalchemy_events():
-    print 'Enabling sqlalchemy events...'
     models = get_all_refresh_mixin_models()
     for model in models:
         for event in LISTEN_FOR_EVENTS:

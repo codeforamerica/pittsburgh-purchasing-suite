@@ -8,6 +8,10 @@ from purchasing.data.importer import (
     extract, get_or_create, convert_empty_to_none,
     determine_company_contact
 )
+
+from sqlalchemy.exc import InvalidRequestError
+
+from purchasing.utils import turn_off_sqlalchemy_events
 from purchasing.database import db
 from purchasing.data.contracts import ContractBase, ContractProperty, LineItem, ContractType
 from purchasing.data.companies import Company, CompanyContact
@@ -66,6 +70,12 @@ def main(filetarget, filename, access_key, access_secret, bucket):
 
     try:
         for row in data:
+
+            try:
+                turn_off_sqlalchemy_events()
+            except InvalidRequestError:
+                pass
+
             company, new_company = get_or_create(
                 db.session, Company,
                 company_name=convert_empty_to_none(row.get('Company'))
