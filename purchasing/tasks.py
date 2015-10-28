@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from flask import current_app
 from purchasing.app import celery
 from purchasing.extensions import mail, db, cache
 

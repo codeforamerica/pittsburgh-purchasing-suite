@@ -70,14 +70,10 @@ def import_old_contracts(filepath):
     '''
     Takes a csv of old contracts and imports them into the DB
     '''
-    print 'Disabling triggers...'
-    turn_off_sqlalchemy_events()
     from purchasing.data.importer.old_contracts import main
     print 'Importing data from {filepath}\n'.format(filepath=filepath)
     main(filepath)
     print 'Import finished!'
-    print 'Enabling triggers...'
-    turn_on_sqlalchemy_events()
     print 'Refreshing search_view...'
     refresh_search_view()
     print 'Done!'
@@ -91,14 +87,10 @@ def import_state(filepath):
     '''
     Takes a csv of state contracts and imports them into the DB
     '''
-    print 'Disabling triggers...'
-    turn_off_sqlalchemy_events()
     from purchasing.data.importer.state import main
     print 'Importing data from {filepath}\n'.format(filepath=filepath)
     main(filepath)
     print 'Import finished!'
-    print 'Enabling triggers...'
-    turn_on_sqlalchemy_events()
     print 'Refreshing search_view...'
     refresh_search_view()
     print 'Done!'
@@ -117,15 +109,12 @@ def import_costars(user=None, secret=None, bucket=None, directory=None):
     costars data, and then important them into the DB
     '''
     print 'Disabling triggers...'
-    turn_off_sqlalchemy_events()
     from purchasing.data.importer.costars import main
     for file in os.listdir(directory):
         if file.endswith('.csv'):
             print 'Importing data from {file}'.format(file=file)
             main(os.path.join(directory, file), file, user, secret, bucket)
     print 'Import finished!'
-    print 'Enabling triggers...'
-    turn_on_sqlalchemy_events()
     return
 
 @manager.option(

@@ -10,7 +10,7 @@ from purchasing.data.importer import (
     determine_company_contact
 )
 
-from purchasing.utils import turn_off_sqlalchemy_events
+from purchasing.utils import turn_off_sqlalchemy_events, turn_on_sqlalchemy_events
 
 from purchasing.data.contracts import ContractBase, ContractType, ContractProperty
 from purchasing.data.companies import CompanyContact, Company
@@ -106,3 +106,6 @@ def main(file_target='./files/2015-10-27-state-contracts.csv'):
     except Exception:
         db.session.rollback()
         raise
+
+    finally:
+        turn_on_sqlalchemy_events()

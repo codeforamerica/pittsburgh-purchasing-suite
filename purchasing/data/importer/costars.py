@@ -11,7 +11,7 @@ from purchasing.data.importer import (
 
 from sqlalchemy.exc import InvalidRequestError
 
-from purchasing.utils import turn_off_sqlalchemy_events
+from purchasing.utils import turn_off_sqlalchemy_events, turn_on_sqlalchemy_events
 from purchasing.database import db
 from purchasing.data.contracts import ContractBase, ContractProperty, LineItem, ContractType
 from purchasing.data.companies import Company, CompanyContact
@@ -212,3 +212,6 @@ def main(filetarget, filename, access_key, access_secret, bucket):
     except Exception:
         db.session.rollback()
         raise
+
+    finally:
+        turn_on_sqlalchemy_events()
