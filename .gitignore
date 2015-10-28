@@ -57,7 +57,7 @@ opportunities.js
 wexplorer.js
 conductor.js
 admin.js
-html5shim.js
+html5shiv.js
 
 # App logs (from foreman)
 log

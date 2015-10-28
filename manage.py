@@ -79,6 +79,28 @@ def import_old_contracts(filepath):
     print 'Enabling triggers...'
     turn_on_sqlalchemy_events()
     print 'Refreshing search_view...'
+    refresh_search_view()
+    print 'Done!'
+    return
+
+@manager.option(
+    '-f', '--file', dest='filepath',
+    default='./purchasing/data/importer/files/2015-10-27-state-contracts.csv'
+)
+def import_state(filepath):
+    '''
+    Takes a csv of state contracts and imports them into the DB
+    '''
+    print 'Disabling triggers...'
+    turn_off_sqlalchemy_events()
+    from purchasing.data.importer.state import main
+    print 'Importing data from {filepath}\n'.format(filepath=filepath)
+    main(filepath)
+    print 'Import finished!'
+    print 'Enabling triggers...'
+    turn_on_sqlalchemy_events()
+    print 'Refreshing search_view...'
+    refresh_search_view()
     print 'Done!'
     return
 
