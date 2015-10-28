@@ -240,6 +240,15 @@ def upload_assets(user, secret, bucket, _retries=5):
                     retries += 1
             retries = 0
 
+    print 'Uploading favicon...'
+    retries = 0
+    while retries <= _retries:
+        try:
+            upload_file('favicon.ico', bucket, root=current_app.config['APP_DIR'] + '/static', prefix='/static')
+            break
+        except Exception, e:
+            print 'Error: {}'.format(e), 'Retrying...'
+            retries += 1
     return
 
 @manager.command
