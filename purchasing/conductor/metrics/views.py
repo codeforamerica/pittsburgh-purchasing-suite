@@ -5,6 +5,7 @@ from flask import render_template, stream_with_context, Response, abort, jsonify
 from purchasing.decorators import requires_roles
 
 from purchasing.data.flows import Flow
+from purchasing.data.stages import Stage
 
 from purchasing.conductor.metrics import blueprint
 
@@ -46,7 +47,6 @@ def flow_overview(flow_id):
         return render_template('conductor/metrics/overview.html', flow=flow)
     abort(404)
 
-
 @blueprint.route('/overview/<int:flow_id>/data')
 @requires_roles('conductor', 'admin', 'superadmin')
 def flow_data(flow_id):
@@ -62,3 +62,4 @@ def flow_data(flow_id):
             }
         )
     abort(404)
+
