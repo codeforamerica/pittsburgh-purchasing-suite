@@ -2,10 +2,13 @@
 
 from flask import request
 
+import pytz
+
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 from purchasing.extensions import admin, db
 from purchasing.decorators import AuthMixin, SuperAdminMixin, ConductorAuthMixin
+from purchasing.utils import localize_and_strip
 from flask_admin.contrib import sqla
 from flask_admin.form.widgets import Select2Widget
 
@@ -314,13 +317,21 @@ class DocumentAdmin(AuthMixin, BaseModelViewAdmin):
     pass
 
 class OpportunityAdmin(AuthMixin, BaseModelViewAdmin):
+    can_create = False
+
     column_list = ['contact', 'department', 'title', 'description', 'is_public', 'is_archived']
 
     form_columns = [
         'contact', 'department', 'title', 'description', 'planned_publish',
-        'planned_submission_start', 'planned_submission_end', 'is_public',
+        'planned_submission_start', 'planned_submission_end',
         'is_archived'
     ]
+
+    def update_model(self, form, model):
+        for i in ['planned_publish', 'planned_submission_start', 'planned_submission_end']:
+            form[i].data = localize_and_strip(form[i].data)
+
+        super(OpportunityAdmin, self).update_model(form, model)
 
 class CategoryAdmin(AuthMixin, BaseModelViewAdmin):
     column_list = ['category', 'category_friendly_name']
