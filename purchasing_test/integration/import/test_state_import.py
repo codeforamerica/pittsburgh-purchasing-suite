@@ -14,15 +14,15 @@ class TestStateContractsImport(BaseTestCase):
 
         # assert we get all contracts and companies
         contracts = ContractBase.query.all()
-        self.assertEquals(len(contracts), 2)
+        self.assertEquals(len(contracts), 3)
 
         companies = Company.query.all()
-        self.assertEquals(len(companies), 2)
+        self.assertEquals(len(companies), 3)
 
         contacts = CompanyContact.query.all()
         self.assertEquals(len(contacts), 1)
 
-        contract_nums = ['4400004760', '4400006326']
+        contract_nums = ['4400004760', '4400006326', '4400006094']
 
         for contract in contracts:
             contract_properties = contract.properties
@@ -32,3 +32,7 @@ class TestStateContractsImport(BaseTestCase):
             contract_number = [i.value for i in contract_properties if i.key == 'Contract Number'][0]
             self.assertTrue(contract_number in contract_nums)
             contract_nums.remove(contract_number)
+
+        it = [i for i in contracts if 'itq' in i.description.lower()][0]
+        self.assertTrue('\Overview' in it.contract_href)
+        self.assertTrue('\ContractFile' not in it.contract_href)
