@@ -150,6 +150,11 @@ def localize_datetime(date):
         return pytz.UTC.localize(date).astimezone(current_app.config['DISPLAY_TIMEZONE'])
     return ''
 
+def localize_and_strip(date):
+    '''Take a naive (UTC) datetime object, normalize it to the display timezone, and remove tzinfo
+    '''
+    return pytz.UTC.localize(date).astimezone(current_app.config['DISPLAY_TIMEZONE']).replace(tzinfo=None)
+
 class SimplePagination(object):
     '''
     Simple pagination support
