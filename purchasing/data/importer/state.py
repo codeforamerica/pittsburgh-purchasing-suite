@@ -15,7 +15,7 @@ from purchasing.utils import turn_off_sqlalchemy_events, turn_on_sqlalchemy_even
 from purchasing.data.contracts import ContractBase, ContractType, ContractProperty
 from purchasing.data.companies import CompanyContact, Company
 
-BASE_CONTRACT_URL = 'http://www.emarketplace.state.pa.us/FileDownload.aspx?file={number}\ContractFile.pdf'
+BASE_CONTRACT_URL = 'http://www.emarketplace.state.pa.us/FileDownload.aspx?file={number}\{type}.pdf'
 
 def main(file_target='./files/2015-10-27-state-contracts.csv'):
     data = extract(file_target)
@@ -75,7 +75,10 @@ def main(file_target='./files/2015-10-27-state-contracts.csv'):
                 financial_id=_financial_id,
                 description=convert_empty_to_none(row.get('SERVICE')),
                 contract_href=BASE_CONTRACT_URL.format(
-                    number=convert_empty_to_none(row.get('CONTRACT'))
+                    number=convert_empty_to_none(row.get('CONTRACT')),
+                    type='Overview'
+                    if 'IT SERVICES ITQ' in convert_empty_to_none(row.get('SERVICE')).upper()
+                    else 'ContractFile'
                 )
             )
 
