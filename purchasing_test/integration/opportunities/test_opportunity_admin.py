@@ -23,8 +23,6 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
     render_templates = True
 
     def test_document_upload(self):
-        '''Test document uploads properly
-        '''
         # assert that we return none without a document
         form = OpportunityDocumentForm()
         form.document.data = FileStorage(StringIO(''), filename='')
@@ -37,8 +35,6 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.assertTrue('opportunity-1-test.txt' in listdir(current_app.config.get('UPLOAD_DESTINATION')))
 
     def test_build_opportunity_categories(self):
-        '''Test categories are added properly
-        '''
         self.login_user(self.admin)
         data = {
             'department': str(self.department1.id), 'contact_email': self.admin.email,
@@ -79,8 +75,6 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.assertTrue('1 more' in new_opp_req.data)
 
     def test_build_opportunity_new_user(self):
-        '''Test that build_opportunity creates new users appropriately
-        '''
         self.login_user(self.admin)
         data = {
             'department': str(self.department1.id),
@@ -99,8 +93,6 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.assertEquals(User.query.count(), 3)
 
     def test_create_an_opportunity(self):
-        '''Test create a new opportunity
-        '''
         self.assertEquals(Opportunity.query.count(), 4)
         self.assertEquals(self.client.get('/beacon/admin/opportunities/new').status_code, 302)
         self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
@@ -154,8 +146,6 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         )
 
     def test_edit_an_opportunity(self):
-        '''Test updating an opportunity
-        '''
         self.assertEquals(len(self.opportunity2.categories), 1)
         self.assertEquals(self.client.get('/beacon/admin/opportunities/{}'.format(
             self.opportunity2.id
@@ -186,8 +176,6 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.assertEquals(len(self.get_context_variable('upcoming')), 0)
 
     def test_delete_document(self):
-        '''Test removing documents from opportunities
-        '''
         opp = self.opportunity1
         opp.opportunity_documents.append(OpportunityDocumentFactory(
             name='the_test_document', href='test'
@@ -212,22 +200,16 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         self.assert_flashes('Document successfully deleted', 'alert-success')
 
     def test_contract_detail(self):
-        '''Test individual contract opportunity pages
-        '''
         self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity3.id)))
         self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity4.id)))
         self.assert404(self.client.get('/beacon/opportunities/999'))
 
     def test_signup_download(self):
-        '''Test signup downloads don't work for non-staff
-        '''
         request = self.client.get('/beacon/admin/signups')
         self.assertEquals(request.status_code, 302)
         self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
 
     def test_signup_download_staff(self):
-        '''Test signup downloads work properly
-        '''
 
         # insert some vendors
         self.client.post('/beacon/signup', data={
@@ -279,8 +261,6 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         super(TestOpportunitiesPublic, self).tearDown()
 
     def test_vendor_signup_unpublished(self):
-        '''Test vendors can't signup for unpublished opportunities
-        '''
         with mail.record_messages() as outbox:
             # vendor should not be able to sign up for unpublished opp
             bad_contract = self.client.post('/beacon/opportunities', data={
@@ -292,8 +272,6 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             self.assertEquals(len(outbox), 0)
 
     def test_pending_opportunity(self):
-        '''Test pending opportunity works as expected for anon user
-        '''
         # assert randos can't
         self.opportunity3.is_public = False
         db.session.commit()
@@ -304,8 +282,6 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.assertFalse(self.opportunity3.is_public)
 
     def test_pending_opportunity_staff(self):
-        '''Test pending opportunity works as expected for staff user
-        '''
         # assert staff can get to the page, see the opportunities, but can't publish
         self.login_user(self.staff)
         staff_pending = self.client.get('/beacon/admin/opportunities/pending')
@@ -319,8 +295,6 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.assertFalse(self.opportunity3.is_public)
 
     def test_pending_opportunity_admin(self):
-        '''Test pending opportunity works as expected for admin user
-        '''
         self.login_user(self.admin)
         admin_pending = self.client.get('/beacon/admin/opportunities/pending')
         self.assert200(admin_pending)
@@ -349,8 +323,6 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.assertEquals(len(self.get_context_variable('pending')), 0)
 
     def test_approved_opportunity(self):
-        '''Test approved opportunities work as expected for city staff
-        '''
         self.login_user(self.admin)
         admin_publish = self.client.get('/beacon/admin/opportunities/{}/publish'.format(
             self.opportunity1.id
@@ -365,8 +337,6 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
         self.assert404(self.client.get('/beacon/opportunities/{}'.format(self.opportunity1.id)))
 
     def test_pending_notification_email_gated(self):
-        '''Test we don't send an email when the opportunity is not published
-        '''
         self.login_user(self.admin)
         self.opportunity3.planned_publish = datetime.date.today() + datetime.timedelta(1)
         self.assertFalse(self.opportunity3.publish_notification_sent)
@@ -386,8 +356,6 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             )
 
     def test_pending_notification_email(self):
-        '''Test we do send an email to vendors when the opportunity is advertised
-        '''
         self.login_user(self.admin)
         self.assertFalse(self.opportunity3.publish_notification_sent)
 
@@ -401,8 +369,6 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             self.assertEquals(len(outbox), 2)
 
     def test_create_and_publish_opportunity_as_admin(self):
-        '''Test that 'publishing' an opportunity sends the proper emails
-        '''
         self.login_user(self.admin)
         self.assertEquals(Opportunity.query.count(), 4)
 
@@ -424,8 +390,6 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
             self.assertEquals(outbox[0].subject, '[Pittsburgh Purchasing] A new City of Pittsburgh opportunity from Beacon!')
 
     def test_update_and_publish_oppportunity_as_admin(self):
-        '''Test that 'publishing' an opportunity sends the proper emails
-        '''
 
         data = {
             'department': str(self.department1.id), 'contact_email': self.staff.email,
@@ -458,8 +422,6 @@ class TestOpportunitiesPublic(TestOpportunitiesAdminBase):
 
 class TestExpiredOpportunities(TestOpportunitiesAdminBase):
     def test_expired_opportunity(self):
-        '''Tests that expired view works
-        '''
 
         self.opportunity3.planned_submission_end = datetime.datetime.today() - datetime.timedelta(days=1)
 

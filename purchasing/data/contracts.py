@@ -328,6 +328,10 @@ class ContractType(Model):
     def query_factory_all(cls):
         return cls.query.order_by(cls.name)
 
+    @classmethod
+    def get_type(cls, type_name):
+        return cls.query.filter(db.func.lower(cls.name) == type_name.lower()).first()
+
 class ContractProperty(RefreshSearchViewMixin, Model):
     __tablename__ = 'contract_property'
 

@@ -18,9 +18,6 @@ from purchasing_test.test_base import BaseTestCase
 
 class TestScrapeCounty(BaseTestCase):
     def test_scrape_county(self):
-        '''
-        Test the building of new line item links.
-        '''
         with open(current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/all_bids.html', 'r') as f:
             main_page = BeautifulSoup(
                 f.read(), from_encoding='windows-1252'
@@ -36,9 +33,6 @@ class TestScrapeCounty(BaseTestCase):
         self.assertTrue(len(line_item_links) == 13)
 
     def test_import_line_items(self):
-        '''
-        Test that award information is scraped properly.
-        '''
         muni = Company.create(**dict(company_name='U.S. Municipal Supply, Inc.'))
         chemung = Company.create(**dict(company_name='Chemung Supply Corporation'))
         pathmaster = Company.create(**dict(company_name='Path Master, Inc., Co.'))

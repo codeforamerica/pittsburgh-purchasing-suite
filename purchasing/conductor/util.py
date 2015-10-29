@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from collections import defaultdict
 
 from sqlalchemy.exc import IntegrityError
 
@@ -11,7 +10,7 @@ from flask_login import current_user
 from purchasing.database import db
 from purchasing.notifications import Notification
 
-from purchasing.data.contracts import ContractBase
+from purchasing.data.contracts import ContractBase, ContractType
 from purchasing.data.contract_stages import ContractStageActionItem
 from purchasing.data.flows import create_contract_stages
 from purchasing.opportunities.models import Opportunity
@@ -34,6 +33,13 @@ class UpdateFormObj(object):
     def __init__(self, stage):
         self.send_to_cc = current_user.email
         self.body = stage.default_message if stage.default_message else ''
+
+
+class ConductorObj(object):
+    def __init__(self, contract):
+        self.title = contract.description
+        self.opportunity_type = ContractType.get_type(current_app.config.get('CONDUCTOR_TYPE', ''))
+        self.department = Department.get_dept(current_app.config.get('CONDUCTOR_DEPARTMENT', ''))
 
 def json_serial(obj):
     if isinstance(obj, datetime.datetime) or isinstance(obj, datetime.date):
@@ -124,18 +130,25 @@ def handle_form(form, form_name, stage_id, user, contract, current_stage):
                 )
             )
 
-            label = 'created'
-            if contract.opportunity:
-                label = 'updated'
-
             opportunity_data = form.data_cleanup()
             opportunity_data['created_from_id'] = contract.id
-            opportunity = Opportunity.create(
-                opportunity_data, current_user,
-                form.documents, request.form.get('save_type') == 'publish'
-            )
-            db.session.add(opportunity)
-            db.session.commit()
+
+            if contract.opportunity:
+                label = 'updated'
+                contract.opportunity.update(
+                    opportunity_data, current_user,
+                    form.documents, True
+                )
+                opportunity = contract.opportunity
+
+            else:
+                label = 'created'
+                opportunity = Opportunity.create(
+                    opportunity_data, current_user,
+                    form.documents, True
+                )
+                db.session.add(opportunity)
+                db.session.commit()
 
             action.action_detail = {
                 'opportunity_id': opportunity.id, 'title': opportunity.title,

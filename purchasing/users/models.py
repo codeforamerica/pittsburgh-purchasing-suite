@@ -91,6 +91,10 @@ class Department(SurrogatePK, Model):
         return cls.query.filter(cls.name != 'New User')
 
     @classmethod
+    def get_dept(cls, type_name):
+        return cls.query.filter(db.func.lower(cls.name) == type_name.lower()).first()
+
+    @classmethod
     def choices(cls, blank=False):
         departments = [(i.id, i.name) for i in cls.query_factory().all()]
         if blank:

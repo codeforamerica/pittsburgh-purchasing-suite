@@ -32,8 +32,9 @@ from purchasing.conductor.forms import (
 )
 
 from purchasing.conductor.util import (
-    handle_form, ContractMetadataObj, build_subscribers,
-    json_serial, parse_companies, UpdateFormObj, assign_a_contract
+    ContractMetadataObj, UpdateFormObj, ConductorObj,
+    handle_form, build_subscribers, json_serial,
+    parse_companies, assign_a_contract,
 )
 
 from purchasing.conductor.manager import blueprint
@@ -162,7 +163,7 @@ def detail(contract_id, stage_id=-1):
     note_form = NoteForm()
     update_form = SendUpdateForm(obj=UpdateFormObj(current_stage))
     opportunity_form = PostOpportunityForm(
-        obj=contract.opportunity if contract.opportunity else contract
+        obj=contract.opportunity if contract.opportunity else ConductorObj(contract)
     )
     metadata_form = ContractMetadataForm(obj=ContractMetadataObj(contract))
     complete_form = CompleteForm()

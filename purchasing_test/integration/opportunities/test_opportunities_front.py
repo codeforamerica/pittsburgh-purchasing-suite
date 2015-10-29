@@ -18,8 +18,6 @@ class TestOpportunities(TestOpportunitiesFrontBase):
     render_templates = True
 
     def test_templates(self):
-        '''Test templates used, return 200
-        '''
         # insert our opportunity, users
         admin_role = insert_a_role('admin')
         admin = insert_a_user(role=admin_role)
@@ -46,8 +44,6 @@ class TestOpportunities(TestOpportunitiesFrontBase):
                 self.assert200(response)
 
     def test_index(self):
-        '''Test index page works as expected
-        '''
         response = self.client.get('/beacon/')
         self.assert200(response)
         self.assert_template_used('opportunities/front/splash.html')
@@ -62,8 +58,6 @@ class TestOpportunities(TestOpportunitiesFrontBase):
         self.assertTrue('foo@foo.com' in signup.data)
 
     def test_signup(self):
-        '''Test signups work as expected including validation errors, signups, etc.
-        '''
         admin_role = insert_a_role('admin')
         superadmin_role = insert_a_role('superadmin')
 
@@ -196,8 +190,6 @@ class TestOpportunities(TestOpportunitiesFrontBase):
                 self.assertEquals(session['business_name'], 'foo')
 
     def test_signup_different_business_name(self):
-        '''Signing up with a different business name shouldn't break it
-        '''
         self.client.post('/beacon/signup', data={
             'email': 'foo2@foo.com',
             'business_name': 'foo',
@@ -225,8 +217,6 @@ class TestOpportunities(TestOpportunitiesFrontBase):
         self.assertEquals(Vendor.query.first().business_name, 'bar')
 
     def test_manage_subscriptions(self):
-        '''Test subscription and unsubscription management
-        '''
         self.client.post('/beacon/signup', data={
             'email': 'foo2@foo.com',
             'business_name': 'foo',
@@ -279,8 +269,6 @@ class TestOpportunities(TestOpportunitiesFrontBase):
 
 class TestOpportunitiesSubscriptions(TestOpportunitiesAdminBase):
     def test_signup_for_multiple_opportunities(self):
-        '''Test signup for multiple opportunities
-        '''
         self.assertEquals(Vendor.query.count(), 1)
         # duplicates should get filtered out
         post = self.client.post('/beacon/opportunities', data=MultiDict([
@@ -302,14 +290,10 @@ class TestOpportunitiesSubscriptions(TestOpportunitiesAdminBase):
         self.assert_flashes('Successfully subscribed for updates!', 'alert-success')
 
     def test_unicode_get(self):
-        '''Test that you can view a page w/unicode encoded data
-        '''
         self.login_user(self.admin)
         self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity1.id)))
 
     def test_signup_for_opportunity(self):
-        '''Test signup for individual opportunities
-        '''
         with mail.record_messages() as outbox:
             self.assertEquals(Vendor.query.count(), 1)
             post = self.client.post('/beacon/opportunities/{}'.format(self.opportunity3.id), data={

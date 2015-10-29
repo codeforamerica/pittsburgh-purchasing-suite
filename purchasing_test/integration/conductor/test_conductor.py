@@ -109,8 +109,6 @@ class TestConductor(TestConductorSetup):
     render_templates = True
 
     def test_conductor_contract_list(self):
-        '''Test basic conductor list view
-        '''
         index_view = self.client.get('/conductor', follow_redirects=True)
         self.assert200(index_view)
         self.assert_template_used('conductor/index.html')
@@ -133,8 +131,6 @@ class TestConductor(TestConductorSetup):
         self.assert_template_used('public/home.html')
 
     def test_conductor_start_new(self):
-        '''Test start work page works as expected for new contracts
-        '''
         self.assertEquals(ContractStage.query.count(), 0)
         self.assert200(self.client.get('/conductor/contract/new'))
         self.client.post('/conductor/contract/new', data={
@@ -150,8 +146,6 @@ class TestConductor(TestConductorSetup):
         self.assertEquals(ContractBase.query.count(), 3)
 
     def test_conductor_start_existing(self):
-        '''Test start page works as expected for existing contracts
-        '''
         start_work_url = '/conductor/contract/{}/start'.format(self.contract1.id)
 
         old_contract_id = self.contract1.id
@@ -176,8 +170,6 @@ class TestConductor(TestConductorSetup):
         self.assertEquals(ContractBase.query.count(), 3)
 
     def test_conductor_contract_assign(self):
-        '''Test contract assignment via conductor
-        '''
         self.assertEquals(ContractStage.query.count(), 0)
 
         assign = self.assign_contract()
@@ -221,8 +213,6 @@ class TestConductor(TestConductorSetup):
         self.assertEquals(self.contract1.assigned, self.conductor2)
 
     def test_conductor_contract_detail_view(self):
-        '''Test basic conductor detail view
-        '''
         self.assert404(self.client.get(self.detail_view.format(999, 999)))
 
         assign = self.assign_contract()
@@ -259,8 +249,6 @@ class TestConductor(TestConductorSetup):
         self.assert_template_used('public/home.html')
 
     def test_conductor_contract_transition(self):
-        '''Test conductor stage transition
-        '''
         assign = self.assign_contract()
 
         transition_url = self.build_detail_view(assign) + '/transition'
@@ -279,8 +267,6 @@ class TestConductor(TestConductorSetup):
                 self.assertTrue(stage.entered is None and stage.exited is None)
 
     def test_conductor_transition_complete_date_validation(self):
-        '''Test completing a stage validates appropriately
-        '''
         assign = self.assign_contract()
         transition_url = self.build_detail_view(assign) + '/transition'
 
@@ -304,8 +290,6 @@ class TestConductor(TestConductorSetup):
                 self.assertTrue(stage.entered is None and stage.exited is None)
 
     def test_conductor_directed_transition(self):
-        '''Test conductor stage transition backwards/to specific point
-        '''
         assign = self.assign_contract()
         self.assertEquals(ContractStageActionItem.query.count(), 1)
 
@@ -334,8 +318,6 @@ class TestConductor(TestConductorSetup):
         self.assertTrue(ContractStage.query.filter(ContractStage.stage_id == self.stage3.id).first().exited is None)
 
     def test_conductor_link_directions(self):
-        '''Test that we can access completed stages but not non-started ones
-        '''
         assign = self.assign_contract()
         self.client.get(self.detail_view.format(assign.id, assign.get_current_stage().id) + '/transition')
 
@@ -351,8 +333,6 @@ class TestConductor(TestConductorSetup):
         self.assert404(self.client.get(self.build_detail_view(assign, old_stage=self.stage3)))
 
     def test_conductor_flow_switching(self):
-        '''Test flow switching back and forth in conductor
-        '''
         assign = self.assign_contract()
         self.client.get(self.detail_view.format(assign.id, assign.get_current_stage().id) + '/transition')
         # we should have three actions -- entered, exited, entered
@@ -422,8 +402,6 @@ class TestConductor(TestConductorSetup):
 
     @patch('urllib2.urlopen')
     def test_url_validation(self, urlopen):
-        '''Test url validation HEAD requests work as expected
-        '''
         mock_open = Mock()
         mock_open.getcode.side_effect = [200, urllib2.HTTPError('', 404, 'broken', {}, file)]
         urlopen.return_value = mock_open
@@ -449,8 +427,6 @@ class TestConductor(TestConductorSetup):
         self.assertEquals(json.loads(post3.data).get('status'), 404)
 
     def test_conductor_contract_post_note(self):
-        '''Test posting a note to the activity stream
-        '''
         assign = self.assign_contract()
 
         self.assertEquals(ContractStageActionItem.query.count(), 1)
@@ -477,8 +453,6 @@ class TestConductor(TestConductorSetup):
         ))
 
     def test_delete_note(self):
-        '''Test you can delete a note
-        '''
         assign = self.assign_contract()
         self.assertEquals(ContractStageActionItem.query.count(), 1)
         detail_view_url = self.build_detail_view(assign)
@@ -509,8 +483,6 @@ class TestConductor(TestConductorSetup):
         self.assert_template_used('public/home.html')
 
     def test_conductor_stage_default_message(self):
-        '''Test default messages appear in proper place in the form
-        '''
         assign = self.assign_contract()
 
         self.assertEquals(ContractStageActionItem.query.count(), 1)
@@ -520,8 +492,6 @@ class TestConductor(TestConductorSetup):
         self.assertTrue('i am a default message' in request.data)
 
     def test_conductor_send_update(self):
-        '''Test sending an email/into the activity stream
-        '''
         assign = self.assign_contract()
 
         self.assertEquals(ContractStageActionItem.query.count(), 1)
@@ -560,25 +530,7 @@ class TestConductor(TestConductorSetup):
             self.assertTrue(len(outbox[1].cc), 2)
             self.assertTrue(len(outbox[1].recipients), 1)
 
-    def test_conductor_post_to_beacon_validation(self):
-        '''Test failure posting to beacon from Conductor
-        '''
-        assign = self.assign_contract()
-
-        detail_view_url = self.build_detail_view(assign)
-
-        bad1 = self.client.post(detail_view_url + '?form=post', data=dict(contact_email='foo'))
-        self.assertTrue('Invalid email address.' in bad1.data)
-
-        bad2 = self.client.post(detail_view_url + '?form=post', data=dict(contact_email='foo@BADDOMAIN.com'))
-        self.assertTrue('not a valid contact!' in bad2.data)
-
-        self.assertEquals(Opportunity.query.count(), 0)
-        self.assertEquals(ContractStageActionItem.query.count(), 1)
-
     def test_conductor_post_to_beacon(self):
-        '''Test successful posting to beacon from Conductor
-        '''
         assign = self.assign_contract()
 
         detail_view_url = self.build_detail_view(assign)
@@ -602,8 +554,6 @@ class TestConductor(TestConductorSetup):
         self.assertTrue('barbaz' in detail_view.data)
 
     def test_edit_contract_metadata(self):
-        '''Test editing a contract's metadata from the conductor detail form
-        '''
         assign = self.assign_contract()
 
         detail_view_url = self.build_detail_view(assign, self.stage1)
@@ -617,8 +567,6 @@ class TestConductor(TestConductorSetup):
         self.assertEquals(assign.financial_id, '999')
 
     def test_edit_contract_complete(self):
-        '''Test the completion views are locked until a contract is in its last stage
-        '''
         assign = self.assign_contract(flow=self.simple_flow)
         should_redir = self.client.get('/conductor/contract/{}/edit/contract'.format(assign.id))
         self.assertEquals(should_redir.status_code, 302)
@@ -642,8 +590,6 @@ class TestConductor(TestConductorSetup):
         )
 
     def test_contract_completion_session_set(self):
-        '''Test we set the proper session variables on contract completion
-        '''
         with self.client as c:
             assign = self.assign_contract(flow=self.simple_flow)
 
@@ -749,8 +695,6 @@ class TestConductor(TestConductorSetup):
             session.pop('companies')
 
     def test_actual_contract_completion(self):
-        '''Test the flow of completing a contract with one company
-        '''
         with self.client as c:
             self.assertTrue(self.contract1.is_visible)
 
@@ -787,8 +731,6 @@ class TestConductor(TestConductorSetup):
             self.assertEquals(assign.parent.description, 'scuba supplies [Archived]')
 
     def test_actual_contract_completion_multi_company(self):
-        '''Test the flow of completing a contract with multiple companies
-        '''
         with self.client as c:
             self.assertTrue(self.contract1.is_visible)
 
@@ -841,8 +783,6 @@ class TestConductor(TestConductorSetup):
                 self.assertEquals(assign.assigned, child.assigned)
 
     def test_contract_extension(self):
-        '''Test our flow works with contract extensions
-        '''
         assign = self.assign_contract()
         detail_view_url = self.build_detail_view(assign)
         extend = self.client.get(detail_view_url + '/extend')
