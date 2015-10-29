@@ -36,6 +36,8 @@ opportunity_vendor_association_table = Table(
 )
 
 class Category(Model):
+    '''pass
+    '''
     __tablename__ = 'category'
 
     id = Column(db.Integer, primary_key=True, index=True)
