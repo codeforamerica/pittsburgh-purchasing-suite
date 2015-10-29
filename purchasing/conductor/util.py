@@ -4,11 +4,12 @@ import datetime
 
 from sqlalchemy.exc import IntegrityError
 
-from flask import request, current_app
+from flask import current_app
 from flask_login import current_user
 
 from purchasing.database import db
 from purchasing.notifications import Notification
+from purchasing.filters import better_title
 
 from purchasing.data.contracts import ContractBase, ContractType
 from purchasing.data.contract_stages import ContractStageActionItem
@@ -37,7 +38,7 @@ class UpdateFormObj(object):
 
 class ConductorObj(object):
     def __init__(self, contract):
-        self.title = contract.description
+        self.title = better_title(contract.description)
         self.opportunity_type = ContractType.get_type(current_app.config.get('CONDUCTOR_TYPE', ''))
         self.department = Department.get_dept(current_app.config.get('CONDUCTOR_DEPARTMENT', ''))
 
