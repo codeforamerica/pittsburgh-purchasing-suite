@@ -41,7 +41,7 @@ class ScoutContractsExpireTodayJob(ScoutJobBase):
     @property
     def notification_props(self):
         return {
-            'html_template': '/wexplorer/emails/expired_contract.html',
+            'html_template': '/scout/emails/expired_contract.html',
             'subject': 'A contract that you follow has expired'
         }
 
@@ -55,7 +55,7 @@ class ScoutContractsExpireSoonJob(ScoutJobBase):
     @property
     def notification_props(self):
         return {
-            'html_template': '/wexplorer/emails/expiring_soon_contract.html',
+            'html_template': '/scout/emails/expiring_soon_contract.html',
             'subject': 'A contract that you follow will expire soon'
         }
 

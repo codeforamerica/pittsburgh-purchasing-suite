@@ -4,8 +4,6 @@ from flask import current_app
 from purchasing.app import celery
 from purchasing.extensions import mail, db, cache
 
-from purchasing.data.importer.scrape_county import main as scrape_county
-
 @celery.task
 def send_email(messages):
     with mail.connect() as conn:
@@ -30,6 +28,8 @@ def rebuild_search_view():
 
 @celery.task
 def scrape_county_task(job):
+    from purchasing.data.importer.scrape_county import main as scrape_county
+
     added, skipped = 0, 0
     job.update(status='started')
     try:

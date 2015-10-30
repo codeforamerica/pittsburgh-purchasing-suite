@@ -18,10 +18,10 @@
   {%- endif -%}
 </ul>
 
-<p>You can view the full contract on <a href="{{- url_for('wexplorer.contract', contract_id=contract.id) -}}">Scout</a></p>
+<p>You can view the full contract on <a href="{{- url_for('scout.contract', contract_id=contract.id) -}}">Scout</a></p>
 
 {%- if contract.parent -%}
-<p>This contract has been renewed. You can view old contract on <a href="{{- url_for('wexplorer.contract', contract_id=contract.parent.id) -}}">Scout</a>.
+<p>This contract has been renewed. You can view old contract on <a href="{{- url_for('scout.contract', contract_id=contract.parent.id) -}}">Scout</a>.
 {% endif %}
 
 <p>Thanks,</p>

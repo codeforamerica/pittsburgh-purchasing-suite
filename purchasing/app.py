@@ -21,7 +21,7 @@ from purchasing.extensions import (
     bcrypt, cache, db, login_manager,
     migrate, debug_toolbar, admin, s3, mail
 )
-from purchasing.users.models import AnonymousUser
+
 from purchasing.filters import (
     url_for_other_page, thispage, format_currency, better_title,
     days_from_today, datetimeformat, format_days_from_today,
@@ -89,6 +89,7 @@ def register_extensions(app):
     cache.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
+    from purchasing.users.models import AnonymousUser
     login_manager.anonymous_user = AnonymousUser
     debug_toolbar.init_app(app)
     migrate.init_app(app, db)

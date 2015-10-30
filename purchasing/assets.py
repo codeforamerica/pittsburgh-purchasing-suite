@@ -8,10 +8,10 @@ less = Bundle(
     depends=('less/*.less', 'less/**/*.less', 'less/**/**/*.less')
 )
 
-wexplorer_less = Bundle(
-    'less/wexplorer_main.less',
+scout_less = Bundle(
+    'less/scout_main.less',
     filters='less',
-    output='public/css/wexplorer.css',
+    output='public/css/scout.css',
     depends=('less/*.less', 'less/**/*.less', 'less/**/**/*.less')
 )
 
@@ -60,10 +60,10 @@ opportunitiesjs = Bundle(
     output='public/js/opportunities.js'
 )
 
-wexplorerjs = Bundle(
-    'js/wexplorer/*.js',
+scoutjs = Bundle(
+    'js/scout/*.js',
     filters='uglifyjs',
-    output='public/js/wexplorer.js'
+    output='public/js/scout.js'
 )
 
 conductorjs = Bundle(
@@ -107,13 +107,13 @@ assets.register('ie8', ie8)
 assets.register('vendorjs', vendorjs)
 assets.register('adminjs', adminjs)
 assets.register('opportunitiesjs', opportunitiesjs)
-assets.register('wexplorerjs', wexplorerjs)
+assets.register('scoutjs', scoutjs)
 assets.register('conductorjs', conductorjs)
 
 # register our css bundles
 assets.register('css_all', less)
 assets.register('admin_less', admin_less)
-assets.register('wexplorer_less', wexplorer_less)
+assets.register('scout_less', scout_less)
 assets.register('sherpa_less', sherpa_less)
 assets.register('opportunities_less', opportunities_less)
 assets.register('conductor_less', conductor_less)

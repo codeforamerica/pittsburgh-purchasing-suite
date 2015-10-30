@@ -20,6 +20,8 @@ from purchasing.conductor.upload import blueprint
 @blueprint.route('/costars', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def upload_costars():
+    '''
+    '''
     form = FileUploadForm()
     if form.validate_on_submit():
         _file = request.files.get('upload')

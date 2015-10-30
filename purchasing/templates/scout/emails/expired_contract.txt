@@ -1,0 +1,4 @@
+{{ contract.description|title }}, a contract you're subscribed to, expired today. Check the contract details page as it has likely been renewed or replaced with a new contract: {{ url_for('scout.contract', contract_id=contract.id, _external=True) }}
+
+Thanks,
+The Scout Auto-Update Bot

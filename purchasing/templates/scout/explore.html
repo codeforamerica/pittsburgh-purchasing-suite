@@ -1,14 +1,14 @@
-{% extends 'wexplorer/layout.html' %}
+{% extends 'scout/layout.html' %}
 
 {% block content %}
 
 {{ super() }}
 
 <div class="container">
-  <div class="row wexplorer-explore">
+  <div class="row scout-explore">
 
     <div class="text-center spacer-10">
-      <a href="{{ url_for('wexplorer.explore') }}"><img class="big-logo" src="{{ url_for('static', filename='img/scout_logo.png') }}"></a>
+      <a href="{{ url_for('scout.explore') }}"><img class="big-logo" src="{{ url_for('static', filename='img/scout_logo.png') }}"></a>
 
       <h2>Find out what's on contract.<br> Get updates when you need them.</h2>
 
@@ -17,7 +17,7 @@
     </div>
 
     <div class="col-sm-6 col-sm-offset-3">
-    <form id="search-box" method="GET" class="form" action="{{ url_for('wexplorer.search') }}">
+    <form id="search-box" method="GET" class="form" action="{{ url_for('scout.search') }}">
 
       <div class="form-group">
         <!-- <label for="q">Search company names and contract descriptions</label> -->
@@ -31,7 +31,7 @@
 
     <div class="spacer-20"></div>
 
-    <h4><a href="{{ url_for('wexplorer.filter_no_department') }}">Or, list contracts by department.</a></h4>
+    <h4><a href="{{ url_for('scout.filter_no_department') }}">Or, list contracts by department.</a></h4>
 
     </div>
   </div>

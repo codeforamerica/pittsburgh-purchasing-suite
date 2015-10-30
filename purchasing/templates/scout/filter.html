@@ -1,4 +1,4 @@
-{% extends 'wexplorer/layout.html' %}
+{% extends 'scout/layout.html' %}
 {% import 'macros/render_pagination.html' as macros %}
 {% block content %}
 
@@ -10,13 +10,13 @@
     <div class="col-md-10 col-md-offset-1">
 
       <div class="col-md-9"><h4>{{ department }} subscribes to:</h4></div>
-      <div class="col-md-3">{% include "wexplorer/choices.html" %}</div>
+      <div class="col-md-3">{% include "scout/choices.html" %}</div>
     </div>
   </div>
 
   <div class="row">
     <div class="col-md-10 col-md-offset-1">
-      <table class="table wexplorer-table table-striped table-condensed" id="js-sort-results">
+      <table class="table scout-table table-striped table-condensed" id="js-sort-results">
         <thead>
           <tr>
             <th>Contract</th>
@@ -27,7 +27,7 @@
         {% for result in results %}
           <tr>
             <td>
-              <a href="{{ url_for('wexplorer.contract', contract_id=result.id) }}">
+              <a href="{{ url_for('scout.contract', contract_id=result.id) }}">
               {{ result.description|title }}
               </a>
             </td>
@@ -49,7 +49,7 @@
       <h4>No one from this department has subscribed to any contracts yet!</h4>
       <p>Is this your department? Help compile a list of contracts by <a href="{{ url_for('users.profile') }}">updating your profile</a> and subscribing to contracts that you use!</p>
 
-      {% include "wexplorer/choices.html" %}
+      {% include "scout/choices.html" %}
     </div>
   </div>
 
@@ -58,7 +58,7 @@
   <div class="row">
     <div class="col-md-10 col-md-offset-1">
       <h4>Choose a department to get started!</h4>
-      {% include "wexplorer/choices.html" %}
+      {% include "scout/choices.html" %}
     </div>
   </div>
 

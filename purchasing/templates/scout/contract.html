@@ -1,4 +1,4 @@
-{% extends 'wexplorer/layout.html' %}
+{% extends 'scout/layout.html' %}
 {% import 'macros/render_pagination.html' as macros %}
 {% block content %}
 
@@ -8,16 +8,16 @@
   <div class="row">
     <div class="col-md-12">
 
-      <div class="well wexplorer-well">
+      <div class="well scout-well">
         <div class="row">
           <div class="col-sm-9"><h3><strong>
               {{ contract.description|title }}
           </strong></h3></div>
           <div class="col-sm-3">
             {% if current_user in contract.followers %}
-              <a href="{{ url_for('wexplorer.unsubscribe', contract_id=contract.id, next=path) }}" class="btn btn-danger pull-right btn-header">Stop receiving updates</a>
+              <a href="{{ url_for('scout.unsubscribe', contract_id=contract.id, next=path) }}" class="btn btn-danger pull-right btn-header">Stop receiving updates</a>
             {% else %}
-              <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}" class="btn btn-primary pull-right btn-header">Subscribe for updates</a>
+              <a href="{{ url_for('scout.subscribe', contract_id=contract.id, next=path) }}" class="btn btn-primary pull-right btn-header">Subscribe for updates</a>
             {% endif %}
           </div>
 
@@ -37,7 +37,7 @@
           </a>
         {% endif %}
         <p>
-          See something wrong? <a href="{{ url_for('wexplorer.feedback', contract_id=contract.id) }}" target="_blank">Send your feedback.</a>
+          See something wrong? <a href="{{ url_for('scout.feedback', contract_id=contract.id) }}" target="_blank">Send your feedback.</a>
         </p>
 
       <hr>
@@ -62,11 +62,11 @@
 
     </div><!-- header/title -->
 
-    {% include 'wexplorer/contract_alerts.html' %}
+    {% include 'scout/contract_alerts.html' %}
 
     <div class="row row-well-padding">
       <div class="col-sm-4">
-        <p class="wexplorer-column-header">Contract Details</p>
+        <p class="scout-column-header">Contract Details</p>
         <ul class="list-unstyled">
           {% for property in contract.properties %}
             {% if property.key and property.value %}
@@ -78,11 +78,11 @@
 
       <div class="col-sm-4">
 
-        <p class="wexplorer-column-header">Awarded Companies</p>
+        <p class="scout-column-header">Awarded Companies</p>
         <ul>
         {% for company in contract.companies %}
           <li>
-            <a href="{{ url_for('wexplorer.company', company_id=company.id) }}">{{ company.company_name|title }}</a>
+            <a href="{{ url_for('scout.company', company_id=company.id) }}">{{ company.company_name|title }}</a>
           </li>
         {% endfor %}
         </ul>
@@ -90,12 +90,12 @@
       </div>
 
       <div class="col-sm-4">
-        <p class="wexplorer-column-header">Departments Following</p>
+        <p class="scout-column-header">Departments Following</p>
         {% if contract.followers | length > 0 %}
         <ul>
         {% for department in departments if department %}
           <li>
-            <a href="{{ url_for('wexplorer.filter', department_id=department.id) }}">
+            <a href="{{ url_for('scout.filter', department_id=department.id) }}">
               {{ department.name }}
             </a>
           </li>
@@ -104,7 +104,7 @@
         {% else %}
         <p>No one is following this contract! <br>
           {% if current_user.role.name != 'anonymous' %}
-          <a href="{{ url_for('wexplorer.subscribe', contract_id=contract.id, next=path) }}">Subscribe for updates</a>
+          <a href="{{ url_for('scout.subscribe', contract_id=contract.id, next=path) }}">Subscribe for updates</a>
           {% endif %}
         </p>
         {% endif %}
@@ -118,7 +118,7 @@
       <div class="col-md-12">
 
       {% if contract.line_items.count() > 0 %}
-        <p class="wexplorer-column-header">Line Items</p>
+        <p class="scout-column-header">Line Items</p>
 
         <table class="table table-striped line-item-table">
           <thead>
@@ -152,7 +152,7 @@
         </table><!-- line item table -->
       {% endif %}
 
-      {% include "wexplorer/note.html" %}
+      {% include "scout/note.html" %}
 
       </div><!-- body -->
     </div>

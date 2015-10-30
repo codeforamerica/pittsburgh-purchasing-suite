@@ -9,6 +9,8 @@ from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from purchasing.data.contracts import ContractType
 
 class SearchForm(Form):
+    '''Form to handle Scout search and filter
+    '''
     q = TextField('Search', validators=[DataRequired()])
     company_name = BooleanField()
     contract_description = BooleanField()
@@ -27,9 +29,20 @@ class SearchForm(Form):
         super(SearchForm, self).__init__(*args, **kwargs)
 
 class FeedbackForm(Form):
+    '''Form to collect sender and body for Scout contract feedback
+    '''
     sender = TextField(validators=[Email()], default='No email provided')
     body = TextAreaField(validators=[DataRequired()])
 
+    def __init__(self, *args, **kwargs):
+        super(FeedbackForm, self).__init__(*args, **kwargs)
+
+
 class NoteForm(Form):
+    '''Form to allow users to write notes about contracts
+    '''
     note = TextAreaField(validators=[DataRequired()])
     user = IntegerField(validators=[DataRequired(), NumberRange(min=0)])
+
+    def __init__(self, *args, **kwargs):
+        super(NoteForm, self).__init__(*args, **kwargs)

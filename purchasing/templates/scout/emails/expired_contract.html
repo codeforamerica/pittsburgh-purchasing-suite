@@ -1,0 +1,16 @@
+{% extends "scout/emails/base.html" %}
+
+{% block content %}
+<h2><a href="{{ url_for('scout.contract', contract_id=contract.id, _external=True) }}">{{ contract.description|title }}</a> expired today</h2>
+
+<p>We're letting you know since you're subscribed to it. Check <a href="{{ url_for('scout.contract', contract_id=contract.id, _external=True) }}">the contract details page</a> as it has likely been renewed or replaced with a new contract.
+</p>
+
+<p>Thanks,<br>
+The Scout Auto-Update Bot
+</p>
+{% endblock %}
+
+{% block footer %}
+<p><a href="{{ url_for('scout.explore', _external=True) }}">Scout</a>
+{% endblock %}

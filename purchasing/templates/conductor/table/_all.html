@@ -71,7 +71,7 @@
             <span class="fa-stack"><i class="fa fa-fw fa-file-pdf-o"></i></span> View contract
           </a></li>
           {% endif %}
-          <li><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
+          <li><a href="{{ url_for('scout.contract', contract_id=contract.id) }}">
             <span class="fa-stack"><i class="fa fa-fw fa-search"></i></span> View on Scout
           </a></li>
           <li><a href="{{ url_for('conductor.remove', contract_id=contract.id) }}">
