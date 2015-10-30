@@ -26,11 +26,15 @@ Read More
 For a brief summary of our work, take a look at `our blog <http://yinzforamerica.tumblr.com/>`_ or our `Code for America team page <https://www.codeforamerica.org/governments/pittsburgh/>`_. For more detail about the context that lead to the development of the suite, take a look at our `midyear report <http://codeforamerica.github.io/pittsburgh-midyear-report/>`_.
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   develop
-   redeploy
-   technical
+    develop
+    redeploy
+    beacon
+    scout
+    conductor
+    public
+    models
 
 Indices and tables
 ==================

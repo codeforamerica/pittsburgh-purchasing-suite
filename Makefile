@@ -17,4 +17,4 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) doc
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) docs/source
 
 doc:
-	make html
+	$(SPHINXBUILD) -b html -E $(ALLSPHINXOPTS) $(BUILDDIR)/html

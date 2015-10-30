@@ -20,6 +20,8 @@ contract_user_association_table = Table(
 )
 
 class ContractBase(RefreshSearchViewMixin, Model):
+    '''Contract model
+    '''
     __tablename__ = 'contract'
 
     id = Column(db.Integer, primary_key=True)
@@ -292,9 +294,10 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
         return actions
 
-    def transition(self, user, destination=None, complete_time=datetime.datetime.utcnow()):
+    def transition(self, user, destination=None, complete_time=None):
         '''Routing method -- figure out which actual method to call
         '''
+        complete_time = complete_time if complete_time else datetime.datetime.utcnow()
         if self.current_stage_id is None:
             actions = self._transition_to_first(user, complete_time)
         elif destination is not None:
