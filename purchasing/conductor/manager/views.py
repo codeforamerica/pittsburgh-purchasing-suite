@@ -15,6 +15,7 @@ from sqlalchemy.exc import IntegrityError
 from purchasing.decorators import requires_roles
 from purchasing.database import db, get_or_create
 from purchasing.notifications import Notification
+from purchasing.utils import localize_datetime
 
 from purchasing.data.stages import Stage, get_contract_stages
 from purchasing.data.flows import Flow, switch_flow
@@ -402,7 +403,16 @@ def reassign(contract_id, user_id):
 @requires_roles('conductor', 'admin', 'superadmin')
 def start_work(contract_id=-1):
     contract = ContractBase.query.get(contract_id)
-    contract = contract if contract else ContractBase()
+
+    if contract:
+        first_stage = contract.get_first_stage()
+
+        if first_stage and first_stage.stage_id != contract.current_stage_id:
+            return redirect(url_for('conductor.detail', contract_id=contract.id))
+        elif first_stage:
+            contract.start = localize_datetime(contract.get_first_stage().entered)
+    else:
+        contract = ContractBase()
     form = NewContractForm(obj=contract)
 
     if form.validate_on_submit():
@@ -430,7 +440,7 @@ def start_work(contract_id=-1):
             return redirect(url_for('conductor.detail', contract_id=assigned.id))
         else:
             flash("That flow doesn't exist!", 'alert-danger')
-    return render_template('conductor/new.html', form=form, contract_id=contract_id)
+    return render_template('conductor/new.html', form=form, contract_id=contract_id, contract=contract)
 
 @blueprint.route('/contract/<int:contract_id>/edit/contract', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')

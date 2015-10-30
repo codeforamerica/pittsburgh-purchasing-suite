@@ -31,6 +31,12 @@ Views
 .. autoflask:: purchasing.app:create_app()
     :endpoints: scout.explore, scout.search, scout.search_feedback, scout.filter_no_department, scout.filter, scout.contract, scout.company, scout.feedback, scout.subscribe, scout.unsubscribe
 
+Nightly Jobs
+------------
+
+.. automodule:: purchasing.jobs.scout_nightly
+    :members:
+
 
 .. _Sqlalchemy case expressions: http://docs.sqlalchemy.org/en/rel_1_0/core/sqlelement.html?highlight=case#sqlalchemy.sql.expression.case
 .. _Sqlalchemy query filters: http://docs.sqlalchemy.org/en/rel_1_0/orm/query.html#sqlalchemy.orm.query.Query.filter

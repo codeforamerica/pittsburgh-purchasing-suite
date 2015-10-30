@@ -65,6 +65,8 @@ Flows
 .. autoclass:: purchasing.data.flows.Flow
     :members:
 
+.. _contract-stages:
+
 Contract Stages
 """""""""""""""
 

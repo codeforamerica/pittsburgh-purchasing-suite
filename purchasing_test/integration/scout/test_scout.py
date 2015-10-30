@@ -11,11 +11,11 @@ from purchasing_test.factories import DepartmentFactory
 
 from purchasing.data.contracts import ContractBase, LineItem, ContractNote
 
-class Testscout(BaseTestCase):
+class TestScout(BaseTestCase):
     render_templates = True
 
     def setUp(self):
-        super(Testscout, self).setUp()
+        super(TestScout, self).setUp()
         # insert departments
         self.department1 = DepartmentFactory()
 

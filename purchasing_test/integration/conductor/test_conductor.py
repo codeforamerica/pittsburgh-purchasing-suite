@@ -169,6 +169,19 @@ class TestConductor(TestConductorSetup):
         self.assertEquals(new_contract.current_stage_id, self.flow.stage_order[0])
         self.assertEquals(ContractBase.query.count(), 3)
 
+    def test_conductor_modify_start(self):
+        assign = self.assign_contract()
+        start_url = '/conductor/contract/{}/start'.format(self.contract1.id)
+
+        # should load successfully on first stage
+        self.assert200(self.client.get(start_url))
+
+        transition_url = self.build_detail_view(assign) + '/transition'
+        self.client.get(transition_url)
+
+        # should redirect on not-first stage
+        self.assertTrue(self.client.get(start_url).status_code, 302)
+
     def test_conductor_contract_assign(self):
         self.assertEquals(ContractStage.query.count(), 0)
 
@@ -529,6 +542,20 @@ class TestConductor(TestConductorSetup):
             self.assertTrue('with the subject' in good_post_ccs.data)
             self.assertTrue(len(outbox[1].cc), 2)
             self.assertTrue(len(outbox[1].recipients), 1)
+
+    def test_conductor_post_to_beacon_validation(self):
+        assign = self.assign_contract()
+
+        detail_view_url = self.build_detail_view(assign)
+
+        bad1 = self.client.post(detail_view_url + '?form=post', data=dict(contact_email='foo'))
+        self.assertTrue('Invalid email address.' in bad1.data)
+
+        bad2 = self.client.post(detail_view_url + '?form=post', data=dict(contact_email='foo@BADDOMAIN.com'))
+        self.assertTrue('not a valid contact!' in bad2.data)
+
+        self.assertEquals(Opportunity.query.count(), 0)
+        self.assertEquals(ContractStageActionItem.query.count(), 1)
 
     def test_conductor_post_to_beacon(self):
         assign = self.assign_contract()

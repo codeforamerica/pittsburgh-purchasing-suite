@@ -7,7 +7,11 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
+      {% if contract.id > 0 %}
+      <h3>Edit metadata for {{ contract.description|title }}</h3>
+      {% else %}
       <h3>Start work on a contract</h3>
+      {% endif %}
 
       <form class="form" method="POST" action="{% if contract_id > 0 %}{{ url_for('conductor.start_work', contract_id=contract_id) }}{% else %}{{ url_for('conductor.start_work') }}{% endif %}">
         {{ form.csrf_token() }}

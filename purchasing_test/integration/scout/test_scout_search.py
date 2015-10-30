@@ -14,7 +14,7 @@ from purchasing_test.factories import ContractTypeFactory, ContractBaseFactory, 
 
 from purchasing.data.contracts import LineItem
 
-class TestscoutSearch(BaseTestCase):
+class TestScoutSearch(BaseTestCase):
     render_templates = True
 
     def setUp(self):
