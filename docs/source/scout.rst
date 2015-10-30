@@ -33,4 +33,4 @@ Views
 
 
 .. _Sqlalchemy case expressions: http://docs.sqlalchemy.org/en/rel_1_0/core/sqlelement.html?highlight=case#sqlalchemy.sql.expression.case
-.. _Sqlalchemy query filter: http://docs.sqlalchemy.org/en/rel_1_0/orm/query.html#sqlalchemy.orm.query.Query.filter
+.. _Sqlalchemy query filters: http://docs.sqlalchemy.org/en/rel_1_0/orm/query.html#sqlalchemy.orm.query.Query.filter
