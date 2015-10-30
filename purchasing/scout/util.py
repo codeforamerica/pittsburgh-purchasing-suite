@@ -43,7 +43,7 @@ def build_filter(req_args, fields, search_for, filter_form, _all):
     :param _all: Boolean -- true if we are searching across all fields, false otherwise
 
     :return:
-        List of clauses that can be used in a `Sqlalchemy query filter`_
+        List of clauses that can be used in `Sqlalchemy query filters`_
     '''
     clauses = []
     for arg_name, _, filter_column in fields:
@@ -173,7 +173,7 @@ def find_contract_metadata(search_for, case_statements, filter_or, filter_and, a
     :param search_for: User's search term
     :param case_statements: An iterable of `Sqlalchemy case expressions`_
     :param filter_or: An iterable of `Sqlalchemy query filters`_, used for non-exclusionary filtering
-    :param filter_and: An iterable of `Sqlalchemy query filter`_, used for exclusionary filtering
+    :param filter_and: An iterable of `Sqlalchemy query filters`_, used for exclusionary filtering
     :param archived: Boolean of whether or not to add the ``is_archived`` filter
 
     :return:
@@ -224,7 +224,7 @@ def find_contract_metadata(search_for, case_statements, filter_or, filter_and, a
 def return_all_contracts(filter_and, archived=False):
     '''Return all contracts in the event of an empty search
 
-    :param filter_and: An iterable of `Sqlalchemy query filter`_, used for exclusionary filtering
+    :param filter_and: An iterable of `Sqlalchemy query filters`_, used for exclusionary filtering
     :param archived: Boolean of whether or not to add the ``is_archived`` filter
 
     :return:
