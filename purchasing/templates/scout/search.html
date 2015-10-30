@@ -1,4 +1,4 @@
-{% extends 'wexplorer/layout.html' %}
+{% extends 'scout/layout.html' %}
 {% import 'macros/render_pagination.html' as macros %}
 {% block content %}
 
@@ -15,7 +15,7 @@
         {% if pagination.pages > 1 %}({{ (results | length) }} shown) {% endif %}<br>
       </h3>
 
-      <form class="form-inline" method="POST" action="{{ url_for('wexplorer.search') }}">
+      <form class="form-inline" method="POST" action="{{ url_for('scout.search') }}">
         <div class="filter btn-group btn-group-sm" id="js-filter-btn-group" role="group" data-toggle="buttons">
           <label class="btn btn-default">
             {{ search_form.company_name }} <span class="filter-checkbox">Company Name</span>
@@ -75,7 +75,7 @@
 
             <td data-sortable="{{ result.contract_description }}">
               {% if result.contract_id %}
-              <a href="{{ url_for('wexplorer.contract', contract_id=result.contract_id) }}">
+              <a href="{{ url_for('scout.contract', contract_id=result.contract_id) }}">
                 {{ result.contract_description|title }}
               </a>
               {% endif %}
@@ -87,7 +87,7 @@
 
             <td data-sortable="{{ result.company_name }}">
               {% if result.company_id %}
-              <a href="{{ url_for('wexplorer.company', company_id=result.company_id) }}">
+              <a href="{{ url_for('scout.company', company_id=result.company_id) }}">
                 {{ result.company_name|title }}
               </a>
               {% endif %}
@@ -97,13 +97,13 @@
 
             {% if result.contract_id in user_follows %}
             <td>
-              <a href="{{ url_for('wexplorer.unsubscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-danger btn-sm">
+              <a href="{{ url_for('scout.unsubscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-danger btn-sm">
                 Stop receiving updates
               </a>
             </td>
             {% else %}
             <td>
-              <a href="{{ url_for('wexplorer.subscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-primary btn-sm" {% if inactive %}disabled{% endif %}>
+              <a href="{{ url_for('scout.subscribe', contract_id=result.contract_id, next=path) }}" class="btn btn-primary btn-sm" {% if inactive %}disabled{% endif %}>
                 Subscribe for updates
               </a>
             </td>
@@ -124,7 +124,7 @@
     <div class="row text-center">
       <h4>There are no results!</h4>
 
-      <p>Is this a mistake? <a href="{{ url_for('wexplorer.search', q=request.args.get('q'), archived='y') }}">Try including expired contracts in your search</a>, or <a href="{{ url_for('wexplorer.search_feedback', search_for=request.args.get('q')) }}">send us feedback</a>.</p>
+      <p>Is this a mistake? <a href="{{ url_for('scout.search', q=request.args.get('q'), archived='y') }}">Try including expired contracts in your search</a>, or <a href="{{ url_for('scout.search_feedback', search_for=request.args.get('q')) }}">send us feedback</a>.</p>
     </div>
 
     {% endif %}

@@ -5,19 +5,22 @@ from flask import render_template, stream_with_context, Response, abort, jsonify
 from purchasing.decorators import requires_roles
 
 from purchasing.data.flows import Flow
-from purchasing.data.stages import Stage
 
 from purchasing.conductor.metrics import blueprint
 
 @blueprint.route('/')
 @requires_roles('conductor', 'admin', 'superadmin')
 def index():
+    '''
+    '''
     flows = Flow.query.all()
     return render_template('conductor/metrics/index.html', flows=flows)
 
 @blueprint.route('/download/<int:flow_id>')
 @requires_roles('conductor', 'admin', 'superadmin')
 def download_tsv_flow(flow_id):
+    '''
+    '''
     flow = Flow.query.get(flow_id)
     if flow:
 

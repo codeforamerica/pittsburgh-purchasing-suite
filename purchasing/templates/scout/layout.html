@@ -1,18 +1,18 @@
 {% extends 'layout.html' %}
 
 {% block assets %}
-  {% assets "wexplorer_less" %}
+  {% assets "scout_less" %}
     <link rel="stylesheet" href="{{ ASSET_URL }}">
   {% endassets %}
 {% endblock %}
 
 {% block nav %}
-{% include "wexplorer/nav.html" %}
+{% include "scout/nav.html" %}
 {% endblock %}
 
 {% block js %}
   {{ super() }}
-  {% assets "wexplorerjs" %}
+  {% assets "scoutjs" %}
     <script type="text/javascript" src="{{ ASSET_URL }}"></script>
   {% endassets %}
 {% endblock %}

@@ -13,21 +13,21 @@ from purchasing.utils import SimplePagination
 from purchasing.decorators import wrap_form, requires_roles
 from purchasing.notifications import Notification
 
-from purchasing.wexplorer.forms import SearchForm, FeedbackForm, NoteForm
+from purchasing.scout.forms import SearchForm, FeedbackForm, NoteForm
 from purchasing.users.models import Department, User, Role
 from purchasing.data.searches import SearchView, find_contract_metadata, return_all_contracts
 from purchasing.data.companies import Company
 from purchasing.data.contracts import ContractBase, ContractNote, ContractType
 
-from purchasing.wexplorer import blueprint
+from purchasing.scout import blueprint
 
 CRAZY_CHARS = re.compile('[^A-Za-z0-9 ]')
 
 @blueprint.route('/', methods=['GET'])
-@wrap_form(SearchForm, 'search_form', 'wexplorer/explore.html')
+@wrap_form(SearchForm, 'search_form', 'scout/explore.html')
 def explore():
     '''
-    The landing page for wexplorer. Renders the "big search"
+    The landing page for scout. Renders the "big search"
     template.
     '''
     return dict(current_user=current_user, choices=Department.choices())
@@ -37,7 +37,7 @@ def filter_no_department():
     '''The landing page for filtering by departments
     '''
     return render_template(
-        'wexplorer/filter.html',
+        'scout/filter.html',
         search_form=SearchForm(),
         results=[],
         choices=Department.choices(),
@@ -88,7 +88,7 @@ def filter(department_id):
     ))
 
     return render_template(
-        'wexplorer/filter.html',
+        'scout/filter.html',
         search_form=SearchForm(),
         results=results,
         pagination=pagination,
@@ -137,11 +137,11 @@ def search():
         if args.get('contract_type') == '__None':
             del args['contract_type']
 
-        return redirect(url_for('wexplorer.search', **args))
+        return redirect(url_for('scout.search', **args))
 
     department = request.args.get('department')
     if department and department not in ['', 'None']:
-        return redirect(url_for('wexplorer.filter', department=department))
+        return redirect(url_for('scout.filter', department=department))
 
     search_form = SearchForm()
     search_for = request.args.get('q') or ''
@@ -209,7 +209,7 @@ def search():
     user_follows = [] if current_user.is_anonymous() else current_user.get_following()
 
     return render_template(
-        'wexplorer/search.html',
+        'scout/search.html',
         current_user=current_user,
         user_follows=user_follows,
         search_for=search_for,
@@ -223,7 +223,7 @@ def search():
     )
 
 @blueprint.route('/companies/<int:company_id>')
-@wrap_form(SearchForm, 'search_form', 'wexplorer/company.html')
+@wrap_form(SearchForm, 'search_form', 'scout/company.html')
 def company(company_id):
     company = Company.query.get(company_id)
 
@@ -239,7 +239,7 @@ def company(company_id):
     abort(404)
 
 @blueprint.route('/contracts/<int:contract_id>', methods=['GET', 'POST'])
-@wrap_form(SearchForm, 'search_form', 'wexplorer/contract.html')
+@wrap_form(SearchForm, 'search_form', 'scout/contract.html')
 def contract(contract_id):
     '''Contract profile page
     '''
@@ -256,7 +256,7 @@ def contract(contract_id):
             )
             db.session.add(new_note)
             db.session.commit()
-            return redirect(url_for('wexplorer.contract', contract_id=contract_id))
+            return redirect(url_for('scout.contract', contract_id=contract_id))
 
         notes = ContractNote.query.filter(
             ContractNote.contract_id == contract_id,
@@ -308,7 +308,7 @@ def feedback_handler(contract_id=None, search_for=None):
                 subject='Scout contract feedback - ID: {id}, Description: {description}'.format(
                     id=contract.id if contract.id else 'N/A',
                     description=contract.description
-                ), html_template='wexplorer/feedback_email.html',
+                ), html_template='scout/feedback_email.html',
                 contract=contract, sender=form.data.get('sender'),
                 body=form.data.get('body')
             ).send()
@@ -319,11 +319,11 @@ def feedback_handler(contract_id=None, search_for=None):
                 flash('Oh no! Something went wrong. We are looking into it.', 'alert-danger')
 
             if contract.id:
-                return redirect(url_for('wexplorer.contract', contract_id=contract.id))
-            return redirect(url_for('wexplorer.explore'))
+                return redirect(url_for('scout.contract', contract_id=contract.id))
+            return redirect(url_for('scout.explore'))
 
         return render_template(
-            'wexplorer/feedback.html',
+            'scout/feedback.html',
             search_form=search_form,
             contract=contract,
             choices=Department.choices(),
@@ -346,7 +346,7 @@ def subscribe(contract_id):
     '''Subscribes a user to receive updates about a particular contract
     '''
     contract = ContractBase.query.get(contract_id)
-    next_url = request.args.get('next', '/wexplorer')
+    next_url = request.args.get('next', '/scout')
 
     if contract:
         message = contract.add_follower(current_user)
@@ -373,7 +373,7 @@ def unsubscribe(contract_id):
     '''Unsubscribes a user from receiving updates about a particular contract
     '''
     contract = ContractBase.query.get(contract_id)
-    next_url = request.args.get('next', '/wexplorer')
+    next_url = request.args.get('next', '/scout')
 
     if contract:
         message = contract.remove_follower(current_user)

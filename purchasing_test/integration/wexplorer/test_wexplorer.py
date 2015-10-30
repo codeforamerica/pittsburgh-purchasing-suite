@@ -11,11 +11,11 @@ from purchasing_test.factories import DepartmentFactory
 
 from purchasing.data.contracts import ContractBase, LineItem, ContractNote
 
-class TestWexplorer(BaseTestCase):
+class Testscout(BaseTestCase):
     render_templates = True
 
     def setUp(self):
-        super(TestWexplorer, self).setUp()
+        super(Testscout, self).setUp()
         # insert departments
         self.department1 = DepartmentFactory()
 
@@ -186,7 +186,7 @@ class TestWexplorer(BaseTestCase):
         '''Test scout contract feedback mechanism
         '''
         self.assert200(self.client.get('/scout/contracts/{}/feedback'.format(self.contract1.id)))
-        self.assert_template_used('wexplorer/feedback.html')
+        self.assert_template_used('scout/feedback.html')
 
         self.assert404(self.client.get('/scout/contracts/1000/feedback'))
 
@@ -197,7 +197,7 @@ class TestWexplorer(BaseTestCase):
 
         self.assert200(bad_post)
         # correct template
-        self.assert_template_used('wexplorer/feedback.html')
+        self.assert_template_used('scout/feedback.html')
         # two alerts
         self.assertTrue(bad_post.data.count('alert-danger'), 2)
         # feedback is required

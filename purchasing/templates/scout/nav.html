@@ -1,12 +1,12 @@
 {% extends "includes/nav.html" %}
 
-{% block brandhref %}{{ url_for('wexplorer.explore') }}{% endblock %}
+{% block brandhref %}{{ url_for('scout.explore') }}{% endblock %}
 
 {% block brand %}<img class="nav-logo" src="{{ url_for('static', filename='img/scout_logo_binoculars.png') }}"><strong>Scout</strong>{% endblock %}
 
 {% block applinks %}
 <li>
-  <form id="search-box" method="POST" class="form navbar-form" action="{{ url_for('wexplorer.search') }}" role="search">
+  <form id="search-box" method="POST" class="form navbar-form" action="{{ url_for('scout.search') }}" role="search">
     <div class="form-group">
       {{ search_form.q(placeholder="I'm looking for...", class_="form-control") }}
     </div>
@@ -19,7 +19,7 @@
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Browse a Department <span class="caret"></span></a>
   <ul class="dropdown-menu" role="menu">
     {% for choice in choices %}
-    <li><a href="{{ url_for('wexplorer.filter', department_id=choice[0]) }}">{{ choice[1] }}</a></li>
+    <li><a href="{{ url_for('scout.filter', department_id=choice[0]) }}">{{ choice[1] }}</a></li>
     {% endfor %}
   </ul>
   {% endif %}

@@ -4,7 +4,6 @@ import time
 import datetime
 
 from itertools import groupby, ifilter
-from flask_login import current_user
 
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref

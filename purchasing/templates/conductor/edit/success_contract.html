@@ -16,7 +16,7 @@
       </div>
       <div class="col-md-4">
         <ul>
-          <li>View it <a href="{{ url_for('wexplorer.contract', contract_id=_contract.id) }}">on Scout.</a></li>
+          <li>View it <a href="{{ url_for('scout.contract', contract_id=_contract.id) }}">on Scout.</a></li>
           <li>Edit it <a href="{{ url_for('contract.edit_view', id=_contract.id) }}">in the Admin.</a></li>
         </ul>
       </div>
@@ -24,7 +24,7 @@
         Companies:
         <ul>
         {% for company in _contract.companies %}
-          <li><a href="{{ url_for('wexplorer.company', company_id=company.id) }}">{{ company.company_name }}</a></li>
+          <li><a href="{{ url_for('scout.company', company_id=company.id) }}">{{ company.company_name }}</a></li>
         {% endfor %}
         </ul>
       </div>

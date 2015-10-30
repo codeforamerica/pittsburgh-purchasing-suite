@@ -56,8 +56,8 @@
         <tbody>
           {% for contract in user.contracts_following %}
             <tr>
-              <td><a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">{{ contract.description }}</a></td>
-              <td><a class="btn btn-danger btn-sm" href="{{ url_for('wexplorer.unsubscribe', contract_id=contract.id, next=thispage()) }}">Unsubscribe</a></td>
+              <td><a href="{{ url_for('scout.contract', contract_id=contract.id) }}">{{ contract.description }}</a></td>
+              <td><a class="btn btn-danger btn-sm" href="{{ url_for('scout.unsubscribe', contract_id=contract.id, next=thispage()) }}">Unsubscribe</a></td>
             </tr>
           {% endfor %}
         </tbody>

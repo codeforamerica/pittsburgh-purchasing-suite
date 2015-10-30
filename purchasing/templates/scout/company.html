@@ -1,4 +1,4 @@
-{% extends 'wexplorer/layout.html' %}
+{% extends 'scout/layout.html' %}
 {% block content %}
 
 {{ super() }}
@@ -8,7 +8,7 @@
 
     <div class="col-md-12">
 
-      <div class="well wexplorer-well">
+      <div class="well scout-well">
         <div class="row">
         <div class="col-md-9">
           <h3><strong>{{ company.company_name|title }}</strong></h3>
@@ -20,10 +20,10 @@
         </div>
         {% if company.contacts.count() > 0 %}
           <div class="col-md-3">
-            <p class="wexplorer-column-header">Primary Contact</p>
+            <p class="scout-column-header">Primary Contact</p>
             <ul class="list-unstyled">
               {% set contact = company.contacts[0] %}
-              {% include "wexplorer/company_contact.html" %}
+              {% include "scout/company_contact.html" %}
             </ul>
           </div>
         {% endif %}
@@ -33,10 +33,10 @@
       <div class="row row-well-padding">
         {% if company.contacts.count() > 1 %}
         <div class="col-md-6">
-          <p class="wexplorer-column-header">Additional Contact Information</p>
+          <p class="scout-column-header">Additional Contact Information</p>
           <ul class="list-unstyled">
             {% for contact in company.contacts[1:] %}
-              {% include "wexplorer/company_contact.html" %}
+              {% include "scout/company_contact.html" %}
               {% if not loop.last %}<hr>{% endif %}
             {% endfor %}
           </ul>
@@ -44,11 +44,11 @@
         {% endif %}
 
         <div class="col-md-6">
-          <p class="wexplorer-column-header">Contracts</p>
+          <p class="scout-column-header">Contracts</p>
           <ul>
           {% for contract in company.contracts %}
             <li>
-              <a href="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">{{ contract.description|title }}</a>
+              <a href="{{ url_for('scout.contract', contract_id=contract.id) }}">{{ contract.description|title }}</a>
             </li>
           {% endfor %}
           </ul>

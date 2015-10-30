@@ -3,7 +3,7 @@
 from flask import Blueprint
 
 blueprint = Blueprint(
-    'wexplorer', __name__, url_prefix='/scout',
+    'scout', __name__, url_prefix='/scout',
     template_folder='../templates'
 )
 

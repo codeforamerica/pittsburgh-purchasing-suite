@@ -1,5 +1,6 @@
 Beacon
-=======================================================
+======
+
 
 Models
 ------
@@ -11,4 +12,4 @@ Views
 -----
 
 .. autoflask:: purchasing.app:create_app()
-    :blueprints: opportunities
+    :blueprints: opportunities, opportunities_admin

@@ -54,7 +54,7 @@ node_modules/
 css
 common.js
 opportunities.js
-wexplorer.js
+scout.js
 conductor.js
 admin.js
 html5shiv.js

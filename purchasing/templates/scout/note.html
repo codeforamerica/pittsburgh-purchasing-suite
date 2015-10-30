@@ -1,7 +1,7 @@
 {% import 'macros/with_errors.html' as macros %}
 
 {% if notes|length > 0 %}
-<p class="wexplorer-column-header">Your Notes about this Contract</p>
+<p class="scout-column-header">Your Notes about this Contract</p>
 
 <div>
   <ul>
@@ -15,7 +15,7 @@
 {% endif %}
 
 {% if not current_user.is_anonymous() %}
-<form method="POST" action="{{ url_for('wexplorer.contract', contract_id=contract.id) }}">
+<form method="POST" action="{{ url_for('scout.contract', contract_id=contract.id) }}">
   {{ note_form.csrf_token() }}
 
   {% if 'user' in note_form.errors %}
@@ -25,7 +25,7 @@
   </div>
   {% endif %}
 
-  <p class="wexplorer-column-header">Add a Note</p>
+  <p class="scout-column-header">Add a Note</p>
 
   <div class="form-group">
     {{ macros.with_errors(note_form.note, class_="form-control") }}
