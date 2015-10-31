@@ -120,9 +120,9 @@ def search():
 
     .. seealso ::
         * :py:mod:`purchasing.data.searches` for more on the search query
-        * :py:class:`purchasing.scout.forms.SearchForm` for the search form construction
-        * :py:func:`purchasing.scout.util.build_filter` for how filters are built
-        * :py:func:`purchasing.scout.util.build_cases` for how case statements are built
+        * :py:class:`~purchasing.scout.forms.SearchForm` for the search form construction
+        * :py:func:`~purchasing.scout.util.build_filter` for how filters are built
+        * :py:func:`~purchasing.scout.util.build_cases` for how case statements are built
     '''
     if request.method == 'POST':
         args = request.form.to_dict()
@@ -210,7 +210,7 @@ def search():
 def company(company_id):
     '''Company profile page
 
-    :param contract_id: Unique ID for a :py:class:`purchasing.data.company.Company` object
+    :param contract_id: Unique ID for a :py:class:`~purchasing.data.companies.Company` object
     :status 200: Renders the company profile template
     :status 404: Unique company ID not found
     '''
@@ -235,7 +235,7 @@ def contract(contract_id):
     For GET requests, render the profile page. For POSTs,
     try to submit a new note.
 
-    :param contract_id: Unique ID for a :py:class:`purchasing.data.contracts.ContractBase` object
+    :param contract_id: Unique ID for a :py:class:`~purchasing.data.contracts.ContractBase` object
     :status 200: Renders the contract profile template
     :status 302: Try to post note, then redirect to the same page's contract view
     :status 404: Unique contract ID not found
@@ -295,7 +295,7 @@ def feedback(contract_id):
     :param contract_id: Unique ID for a :py:class:`purchasing.data.contracts.ContractBase` object
 
     .. seealso ::
-        :py:mod:`purchasing.scout.util.feedback_handler` for information on how
+        :py:mod:`~purchasing.scout.util.feedback_handler` for information on how
         the feedback is processed and handled
     '''
     contract = ContractBase.query.get(contract_id)
@@ -308,7 +308,7 @@ def feedback(contract_id):
 def subscribe(contract_id):
     '''Subscribes a user to receive updates about a particular contract
 
-    :param contract_id: Unique ID for a :py:class:`purchasing.data.contracts.ContractBase` object
+    :param contract_id: Unique ID for a :py:class:`~purchasing.data.contracts.ContractBase` object
     '''
     contract = ContractBase.query.get(contract_id)
     next_url = request.args.get('next', '/scout')
@@ -337,7 +337,7 @@ def subscribe(contract_id):
 def unsubscribe(contract_id):
     '''Unsubscribes a user from receiving updates about a particular contract
 
-    :param contract_id: Unique ID for a :py:class:`purchasing.data.contracts.ContractBase` object
+    :param contract_id: Unique ID for a :py:class:`~purchasing.data.contracts.ContractBase` object
     '''
     contract = ContractBase.query.get(contract_id)
     next_url = request.args.get('next', '/scout')

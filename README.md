@@ -14,7 +14,7 @@ Core Pittsburgh Purchasing Suite features are in alpha, with other features in d
 | Feature | Status |
 |---------|--------|
 | **Scout** - a tool to look up contracts | [Alpha Deployed](https://www.buildpgh.com/scout) |
-| **Atlas** - a tool to explore the procurement process | [Alpha Deployed](https://www.buildpgh.com/sherpa) |
+| **Atlas** - a tool to explore the procurement process | Deprecated |
 | **Beacon** - a tool to be notified about new opportunities | [Alpha Deployed](https://www.buildpgh.com/beacon) |
 | **Conductor** - a tool for managing contracts & contract renewal | [Alpha Deployed](https://www.buildpgh.com/conductor) (required login) |
 
@@ -42,7 +42,7 @@ psql -c 'create database purchasing;'
 # your virtualenv, using a tool like autoenv or by modifying your activate script
 export ADMIN_EMAIL='youremail@someplace.net'
 export CONFIG=purchasing.settings.DevConfig
-# this next command will do all installs, add tables to the database, 
+# this next command will do all installs, add tables to the database,
 # and insert seed data (note that this needs an internet connection to
 # scrape data from Allegheny County)
 make setup
@@ -194,6 +194,10 @@ from inside the root directory. For more coverage information, run
 ```bash
 PYTHONPATH=. nosetests purchasing_test/ -v --with-coverage --cover-package=purchasing_test --cover-erase
 ```
+
+#### Documentation
+
+Technical documentation for the Pittsburgh Purchasing suite is available on [Read the Docs](http://pittsburgh-purchasing.readthedocs.org/). To build the docs, make sure you have the development dependencies installed. Then you can use the `make doc` command to build the docs from source.
 
 ## License
 See [LICENSE.md](https://github.com/codeforamerica/pittsburgh-purchasing-suite/blob/master/LICENSE.md).

@@ -14,4 +14,4 @@ Views
 -----
 
 .. autoflask:: purchasing.app:create_app()
-   :blueprints: public, user
+   :blueprints: public, users

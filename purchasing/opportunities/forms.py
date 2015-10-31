@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re
-import datetime
 import json
 import pytz
 
@@ -20,102 +18,54 @@ from wtforms.validators import (
 )
 from wtforms.ext.sqlalchemy.fields import QuerySelectField, QuerySelectMultipleField
 
-from purchasing.opportunities.models import Vendor, Category, RequiredBidDocument
+from purchasing.opportunities.models import Category, RequiredBidDocument
 
 from purchasing.utils import RequiredIf
-from purchasing.users.models import User, Department
+from purchasing.users.models import Department
 from purchasing.data.contracts import ContractType
-from purchasing.opportunities.util import parse_contact
+from purchasing.opportunities.util import parse_contact, select_multi_checkbox
+from purchasing.opportunities.validators import (
+    email_present, city_domain_email, max_words,
+    after_today, validate_phone_number
+)
 
 from purchasing.utils import connect_to_s3, _get_aggressive_cache_headers
 
-ALL_INTEGERS = re.compile('[^\d.]')
-DOMAINS = re.compile('@[\w.]+')
-
-def build_label_tooltip(name, description, href):
-    return '''
-    {} <i
-        class="fa fa-question-circle"
-        aria-hidden="true" data-toggle="tooltip"
-        data-placement="right" title="{}">
-    </i>'''.format(name, description)
-
-def select_multi_checkbox(field, ul_class='', **kwargs):
-    '''Custom multi-select widget for vendor documents needed
-
-    Renders with tooltips describing each document
-    '''
-    kwargs.setdefault('type', 'checkbox')
-    field_id = kwargs.pop('id', field.id)
-    html = [u'<div %s>' % widgets.html_params(id=field_id, class_=ul_class)]
-    for value, label, _ in field.iter_choices():
-        name, description, href = label
-        choice_id = u'%s-%s' % (field_id, value)
-        options = dict(kwargs, name=field.name, value=value, id=choice_id)
-        if int(value) in field.data:
-            options['checked'] = 'checked'
-        html.append(u'<div class="checkbox">')
-        html.append(u'<input %s /> ' % widgets.html_params(**options))
-        html.append(u'<label for="%s">%s</label>' % (choice_id, build_label_tooltip(name, description, href)))
-        html.append(u'</div>')
-    html.append(u'</div>')
-    return u''.join(html)
-
-def email_present(form, field):
-    '''Checks that we have a vendor with that email address
-    '''
-    if field.data:
-        vendor = Vendor.query.filter(Vendor.email == field.data).first()
-        if vendor is None:
-            raise ValidationError("We can't find the email {}!".format(field.data))
-
-def city_domain_email(form, field):
-    '''Checks that the email is a current user or a city domain
-    '''
-    if field.data:
-        user = User.query.filter(User.email == field.data).first()
-        if user is None:
-            domain = re.search(DOMAINS, field.data)
-            if domain and domain.group().lstrip('@') != current_app.config.get('CITY_DOMAIN'):
-                raise ValidationError("That's not a valid contact!")
-
-def max_words(max=500):
-    message = 'Text cannot be more than {} words! You had {} words.'
-
-    def _max_words(form, field):
-        l = field.data and len(field.data.split()) or 0
-        if l > max:
-            raise ValidationError(message.format(max, l))
-
-    return _max_words
-
-def after_today(form, field):
-    if isinstance(field.data, datetime.datetime):
-        to_test = field.data.date()
-    elif isinstance(field.data, datetime.date):
-        to_test = field.data
-    else:
-        raise ValidationError('This must be a date')
-
-    if to_test <= datetime.date.today():
-        raise ValidationError('The deadline has to be after today!')
-
 class MultiCheckboxField(fields.SelectMultipleField):
-    '''Custom multiple select that displays a list of checkboxes
+    '''Custom multiple select field that displays a list of checkboxes
 
-    We have a custom pre_validate to handle cases where a
-    user has choices from multiple categories. This will insert
-    those selected choices into the CHOICES on the class, allowing
+    We have a custom ``pre_validate`` to handle cases where a
+    user has choices from multiple categories.
     the validation to pass.
+
+    :var widget: wtforms
+        `ListWidget <http://wtforms.readthedocs.org/en/latest/widgets.html#wtforms.widgets.ListWidget>`_
+    :var option_widget: wtforms
+        `CheckboxInput <http://wtforms.readthedocs.org/en/latest/widgets.html#wtforms.widgets.CheckboxInput>`_
     '''
     widget = widgets.ListWidget(prefix_label=False)
     option_widget = widgets.CheckboxInput()
 
     def pre_validate(self, form):
+        '''Automatically passes
+
+        We override pre-validate to allow the form to use
+        dynamically created CHOICES.
+
+        .. seealso:: :py:class:`~purchasing.opportunities.models.Category`,
+            :py:class:`~purchasing.opportunities.forms.CategoryForm`
+        '''
         pass
 
 class DynamicSelectField(fields.SelectField):
+    '''Custom dynamic select field
+    '''
     def pre_validate(self, form):
+        '''Ensure we have at least one Category and they all correctly typed
+
+        .. seealso::
+            * :py:class:`~purchasing.opportunities.models.Category`
+        '''
         if len(self.data) == 0:
             raise ValidationError('You must select at least one!')
             return False
@@ -128,32 +78,70 @@ class DynamicSelectField(fields.SelectField):
                 return False
         return True
 
-def validate_phone_number(form, field):
-    '''Strips out non-integer characters, checks that it is 10-digits
-    '''
-    if field.data:
-        value = re.sub(ALL_INTEGERS, '', field.data)
-        if len(value) != 10 and len(value) != 0:
-            raise ValidationError('Invalid 10-digit phone number!')
-
 class CategoryForm(Form):
+    '''Base form for anything involving Beacon categories
+
+    "Categories" and "Subcategories" are originally derived from NIGP codes.
+    NIGP codes can be somewhat hard to parse and aren't updated incredibly
+    regularly, especially when it comes to things like IT services and software.
+    Therefore, we took time to devise our own descriptions of things that map back
+    to NIGP codes. The category form is the UI representation of that mapping. Each
+    detailed "subcategory" has a parent "category" to which it belongs. Users
+    select the "parent" category they are interested in, and a series of checkboxes
+    are presented to them. This raises some interesting challenges for validation,
+    which are handled in the ``process`` method.
+
+    .. seealso::
+
+        :py:func:`~purchasing.opportunities.util.select_multi_checkbox`
+            widget used to generate the UI components through jinja templates.
+
+        :py:class:`~purchasing.opportunities.models.Category`
+            base object that is used to build the CategoryForm.
+
+    :var subcategories: A :py:class:`~purchasing.opportunities.forms.MultiCheckboxField`
+    :var categories: A :py:class:`~purchasing.opportunities.forms.DynamicSelectField`
+    '''
+
     subcategories = MultiCheckboxField(coerce=int, choices=[])
     categories = DynamicSelectField(choices=[])
 
     def get_categories(self):
+        '''Getter for the form's parent categories
+        '''
         return self._categories
 
     def get_subcategories(self):
+        '''Getter for the form's subcategories
+        '''
         return self._subcategories
 
     def pop_categories(self, categories=True, subcategories=True):
+        '''Pop categories and/or subcategories off of the Form's ``data`` attribute
+
+        In order to prevent wtforms from throwing ValidationErrors improperly, we
+        need to modify some of the internal form data. This method allows us to pop
+        off the categories or subcategories of the form data as necessary.
+
+        :param categories: Pop categories from form's data if True
+        :param subcategories: Pop subcategories from form's data if True
+        :return: Modified form data with categories and/or subcategories removed as necessary
+        '''
         cleaned_data = self.data
         cleaned_data.pop('categories') if categories else None
         cleaned_data.pop('subcategories') if subcategories else None
         return cleaned_data
 
     def build_categories(self, all_categories):
-        '''Build category/subcategory lists/dictionaries
+        '''Build form's category and subcategory choices
+
+        For our :py:func:`~purchasing.opportunities.util.select_multi_checkbox`, we need to give
+        both top-level choices for the select field and individual level subcategories.
+        This method creates those and modifies the form in-place to build the appropriate choices
+
+        :param all_categories: A list of :py:class:`~purchasing.opportunities.models.Category` objects
+        :return: A dictionary with top-level parent category names as keys and
+            list of that parent's subcategories as values.
         '''
         categories, subcategories = set(), defaultdict(list)
         for category in all_categories:
@@ -168,6 +156,15 @@ class CategoryForm(Form):
         return subcategories
 
     def display_cleanup(self, all_categories=None):
+        '''Clean up form's data for display purposes:
+
+        1. Constructs and modifies the form's ``categories`` and ``subcategories``
+        2. Creates the template-used subcatgories and display categories
+        3. Removed the ``Select All`` choice from the available categories
+
+        :param all_categories: A list of :py:class`~purchasing.opportunities.models.Category` objects,
+            or None. If None, defaults to all Categories.
+        '''
         all_categories = all_categories if all_categories else Category.query.all()
         subcategories = self.build_categories(all_categories)
         self._subcategories = json.dumps(subcategories)
@@ -178,6 +175,15 @@ class CategoryForm(Form):
         self._categories = json.dumps(sorted(display_categories))
 
     def process(self, formdata=None, obj=None, data=None, **kwargs):
+        '''Process the form and append data to the ``categories``
+
+        Manually iterates through the flask Request.form, appending valid
+        Categories to the form's ``categories`` data
+
+        .. seealso::
+            For more information about parameters, see the `Wtforms base form
+            <http://wtforms.readthedocs.org/en/latest/forms.html#wtforms.form.BaseForm.process>`_
+        '''
         super(CategoryForm, self).process(formdata, obj, data, **kwargs)
 
         self.categories.data = obj.categories if obj and hasattr(obj, 'categories') else set()
@@ -199,6 +205,27 @@ class CategoryForm(Form):
                     self.categories.data.add(subcat)
 
 class VendorSignupForm(CategoryForm):
+    '''Signup form vendors use to sign up for Beacon updates
+
+    The goal here is to lower the barrier to signing up by as much as possible,
+    making it as easy as possible to sign up. This means that very little of this
+    information is required. This form is an implementation of the CategoryForm,
+    which means that it processes categories and subcategories in addition to the
+    below fields.
+
+    :var business_name: Name of business, required
+    :var email: Email address of vendor signing up, required, must be unique
+    :var first_name: First name of vendor, optional
+    :var last_name: Last name of vendor, optional
+    :var phone_number: Phone number of vendor, optional
+    :var fax_number: Fax number of vendor, optional
+    :var woman_owned: Whether the business is woman owned, optional
+    :var minority_owned: Whether the business is minority owned, optional
+    :var veteran_owned: Whether the business is veteran owned, optional
+    :var disadvantaged_owned: Whether the business is disadvantaged owned, optional
+    :var subscribed_to_newsletter: Boolean flag for whether a business
+        is signed up to the receive the newsletter
+    '''
     business_name = fields.TextField(validators=[DataRequired()])
     email = fields.TextField(validators=[DataRequired(), Email()])
     first_name = fields.TextField()
@@ -215,11 +242,28 @@ class VendorSignupForm(CategoryForm):
     )
 
 class OpportunitySignupForm(Form):
+    '''Signup form vendors can use for individual opportunities
+
+    :var business_name: Name of business, required
+    :var email: Email address of vendor signing up, required, must be unique
+    :var also_categories: Flag for whether or not a business should be signed up
+        to receive updates about opportunities with the same categories as this one
+    '''
     business_name = fields.TextField(validators=[DataRequired()])
     email = fields.TextField(validators=[DataRequired(), Email()])
     also_categories = fields.BooleanField()
 
 class UnsubscribeForm(Form):
+    '''Subscription management form, where Vendors can unsubscribe from all different emails
+
+    :var email: Email address of vendor signing up, required
+    :var categories: A multicheckbox of all categories the Vendor
+        is signed up to receive emails about
+    :var opportunities: A multicheckbox of all opportunities the Vendor
+        is signed up to receive emails about
+    :var subscribed_to_newsletter: A flag for whether or not the Vendor should receive
+        the biweekly update newsletter
+    '''
     email = fields.TextField(validators=[DataRequired(), Email(), email_present])
     categories = MultiCheckboxField(coerce=int)
     opportunities = MultiCheckboxField(coerce=int)
@@ -229,6 +273,11 @@ class UnsubscribeForm(Form):
     )
 
 class OpportunityDocumentForm(NoCSRFForm):
+    '''Document subform for the main :py:class:`~purchasing.opportunities.forms.OpportunityForm`
+
+    :var title: Name of document to be uploaded
+    :var document: Actual document file that should be uploaded
+    '''
     title = fields.TextField(label='Document Name', validators=[RequiredIf('document')])
     document = FileField('Document', validators=[FileAllowed(
         ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
@@ -237,6 +286,12 @@ class OpportunityDocumentForm(NoCSRFForm):
     )
 
     def upload_document(self, _id):
+        '''Take the document and filename and either upload it to S3 or the local uploads folder
+
+        :param _id: The id of the :py:class:`~purchasing.opportunities.models.Opportunity`
+            the document will be attached to
+        :return: A two-tuple of (the document name, the document filepath/url)
+        '''
         if self.document.data is None or self.document.data == '':
             return None, None
 
@@ -271,6 +326,36 @@ class OpportunityDocumentForm(NoCSRFForm):
             return _filename, filepath
 
 class OpportunityForm(CategoryForm):
+    '''Form to create and edit individual opportunities
+
+    This form is an implementation of the CategoryForm,
+    which means that it processes categories and subcategories in addition to the
+    below fields.
+
+    :var department: link to :py:class:`~purchasing.users.models.Department`
+        that is primarily responsible for administering the RFP, required
+    :var opportunity_type: link to :py:class:`~purchasing.data.contracts.ContractType` objects
+        that have the ``allow_opportunities`` field set to True
+    :var contact_email: Email address of the opportunity's point of contact for questions
+    :var title: Title of the opportunity, required
+    :var description: 500 or less word description of the opportunity, required
+    :var planned_publish: Date when the opportunity should be made public on Beacon
+    :var planned_submission_start: Date when the opportunity opens to accept responses
+    :var planned_submission_end: Date when the opportunity closes and no longer
+        accepts submissions
+    :var vendor_documents_needed: A multicheckbox for all documents that a vendor
+        might need to respond to this opportunity.
+    :var documents: A list of :py:class:`~purchasing.opportunities.forms.OpportunityDocumentForm`
+        fields.
+
+    .. seealso::
+        * :py:class:`~purchasing.data.contracts.ContractType`
+            The ContractType model informs the construction of the "How to Bid"
+            section in the template
+
+        * :py:class:`~purchasing.opportunities.models.Opportunity`
+            The base model that powers the form.
+    '''
     department = QuerySelectField(
         query_factory=Department.query_factory,
         get_pk=lambda i: i.id,
@@ -300,6 +385,15 @@ class OpportunityForm(CategoryForm):
     documents = fields.FieldList(fields.FormField(OpportunityDocumentForm), min_entries=1)
 
     def display_cleanup(self, opportunity=None):
+        '''Cleans up data for display in the form
+
+        1. Builds the choices for the ``vendor_documents_needed``
+        2. Formats the contact email for the form
+        3. Localizes the ``planned_submission_end`` time
+
+        :param opportunity: A :py:class:`purchasing.opportunities.model.Opportunity` object
+            or None.
+        '''
         self.vendor_documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
         if opportunity and not self.contact_email.data:
             self.contact_email.data = opportunity.contact.email
@@ -312,6 +406,16 @@ class OpportunityForm(CategoryForm):
         super(OpportunityForm, self).display_cleanup()
 
     def data_cleanup(self):
+        '''Cleans up form data for processing and storage
+
+        1. Pops off categories
+        2. Pops off documents (they are handled separately)
+        3. Sets the foreign keys Opportunity model relationships
+
+        :returns: An ``opportunity_data`` dictionary, which can be used to
+            instantiate or modify an :py:class:`~purchasing.opportunities.model.Opportunity`
+            instance
+        '''
         opportunity_data = self.pop_categories(categories=False)
         opportunity_data.pop('documents')
 
@@ -321,6 +425,10 @@ class OpportunityForm(CategoryForm):
         return opportunity_data
 
     def process(self, formdata=None, obj=None, data=None, **kwargs):
+        '''Processes category data and localizes ``planned_submission_end`` times
+
+        .. seealso:: :py:meth:`purchasing.opportunities.forms.CategoryForm.process`
+        '''
         super(OpportunityForm, self).process(formdata, obj, data, **kwargs)
         if self.planned_submission_end.data and formdata:
             self.planned_submission_end.data = current_app.config['DISPLAY_TIMEZONE'].localize(
