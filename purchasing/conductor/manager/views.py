@@ -504,7 +504,12 @@ def edit_company_contacts(contract_id):
     if contract and session.get('contract-{}'.format(contract_id)) is not None and session.get('companies-{}'.format(contract_id)) is not None:
         form = CompanyContactListForm()
 
-        companies = json.loads(session['companies-{}'.format(contract_id)])
+        # pull out companies from session, order them by financial id
+        # so that they can be grouped appropriately
+        companies = sorted(
+            json.loads(session['companies-{}'.format(contract_id)]),
+            key=lambda x: x.get('financial_id')
+        )
 
         if form.validate_on_submit():
             main_contract = contract

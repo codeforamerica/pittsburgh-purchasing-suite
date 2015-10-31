@@ -776,14 +776,14 @@ class TestConductor(TestConductorSetup):
                 ('companies-0-company_name', u''),
                 ('companies-0-controller_number', u''),
                 ('companies-0-new_company_name', u'foobar'),
+                ('companies-2-new_company_controller_number', u'5678'),
+                ('companies-2-company_name', u''),
+                ('companies-2-controller_number', u''),
+                ('companies-2-new_company_name', u'foobar3'),
                 ('companies-1-new_company_controller_number', u'1234'),
                 ('companies-1-company_name', u''),
                 ('companies-1-controller_number', u''),
                 ('companies-1-new_company_name', u'foobar2'),
-                ('companies-2-new_company_controller_number', u'5678'),
-                ('companies-2-company_name', u''),
-                ('companies-2-controller_number', u''),
-                ('companies-2-new_company_name', u'foobar3')
             ]))
 
             c.post('/conductor/contract/{}/edit/contacts'.format(assign.id), data=ImmutableMultiDict([
