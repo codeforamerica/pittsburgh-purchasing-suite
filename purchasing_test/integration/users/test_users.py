@@ -20,9 +20,6 @@ class TestUserAuth(BaseTestCase):
         self.department1 = DepartmentFactory.create(name='Test').save()
 
     def test_login_route(self):
-        '''
-        Test the login route works properly
-        '''
         request = self.client.get('/users/login')
         self.assert200(request)
         self.assert_template_used('users/login.html')
@@ -30,17 +27,11 @@ class TestUserAuth(BaseTestCase):
         self.assertTrue(self.get_context_variable('current_user').is_anonymous())
 
     def test_thispage(self):
-        '''
-        Test the thispage utility properly populates
-        '''
         request = self.client.get('/about', follow_redirects=True)
         self.assertTrue('?next=%2Fabout%2F' in request.data)
 
     @patch('urllib2.urlopen')
     def test_auth_persona_failure(self, urlopen):
-        '''
-        Test that we reject when persona throws bad statuses to us
-        '''
         mock_open = Mock()
         mock_open.read.side_effect = ['{"status": "error"}']
         urlopen.return_value = mock_open
@@ -53,9 +44,6 @@ class TestUserAuth(BaseTestCase):
 
     @patch('urllib2.urlopen')
     def test_auth_no_user(self, urlopen):
-        '''
-        Test that we reject bad email addresses
-        '''
         mock_open = Mock()
         mock_open.read.side_effect = ['{"status": "okay", "email": "not_a_valid_email"}']
         urlopen.return_value = mock_open
@@ -68,9 +56,6 @@ class TestUserAuth(BaseTestCase):
 
     @patch('urllib2.urlopen')
     def test_auth_success(self, urlopen):
-        '''
-        Test that we properly login users
-        '''
         mock_open = Mock()
         mock_open.read.side_effect = [
             '{"status": "okay", "email": "' + self.email + '"}',
@@ -89,8 +74,6 @@ class TestUserAuth(BaseTestCase):
 
     @patch('urllib2.urlopen')
     def test_new_user_success(self, urlopen):
-        '''Test that we properly register and onboard new users with a city domain
-        '''
         # insert all of our roles
         insert_a_role('superadmin')
         insert_a_role('admin')
@@ -146,10 +129,6 @@ class TestUserAuth(BaseTestCase):
 
     @patch('urllib2.urlopen')
     def test_logout(self, urlopen):
-        '''
-        Test that we can logout properly
-        '''
-
         login_user(User.query.all()[0])
 
         logout = self.client.get('/users/logout', follow_redirects=True)

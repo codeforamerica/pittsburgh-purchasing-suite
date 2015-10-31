@@ -21,8 +21,9 @@ from purchasing.filters import better_title
 from purchasing.users.models import Department, User
 from purchasing.data.flows import Flow
 from purchasing.data.companies import get_all_companies_query
+from purchasing.data.contracts import ContractType
 
-from purchasing.opportunities.forms import OpportunityForm
+from purchasing.opportunities.forms import OpportunityForm, city_domain_email
 from purchasing.utils import RequiredIf, RequiredOne, RequiredNotBoth
 
 EMAIL_REGEX = re.compile(r'^.+@([^.@][^@]+)$', re.IGNORECASE)
@@ -136,7 +137,7 @@ class SendUpdateForm(Form):
     attachments = FieldList(FormField(AttachmentForm), min_entries=1)
 
 class PostOpportunityForm(OpportunityForm):
-    pass
+    contact_email = TextField(validators=[Email(), city_domain_email, Optional()])
 
 class NoteForm(Form):
     '''Adds a note to the contract stage view

@@ -17,8 +17,6 @@ class TestPublic(BaseTestCase):
         self.staff = insert_a_user(email='foo2@foo.com', role=self.staff_role_id)
 
     def test_public(self):
-        '''Make sure that all of the public pages work as expected
-        '''
         public_viewer = self.client.get('/')
         self.assert200(public_viewer)
         self.assertTrue('<i class="fa fa-train fa-stack-1x fa-body-bg"></i>' not in public_viewer.data)

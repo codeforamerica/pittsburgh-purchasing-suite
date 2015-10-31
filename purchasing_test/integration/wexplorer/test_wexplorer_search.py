@@ -72,9 +72,6 @@ class TestscoutSearch(BaseTestCase):
         db.get_engine(self.app).dispose()
 
     def test_search(self):
-        '''Check searches return properly: descriptions, names, properties, line items, financial ids
-        '''
-
         db.session.execute('''
             REFRESH MATERIALIZED VIEW CONCURRENTLY search_view
         ''')

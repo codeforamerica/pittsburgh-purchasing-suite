@@ -34,6 +34,8 @@ class Config(object):
     BROKER_POOL_LIMIT = None
     SERVER_NAME = os_env.get('BROWSERID_URL')
     DISPLAY_TIMEZONE = pytz.timezone(os_env.get('DISPLAY_TIMEZONE', 'US/Eastern'))
+    CONDUCTOR_TYPE = 'County'
+    CONDUCTOR_DEPARTMENT = 'Multiple Departments'
 
 class ProdConfig(Config):
     """Production configuration."""

@@ -52,8 +52,6 @@ class TestUploadBase(BaseTestCase):
 
 class TestCostarsUpload(TestUploadBase):
     def test_page_locked(self):
-        '''Test page won't render for people without proper roles
-        '''
         # test that you can't access upload page unless you are signed in with proper role
         self.assertEqual(self.client.get('/conductor/upload/costars').status_code, 302)
         self.assert_flashes('This feature is for city staff only. If you are staff, log in with your pittsburghpa.gov email using the link to the upper right.', 'alert-warning')
@@ -63,8 +61,6 @@ class TestCostarsUpload(TestUploadBase):
             self.assert200(self.client.get('/conductor/upload/costars'))
 
     def test_upload_locked(self):
-        '''Test upload doesn't work without proper role
-        '''
         test_file = self.create_file('costars-99.csv', 'text/csv')
         upload_csv = self.client.post('/conductor/upload/costars', data=dict(upload=test_file))
         self.assertEqual(upload_csv.status_code, 302)
@@ -77,8 +73,6 @@ class TestCostarsUpload(TestUploadBase):
             self.assertTrue(req.data.count('Upload processing...'), 1)
 
     def test_upload_validation(self):
-        '''Test that only csv's can be uploaded
-        '''
         self.login_user(self.conductor)
 
         txt_file = self.create_file('test.txt', 'text/plain')
@@ -90,8 +84,6 @@ class TestCostarsUpload(TestUploadBase):
         self.assertEquals(upload_csv.location, 'http://localhost/conductor/upload/costars/processing')
 
     def test_upload_success(self):
-        '''Test that file upload works and updates database
-        '''
         self.login_user(self.conductor)
         costars_filepath = current_app.config.get('PROJECT_ROOT') + '/purchasing_test/mock/COSTARS-1.csv'
         costars_filename = 'COSTARS-1.csv'
@@ -142,21 +134,15 @@ class TestCostarsContractUpload(TestUploadBase):
         super(TestCostarsContractUpload, self).tearDown()
 
     def test_app_locked(self):
-        '''Test that the views are gated
-        '''
         self.assertEquals(self.client.get('/conductor/upload/costars/contracts').status_code, 302)
         self.assertEquals(self.client.post('/conductor/upload/costars/contracts').status_code, 302)
 
     def test_contract_upload_view(self):
-        '''Test the upload contract views work as expected
-        '''
         self.login_user(self.admin)
         self.assert200(self.client.get('/conductor/upload/costars/contracts'))
         self.assertEquals(len(self.get_context_variable('contracts')), 3)
 
     def test_contract_upload(self):
-        '''Test that uploading contracts work as expected
-        '''
         self.login_user(self.admin)
         test_file = self.create_file('test.pdf', 'application/pdf')
         self.client.post(

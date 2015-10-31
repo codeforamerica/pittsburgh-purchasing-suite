@@ -23,12 +23,6 @@
       </div><!-- department -->
 
       <div class="form-group">
-        <label for="contact_email" class="control-label">Contact Email <span class="form-required">*</span></label>
-        <p class="help-block">What is the email of the primary contact for this opportunity?</p>
-        {{ macros.with_errors(form.contact_email, class_="form-control", placeholder="ex: example@pittsburghpa.gov")}}
-      </div><!-- email -->
-
-      <div class="form-group">
         <label for="opportunity_type" class="control-label">Opportunity Type <span class="form-required">*</span></label>
         <p class="help-block">What type of opportunity is this?</p>
         {{ macros.with_errors(form.opportunity_type, class="form-control") }}
@@ -104,6 +98,7 @@
           <p class="help-block">Feel free to choose as many categories as you would like.</p>
         </div>
 
+        {% set opportunity = contract.opportunity %}
         {% include 'opportunities/_categories.html' %}
 
       </div>

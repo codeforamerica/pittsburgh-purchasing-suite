@@ -13,6 +13,19 @@
     </div>
   </div>
 
+  {% if opportunity and opportunity.categories|length > 0 %}
+  <div class="form-group">
+    <div class="col-sm-12">
+      <label>Currently Assigned Categories:</label>
+      <ul>
+        {% for category in opportunity.categories %}
+        <li>{{ category.category_friendly_name }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
   <div class="form-group">
     <div class="col-sm-12">
       {{ macros.with_errors(form.categories, class_="form-control col-sm-12 js-category-select", id="category-0") }}

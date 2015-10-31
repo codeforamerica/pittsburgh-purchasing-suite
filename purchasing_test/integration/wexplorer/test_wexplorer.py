@@ -44,8 +44,6 @@ class Testscout(BaseTestCase):
         )
 
     def test_explore(self):
-        '''Ensure explore endpoint works as expected
-        '''
         request = self.client.get('/scout/')
         # test the request processes correctly
         self.assert200(request)
@@ -53,8 +51,6 @@ class Testscout(BaseTestCase):
         self.assertTrue(self.get_context_variable('search_form') is not None)
 
     def test_companies(self):
-        '''Test that the companies page works as expected, including throwing 404s where appropriate
-        '''
         request = self.client.get('/scout/companies/{}'.format(self.company1.id))
         # test that this works
         self.assert200(request)
@@ -66,8 +62,6 @@ class Testscout(BaseTestCase):
         self.assert404(self.client.get('/scout/companies/999'))
 
     def test_contracts(self):
-        '''Test that the contracts page works as expected, including throwing 404s where appropriate
-        '''
         request = self.client.get('/scout/contracts/{}'.format(self.contract1.id))
         self.assert200(request)
         # test that we have the wrapped form and the company object
@@ -78,8 +72,6 @@ class Testscout(BaseTestCase):
         self.assert404(self.client.get('/scout/contracts/999'))
 
     def test_subscribe(self):
-        '''Test all possible combinations of subscribing to a contract
-        '''
         # test that you can't subscribe to a contract unless you are signed in
         request = self.client.get('/scout/contracts/{}/subscribe'.format(self.contract1.id))
         self.assertEquals(request.status_code, 302)
@@ -101,8 +93,6 @@ class Testscout(BaseTestCase):
         self.assert404(self.client.get('/scout/contracts/999/subscribe'))
 
     def test_unsubscribe(self):
-        '''Test ability to unsubscribe from a contract
-        '''
         # test that you can't subscribe to a contract unless you are signed in
         request = self.client.get('/scout/contracts/{}/unsubscribe'.format(self.contract1.id))
         self.assertEquals(request.status_code, 302)
@@ -129,8 +119,6 @@ class Testscout(BaseTestCase):
         self.assert404(self.client.get('/scout/contracts/999/unsubscribe'))
 
     def test_department_filter(self):
-        '''Test that filter page works properly and shows the error where appropriate
-        '''
         self.login_user(self.admin_user)
         # assert it works with no subscriptions
         self.assert200(self.client.get('/scout/filter/{}'.format(self.admin_user.department_id)))
@@ -157,8 +145,6 @@ class Testscout(BaseTestCase):
         self.assertEquals(request.status_code, 404)
 
     def test_notes(self):
-        '''Test taking notes on scout
-        '''
         # assert you can't take a note on a contract
         self.assertEquals(ContractNote.query.count(), 0)
         self.client.post('/scout/contracts/{}'.format(self.contract1.id), data=dict(note='test', user=current_user.id))
@@ -183,8 +169,6 @@ class Testscout(BaseTestCase):
         self.assertTrue('NOTENOTENOTE' not in no_note_two.data)
 
     def test_feedback(self):
-        '''Test scout contract feedback mechanism
-        '''
         self.assert200(self.client.get('/scout/contracts/{}/feedback'.format(self.contract1.id)))
         self.assert_template_used('scout/feedback.html')
 

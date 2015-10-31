@@ -13,9 +13,6 @@ class TestSherpa(BaseTestCase):
         self.user = insert_a_user(email=self.email, role=self.staff_role)
 
     def test_sherpa(self):
-        '''
-        Checks that Sherpa endpoints return 200 success codes use correct templates.
-        '''
         self.login_user(self.user)
 
         for rule in current_app.url_map.iter_rules():
