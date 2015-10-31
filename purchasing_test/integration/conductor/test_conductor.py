@@ -543,20 +543,6 @@ class TestConductor(TestConductorSetup):
             self.assertTrue(len(outbox[1].cc), 2)
             self.assertTrue(len(outbox[1].recipients), 1)
 
-    def test_conductor_post_to_beacon_validation(self):
-        assign = self.assign_contract()
-
-        detail_view_url = self.build_detail_view(assign)
-
-        bad1 = self.client.post(detail_view_url + '?form=post', data=dict(contact_email='foo'))
-        self.assertTrue('Invalid email address.' in bad1.data)
-
-        bad2 = self.client.post(detail_view_url + '?form=post', data=dict(contact_email='foo@BADDOMAIN.com'))
-        self.assertTrue('not a valid contact!' in bad2.data)
-
-        self.assertEquals(Opportunity.query.count(), 0)
-        self.assertEquals(ContractStageActionItem.query.count(), 1)
-
     def test_conductor_post_to_beacon(self):
         assign = self.assign_contract()
 
