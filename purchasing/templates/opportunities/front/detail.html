@@ -35,7 +35,11 @@
             <p class="help-block">
             <strong>Tags:</strong>
             {% for category in opportunity.categories %}
-              {% if loop.index <= 3 %}{{ category.category_friendly_name }};{% endif %}
+              {% if loop.index <= 3 %}
+                {{ category.category_friendly_name }}
+                {% if opportunity.categories|length > 3 or not loop.last %};
+                {% endif %}
+              {% endif %}
             {% endfor %}
             {% if opportunity.categories|length > 3 %} and {{ opportunity.categories|length - 3 }} more{% endif %}
             </p>
@@ -147,8 +151,12 @@
         {% endfor %}
 
         <h3><strong>Have a question?</strong></h3>
-        <div class="">
+        <div>
+          {% if opportunity.contact.email %}
           <p>We'd be happy to answer it! Send it in to {% if opportunity.contact.first_name and opportunity.contact.last_name %}{{ opportunity.contact.first_name }} {{ opportunity.contact.last_name }} at {% endif %} <a href="mailto:{{ opportunity.contact.email }}">{{ opportunity.contact.email }}</a>.{% if opportunity.has_docs %}</p><p> Please refer to the timeline section of the opportunity documents to see when the question &amp; answer period opens and closes.{% endif %}</p>
+          {% else %}
+            <p>Please visit the <a href="http://www.govbids.com/scripts/PAPG/public/home1.asp" target="_blank">Pennyslvania Purchasing Group</a> site to look up this opportunity. Instructions for sending in a question can be found on the IFB document uploaded there. </p>
+          {% endif %}
         </div>
 
       </div>
