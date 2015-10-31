@@ -169,8 +169,8 @@ def detail(contract_id, stage_id=-1):
     metadata_form = ContractMetadataForm(obj=ContractMetadataObj(contract))
     complete_form = CompleteForm()
 
-    if session.get('invalid_date', False):
-        complete_form.errors['complete'] = session.pop('invalid_date')
+    if session.get('invalid_date-{}'.format(contract_id), False):
+        complete_form.errors['complete'] = session.pop('invalid_date-{}'.format(contract_id))
 
     forms = {
         'activity': note_form, 'update': update_form,
@@ -269,7 +269,7 @@ def transition(contract_id, stage_id):
 
         return redirect(url)
 
-    session['invalid_date'] = complete_form.errors['complete'][0]
+    session['invalid_date-{}'.format(contract_id)] = complete_form.errors['complete'][0]
     return redirect(url_for('conductor.detail', contract_id=contract.id))
 
 @blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/extend')
@@ -294,7 +294,7 @@ def extend(contract_id, stage_id):
         'alert-warning'
     )
 
-    session['extend'] = True
+    session['extend-{}'.format(contract.parent.id)] = True
     return redirect(url_for(
         'conductor.edit', contract_id=contract.parent.id
     ))
@@ -451,16 +451,16 @@ def edit(contract_id):
     completed_last_stage = contract.completed_last_stage()
 
     # clear the contract/companies from our session
-    session.pop('contract', None)
-    session.pop('companies', None)
+    session.pop('contract-{}'.format(contract_id), None)
+    session.pop('companies-{}'.format(contract_id), None)
 
-    extend = session.get('extend', None)
+    extend = session.get('extend-{}'.format(contract_id), None)
 
     if contract and completed_last_stage or extend:
         form = EditContractForm(obj=contract)
         if form.validate_on_submit():
             if not extend:
-                session['contract'] = json.dumps(form.data, default=json_serial)
+                session['contract-{}'.format(contract_id)] = json.dumps(form.data, default=json_serial)
                 return redirect(url_for('conductor.edit_company', contract_id=contract.id))
             else:
                 # if there is no flow, that means that it is an extended contract
@@ -469,7 +469,7 @@ def edit(contract_id):
                 current_app.logger.info('CONDUCTOR CONTRACT COMPLETE - contract metadata for "{}" updated'.format(
                     contract.description
                 ))
-                session.pop('extend')
+                session.pop('extend-{}'.format(contract_id))
                 return redirect(url_for('conductor.index'))
         form.spec_number.data = contract.get_spec_number().value
         return render_template('conductor/edit/edit.html', form=form, contract=contract)
@@ -482,17 +482,17 @@ def edit(contract_id):
 def edit_company(contract_id):
     contract = ContractBase.query.get(contract_id)
 
-    if contract and session.get('contract') is not None:
+    if contract and session.get('contract-{}'.format(contract_id)) is not None:
         form = CompanyListForm()
         if form.validate_on_submit():
             cleaned = parse_companies(form.data)
-            session['companies'] = json.dumps(cleaned, default=json_serial)
+            session['companies-{}'.format(contract_id)] = json.dumps(cleaned, default=json_serial)
             current_app.logger.info('CONDUCTOR CONTRACT COMPLETE - awarded companies for contract "{}" assigned'.format(
                 contract.description
             ))
             return redirect(url_for('conductor.edit_company_contacts', contract_id=contract.id))
         return render_template('conductor/edit/edit_company.html', form=form, contract=contract)
-    elif session.get('contract') is None:
+    elif session.get('contract-{}'.format(contract_id)) is None:
         return redirect(url_for('conductor.edit', contract_id=contract_id))
     abort(404)
 
@@ -501,15 +501,15 @@ def edit_company(contract_id):
 def edit_company_contacts(contract_id):
     contract = ContractBase.query.get(contract_id)
 
-    if contract and session.get('contract') is not None and session.get('companies') is not None:
+    if contract and session.get('contract-{}'.format(contract_id)) is not None and session.get('companies-{}'.format(contract_id)) is not None:
         form = CompanyContactListForm()
 
-        companies = json.loads(session['companies'])
-        contract_data = json.loads(session['contract'])
+        companies = json.loads(session['companies-{}'.format(contract_id)])
 
         if form.validate_on_submit():
             main_contract = contract
             for ix, _company in enumerate(companies):
+                contract_data = json.loads(session['contract-{}'.format(contract_id)])
                 # because multiple companies can have the same name, don't use
                 # get_or_create because it can create multiples
                 if _company.get('company_id') > 0:
@@ -527,7 +527,8 @@ def edit_company_contacts(contract_id):
                     pass
 
                 contract_data['financial_id'] = _company['financial_id']
-                if ix == 0:
+
+                if contract.financial_id is None or contract.financial_id == _company['financial_id']:
                     contract.update_with_spec_number(contract_data, company=company)
                 else:
                     contract = ContractBase.clone(contract, parent_id=contract.parent_id, strip=False)
@@ -545,9 +546,9 @@ def edit_company_contacts(contract_id):
                 contract=main_contract
             ).send(multi=True)
 
-            session.pop('contract')
-            session.pop('companies')
-            session['success'] = True
+            session.pop('contract-{}'.format(contract_id))
+            session.pop('companies-{}'.format(contract_id))
+            session['success-{}'.format(contract_id)] = True
 
             current_app.logger.info('''
 CONDUCTOR CONTRACT COMPLETE - company contacts for contract "{}" assigned. |New contract(s) successfully created'''.format(
@@ -567,16 +568,16 @@ CONDUCTOR CONTRACT COMPLETE - company contacts for contract "{}" assigned. |New 
             'conductor/edit/edit_company_contacts.html', form=form, contract=contract,
             companies=companies
         )
-    elif session.get('contract') is None:
+    elif session.get('contract-{}'.format(contract_id)) is None:
         return redirect(url_for('conductor.edit', contract_id=contract_id))
-    elif session.get('companies') is None:
+    elif session.get('companies-{}'.format(contract_id)) is None:
         return redirect(url_for('conductor.edit_company', contract_id=contract_id))
     abort(404)
 
 @blueprint.route('/contract/<int:contract_id>/edit/success', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def success(contract_id):
-    if session.pop('success', None):
+    if session.pop('success-{}'.format(contract_id), None):
         contract = ContractBase.query.get(contract_id)
         return render_template('conductor/edit/success.html', contract=contract)
     return redirect(url_for('conductor.edit_company_contacts', contract_id=contract_id))

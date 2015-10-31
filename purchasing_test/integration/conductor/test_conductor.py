@@ -630,7 +630,7 @@ class TestConductor(TestConductorSetup):
                 description='foo'
             ))
 
-            self.assertTrue(session['contract'] is not None)
+            self.assertTrue(session['contract-{}'.format(assign.id)] is not None)
 
             self.assert200(c.get('/conductor/contract/{}/edit/company'.format(assign.id)))
 
@@ -641,7 +641,7 @@ class TestConductor(TestConductorSetup):
                 ('companies-0-new_company_name', u'test')
             ]))
 
-            self.assertTrue(session['companies'] is not None)
+            self.assertTrue(session['companies-{}'.format(assign.id)] is not None)
             self.assert200(c.get('/conductor/contract/{}/edit/contacts'.format(assign.id)))
 
     def test_edit_contract_form_validators(self):
@@ -657,7 +657,7 @@ class TestConductor(TestConductorSetup):
                 expiration_date=datetime.date(2020, 1, 1), spec_number='abcd',
                 description='foo'
             ))
-            self.assertTrue('companies' not in session.keys())
+            self.assertTrue('companies-{}'.format(assign.id) not in session.keys())
 
             # assert you can't set both controller numbers
             c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
@@ -666,7 +666,7 @@ class TestConductor(TestConductorSetup):
                 ('companies-0-controller_number', u'1234'),
                 ('companies-0-new_company_name', u'')
             ]))
-            self.assertTrue('companies' not in session.keys())
+            self.assertTrue('companies-{}'.format(assign.id) not in session.keys())
 
             # assert you can't set both company names
             c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
@@ -675,7 +675,7 @@ class TestConductor(TestConductorSetup):
                 ('companies-0-controller_number', u''),
                 ('companies-0-new_company_name', u'foobar')
             ]))
-            self.assertTrue('companies' not in session.keys())
+            self.assertTrue('companies-{}'.format(assign.id) not in session.keys())
 
             # assert you can't set mismatched names/numbers
             c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
@@ -684,7 +684,7 @@ class TestConductor(TestConductorSetup):
                 ('companies-0-controller_number', u'1234'),
                 ('companies-0-new_company_name', u'foobar')
             ]))
-            self.assertTrue('companies' not in session.keys())
+            self.assertTrue('companies-{}'.format(assign.id) not in session.keys())
 
             # assert new works
             c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
@@ -693,8 +693,8 @@ class TestConductor(TestConductorSetup):
                 ('companies-0-controller_number', u''),
                 ('companies-0-new_company_name', u'foobar')
             ]))
-            self.assertTrue(session['companies'] is not None)
-            session.pop('companies')
+            self.assertTrue(session['companies-{}'.format(assign.id)] is not None)
+            session.pop('companies-{}'.format(assign.id))
 
             # assert old works
             c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
@@ -703,8 +703,8 @@ class TestConductor(TestConductorSetup):
                 ('companies-0-controller_number', u'1234'),
                 ('companies-0-new_company_name', u'')
             ]))
-            self.assertTrue(session['companies'] is not None)
-            session.pop('companies')
+            self.assertTrue(session['companies-{}'.format(assign.id)] is not None)
+            session.pop('companies-{}'.format(assign.id))
 
             # assert multiple companies work
             c.post('conductor/contract/{}/edit/company'.format(assign.id), data=ImmutableMultiDict([
@@ -718,8 +718,8 @@ class TestConductor(TestConductorSetup):
                 ('companies-1-new_company_name', u'foobar2')
             ]))
 
-            self.assertTrue(session['companies'] is not None)
-            session.pop('companies')
+            self.assertTrue(session['companies-{}'.format(assign.id)] is not None)
+            session.pop('companies-{}'.format(assign.id))
 
     def test_actual_contract_completion(self):
         with self.client as c:
@@ -779,7 +779,11 @@ class TestConductor(TestConductorSetup):
                 ('companies-1-new_company_controller_number', u'1234'),
                 ('companies-1-company_name', u''),
                 ('companies-1-controller_number', u''),
-                ('companies-1-new_company_name', u'foobar2')
+                ('companies-1-new_company_name', u'foobar2'),
+                ('companies-2-new_company_controller_number', u'5678'),
+                ('companies-2-company_name', u''),
+                ('companies-2-controller_number', u''),
+                ('companies-2-new_company_name', u'foobar3')
             ]))
 
             c.post('/conductor/contract/{}/edit/contacts'.format(assign.id), data=ImmutableMultiDict([
@@ -791,7 +795,10 @@ class TestConductor(TestConductorSetup):
                 ('companies-1-contacts-0-last_name', 'bar'),
                 ('companies-1-contacts-0-phone_number', '123-456-7890'),
                 ('companies-1-contacts-0-email', 'foo@foo.com'),
-
+                ('companies-2-contacts-0-first_name', 'foo'),
+                ('companies-2-contacts-0-last_name', 'bar'),
+                ('companies-2-contacts-0-phone_number', '123-456-7890'),
+                ('companies-2-contacts-0-email', 'foo@foo.com'),
             ]))
 
             # we should create two new contract objects
@@ -808,6 +815,8 @@ class TestConductor(TestConductorSetup):
                 self.assertEquals(child.description, 'foo')
                 self.assertEquals(child.parent.description, 'scuba supplies [Archived]')
                 self.assertEquals(assign.assigned, child.assigned)
+                if child.financial_id == 1234:
+                    self.assertEquals(len(child.companies), 2)
 
     def test_contract_extension(self):
         assign = self.assign_contract()

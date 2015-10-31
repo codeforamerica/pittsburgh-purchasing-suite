@@ -113,8 +113,6 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
         self.update(**data)
 
-        return spec_number
-
     def build_complete_action_log(self):
         '''Returns the complete action log for this contract
         '''
