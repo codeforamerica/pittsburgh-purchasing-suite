@@ -10,7 +10,9 @@ from flask import flash, request, url_for, current_app
 from flask_login import current_user
 
 from purchasing.compat import basestring
-from jinja2 import evalcontextfilter, Markup, escape
+from jinja2 import evalcontextfilter, Markup
+
+from purchasing.users.models import User
 
 # modified from https://gist.github.com/bsmithgall/372de43205804a2279c9
 SMALL_WORDS = re.compile(r'^(a|an|and|as|at|but|by|en|etc|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$', re.I)
@@ -134,6 +136,9 @@ def datetimeformat(date, fmt='%Y-%m-%d', to_date=True):
             date = date.date()
 
     return date.strftime(fmt)
+
+def print_user_name(user_id):
+    return User.query.get(user_id).print_pretty_name()
 
 def localize(date):
     return pytz.UTC.localize(date).astimezone(current_app.config['DISPLAY_TIMEZONE'])
