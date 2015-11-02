@@ -2,6 +2,6 @@
   {%- if action.taken_by == user.id %}
     You
   {%- else %}
-    {{ action.taken_by_user.print_pretty_name() }}
+    {{ action.taken_by|print_user_name }}
   {%- endif %}
 {% endmacro %}
