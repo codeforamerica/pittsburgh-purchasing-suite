@@ -6,6 +6,7 @@ from flask.ext.login import login_user
 from purchasing_test.test_base import BaseTestCase
 from purchasing_test.util import insert_a_user, insert_a_role
 from purchasing.users.models import User
+from purchasing.public.models import AcceptedEmailDomains
 from purchasing_test.factories import DepartmentFactory
 
 class TestUserAuth(BaseTestCase):
@@ -16,6 +17,7 @@ class TestUserAuth(BaseTestCase):
         self.email = 'foo@foo.com'
         user = insert_a_user(email=self.email)
         user.save()
+        AcceptedEmailDomains.create(domain='foo.com')
         DepartmentFactory.create(name='New User').save()
         self.department1 = DepartmentFactory.create(name='Test').save()
 
