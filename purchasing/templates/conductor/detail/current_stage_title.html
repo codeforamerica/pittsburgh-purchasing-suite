@@ -48,6 +48,9 @@
     <h3 class="stage-title"><strong>{{ current_stage.name }}</strong></h3>
     <span class="text-muted">
       Current stage.
+      {% if active_stage.stage_id == contract.get_first_stage().stage_id %}<br />
+      You are on the first stage. <a href="{{ url_for('conductor.start_work', contract_id=contract.id) }}">Modify contract start work time.</a>
+      {% endif %}
     </span>
   </div>
   <div class="col-md-5">

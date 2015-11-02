@@ -113,8 +113,6 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
         self.update(**data)
 
-        return spec_number
-
     def build_complete_action_log(self):
         '''Returns the complete action log for this contract
         '''
@@ -148,6 +146,20 @@ class ContractBase(RefreshSearchViewMixin, Model):
             ContractStage.stage_id == self.current_stage_id,
             ContractStage.flow_id == self.flow_id
         ).first()
+
+    def get_first_stage(self):
+        '''Get the first :ref:`contract-stages` for this contract
+
+        :return: `contract-stages` object representing the first stage, or
+        None if no stage exists
+        '''
+        if self.flow:
+            return ContractStage.query.filter(
+                ContractStage.contract_id == self.id,
+                ContractStage.stage_id == self.flow.stage_order[0],
+                ContractStage.flow_id == self.flow_id
+            ).first()
+        return None
 
     def completed_last_stage(self):
         '''Boolean to check if we have completed the last stage of our flow
