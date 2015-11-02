@@ -1,5 +1,5 @@
-Jobs and Notifications
-======================
+Other Components
+================
 
 Notifications
 -------------
@@ -7,8 +7,14 @@ Notifications
 .. automodule:: purchasing.notifications
     :members:
 
-Night Jobs
-----------
+Nightly Jobs
+------------
 
 .. automodule:: purchasing.jobs.job_base
     :members:
+
+Admin
+-----
+
+Persona
+-------

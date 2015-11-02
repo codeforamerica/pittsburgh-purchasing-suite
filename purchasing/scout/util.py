@@ -88,7 +88,7 @@ def build_cases(req_args, fields, search_for, _all):
 def feedback_handler(contract, search_for=None):
     '''Allow user to send feedback on the data present in a specific contract
 
-    :param contract: :py:class:`purchasing.data.ContractBase` object
+    :param contract: :py:class:`~purchasing.data.contracts.ContractBase` object
     :param search_for: search term or None.
 
     :return:

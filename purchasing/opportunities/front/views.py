@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import json
 import datetime
 
 from flask import (
@@ -15,6 +14,7 @@ from purchasing.opportunities.forms import UnsubscribeForm, VendorSignupForm, Op
 from purchasing.opportunities.models import Category, Opportunity, Vendor
 
 from purchasing.opportunities.front import blueprint
+from purchasing.opportunities.util import init_form, signup_for_opp
 
 from purchasing.users.models import User, Role
 
@@ -185,88 +185,6 @@ def manage():
         vendor=vendor if vendor else Vendor()
     )
 
-class SignupData(object):
-    def __init__(self, email, business_name):
-        self.email = email
-        self.business_name = business_name
-
-def init_form(form, model=None):
-    if model:
-        return form(obj=model)
-    else:
-        data = SignupData(session.get('email'), session.get('business_name'))
-        return form(obj=data)
-
-def signup_for_opp(form, user, opportunity, multi=False):
-    send_email = True
-    email_opportunities = []
-    if opportunity is None or (isinstance(opportunity, list) and len(opportunity) == 0):
-        form.errors['opportunities'] = ['You must select at least one opportunity!']
-        return False
-    # add the email/business name to the session
-    session['email'] = form.data.get('email')
-    session['business_name'] = form.data.get('business_name')
-    # subscribe the vendor to the opportunity
-    vendor = Vendor.query.filter(
-        Vendor.email == form.data.get('email')
-    ).first()
-
-    if vendor is None:
-        vendor = Vendor(
-            email=form.data.get('email'),
-            business_name=form.data.get('business_name')
-        )
-        db.session.add(vendor)
-        db.session.commit()
-    else:
-        vendor.update(business_name=form.data.get('business_name'))
-
-    if multi:
-        for opp in opportunity:
-            _opp = Opportunity.query.get(int(opp))
-            if not _opp.is_public:
-                db.session.rollback()
-                form.errors['opportunities'] = ['That\'s not a valid choice.']
-                return False
-            if _opp in vendor.opportunities:
-                send_email = False
-            else:
-                vendor.opportunities.add(_opp)
-                email_opportunities.append(_opp)
-    else:
-        if opportunity in vendor.opportunities:
-            send_email = False
-        else:
-            vendor.opportunities.add(opportunity)
-            email_opportunities.append(opportunity)
-
-    if form.data.get('also_categories'):
-        # TODO -- add support for categories
-        pass
-
-    db.session.commit()
-
-    current_app.logger.info(
-        'OPPSIGNUP - Vendor has signed up for opportunities: EMAIL: {email} at BUSINESS: {bis_name} signed up for:\n' +
-        'OPPORTUNITY: {opportunities}'.format(
-            email=form.data.get('email'),
-            business_name=form.data.get('business_name'),
-            opportunities=', '.join([i.description for i in email_opportunities])
-        )
-    )
-
-    if send_email:
-        Notification(
-            to_email=vendor.email,
-            from_email=current_app.config['BEACON_SENDER'],
-            subject='Subscription confirmation from Beacon',
-            html_template='opportunities/emails/oppselected.html',
-            txt_template='opportunities/emails/oppselected.txt',
-            opportunities=email_opportunities
-        ).send()
-
-    return True
-
 @blueprint.route('/opportunities', methods=['GET', 'POST'])
 def browse():
     '''Browse available opportunities
@@ -277,7 +195,7 @@ def browse():
     if signup_form.validate_on_submit():
         opportunities = request.form.getlist('opportunity')
         if signup_for_opp(
-            signup_form, current_user, opportunity=opportunities, multi=True
+            signup_form, opportunity=opportunities, multi=True
         ):
             flash('Successfully subscribed for updates!', 'alert-success')
             return redirect(url_for('opportunities.browse'))
@@ -324,7 +242,7 @@ def detail(opportunity_id):
     if opportunity and opportunity.can_view(current_user):
         signup_form = init_form(OpportunitySignupForm)
         if signup_form.validate_on_submit():
-            signup_success = signup_for_opp(signup_form, current_user, opportunity)
+            signup_success = signup_for_opp(signup_form, opportunity)
             if signup_success:
                 flash('Successfully subscribed for updates!', 'alert-success')
                 return redirect(url_for('opportunities.detail', opportunity_id=opportunity.id))
