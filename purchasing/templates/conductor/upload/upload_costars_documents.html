@@ -1,5 +1,6 @@
 {% extends "conductor/layout.html" %}
 {% import "macros/with_errors.html" as macros %}
+{% import "macros/render_alert.html" as alert %}
 
 {% block content %}
 {{ super() }}
@@ -7,6 +8,9 @@
 <div class="container">
   <div class="row">
     <div class="col-sm-12">
+      {% if form.errors.upload %}
+      {{ alert.render_alert('alert-danger', 'Something went wrong! Make sure you are uploading a .pdf') }}
+      {% endif %}
       {% if contracts|length > 0 %}
       <table class="table">
         <thead>
@@ -23,8 +27,8 @@
             <tr>
               <td>{{ contract.description }}</td>
               <td>
-                {{ macros.with_errors(form.upload) }}
-                {{ macros.with_errors(form.contract_id, value=contract.id) }}
+                {{ form.upload }}
+                {{ form.contract_id(value=contract.id) }}
               </td>
               <td><input type="submit" class="btn btn-primary"></td>
             </tr>
