@@ -33,5 +33,7 @@
   $('.js-stage-multiform-add').on('click', function(e) {
     $(this).multiFormHandler('add');
     initUi();
+    showHideClose();
+    removeForm($('.js-multiform-stage-remove'));
   });
 })();

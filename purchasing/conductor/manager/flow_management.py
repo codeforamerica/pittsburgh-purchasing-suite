@@ -28,7 +28,7 @@ def new_flow():
 
         Flow.create(flow_name=form.flow_name.data, stage_order=stage_order)
         flash('Flow created successfully!', 'alert-success')
-        return redirect(url_for('conductor.new_flow'))
+        return redirect(url_for('conductor.flows_list'))
 
     return render_template('conductor/flows/new.html', stages=stages, form=form)
 
