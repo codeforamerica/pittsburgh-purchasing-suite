@@ -17,6 +17,15 @@ from purchasing.public.models import AcceptedEmailDomains
 
 from purchasing.users import blueprint
 
+@blueprint.route('/logout', methods=['GET', 'POST'])
+def logout():
+    logout_user()
+    if request.args.get('persona', None):
+        return 'OK'
+    else:
+        flash('Logged out successfully!', 'alert-success')
+        return render_template('users/logout.html')
+
 @blueprint.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
