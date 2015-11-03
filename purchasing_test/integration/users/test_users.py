@@ -21,13 +21,6 @@ class TestUserAuth(BaseTestCase):
         DepartmentFactory.create(name='New User').save()
         self.department1 = DepartmentFactory.create(name='Test').save()
 
-    def test_login_route(self):
-        request = self.client.get('/users/login')
-        self.assert200(request)
-        self.assert_template_used('users/login.html')
-        # test that new users are anonymous
-        self.assertTrue(self.get_context_variable('current_user').is_anonymous())
-
     def test_thispage(self):
         request = self.client.get('/about', follow_redirects=True)
         self.assertTrue('?next=%2Fabout%2F' in request.data)
