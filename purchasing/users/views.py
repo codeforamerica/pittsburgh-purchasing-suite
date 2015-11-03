@@ -17,27 +17,15 @@ from purchasing.public.models import AcceptedEmailDomains
 
 from purchasing.users import blueprint
 
-@blueprint.route("/login", methods=["GET"])
-def login():
-    return render_template("users/login.html", current_user=current_user)
-
-@blueprint.route('/logout', methods=['GET', 'POST'])
-def logout():
-    logout_user()
-    if request.args.get('persona', None):
-        return 'OK'
-    else:
-        flash('Logged out successfully!', 'alert-success')
-        return render_template('users/logout.html')
-
 @blueprint.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-
+    '''View to update user model with data passed through form after validation
+    '''
     form = DepartmentForm(obj=current_user)
 
     if form.validate_on_submit():
-        user = User.query.get(current_user.id)
+        user = current_user
         data = request.form
 
         user.first_name = data.get('first_name')
