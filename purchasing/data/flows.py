@@ -29,6 +29,10 @@ class Flow(Model):
     def all_flow_query_factory(cls):
         return cls.query
 
+    @classmethod
+    def nonarchived_query_factory(cls):
+        return cls.query.filter(cls.is_archived == False)
+
     def build_detailed_stage_order(self):
         return [Stage.query.get(i) for i in self.stage_order]
 

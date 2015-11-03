@@ -49,8 +49,11 @@ def validate_unique_name(form, field):
     '''Ensure that the name isn't an existing flow name
     '''
     if field.data:
-        if Flow.query.filter(Flow.flow_name == field.data).count() > 0:
-            raise ValidationError('That flow name already exists!')
+        if Flow.query.filter(
+            Flow.flow_name == field.data,
+            Flow.id != int(form.data.get('id', 0))
+        ).count():
+            raise ValidationError('A flow with that name already exists!')
 
 def get_default():
     return pytz.UTC.localize(

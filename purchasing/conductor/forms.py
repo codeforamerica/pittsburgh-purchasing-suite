@@ -40,7 +40,8 @@ class DynamicStageSelectField(SelectField):
         return True
 
 class FlowForm(Form):
-    flow_name = TextField(validators=[DataRequired()])
+    id = HiddenField()
+    flow_name = TextField(validators=[DataRequired(), validate_unique_name])
     is_archived = BooleanField()
 
 class NewFlowForm(Form):
@@ -69,7 +70,7 @@ class CompleteForm(Form):
 class NewContractForm(Form):
     description = TextField(validators=[DataRequired()])
     flow = QuerySelectField(
-        query_factory=Flow.all_flow_query_factory,
+        query_factory=Flow.nonarchived_query_factory,
         get_pk=lambda i: i.id,
         get_label=lambda i: i.flow_name,
         allow_blank=True, blank_text='-----'

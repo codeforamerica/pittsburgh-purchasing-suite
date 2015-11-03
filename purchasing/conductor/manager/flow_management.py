@@ -38,7 +38,7 @@ def flows_list():
     flows = Flow.query.all()
     return render_template('conductor/flows/browse.html', flows=flows)
 
-@blueprint.route('/flows/<int:flow_id>', methods=['GET', 'POST'])
+@blueprint.route('/flow/<int:flow_id>', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def flow_detail(flow_id):
     flow = Flow.query.get(flow_id)

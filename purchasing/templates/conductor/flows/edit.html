@@ -11,6 +11,8 @@
     <form class="form-horizontal" method="POST" action="{{ url_for('conductor.flow_detail', flow_id=flow.id) }}">
       {{ form.csrf_token() }}
 
+      {{ form.id(value=flow.id) }}
+
       <div class="form-group">
         <label for="flow_name" class="col-sm-2 control-label">Name</label>
         <div class="col-sm-10">
