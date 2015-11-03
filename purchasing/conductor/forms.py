@@ -6,7 +6,7 @@ import pytz
 
 from flask import current_app
 from flask_wtf import Form
-from flask_wtf.file import FileField, FileAllowed
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import Form as NoCSRFForm
 from wtforms.fields import (
     TextField, IntegerField, DateField, TextAreaField, HiddenField,
@@ -152,6 +152,7 @@ class FileUploadForm(Form):
 class ContractUploadForm(Form):
     contract_id = HiddenField('id', validators=[DataRequired()])
     upload = FileField('datafile', validators=[
+        FileRequired(),
         FileAllowed(['pdf'], message='.pdf files only')
     ])
 
