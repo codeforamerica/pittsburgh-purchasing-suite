@@ -1,0 +1,65 @@
+{% extends 'conductor/layout.html' %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+  <div class="col-md-8 col-md-offset-2">
+    <h3>Create New Flow</h3>
+
+    <form class="form form-horizontal" method="POST" action="{{ url_for('conductor.new_flow') }}">
+      {{ form.csrf_token() }}
+
+      <div class="form-group">
+        <label for="flow_name" class="col-sm-2 control-label">Name</label>
+        <div class="col-sm-10">
+          {{ macros.with_errors(form.flow_name, class_="form-control", placeholder="Your flow name") }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="flow-form" class="col-sm-2 control-label">Stages</label>
+        <div class="col-sm-10">
+        {% if 'stage_order' in form.errors %}
+        <div class="alert alert-danger alert-dismissible flashed-alert fade in" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          {{ form.errors['stage_order'][0] }}
+        </div>
+        {% endif %}
+        {% for entry in form.stage_order %}
+          <div class="js-stage-order-stage-container">
+            <div class="select2-exterior-container">
+              {{ macros.with_errors(entry, class_="js-select2 form-control") }}
+            </div>
+            <a class="js-multiform-stage-remove pull-right" disabled data-parent-elem-class="js-stage-order-stage-container">
+              <i class="fa fa-times text-muted"></i>
+            </a>
+          </div>
+        {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-10">
+          <button type="button" class="btn btn-primary js-stage-multiform-add" data-clone-class="js-stage-order-stage-container">
+            Add another stage
+          </button>
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="form-group">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-10">
+          <button type="submit" class="btn btn-success">Create new flow</button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}

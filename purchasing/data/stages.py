@@ -18,6 +18,10 @@ class Stage(Model):
     def __unicode__(self):
         return self.name
 
+    @classmethod
+    def choices_factory(cls):
+        return [(i.id, i.name) for i in cls.query.all()]
+
 class StageProperty(Model):
     __tablename__ = 'stage_property'
 

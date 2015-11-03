@@ -271,11 +271,3 @@ def assign_a_contract(contract, flow, user, start_time=None, clone=True):
         ))
 
         return contract
-
-def reshape_metrics_csv_rollup(resultset, flow_id):
-    '''Transform long data from database into rollup view for quick consumption
-
-    Take in a result set (list of tuples), and return a dictionary of key-value
-    pairs for each required field.
-    '''
-    pass

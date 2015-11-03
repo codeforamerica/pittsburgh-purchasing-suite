@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import re
 import datetime
-import pytz
 
-from flask import current_app
 from flask_wtf import Form
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import Form as NoCSRFForm
@@ -14,60 +11,42 @@ from wtforms.fields import (
 )
 from wtforms.ext.dateutil.fields import DateTimeField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
-from wtforms.validators import DataRequired, URL, Optional, ValidationError, Email, Length, Regexp
+from wtforms.validators import DataRequired, URL, Optional, Email, Length, Regexp, ValidationError
 
 from purchasing.filters import better_title
 
 from purchasing.users.models import Department, User
 from purchasing.data.flows import Flow
 from purchasing.data.companies import get_all_companies_query
-from purchasing.data.contracts import ContractType
 
 from purchasing.opportunities.forms import OpportunityForm, city_domain_email
+
 from purchasing.utils import RequiredIf, RequiredOne, RequiredNotBoth
+from purchasing.conductor.validators import (
+    validate_date, validate_integer, not_all_hidden, get_default,
+    validate_multiple_emails, STATE_ABBREV, US_PHONE_REGEX, validate_different
+)
 
-EMAIL_REGEX = re.compile(r'^.+@([^.@][^@]+)$', re.IGNORECASE)
-US_PHONE_REGEX = re.compile(r'^(\d{3})-(\d{3})-(\d{4})$')
-
-STATE_ABBREV = ('AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-                'HI', 'ID', 'IL', 'IN', 'IO', 'KS', 'KY', 'LA', 'ME', 'MD',
-                'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-                'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-                'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY')
-
-def not_all_hidden(form, field):
-    '''Makes sure that every field isn't blank
+class DynamicStageSelectField(SelectField):
+    '''Custom dynamic select field
     '''
-    if not any([v for (k, v) in form.data.items() if k != field.name]):
-        raise ValidationError('You must update at least one field!')
+    def pre_validate(self, form):
+        '''
+        '''
+        if len(self.data) == 0:
+            raise ValidationError('You must select at least one!')
+            return False
+        return True
 
-def validate_multiple_emails(form, field):
-    '''Parses a semicolon-delimited list of emails, validating each
-    '''
-    if field.data:
-        for email in field.data.split(';'):
-            if email == '':
-                continue
-            elif not re.match(EMAIL_REGEX, email):
-                raise ValidationError('One of the supplied emails is invalid!')
+class FlowForm(Form):
+    flow_name = TextField(validators=[DataRequired()])
+    stage_order = FieldList(DynamicStageSelectField(), min_entries=1, validators=[validate_different])
 
-def get_default():
-    return pytz.UTC.localize(
-        datetime.datetime.utcnow()
-    ).astimezone(current_app.config['DISPLAY_TIMEZONE'])
-
-def validate_integer(form, field):
-    if field.data:
-        try:
-            int(field.data)
-        except:
-            raise ValidationError('This must be an integer!')
-
-def validate_date(form, field):
-    if field.data:
-        utc_data = current_app.config['DISPLAY_TIMEZONE'].localize(field.data).astimezone(pytz.UTC).replace(tzinfo=None)
-        if utc_data < form.started or utc_data > form.maximum:
-            raise ValidationError("Date conflicts! Replaced with today's date.")
+    def __init__(self, stages=[], *args, **kwargs):
+        super(FlowForm, self).__init__(*args, **kwargs)
+        self.stages = stages
+        for i in self.stage_order.entries:
+            i.choices = self.stages
 
 class CompleteForm(Form):
     complete = DateTimeField(
