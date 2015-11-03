@@ -8,8 +8,8 @@ from purchasing.users.models import Department
 class DepartmentForm(Form):
     '''Allows user to update profile information
 
-    :var department: sets user department based on query displaying all departments,
-        and none value
+    :var department: sets user department based on choice of available
+        departments or none value
     :var first_name: sets first_name value based on user input
     :var last_name: sets last_name value based on user input
     '''
