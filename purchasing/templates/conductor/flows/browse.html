@@ -18,7 +18,7 @@
       {% for flow in flows %}
         <tr>
           <td><a href="{{ url_for('conductor.flow_detail', flow_id=flow.id) }}">{{ flow.flow_name }}</a></td>
-          <td>{% if flow.archived %}Archived{% else %}Active{% endif %}</td>
+          <td>{% if flow.is_archived %}Archived{% else %}Active{% endif %}</td>
         </tr>
       {% endfor %}
       </tbody>

@@ -24,7 +24,8 @@ from purchasing.opportunities.forms import OpportunityForm, city_domain_email
 from purchasing.utils import RequiredIf, RequiredOne, RequiredNotBoth
 from purchasing.conductor.validators import (
     validate_date, validate_integer, not_all_hidden, get_default,
-    validate_multiple_emails, STATE_ABBREV, US_PHONE_REGEX, validate_different
+    validate_multiple_emails, STATE_ABBREV, US_PHONE_REGEX, validate_different,
+    validate_unique_name
 )
 
 class DynamicStageSelectField(SelectField):
@@ -40,18 +41,20 @@ class DynamicStageSelectField(SelectField):
 
 class FlowForm(Form):
     flow_name = TextField(validators=[DataRequired()])
-    archive = BooleanField()
+    is_archived = BooleanField()
 
 class NewFlowForm(Form):
-    flow_name = TextField(validators=[DataRequired()])
-    stage_order = FieldList(DynamicStageSelectField(), min_entries=1, validators=[validate_different])
+    flow_name = TextField(validators=[DataRequired(), validate_unique_name])
+    stage_order = FieldList(
+        DynamicStageSelectField(), min_entries=1,
+        validators=[validate_different]
+    )
 
     def __init__(self, stages=[], *args, **kwargs):
         super(NewFlowForm, self).__init__(*args, **kwargs)
         self.stages = stages
         for i in self.stage_order.entries:
             i.choices = self.stages
-
 
 class CompleteForm(Form):
     complete = DateTimeField(

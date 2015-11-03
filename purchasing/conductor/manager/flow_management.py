@@ -38,12 +38,20 @@ def flows_list():
     flows = Flow.query.all()
     return render_template('conductor/flows/browse.html', flows=flows)
 
-@blueprint.route('/flows/<int:flow_id>')
+@blueprint.route('/flows/<int:flow_id>', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def flow_detail(flow_id):
     flow = Flow.query.get(flow_id)
     if flow:
         form = FlowForm(obj=flow)
+        if form.validate_on_submit():
+            flow.update(
+                flow_name=form.data['flow_name'],
+                is_archived=form.data['is_archived']
+            )
+
+            flash('Flow successfully updated', 'alert-success')
+            return redirect(url_for('conductor.flow_detail', flow_id=flow.id))
+
         return render_template('conductor/flows/edit.html', form=form, flow=flow)
     abort(404)
-

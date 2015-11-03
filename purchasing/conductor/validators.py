@@ -5,7 +5,10 @@ import re
 import pytz
 
 from flask import current_app
+
 from wtforms.validators import ValidationError
+
+from purchasing.data.flows import Flow
 
 EMAIL_REGEX = re.compile(r'^.+@([^.@][^@]+)$', re.IGNORECASE)
 US_PHONE_REGEX = re.compile(r'^(\d{3})-(\d{3})-(\d{4})$')
@@ -37,9 +40,17 @@ def validate_different(form, field):
     '''
     if field.data:
         if len(field.data) == len(set(field.data)):
-            pass
+            if len(field.data) == 0 or (len(field.data) == 1 and field.data[0] == 'None'):
+                raise ValidationError('You must have at least one stage!')
         else:
             raise ValidationError('You cannot have duplicate stages!')
+
+def validate_unique_name(form, field):
+    '''Ensure that the name isn't an existing flow name
+    '''
+    if field.data:
+        if Flow.query.filter(Flow.flow_name == field.data).count() > 0:
+            raise ValidationError('That flow name already exists!')
 
 def get_default():
     return pytz.UTC.localize(
