@@ -23,6 +23,7 @@ from purchasing.opportunities.models import RequiredBidDocument, Category
 from purchasing.conductor.forms import validate_integer
 from purchasing.extensions import login_manager
 from purchasing.users.models import User, Role, Department
+from purchasing.public.models import AcceptedEmailDomains
 from purchasing.opportunities.models import Opportunity
 
 GLOBAL_EXCLUDE = [
@@ -264,6 +265,9 @@ class StageAdmin(ConductorAuthMixin, BaseModelViewAdmin):
 
     form_columns = ['name', 'post_opportunities', 'default_message']
 
+class EmailDomainAdmin(AuthMixin, BaseModelViewAdmin):
+    pass
+
 class UserAdmin(AuthMixin, BaseModelViewAdmin):
     form_columns = ['email', 'first_name', 'last_name', 'department', 'role']
 
@@ -383,3 +387,4 @@ admin.add_view(CategoryAdmin(Category, db.session, name='Categories', endpoint='
 admin.add_view(UserAdmin(User, db.session, name='User', endpoint='user', category='Users'))
 admin.add_view(UserRoleAdmin(User, db.session, name='User w/Roles', endpoint='user-roles', category='Users'))
 admin.add_view(RoleAdmin(Role, db.session, endpoint='role', category='Users'))
+admin.add_view(EmailDomainAdmin(AcceptedEmailDomains, db.session, endpoint='domains', category='Users'))

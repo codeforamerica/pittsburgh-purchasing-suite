@@ -16,7 +16,6 @@ class Config(object):
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
     BROWSERID_URL = os_env.get('BROWSERID_URL')
     PER_PAGE = 50
-    CITY_DOMAIN = 'pittsburghpa.gov'
     ADMIN_EMAIL = os_env.get('ADMIN_EMAIL', 'bsmithgall@codeforamerica.org')
     MAIL_DEFAULT_SENDER = os_env.get('MAIL_DEFAULT_SENDER', 'no-reply@buildpgh.com')
     BEACON_SENDER = os_env.get('BEACON_SENDER', 'beaconbot@buildpgh.com')
@@ -87,7 +86,6 @@ class TestConfig(Config):
     WTF_CSRF_ENABLED = False  # Allows form testing
     BROWSERID_URL = 'test'
     ASSETS_DEBUG = True
-    CITY_DOMAIN = 'foo.com'
     MAIL_SUPPRESS_SEND = True
     UPLOAD_S3 = False
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'test_uploads'))

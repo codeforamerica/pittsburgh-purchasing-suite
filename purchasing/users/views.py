@@ -13,6 +13,7 @@ from flask.ext.login import current_user, login_user, logout_user, login_require
 from purchasing.database import db
 from purchasing.users.forms import DepartmentForm
 from purchasing.users.models import User, Role, Department
+from purchasing.public.models import AcceptedEmailDomains
 
 from purchasing.users import blueprint
 
@@ -84,7 +85,7 @@ def auth():
         current_app.logger.debug('LOGIN: User {} logged in successfully'.format(user.email))
         return next_url if next_url else '/'
 
-    elif domain == current_app.config.get('CITY_DOMAIN'):
+    elif AcceptedEmailDomains.valid_domain(domain):
         user = User.create(
             email=email,
             role=Role.query.filter(Role.name == 'staff').first(),

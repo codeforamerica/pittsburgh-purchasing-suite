@@ -3,11 +3,11 @@
 import re
 import datetime
 
-from flask import current_app
 from wtforms.validators import ValidationError
 
 from purchasing.opportunities.models import Vendor
 from purchasing.users.models import User
+from purchasing.public.models import AcceptedEmailDomains
 
 ALL_INTEGERS = re.compile('[^\d.]')
 DOMAINS = re.compile('@[\w.]+')
@@ -27,7 +27,7 @@ def city_domain_email(form, field):
         user = User.query.filter(User.email == field.data).first()
         if user is None:
             domain = re.search(DOMAINS, field.data)
-            if domain and domain.group().lstrip('@') != current_app.config.get('CITY_DOMAIN'):
+            if domain and AcceptedEmailDomains.valid_domain(domain.group().lstrip('@')):
                 raise ValidationError("That's not a valid contact!")
 
 def max_words(_max=500):
