@@ -7,7 +7,7 @@ from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import Form as NoCSRFForm
 from wtforms.fields import (
     TextField, IntegerField, DateField, TextAreaField, HiddenField,
-    FieldList, FormField, SelectField
+    FieldList, FormField, SelectField, BooleanField
 )
 from wtforms.ext.dateutil.fields import DateTimeField
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
@@ -40,13 +40,18 @@ class DynamicStageSelectField(SelectField):
 
 class FlowForm(Form):
     flow_name = TextField(validators=[DataRequired()])
+    archive = BooleanField()
+
+class NewFlowForm(Form):
+    flow_name = TextField(validators=[DataRequired()])
     stage_order = FieldList(DynamicStageSelectField(), min_entries=1, validators=[validate_different])
 
     def __init__(self, stages=[], *args, **kwargs):
-        super(FlowForm, self).__init__(*args, **kwargs)
+        super(NewFlowForm, self).__init__(*args, **kwargs)
         self.stages = stages
         for i in self.stage_order.entries:
             i.choices = self.stages
+
 
 class CompleteForm(Form):
     complete = DateTimeField(

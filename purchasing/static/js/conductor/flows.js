@@ -11,7 +11,9 @@
 
   function initUi() {
     $('.js-select2').select2({
-      placeholder: 'Pick one'
+      placeholder: 'Pick one',
+      tags: true,
+      multiple: false
     });
   }
 

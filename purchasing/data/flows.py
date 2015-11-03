@@ -20,6 +20,7 @@ class Flow(Model):
     flow_name = Column(db.Text, unique=True)
     contract = db.relationship('ContractBase', backref='flow', lazy='subquery')
     stage_order = Column(ARRAY(db.Integer))
+    is_archived = Column(db.Boolean, default=False, nullable=False)
 
     def __unicode__(self):
         return self.flow_name
