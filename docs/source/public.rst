@@ -1,13 +1,19 @@
 Public & users
 ==============
 
-Models
-------
+Models used
+-----------
 
 .. automodule:: purchasing.users.models
     :members:
 
 .. automodule:: purchasing.public.models
+    :members:
+
+Forms
+-----
+
+.. automodule:: purchasing.users.forms
     :members:
 
 Views
