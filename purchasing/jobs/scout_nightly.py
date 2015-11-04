@@ -10,20 +10,46 @@ from purchasing.data.contracts import ContractBase
 
 @JobBase.register
 class CountyScrapeJob(JobBase):
+    '''Nightly task to scrape the County for new line item information
+    '''
     @property
     def start_time(self):
+        '''Override default start time, kick scrape task off immediately
+        '''
         return None
 
     def run_job(self, job):
+        '''Boot up a scrape county job on a Celery worker (it can be long-running)
+        '''
         if job:
             scrape_county_task.delay(job)
 
 class ScoutJobBase(EmailJobBase):
+    '''Base class for Scout email notifications
+    '''
     @property
     def notification_props(self):
+        '''Placeholder for properties to be assigned to the Notification class.
+
+        Based on the implementation, this dictionary should include at least a
+        'subjct' and 'html_template' key.
+
+        Raises:
+            NotImplementedError
+        '''
+        raise NotImplementedError
+
+    def get_expiring_contracts(self):
+        '''Get expiring contracts. Must be implemented in subclasses
+
+        Raises:
+            NotImplementedError
+        '''
         raise NotImplementedError
 
     def build_notifications(self):
+        '''
+        '''
         notifications = []
         for contract in self.get_expiring_contracts():
             notifications.append(
@@ -38,6 +64,8 @@ class ScoutJobBase(EmailJobBase):
 
 @JobBase.register
 class ScoutContractsExpireTodayJob(ScoutJobBase):
+    '''Get all contracts that expire today and send notification reminders
+    '''
     @property
     def notification_props(self):
         return {
@@ -46,12 +74,20 @@ class ScoutContractsExpireTodayJob(ScoutJobBase):
         }
 
     def get_expiring_contracts(self):
+        '''Get all contracts expiring today
+
+        Returns:
+            List of :py:class:`~purchasing.data.contracts.ContractBase` objects
+            that expire today
+        '''
         return ContractBase.query.filter(
             ContractBase.expiration_date == datetime.date.today(),
         ).all()
 
 @JobBase.register
 class ScoutContractsExpireSoonJob(ScoutJobBase):
+    '''
+    '''
     @property
     def notification_props(self):
         return {
@@ -60,6 +96,12 @@ class ScoutContractsExpireSoonJob(ScoutJobBase):
         }
 
     def get_expiring_contracts(self):
+        '''Get all contracts expiring today
+
+        Returns:
+            List of :py:class:`~purchasing.data.contracts.ContractBase` objects
+            that expire in 120 days
+        '''
         return ContractBase.query.filter(
             ContractBase.expiration_date ==
             datetime.date.today() + datetime.timedelta(days=30),
