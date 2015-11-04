@@ -4,11 +4,12 @@ Public & users
 Models used
 -----------
 
-.. automodule:: purchasing.users.models
-    :members:
+* :py:class:`purchasing.users.models.User`
+* :py:class:`purchasing.users.models.Role`
+* :py:class:`purchasing.users.models.Department`
+* :py:class:`purchasing.public.models.AppStatus`
+* :py:class:`purchasing.public.models.AcceptedEmailDomains`
 
-.. automodule:: purchasing.public.models
-    :members:
 
 Forms
 -----

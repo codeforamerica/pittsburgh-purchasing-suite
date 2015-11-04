@@ -118,10 +118,16 @@ Users
 .. autoclass:: purchasing.users.models.Department
     :members:
 
+.. autoclass:: purchasing.users.models.AnonymousUser
+    :members:
+
 App Status
 """"""""""
 
 .. autoclass:: purchasing.public.models.AppStatus
+    :members:
+
+.. autoclass:: purchasing.public.models.AcceptedEmailDomains
     :members:
 
 Job Status
@@ -129,3 +135,5 @@ Job Status
 
 .. autoclass:: purchasing.jobs.job_base.JobStatus
     :members:
+
+.. _sqla query: http://docs.sqlalchemy.org/en/rel_1_0/orm/query.html#the-query-object

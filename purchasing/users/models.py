@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-import datetime as dt
-
 from flask.ext.login import UserMixin, AnonymousUserMixin
 
 from purchasing.database import Column, db, Model, ReferenceCol, SurrogatePK
 from sqlalchemy.orm import backref
 
 class Role(SurrogatePK, Model):
-    '''User role model
+    '''Model to handle view-based permissions
 
     :var id: primary key
     :var name: role name
@@ -23,17 +21,17 @@ class Role(SurrogatePK, Model):
 
     @classmethod
     def query_factory(cls):
-        '''Generates role query factory
+        '''Generates a query of all roles
 
-        :return: query of all roles
+        :return: `sqla query`_ of all roles
         '''
         return cls.query
 
     @classmethod
     def no_admins(cls):
-        '''Query non-admin roles
+        '''Generates a query of non-admin roles
 
-        :return: query of roles without administrative access
+        :return: `sqla query`_ of roles without administrative access
         '''
         return cls.query.filter(cls.name != 'superadmin')
 
@@ -111,8 +109,9 @@ class User(UserMixin, SurrogatePK, Model):
     def print_pretty_first_name(self):
         '''Generate abbreviated text representation of user
 
-        :return: first_name if first_name exists, <a href="https://en.wikipedia.org/wiki/Email_address#Local_part">
-            localpart</a> otherwise
+        :return: first_name if first_name exists,
+            `localpart <https://en.wikipedia.org/wiki/Email_address#Local_part>`_
+            otherwise
         '''
         if self.first_name:
             return self.first_name
@@ -123,7 +122,7 @@ class User(UserMixin, SurrogatePK, Model):
     def conductor_users_query(cls):
         '''Query users with access to conductor
 
-        :return: list of users with is_conductor value of True
+        :return: list of users with ``is_conductor`` value of True
         '''
         return [i for i in cls.query.all() if i.is_conductor()]
 
@@ -138,8 +137,6 @@ class Department(SurrogatePK, Model):
     name = Column(db.String(255), nullable=False, unique=True)
 
     def __unicode__(self):
-        '''Unicode representation of department: "name"
-        '''
         return self.name
 
     @classmethod
@@ -173,6 +170,25 @@ class Department(SurrogatePK, Model):
         return departments
 
 class AnonymousUser(AnonymousUserMixin):
+    '''Custom mixin for handling anonymous (non-logged-in) users
+
+    :var role: :py:class:`~purchasing.user.models.Role`
+        object with name set to 'anonymous'
+    :var department: :py:class:`~purchasing.user.models.Department`
+        object with name set to 'anonymous'
+    :var id: Defaults to -1
+
+    .. seealso::
+        ``AnonymousUser`` subclasses the `flask_login anonymous user mixin
+        <https://flask-login.readthedocs.org/en/latest/#anonymous-users>`_,
+        which contains a number of class and instance methods around
+        determining if users are currently logged in.
+    '''
     role = Role(name='anonymous')
     department = Department(name='anonymous')
     id = -1
+
+    def __init__(self, *args, **kwargs):
+        '''
+        '''
+        super(AnonymousUser, self).__init__(*args, **kwargs)

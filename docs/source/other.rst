@@ -10,7 +10,10 @@ Notifications
 Nightly Jobs
 ------------
 
-.. automodule:: purchasing.jobs.job_base
+.. autoclass:: purchasing.jobs.job_base.JobBase
+    :members:
+
+.. autoclass:: purchasing.jobs.job_base.EmailJobBase
     :members:
 
 Admin
