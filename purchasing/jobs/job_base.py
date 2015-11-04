@@ -151,6 +151,9 @@ class JobBase(object):
 
 class EmailJobBase(JobBase):
     '''Base job for email alerting/updating
+
+    See Also:
+        :py:class:`purchasing.notifications.Notification`
     '''
     def should_run(self):
         '''If a job is scheduled, it should always run.

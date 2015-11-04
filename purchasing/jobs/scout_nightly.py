@@ -11,6 +11,10 @@ from purchasing.data.contracts import ContractBase
 @JobBase.register
 class CountyScrapeJob(JobBase):
     '''Nightly task to scrape the County for new line item information
+
+    See Also:
+        * :py:func:`purchasing.data.importer.scrape_county.main`
+        * :py:func:`purchasing.tasks.scrape_county_task`
     '''
     @property
     def start_time(self):
@@ -26,6 +30,9 @@ class CountyScrapeJob(JobBase):
 
 class ScoutJobBase(EmailJobBase):
     '''Base class for Scout email notifications
+
+    See Also:
+        :py:class:`purchasing.notifications.Notification`
     '''
     @property
     def notification_props(self):
