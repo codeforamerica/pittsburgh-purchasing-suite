@@ -37,6 +37,7 @@ For a brief summary of our work, take a look at `our blog <http://yinzforamerica
 
     public
     models
+    importers
 
     other
 
@@ -47,4 +48,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
