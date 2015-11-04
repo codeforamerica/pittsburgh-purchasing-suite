@@ -26,6 +26,11 @@ VALID_FILENAMES = re.compile(r'^(COSTARS|costars)(-| )\d+\.csv$')
 JUNK_STRING = re.compile(r'((\, )?(LLC|llc))|(\(.+\))|((\, )?[Ii]nc\.?)|( ?d\.?b\.?a\.?)')
 
 def convert_to_bool(field):
+    '''Converts yes/no values to boolean
+
+    Returns:
+        True if field contains 'yes' or 'YES', False otherwise
+    '''
     if field == 'Yes' or field == 'yes':
         return True
     return False
