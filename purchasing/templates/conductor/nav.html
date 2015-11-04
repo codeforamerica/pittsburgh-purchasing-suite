@@ -17,6 +17,17 @@
   </ul>
 </li>
 <li><a href="{{ url_for('conductor_metrics.index') }}">Metrics</a></li>
+<li class="dropdown">
+  <a class="btn nav-dropdown-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+    Manage Flows <span class="caret"></span>
+    <span class="sr-only">Toggle dropdown</span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li><a href="{{ url_for('conductor.new_flow') }}">New Flow</a></li>
+    <li><a href="{{ url_for('conductor.flows_list') }}">Browse Flows</a></li>
+    <li><a href="{{ url_for('stage.index_view') }}">Manage Stages (Admin)</a></li>
+  </ul>
+</li>
 
 {% endblock %}
 

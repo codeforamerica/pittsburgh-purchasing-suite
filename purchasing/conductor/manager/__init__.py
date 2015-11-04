@@ -7,4 +7,4 @@ blueprint = Blueprint(
     template_folder='../templates'
 )
 
-from . import views
+from . import index, detail, complete, flow_management

@@ -20,6 +20,7 @@ class Flow(Model):
     flow_name = Column(db.Text, unique=True)
     contract = db.relationship('ContractBase', backref='flow', lazy='subquery')
     stage_order = Column(ARRAY(db.Integer))
+    is_archived = Column(db.Boolean, default=False, nullable=False)
 
     def __unicode__(self):
         return self.flow_name
@@ -27,6 +28,10 @@ class Flow(Model):
     @classmethod
     def all_flow_query_factory(cls):
         return cls.query
+
+    @classmethod
+    def nonarchived_query_factory(cls):
+        return cls.query.filter(cls.is_archived == False)
 
     def build_detailed_stage_order(self):
         return [Stage.query.get(i) for i in self.stage_order]

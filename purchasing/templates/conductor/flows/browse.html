@@ -1,0 +1,30 @@
+{% extends 'conductor/layout.html' %}
+{% import "macros/with_errors.html" as macros %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+  <div class="col-md-8 col-md-offset-2">
+    <h3>Browse Flows</h3>
+
+    <h4>Click on a flow name to see more details</h4>
+
+    <table class="table table-condensed table-striped">
+      <tbody>
+      <thead>
+        <tr><th>Name</th><th>Status</th></tr>
+      </thead>
+      {% for flow in flows %}
+        <tr>
+          <td><a href="{{ url_for('conductor.flow_detail', flow_id=flow.id) }}">{{ flow.flow_name }}</a></td>
+          <td>{% if flow.is_archived %}Archived{% else %}Active{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+{% endblock %}
