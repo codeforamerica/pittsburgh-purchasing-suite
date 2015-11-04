@@ -21,3 +21,6 @@ Admin
 
 Persona
 -------
+
+.. _FileStorage: http://werkzeug.pocoo.org/docs/0.10/datastructures/#werkzeug.datastructures.FileStorage
+.. _Message: https://pythonhosted.org/Flask-Mail/#flask_mail.Message
