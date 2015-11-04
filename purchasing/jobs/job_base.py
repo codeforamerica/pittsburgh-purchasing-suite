@@ -13,7 +13,7 @@ class JobStatus(Model):
 
     JobStatus has a primary compound key of name + date
 
-    Args:
+    Attributes:
         name: Name of the job
         date: Date the job is scheduled for
         status: String of the job status, defaults to 'new',
@@ -31,12 +31,15 @@ class JobStatus(Model):
 class JobBase(object):
     '''Base model for nightly jobs
 
-    Attributes
-        jobs:
+    Attributes:
+        jobs: jobs is a list of all jobs currently registered against the JobBase.
 
-    Arguments
-        name:
-        time_override:
+    Arguments:
+        name: the name instance variable is just the class name of the job.
+            This allows us to ensure that we only every have one copy of a
+            job scheduled per day.
+        time_override: Boolean of whether to override the ``start_time`` parameter
+            when scheduling jobs (used primarily in testing)
     '''
     def __init__(self, time_override=False):
         self.name = self.__class__.__name__
@@ -48,7 +51,7 @@ class JobBase(object):
     def register(cls, subcl):
         '''decorator to allow for explicit job registration
 
-        Example
+        Example:
             Register ``MySubJob`` as a valid job on JobBase
 
             .. code-block:: python
@@ -79,7 +82,10 @@ class JobBase(object):
 
     @property
     def job_status_model(self):
-        '''
+        '''Returns the job status model to be used for the particular job.
+
+        In production, we use the :py:class:`purchasing.jobs.job_base.JobStatus`
+        model, but in testing we can overwrite this.
         '''
         return JobStatus
 
@@ -104,7 +110,12 @@ class JobBase(object):
 
         If the time_override param is set to True, it will override the timing.
         This allows us to always run jobs from the tests or manually force a job
-        to be scheduled if necessary.
+        to be scheduled if necessary. In order to schedule a job, one of the
+        following conditions must be met:
+
+        1. ``start_time`` is none
+        2. The current time is after the ``start_time``
+        3. The ``time_override`` attribute is set to True
 
         Returns:
             If all the conditions for scheduling a job are true, a new
@@ -139,10 +150,39 @@ class JobBase(object):
         raise NotImplementedError
 
 class EmailJobBase(JobBase):
+    '''Base job for email alerting/updating
+    '''
     def should_run(self):
+        '''If a job is scheduled, it should always run.
+
+        This method can be overwritten in the child classes, but
+        in the base case, it should always run.
+
+        Returns:
+            True
+        '''
         return True
 
     def run_job(self, job):
+        '''Run the email job.
+
+        To run an email job, we do the following things:
+
+        1. Set the job status to "started"
+        2. Call the :py:func:`~purchasing.jobs.job_base.EmailJobBase.build_notifications`
+           method to get a list of notification batches to send
+        3. For each batches of notifications to send, try to send them
+        4. If at any point we fail, update the status to 'failed',
+           and provide additional information
+        5. If all notifications send successfully, update the status to 'success'
+
+        Arguments:
+            job: :py:class:`~purchasing.jobs.job_base.JobStatus` object
+
+        Returns:
+            :py:class:`~purchasing.jobs.job_base.JobStatus`: Job object, modified
+                with a new status and any appropriate messages
+        '''
         if self.should_run():
             if job:
                 success = True
@@ -163,4 +203,9 @@ class EmailJobBase(JobBase):
             return job
 
     def build_notifications(self):
+        '''Method to build Notification objects to send
+
+        Raises
+            NotImplementedError
+        '''
         raise NotImplementedError

@@ -3,6 +3,19 @@
 from purchasing.database import Column, Model, db
 
 class AppStatus(Model):
+    '''Model of current application status
+
+    Attributes:
+        id: Primary key
+        status: Current application status
+        last_updated: Datetime of the last time the status was updated
+        county_max_deadline: Datetime of the last time the county scraper
+            was updated
+        message: If the status is an error, the message will have more
+            information about the nature of the error
+        last_beacon_newsletter: Datetime of the last time a beacon
+            newsletter was sent
+    '''
     __tablename__ = 'app_status'
 
     id = Column(db.Integer, primary_key=True)
@@ -23,7 +36,7 @@ class AcceptedEmailDomains(Model):
     We also do this by restricting new user creation to people who have
     a certain set of email domains.
 
-    Arguments:
+    Attributes:
         id (int): Primary key
         domain (str): string of an acceptable domain (for example, ``pittsburghpa.gov``)
     '''

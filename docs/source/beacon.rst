@@ -59,5 +59,5 @@ Administration
 Nightly Jobs
 ------------
 
-.. automodule:: purchasing.jobs.scout_nightly
+.. automodule:: purchasing.jobs.beacon_nightly
     :members:
