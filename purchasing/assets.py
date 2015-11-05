@@ -55,6 +55,7 @@ opportunitiesjs = Bundle(
 
 scoutjs = Bundle(
     'js/scout/*.js',
+    'js/shared/extlink.js',
     filters='uglifyjs',
     output='public/js/scout.js'
 )
