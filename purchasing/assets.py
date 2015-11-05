@@ -15,13 +15,6 @@ scout_less = Bundle(
     depends=('less/*.less', 'less/**/*.less', 'less/**/**/*.less')
 )
 
-sherpa_less = Bundle(
-    'less/sherpa_main.less',
-    filters='less',
-    output='public/css/sherpa.css',
-    depends=('less/*.less', 'less/**/*.less', 'less/**/**/*.less')
-)
-
 opportunities_less = Bundle(
     'less/opportunities_main.less',
     filters='less',
@@ -114,6 +107,5 @@ assets.register('conductorjs', conductorjs)
 assets.register('css_all', less)
 assets.register('admin_less', admin_less)
 assets.register('scout_less', scout_less)
-assets.register('sherpa_less', sherpa_less)
 assets.register('opportunities_less', opportunities_less)
 assets.register('conductor_less', conductor_less)
