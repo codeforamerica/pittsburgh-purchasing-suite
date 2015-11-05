@@ -18,7 +18,6 @@ from purchasing.decorators import requires_roles
 from purchasing.utils import localize_datetime
 
 from purchasing.data.contracts import ContractBase
-from purchasing.data.stages import get_contract_stages
 from purchasing.data.flows import Flow, switch_flow
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 
@@ -60,7 +59,7 @@ def detail(contract_id, stage_id=-1):
         current_app.logger.warning('Could not find stages for this contract, aborting!')
         abort(500)
 
-    stages = get_contract_stages(contract)
+    stages = contract.get_contract_stages()
 
     try:
         active_stage = [i for i in stages if i.id == stage_id][0]

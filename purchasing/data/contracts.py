@@ -11,6 +11,7 @@ from sqlalchemy.orm import backref
 from purchasing.database import db, Model, Column, RefreshSearchViewMixin, ReferenceCol
 
 from purchasing.filters import days_from_today
+from purchasing.data.stages import Stage
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 
 contract_user_association_table = Table(
@@ -138,6 +139,22 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
         return sorted(ifilter(lambda x: hasattr(x, 'taken_at'), filtered_actions), key=lambda x: x.get_sort_key())
 
+    def get_contract_stages(self):
+        '''Returns the appropriate stages and their metadata based on a contract id
+        '''
+        return db.session.query(
+            ContractStage.contract_id, ContractStage.stage_id, ContractStage.id,
+            ContractStage.entered, ContractStage.exited, Stage.name, Stage.default_message,
+            Stage.post_opportunities, ContractBase.description, Stage.id.label('stage_id'),
+            (db.func.extract(db.text('DAYS'), ContractStage.exited - ContractStage.entered)).label('days_spent'),
+            (db.func.extract(db.text('HOURS'), ContractStage.exited - ContractStage.entered)).label('hours_spent')
+        ).join(Stage, Stage.id == ContractStage.stage_id).join(
+            ContractBase, ContractBase.id == ContractStage.contract_id
+        ).filter(
+            ContractStage.contract_id == self.id,
+            ContractStage.flow_id == self.flow_id
+        ).order_by(ContractStage.id).all()
+
     def get_current_stage(self):
         '''Returns the details for the current contract stage
         '''
@@ -148,10 +165,11 @@ class ContractBase(RefreshSearchViewMixin, Model):
         ).first()
 
     def get_first_stage(self):
-        '''Get the first :ref:`contract-stages` for this contract
+        '''Get the first ContractStage for this contract
 
-        :return: `contract-stages` object representing the first stage, or
-        None if no stage exists
+        Returns:
+            :py:class:`~purchasing.data.contract_stage.ContractStage` object
+            representing the first stage, or None if no stage exists
         '''
         if self.flow:
             return ContractStage.query.filter(

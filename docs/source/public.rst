@@ -20,5 +20,16 @@ Forms
 Views
 -----
 
+Users
+^^^^^
+
 .. autoflask:: purchasing.app:create_app()
-   :blueprints: public, users
+   :blueprints: users
+   :undoc-endpoints: users.static
+
+Public
+^^^^^^
+
+.. autoflask:: purchasing.app:create_app()
+   :blueprints: public
+   :undoc-endpoints: public.static

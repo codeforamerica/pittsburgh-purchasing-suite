@@ -6,7 +6,7 @@ Core Dependencies
 
 The purchasing suite is a `Flask`_ app. It uses `Postgres`_ for a database and uses `bower`_ to manage most of its dependencies. It also uses `less`_ to compile style assets. In production, the project uses `Celery`_ with `Redis`_ as a broker to handle backgrounding various tasks. Big thanks to the `cookiecutter-flask`_ project for a nice kickstart.
 
-It is highly recommended that you use use `virtualenv`_ (and `virtualenvwrapper`_ for convenience). For a how-to on getting set up, please consult this `howto <https://github.com/codeforamerica/howto/blob/master/Python-Virtualenv.md>`_. Additionally, you’ll need node to install bower (see this `howto <https://github.com/codeforamerica/howto/blob/master/Node.js.md>`_ for more on Node), and it is recommended that you use `postgres.app`_ to
+It is highly recommended that you use use `virtualenv`_ (and `virtualenvwrapper`_ for convenience). For a how-to on getting set up, please consult this `virtualenv howto <https://github.com/codeforamerica/howto/blob/master/Python-Virtualenv.md>`_. Additionally, you’ll need node to install bower (see this `node howto <https://github.com/codeforamerica/howto/blob/master/Node.js.md>`_ for more on Node), and it is recommended that you use `postgres.app`_ to
 handle your Postgres (assuming you are developing on OSX).
 
 Installation and setup
