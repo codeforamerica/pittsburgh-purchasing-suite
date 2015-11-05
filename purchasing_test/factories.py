@@ -11,7 +11,7 @@ from purchasing.users.models import User, Role, Department
 from purchasing.data.contracts import ContractBase, ContractProperty, ContractType
 from purchasing.data.companies import Company
 from purchasing.data.flows import Flow
-from purchasing.data.stages import Stage, StageProperty
+from purchasing.data.stages import Stage
 
 from purchasing.opportunities.models import (
     Opportunity, RequiredBidDocument, OpportunityDocument, Category,
@@ -67,13 +67,6 @@ class StageFactory(BaseFactory):
 
     class Meta:
         model = Stage
-
-class StagePropertyFactory(BaseFactory):
-    id = factory.Sequence(lambda n: n)
-    stage = factory.SubFactory(StageFactory)
-
-    class Meta:
-        model = StageProperty
 
 class CompanyFactory(BaseFactory):
     id = factory.Sequence(lambda n: n)
