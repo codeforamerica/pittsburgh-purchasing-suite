@@ -125,6 +125,8 @@ class SendUpdateForm(Form):
     attachments = FieldList(FormField(AttachmentForm), min_entries=1)
 
 class PostOpportunityForm(OpportunityForm):
+    '''Post opportunities to Beacon
+    '''
     contact_email = TextField(validators=[Email(), city_domain_email, Optional()])
 
 class NoteForm(Form):

@@ -3,9 +3,8 @@ Data Importers
 
 Populating the applications in the suite with data requires a number of import tasks, outlined below.
 
-
-Importer
---------
+Importer Utilities
+------------------
 
 .. automodule:: purchasing.data.importer.importer
     :members:
@@ -16,26 +15,28 @@ County Scraper
 .. automodule:: purchasing.data.importer.scrape_county
     :members:
 
-COSTARS
--------
+COSTARS Importer
+----------------
 
 .. automodule:: purchasing.data.importer.costars
     :members:
 
-NIGP
-----
+.. _nigp-importer:
+
+NIGP Importer
+-------------
 
 .. automodule:: purchasing.data.importer.nigp
     :members:
 
-State
------
+State Contract Importer
+-----------------------
 
 .. automodule:: purchasing.data.importer.state
     :members:
 
-Old Contracts
--------------
+X-Drive Importer
+----------------
 
 .. automodule:: purchasing.data.importer.old_contracts
     :members:

@@ -395,7 +395,7 @@ class OpportunityForm(CategoryForm):
     planned_submission_end = DateTimeField(validators=[after_today, DataRequired()])
     vendor_documents_needed = QuerySelectMultipleField(
         widget=select_multi_checkbox,
-        query_factory=RequiredBidDocument.query_factory,
+        query_factory=RequiredBidDocument.generate_choices,
         get_pk=lambda i: i[0],
         get_label=lambda i: i[1]
     )
@@ -412,7 +412,7 @@ class OpportunityForm(CategoryForm):
             opportunity: A :py:class:`purchasing.opportunities.model.Opportunity` object
             or None.
         '''
-        self.vendor_documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
+        self.vendor_documents_needed.choices = RequiredBidDocument.generate_choices()
         if opportunity and not self.contact_email.data:
             self.contact_email.data = opportunity.contact.email
 
