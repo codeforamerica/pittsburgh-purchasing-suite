@@ -32,7 +32,9 @@ Views
 ------
 
 .. autoflask:: purchasing.app:create_app()
-    :endpoints: scout.explore, scout.search, scout.search_feedback, scout.filter_no_department, scout.filter, scout.contract, scout.company, scout.feedback, scout.subscribe, scout.unsubscribe
+    :endpoints:
+        scout.explore, scout.search, scout.search_feedback, scout.filter_no_department,
+        scout.filter, scout.contract, scout.company, scout.feedback, scout.subscribe, scout.unsubscribe
 
 Nightly Jobs
 ------------

@@ -11,19 +11,20 @@ from purchasing.data.contracts import ContractType
 class SearchForm(Form):
     '''Form to handle Scout search and filter
 
-    :var q: Search term -- required
-    :var company_name: Flag to include company name in search
-    :var contract_description: Flag to include contract description
-        in search
-    :var line_item: Flag to include line item name in search
-    :var financial_id: Flag to include financial ID in search
-    :var archived: Flag to include archived
-        :py:class:`~purchasing.data.contracts.ContractBase`
-        objects in search
-    :var contract_type: Filter to include only
-        :py:class:`~purchasing.data.contracts.ContractBase` objects
-        that match a certain
-        :py:class:`~purchasing.data.contracts.ContractType`
+    Attributes:
+        q: Search term -- required
+        company_name: Flag to include company name in search
+        contract_description: Flag to include contract description
+            in search
+        line_item: Flag to include line item name in search
+        financial_id: Flag to include financial ID in search
+            archived: Flag to include archived
+            :py:class:`~purchasing.data.contracts.ContractBase`
+            objects in search
+        contract_type: Filter to include only
+            :py:class:`~purchasing.data.contracts.ContractBase` objects
+            that match a certain
+            :py:class:`~purchasing.data.contracts.ContractType`
     '''
     q = TextField('Search', validators=[DataRequired()])
     company_name = BooleanField()
@@ -45,8 +46,9 @@ class SearchForm(Form):
 class FeedbackForm(Form):
     '''Form to collect sender and body for Scout contract feedback
 
-    :var sender: Email address of sender
-    :var body: Body of message, required
+    Attributes:
+        sender: Email address of sender
+        body: Body of message, required
     '''
     sender = TextField(validators=[Email()], default='No email provided')
     body = TextAreaField(validators=[DataRequired()])
@@ -58,9 +60,10 @@ class FeedbackForm(Form):
 class NoteForm(Form):
     '''Form to allow users to write notes about contracts
 
-    :var note: Body of note
-    :var user: ID of the :py:class:`~purchasing.users.models.User`
-        who wrote the note
+    Attributes:
+        note: Body of note
+        user: ID of the :py:class:`~purchasing.users.models.User`
+            who wrote the note
     '''
     note = TextAreaField(validators=[DataRequired()])
     user = IntegerField(validators=[DataRequired(), NumberRange(min=0)])

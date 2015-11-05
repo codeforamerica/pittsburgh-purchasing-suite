@@ -7,8 +7,9 @@ from sqlalchemy.orm import backref
 class Role(SurrogatePK, Model):
     '''Model to handle view-based permissions
 
-    :var id: primary key
-    :var name: role name
+    Attributes:
+        id: primary key
+        name: role name
     '''
     __tablename__ = 'roles'
     name = Column(db.String(80), unique=True, nullable=False)
@@ -23,7 +24,8 @@ class Role(SurrogatePK, Model):
     def query_factory(cls):
         '''Generates a query of all roles
 
-        :return: `sqla query`_ of all roles
+        Returns:
+            `sqla query`_ of all roles
         '''
         return cls.query
 
@@ -31,22 +33,24 @@ class Role(SurrogatePK, Model):
     def no_admins(cls):
         '''Generates a query of non-admin roles
 
-        :return: `sqla query`_ of roles without administrative access
+        Returns:
+            `sqla query`_ of roles without administrative access
         '''
         return cls.query.filter(cls.name != 'superadmin')
 
 class User(UserMixin, SurrogatePK, Model):
     '''User model
 
-    :var id: primary key
-    :var email: user email address
-    :var first_name: first name of user
-    :var last_name: last name of user
-    :var active: whether user is currently active or not
-    :var role_id: foreign key of user's role
-    :var role: relationship of user to role table
-    :department_id: foreign key of user's department
-    :department: relationship of user to department table
+    Attributes:
+        id: primary key
+        email: user email address
+        first_name: first name of user
+        last_name: last name of user
+        active: whether user is currently active or not
+        role_id: foreign key of user's role
+        role: relationship of user to role table
+        department_id: foreign key of user's department
+        department: relationship of user to department table
     '''
 
     __tablename__ = 'users'
@@ -71,7 +75,8 @@ class User(UserMixin, SurrogatePK, Model):
     def full_name(self):
         '''Build full name of user
 
-        :return: concatenated string of first_name and last_name values
+        Returns:
+            concatenated string of first_name and last_name values
         '''
         return "{0} {1}".format(self.first_name, self.last_name)
 
@@ -84,14 +89,16 @@ class User(UserMixin, SurrogatePK, Model):
     def get_following(self):
         '''Generate user contract subscriptions
 
-        :return: list of ids for contracts followed by user
+        Returns:
+            list of ids for contracts followed by user
         '''
         return [i.id for i in self.contracts_following]
 
     def is_conductor(self):
         '''Check if user can access conductor application
 
-        :return: True if user's role is either conductor, admin, or superadmin,
+        Returns:
+            True if user's role is either conductor, admin, or superadmin,
             False otherwise
         '''
         return self.role.name in ('conductor', 'admin', 'superadmin')
@@ -99,7 +106,8 @@ class User(UserMixin, SurrogatePK, Model):
     def print_pretty_name(self):
         '''Generate long version text representation of user
 
-        :return: full_name if first_name and last_name exist, email otherwise
+        Returns:
+            full_name if first_name and last_name exist, email otherwise
         '''
         if self.first_name and self.last_name:
             return self.full_name
@@ -109,7 +117,8 @@ class User(UserMixin, SurrogatePK, Model):
     def print_pretty_first_name(self):
         '''Generate abbreviated text representation of user
 
-        :return: first_name if first_name exists,
+        Returns:
+            first_name if first_name exists,
             `localpart <https://en.wikipedia.org/wiki/Email_address#Local_part>`_
             otherwise
         '''
@@ -122,7 +131,8 @@ class User(UserMixin, SurrogatePK, Model):
     def conductor_users_query(cls):
         '''Query users with access to conductor
 
-        :return: list of users with ``is_conductor`` value of True
+        Returns:
+            list of users with ``is_conductor`` value of True
         '''
         return [i for i in cls.query.all() if i.is_conductor()]
 
@@ -130,7 +140,8 @@ class User(UserMixin, SurrogatePK, Model):
 class Department(SurrogatePK, Model):
     '''Department model
 
-    :var name: Name of department
+    Attributes:
+        Name of department
     '''
     __tablename__ = 'department'
 
@@ -143,7 +154,8 @@ class Department(SurrogatePK, Model):
     def query_factory(cls):
         '''Generate a department query factory.
 
-        :return: Department query with new users filtered out
+        Returns:
+            Department query with new users filtered out
         '''
         return cls.query.filter(cls.name != 'New User')
 
@@ -151,8 +163,11 @@ class Department(SurrogatePK, Model):
     def get_dept(cls, dept_name):
         '''Query Department by name.
 
-        :param dept_name: name used for query
-        :return: an instance of Department
+        Arguments:
+            dept_name: name used for query
+
+        Returns:
+            an instance of Department
         '''
         return cls.query.filter(db.func.lower(cls.name) == dept_name.lower()).first()
 
@@ -160,9 +175,12 @@ class Department(SurrogatePK, Model):
     def choices(cls, blank=False):
         '''Query available departments by name and id.
 
-        :param blank: adds none choice to list when True,
-            only returns Departments when False. Defaults to False.
-        :return: list of (department id, department name) tuples
+        Arguments:
+            blank: adds none choice to list when True,
+                only returns Departments when False. Defaults to False.
+
+        Returns:
+            list of (department id, department name) tuples
         '''
         departments = [(i.id, i.name) for i in cls.query_factory().all()]
         if blank:
@@ -172,13 +190,14 @@ class Department(SurrogatePK, Model):
 class AnonymousUser(AnonymousUserMixin):
     '''Custom mixin for handling anonymous (non-logged-in) users
 
-    :var role: :py:class:`~purchasing.user.models.Role`
-        object with name set to 'anonymous'
-    :var department: :py:class:`~purchasing.user.models.Department`
-        object with name set to 'anonymous'
-    :var id: Defaults to -1
+    Attributes:
+        role: :py:class:`~purchasing.user.models.Role`
+            object with name set to 'anonymous'
+        department: :py:class:`~purchasing.user.models.Department`
+            object with name set to 'anonymous'
+        id: Defaults to -1
 
-    .. seealso::
+    See Also:
         ``AnonymousUser`` subclasses the `flask_login anonymous user mixin
         <https://flask-login.readthedocs.org/en/latest/#anonymous-users>`_,
         which contains a number of class and instance methods around
@@ -189,6 +208,4 @@ class AnonymousUser(AnonymousUserMixin):
     id = -1
 
     def __init__(self, *args, **kwargs):
-        '''
-        '''
         super(AnonymousUser, self).__init__(*args, **kwargs)

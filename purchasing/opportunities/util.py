@@ -11,11 +11,14 @@ from purchasing.opportunities.models import Vendor, Opportunity
 def parse_contact(contact_email, department):
     '''Finds or creates a :py:class:`purchasing.users.models.User` as the contact
 
-    :param contact_email: The email address of the user. If the user cannot
-        be found in the database, the domain of their email must match the
-        configured ``CITY_DOMAIN``
-    :param department: The :py:class:`purchasing.users.models.Department` of the user
-    :return: The ID of the new/existing contact
+    Arguments:
+        contact_email: The email address of the user. If the user cannot
+            be found in the database, the domain of their email must match the
+            configured ``CITY_DOMAIN``
+        department: The :py:class:`purchasing.users.models.Department` of the user
+
+    Returns:
+        The ID of the new/existing contact
     '''
     # get our department contact, build it if we don't have it yet
     contact = User.query.filter(User.email == contact_email).first()
@@ -32,9 +35,13 @@ def parse_contact(contact_email, department):
 def build_label_tooltip(name, description):
     '''Builds bootstrap-style tooltips for contract documents
 
-    :param name: The name of the document
-    :param description: The description of the document -- lives in the
-        tooltip and is shown on hover.
+    Arguments:
+        name: The name of the document
+        description: The description of the document -- lives in the
+            tooltip and is shown on hover.
+
+    Returns:
+        A formatted label with tooltip
     '''
     return '''
     {} <i
@@ -46,7 +53,8 @@ def build_label_tooltip(name, description):
 def select_multi_checkbox(field, ul_class='', **kwargs):
     '''Custom multi-select widget for vendor documents needed
 
-    Renders with tooltips describing each document
+    Returns:
+        SelectMulti checkbox with tooltip labels
     '''
     kwargs.setdefault('type', 'checkbox')
     field_id = kwargs.pop('id', field.id)
@@ -67,8 +75,9 @@ def select_multi_checkbox(field, ul_class='', **kwargs):
 class SignupData(object):
     '''Small python object to hold default data coming from the Flask session
 
-    :param email: Email address taken from session
-    :param business_name: Business name taken from session
+    Arguments:
+        email: Email address taken from session
+        business_name: Business name taken from session
     '''
 
     def __init__(self, email, business_name):
@@ -79,11 +88,14 @@ def init_form(form, model=None):
     '''Initialize a form from either a given model or a
         :py:class:`purchasing.opportunities.util.SignupData` object
 
-    :param form: The form to initialize
-    :param model:
-    :return: The passed form, initialized with either the passed model
-        or a new instance of
-        :py:class:`purchasing.opportunities.util.SignupData`
+    Arguments:
+        form: The form to initialize
+        model: a Model used to instantiate the form with data
+
+    Returns:
+        The passed form, initialized with either the passed model
+            or a new instance of
+            :py:class:`purchasing.opportunities.util.SignupData`
     '''
     if model:
         return form(obj=model)
@@ -100,11 +112,14 @@ def signup_for_opp(form, opportunity, multi=False):
     objects if necessary, and sending emails based on the opportunities
     selected to receive updates about.
 
-    :param form: The relevant subscription form
-    :param opportunity: Either an opportunity model or a list of opportunity ids
-    :param multi: A boolean to flag if there are multiple opportunities that should
-        to subscribe to or a single opportunity
-    :return: True if email sent successfully, false otherwise
+    Arguments:
+        form: The relevant subscription form
+        opportunity: Either an opportunity model or a list of opportunity ids
+        multi: A boolean to flag if there are multiple opportunities that should
+            to subscribe to or a single opportunity
+
+    Returns:
+        True if email sent successfully, false otherwise
     '''
     send_email = True
     email_opportunities = []

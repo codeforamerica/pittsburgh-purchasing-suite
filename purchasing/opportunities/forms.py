@@ -38,10 +38,11 @@ class MultiCheckboxField(fields.SelectMultipleField):
     user has choices from multiple categories.
     the validation to pass.
 
-    :var widget: wtforms
-        `ListWidget <http://wtforms.readthedocs.org/en/latest/widgets.html#wtforms.widgets.ListWidget>`_
-    :var option_widget: wtforms
-        `CheckboxInput <http://wtforms.readthedocs.org/en/latest/widgets.html#wtforms.widgets.CheckboxInput>`_
+    Attributes:
+        widget: wtforms
+            `ListWidget <http://wtforms.readthedocs.org/en/latest/widgets.html#wtforms.widgets.ListWidget>`_
+        option_widget: wtforms
+            `CheckboxInput <http://wtforms.readthedocs.org/en/latest/widgets.html#wtforms.widgets.CheckboxInput>`_
     '''
     widget = widgets.ListWidget(prefix_label=False)
     option_widget = widgets.CheckboxInput()
@@ -52,7 +53,8 @@ class MultiCheckboxField(fields.SelectMultipleField):
         We override pre-validate to allow the form to use
         dynamically created CHOICES.
 
-        .. seealso:: :py:class:`~purchasing.opportunities.models.Category`,
+        See Also:
+            :py:class:`~purchasing.opportunities.models.Category`,
             :py:class:`~purchasing.opportunities.forms.CategoryForm`
         '''
         pass
@@ -63,7 +65,7 @@ class DynamicSelectField(fields.SelectField):
     def pre_validate(self, form):
         '''Ensure we have at least one Category and they all correctly typed
 
-        .. seealso::
+        See Also:
             * :py:class:`~purchasing.opportunities.models.Category`
         '''
         if len(self.data) == 0:
@@ -91,16 +93,16 @@ class CategoryForm(Form):
     are presented to them. This raises some interesting challenges for validation,
     which are handled in the ``process`` method.
 
-    .. seealso::
-
-        :py:func:`~purchasing.opportunities.util.select_multi_checkbox`
+    See Also:
+        * :py:func:`~purchasing.opportunities.util.select_multi_checkbox`
             widget used to generate the UI components through jinja templates.
 
-        :py:class:`~purchasing.opportunities.models.Category`
+        * :py:class:`~purchasing.opportunities.models.Category`
             base object that is used to build the CategoryForm.
 
-    :var subcategories: A :py:class:`~purchasing.opportunities.forms.MultiCheckboxField`
-    :var categories: A :py:class:`~purchasing.opportunities.forms.DynamicSelectField`
+    Attributes:
+        subcategories: A :py:class:`~purchasing.opportunities.forms.MultiCheckboxField`
+        categories: A :py:class:`~purchasing.opportunities.forms.DynamicSelectField`
     '''
 
     subcategories = MultiCheckboxField(coerce=int, choices=[])
@@ -123,9 +125,12 @@ class CategoryForm(Form):
         need to modify some of the internal form data. This method allows us to pop
         off the categories or subcategories of the form data as necessary.
 
-        :param categories: Pop categories from form's data if True
-        :param subcategories: Pop subcategories from form's data if True
-        :return: Modified form data with categories and/or subcategories removed as necessary
+        Arguments:
+            categories: Pop categories from form's data if True
+            subcategories: Pop subcategories from form's data if True
+
+        Returns:
+            Modified form data with categories and/or subcategories removed as necessary
         '''
         cleaned_data = self.data
         cleaned_data.pop('categories') if categories else None
@@ -139,9 +144,12 @@ class CategoryForm(Form):
         both top-level choices for the select field and individual level subcategories.
         This method creates those and modifies the form in-place to build the appropriate choices
 
-        :param all_categories: A list of :py:class:`~purchasing.opportunities.models.Category` objects
-        :return: A dictionary with top-level parent category names as keys and
-            list of that parent's subcategories as values.
+        Arguments:
+            all_categories: A list of :py:class:`~purchasing.opportunities.models.Category` objects
+
+        Returns:
+            A dictionary with top-level parent category names as keys and
+                list of that parent's subcategories as values.
         '''
         categories, subcategories = set(), defaultdict(list)
         for category in all_categories:
@@ -162,7 +170,8 @@ class CategoryForm(Form):
         2. Creates the template-used subcatgories and display categories
         3. Removed the ``Select All`` choice from the available categories
 
-        :param all_categories: A list of :py:class`~purchasing.opportunities.models.Category` objects,
+        Arguments:
+            all_categories: A list of :py:class`~purchasing.opportunities.models.Category` objects,
             or None. If None, defaults to all Categories.
         '''
         all_categories = all_categories if all_categories else Category.query.all()
@@ -180,7 +189,7 @@ class CategoryForm(Form):
         Manually iterates through the flask Request.form, appending valid
         Categories to the form's ``categories`` data
 
-        .. seealso::
+        See Also:
             For more information about parameters, see the `Wtforms base form
             <http://wtforms.readthedocs.org/en/latest/forms.html#wtforms.form.BaseForm.process>`_
         '''
@@ -213,18 +222,19 @@ class VendorSignupForm(CategoryForm):
     which means that it processes categories and subcategories in addition to the
     below fields.
 
-    :var business_name: Name of business, required
-    :var email: Email address of vendor signing up, required, must be unique
-    :var first_name: First name of vendor, optional
-    :var last_name: Last name of vendor, optional
-    :var phone_number: Phone number of vendor, optional
-    :var fax_number: Fax number of vendor, optional
-    :var woman_owned: Whether the business is woman owned, optional
-    :var minority_owned: Whether the business is minority owned, optional
-    :var veteran_owned: Whether the business is veteran owned, optional
-    :var disadvantaged_owned: Whether the business is disadvantaged owned, optional
-    :var subscribed_to_newsletter: Boolean flag for whether a business
-        is signed up to the receive the newsletter
+    Attributes:
+        business_name: Name of business, required
+        email: Email address of vendor signing up, required, must be unique
+        first_name: First name of vendor, optional
+        last_name: Last name of vendor, optional
+        phone_number: Phone number of vendor, optional
+        fax_number: Fax number of vendor, optional
+        woman_owned: Whether the business is woman owned, optional
+        minority_owned: Whether the business is minority owned, optional
+        veteran_owned: Whether the business is veteran owned, optional
+        disadvantaged_owned: Whether the business is disadvantaged owned, optional
+        subscribed_to_newsletter: Boolean flag for whether a business
+            is signed up to the receive the newsletter
     '''
     business_name = fields.TextField(validators=[DataRequired()])
     email = fields.TextField(validators=[DataRequired(), Email()])
@@ -244,10 +254,11 @@ class VendorSignupForm(CategoryForm):
 class OpportunitySignupForm(Form):
     '''Signup form vendors can use for individual opportunities
 
-    :var business_name: Name of business, required
-    :var email: Email address of vendor signing up, required, must be unique
-    :var also_categories: Flag for whether or not a business should be signed up
-        to receive updates about opportunities with the same categories as this one
+    Attributes:
+        business_name: Name of business, required
+        email: Email address of vendor signing up, required, must be unique
+        also_categories: Flag for whether or not a business should be signed up
+            to receive updates about opportunities with the same categories as this one
     '''
     business_name = fields.TextField(validators=[DataRequired()])
     email = fields.TextField(validators=[DataRequired(), Email()])
@@ -256,13 +267,14 @@ class OpportunitySignupForm(Form):
 class UnsubscribeForm(Form):
     '''Subscription management form, where Vendors can unsubscribe from all different emails
 
-    :var email: Email address of vendor signing up, required
-    :var categories: A multicheckbox of all categories the Vendor
-        is signed up to receive emails about
-    :var opportunities: A multicheckbox of all opportunities the Vendor
-        is signed up to receive emails about
-    :var subscribed_to_newsletter: A flag for whether or not the Vendor should receive
-        the biweekly update newsletter
+    Attributes:
+        email: Email address of vendor signing up, required
+        categories: A multicheckbox of all categories the Vendor
+            is signed up to receive emails about
+        opportunities: A multicheckbox of all opportunities the Vendor
+            is signed up to receive emails about
+        subscribed_to_newsletter: A flag for whether or not the Vendor should receive
+            the biweekly update newsletter
     '''
     email = fields.TextField(validators=[DataRequired(), Email(), email_present])
     categories = MultiCheckboxField(coerce=int)
@@ -275,8 +287,9 @@ class UnsubscribeForm(Form):
 class OpportunityDocumentForm(NoCSRFForm):
     '''Document subform for the main :py:class:`~purchasing.opportunities.forms.OpportunityForm`
 
-    :var title: Name of document to be uploaded
-    :var document: Actual document file that should be uploaded
+    Attributes:
+        title: Name of document to be uploaded
+        document: Actual document file that should be uploaded
     '''
     title = fields.TextField(label='Document Name', validators=[RequiredIf('document')])
     document = FileField('Document', validators=[FileAllowed(
@@ -288,9 +301,12 @@ class OpportunityDocumentForm(NoCSRFForm):
     def upload_document(self, _id):
         '''Take the document and filename and either upload it to S3 or the local uploads folder
 
-        :param _id: The id of the :py:class:`~purchasing.opportunities.models.Opportunity`
+        Arguments:
+            _id: The id of the :py:class:`~purchasing.opportunities.models.Opportunity`
             the document will be attached to
-        :return: A two-tuple of (the document name, the document filepath/url)
+
+        Returns:
+            A two-tuple of (the document name, the document filepath/url)
         '''
         if self.document.data is None or self.document.data == '':
             return None, None
@@ -332,23 +348,24 @@ class OpportunityForm(CategoryForm):
     which means that it processes categories and subcategories in addition to the
     below fields.
 
-    :var department: link to :py:class:`~purchasing.users.models.Department`
-        that is primarily responsible for administering the RFP, required
-    :var opportunity_type: link to :py:class:`~purchasing.data.contracts.ContractType` objects
-        that have the ``allow_opportunities`` field set to True
-    :var contact_email: Email address of the opportunity's point of contact for questions
-    :var title: Title of the opportunity, required
-    :var description: 500 or less word description of the opportunity, required
-    :var planned_publish: Date when the opportunity should be made public on Beacon
-    :var planned_submission_start: Date when the opportunity opens to accept responses
-    :var planned_submission_end: Date when the opportunity closes and no longer
-        accepts submissions
-    :var vendor_documents_needed: A multicheckbox for all documents that a vendor
-        might need to respond to this opportunity.
-    :var documents: A list of :py:class:`~purchasing.opportunities.forms.OpportunityDocumentForm`
-        fields.
+    Attributes:
+        department: link to :py:class:`~purchasing.users.models.Department`
+            that is primarily responsible for administering the RFP, required
+        opportunity_type: link to :py:class:`~purchasing.data.contracts.ContractType` objects
+            that have the ``allow_opportunities`` field set to True
+        contact_email: Email address of the opportunity's point of contact for questions
+        title: Title of the opportunity, required
+        description: 500 or less word description of the opportunity, required
+        planned_publish: Date when the opportunity should be made public on Beacon
+        planned_submission_start: Date when the opportunity opens to accept responses
+        planned_submission_end: Date when the opportunity closes and no longer
+            accepts submissions
+        vendor_documents_needed: A multicheckbox for all documents that a vendor
+            might need to respond to this opportunity.
+        documents: A list of :py:class:`~purchasing.opportunities.forms.OpportunityDocumentForm`
+            fields.
 
-    .. seealso::
+    See Also:
         * :py:class:`~purchasing.data.contracts.ContractType`
             The ContractType model informs the construction of the "How to Bid"
             section in the template
@@ -391,7 +408,8 @@ class OpportunityForm(CategoryForm):
         2. Formats the contact email for the form
         3. Localizes the ``planned_submission_end`` time
 
-        :param opportunity: A :py:class:`purchasing.opportunities.model.Opportunity` object
+        Arguments:
+            opportunity: A :py:class:`purchasing.opportunities.model.Opportunity` object
             or None.
         '''
         self.vendor_documents_needed.choices = [i.get_choices() for i in RequiredBidDocument.query.all()]
@@ -412,7 +430,8 @@ class OpportunityForm(CategoryForm):
         2. Pops off documents (they are handled separately)
         3. Sets the foreign keys Opportunity model relationships
 
-        :returns: An ``opportunity_data`` dictionary, which can be used to
+        Returns:
+            An ``opportunity_data`` dictionary, which can be used to
             instantiate or modify an :py:class:`~purchasing.opportunities.model.Opportunity`
             instance
         '''
@@ -427,7 +446,8 @@ class OpportunityForm(CategoryForm):
     def process(self, formdata=None, obj=None, data=None, **kwargs):
         '''Processes category data and localizes ``planned_submission_end`` times
 
-        .. seealso:: :py:meth:`purchasing.opportunities.forms.CategoryForm.process`
+        See Also:
+            :py:meth:`purchasing.opportunities.forms.CategoryForm.process`
         '''
         super(OpportunityForm, self).process(formdata, obj, data, **kwargs)
         if self.planned_submission_end.data and formdata:
