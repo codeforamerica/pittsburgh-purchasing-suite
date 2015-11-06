@@ -171,6 +171,8 @@ class ContractStage(Model):
         return '{} - {}'.format(self.contract.description, self.stage.name)
 
 class ContractStageActionItem(Model):
+    '''
+    '''
     __tablename__ = 'contract_stage_action_item'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -191,6 +193,8 @@ class ContractStageActionItem(Model):
         return self.action_type
 
     def get_sort_key(self):
+        '''
+        '''
         # if we are reversion, we need to get the timestamps from there
         if self.is_start_type or self.is_exited_type:
             return datetime.datetime.strptime(
@@ -203,20 +207,30 @@ class ContractStageActionItem(Model):
 
     @property
     def non_null_items(self):
+        '''
+        '''
         return dict((k, v) for (k, v) in self.action_detail.items() if v is not None)
 
     @property
     def non_null_items_count(self):
+        '''
+        '''
         return len(self.non_null_items)
 
     @property
     def is_start_type(self):
+        '''
+        '''
         return self.action_type in ['entered', 'reversion']
 
     @property
     def is_exited_type(self):
+        '''
+        '''
         return self.action_type == 'exited'
 
     @property
     def is_other_type(self):
+        '''
+        '''
         return self.action_type not in ['entered', 'reversion', 'exited']

@@ -18,7 +18,7 @@ from purchasing.decorators import requires_roles
 from purchasing.utils import localize_datetime
 
 from purchasing.data.contracts import ContractBase
-from purchasing.data.flows import Flow, switch_flow
+from purchasing.data.flows import Flow
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 
 from purchasing.users.models import User
@@ -215,8 +215,8 @@ def flow_switch(contract_id, stage_id, flow_id):
     if not contract:
         abort(404)
 
-    new_contract_stage, contract = switch_flow(
-        flow_id, contract_id, current_user
+    new_contract_stage, contract = contract.switch_flow(
+        flow_id, current_user
     )
 
     current_app.logger.info(

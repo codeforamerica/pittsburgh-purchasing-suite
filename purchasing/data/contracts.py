@@ -12,6 +12,7 @@ from purchasing.database import db, Model, Column, RefreshSearchViewMixin, Refer
 
 from purchasing.filters import days_from_today
 from purchasing.data.stages import Stage
+from purchasing.data.flows import Flow
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
 
 contract_user_association_table = Table(
@@ -339,7 +340,78 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
         return actions
 
+    def switch_flow(self, new_flow_id, user):
+        '''Switch the contract's progress from one flow to another
+
+        Instead of trying to do anything too smart, we prefer instead
+        to be dumb -- it is better to force the user to click ahead
+        through a bunch of stages than it is to incorrectly fast-forward
+        them to an incorrect state.
+
+        There are five concrete actions here:
+
+        1. Fully revert all stages in the old flow
+        2. Rebuild our flow/stage model for the new order.
+        3. Attach the complete log of the old flow into the first stage
+           of the new order.
+        4. Strip the contract's current stage id.
+        5. Transition into the first stage of the new order. This will
+           ensure that everything is being logged in the correct order.
+        '''
+        old_flow = self.flow.flow_name
+        old_action_log = self.filter_action_log()
+
+        new_flow = Flow.query.get(new_flow_id)
+
+        # fully revert all used stages in the old flow
+        for contract_stage in ContractStage.query.filter(
+            ContractStage.contract_id == self.id,
+            ContractStage.flow_id == self.flow_id,
+            ContractStage.entered != None
+        ).all():
+            contract_stage.full_revert()
+            contract_stage.strip_actions()
+
+        db.session.commit()
+
+        # create the new stages
+        new_stages, new_contract_stages, revert = new_flow.create_contract_stages(self)
+
+        # log that we are switching flows into the first stage
+        switch_log = ContractStageActionItem(
+            contract_stage_id=new_contract_stages[0].id, action_type='flow_switch',
+            taken_by=user.id, taken_at=datetime.datetime.utcnow(),
+            action_detail={
+                'timestamp': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S'),
+                'date': datetime.datetime.utcnow().strftime('%Y-%m-%d'),
+                'type': 'flow_switched', 'old_flow': old_flow,
+                'new_flow': self.flow.flow_name,
+                'old_flow_actions': [i.as_dict() for i in old_action_log]
+            }
+        )
+        db.session.add(switch_log)
+        db.session.commit()
+
+        # remove the current_stage_id from the contract
+        # so we can start the new flow
+        self.current_stage_id = None
+        self.flow_id = new_flow_id
+
+        destination = None
+        if revert:
+            destination = new_stages[0]
+
+        # transition into the first stage of the new flow
+        actions = self.transition(user, destination=destination)
+        for i in actions:
+            db.session.add(i)
+
+        db.session.commit()
+        return new_contract_stages[0], self
+
 class ContractType(Model):
+    '''Model for contract types
+    '''
     __tablename__ = 'contract_type'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -352,17 +424,25 @@ class ContractType(Model):
 
     @classmethod
     def opportunity_type_query(cls):
+        '''
+        '''
         return cls.query.filter(cls.allow_opportunities == True)
 
     @classmethod
     def query_factory_all(cls):
+        '''
+        '''
         return cls.query.order_by(cls.name)
 
     @classmethod
     def get_type(cls, type_name):
+        '''
+        '''
         return cls.query.filter(db.func.lower(cls.name) == type_name.lower()).first()
 
 class ContractProperty(RefreshSearchViewMixin, Model):
+    '''Model for contract properties
+    '''
     __tablename__ = 'contract_property'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -377,6 +457,8 @@ class ContractProperty(RefreshSearchViewMixin, Model):
         return '{key}: {value}'.format(key=self.key, value=self.value)
 
 class ContractNote(Model):
+    '''Model for contract notes
+    '''
     __tablename__ = 'contract_note'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -394,6 +476,23 @@ class ContractNote(Model):
         return self.note
 
 class LineItem(RefreshSearchViewMixin, Model):
+    '''Model for contract line items
+
+    Attributes:
+        id:
+        contract:
+        contract_id:
+        description:
+        manufacturer:
+        model_number:
+        quantity:
+        unit_of_measure:
+        unit_cost:
+        total_cost:
+        percentage:
+        company_name:
+        company_id:
+    '''
     __tablename__ = 'line_item'
 
     id = Column(db.Integer, primary_key=True, index=True)

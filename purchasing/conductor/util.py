@@ -13,7 +13,6 @@ from purchasing.filters import better_title
 
 from purchasing.data.contracts import ContractBase, ContractType
 from purchasing.data.contract_stages import ContractStageActionItem
-from purchasing.data.flows import create_contract_stages
 from purchasing.opportunities.models import Opportunity
 from purchasing.users.models import User, Role, Department
 
@@ -269,7 +268,7 @@ def assign_a_contract(contract, flow, user, start_time=None, clone=True):
             db.session.add(contract)
             db.session.commit()
         try:
-            stages, _, _ = create_contract_stages(flow.id, contract.id, contract=contract)
+            stages, _, _ = flow.create_contract_stages(contract)
             actions = contract.transition(user, complete_time=start_time)
             for i in actions:
                 db.session.add(i)
