@@ -17,7 +17,7 @@ from purchasing.filters import better_title
 
 from purchasing.users.models import Department, User
 from purchasing.data.flows import Flow
-from purchasing.data.companies import get_all_companies_query
+from purchasing.data.companies import Company
 
 from purchasing.opportunities.forms import OpportunityForm, city_domain_email
 
@@ -186,7 +186,7 @@ class CompanyForm(NoCSRFForm):
         RequiredIf('company_name'), validate_integer
     ])
     company_name = QuerySelectField(
-        'Existing Company Name', query_factory=get_all_companies_query, get_pk=lambda i: i.id,
+        'Existing Company Name', query_factory=Company.all_companies_query_factory, get_pk=lambda i: i.id,
         get_label=lambda i: better_title(i.company_name),
         allow_blank=True, blank_text='-----',
         validators=[

@@ -14,6 +14,8 @@ from purchasing.data.contract_stages import ContractStage, ContractStageActionIt
 from purchasing.data.stages import Stage
 
 class Flow(Model):
+    '''
+    '''
     __tablename__ = 'flow'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -27,13 +29,19 @@ class Flow(Model):
 
     @classmethod
     def all_flow_query_factory(cls):
+        '''
+        '''
         return cls.query
 
     @classmethod
     def nonarchived_query_factory(cls):
+        '''
+        '''
         return cls.query.filter(cls.is_archived == False)
 
     def build_detailed_stage_order(self):
+        '''
+        '''
         return [Stage.query.get(i) for i in self.stage_order]
 
     def _build_row(self, row, exited, data_dict):
@@ -61,6 +69,8 @@ class Flow(Model):
         return data_dict
 
     def build_metrics_data(self):
+        '''
+        '''
         raw_data = self.get_metrics_csv_data()
         results = {'current': {}, 'complete': {}}
 
@@ -119,6 +129,8 @@ class Flow(Model):
         return results, headers
 
     def get_metrics_csv_data(self):
+        '''
+        '''
         return db.session.execute('''
             select
                 x.contract_id, x.description, x.department,

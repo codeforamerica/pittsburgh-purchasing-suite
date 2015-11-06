@@ -9,6 +9,9 @@ from sqlalchemy.dialects.postgresql import JSON
 from purchasing.database import Model, db, Column, ReferenceCol
 
 class ContractStage(Model):
+    '''
+    '''
+
     __tablename__ = 'contract_stage'
     __table_args__ = (db.Index('ix_contrage_stage_combined_id', 'contract_id', 'stage_id', 'flow_id'), )
 
@@ -36,8 +39,16 @@ class ContractStage(Model):
     exited = Column(db.DateTime)
     notes = Column(db.Text)
 
+    @property
+    def is_current_stage(self):
+        '''Checks to see if this is the current stage
+        '''
+        return True if self.entered and not self.exited else False
+
     @classmethod
     def get_one(cls, contract_id, flow_id, stage_id):
+        '''
+        '''
         return cls.query.filter(
             cls.contract_id == contract_id,
             cls.stage_id == stage_id,
@@ -46,6 +57,8 @@ class ContractStage(Model):
 
     @classmethod
     def get_multiple(cls, contract_id, flow_id, stage_ids):
+        '''
+        '''
         return cls.query.filter(
             cls.contract_id == contract_id,
             cls.stage_id.in_(stage_ids),
@@ -58,6 +71,8 @@ class ContractStage(Model):
         self.entered = enter_time
 
     def log_enter(self, user, enter_time):
+        '''
+        '''
         self.enter(enter_time=enter_time)
         return ContractStageActionItem(
             contract_stage_id=self.id, action_type='entered',
@@ -71,14 +86,20 @@ class ContractStage(Model):
         )
 
     def happens_before(self, target_stage_id):
+        '''
+        '''
         return self.flow.stage_order.index(self.stage_id) < \
             self.flow.stage_order.index(target_stage_id)
 
     def happens_before_or_on(self, target_stage_id):
+        '''
+        '''
         return self.flow.stage_order.index(self.stage_id) <= \
             self.flow.stage_order.index(target_stage_id)
 
     def happens_after(self, target_stage_id):
+        '''
+        '''
         return self.flow.stage_order.index(self.stage_id) > \
             self.flow.stage_order.index(target_stage_id)
 
@@ -88,6 +109,8 @@ class ContractStage(Model):
         self.exited = exit_time
 
     def log_exit(self, user, exit_time):
+        '''
+        '''
         self.exit(exit_time=exit_time)
         return ContractStageActionItem(
             contract_stage_id=self.id, action_type='exited',
@@ -101,6 +124,8 @@ class ContractStage(Model):
         )
 
     def log_reopen(self, user, restart_time):
+        '''
+        '''
         return ContractStageActionItem(
             contract_stage_id=self.id, action_type='reversion',
             taken_by=user.id, taken_at=datetime.datetime.utcnow(),
@@ -113,6 +138,8 @@ class ContractStage(Model):
         )
 
     def log_extension(self, user):
+        '''
+        '''
         return ContractStageActionItem(
             contract_stage_id=self.id, action_type='extension',
             taken_by=user.id, taken_at=datetime.datetime.utcnow(),
@@ -140,12 +167,6 @@ class ContractStage(Model):
                 action.delete()
         return None
 
-    @property
-    def is_current_stage(self):
-        '''Checks to see if this is the current stage
-        '''
-        return True if self.entered and not self.exited else False
-
     def __unicode__(self):
         return '{} - {}'.format(self.contract.description, self.stage.name)
 
@@ -171,7 +192,7 @@ class ContractStageActionItem(Model):
 
     def get_sort_key(self):
         # if we are reversion, we need to get the timestamps from there
-        if self.action_type in ['reversion', 'entered', 'exited']:
+        if self.is_start_type or self.is_exited_type:
             return datetime.datetime.strptime(
                 self.action_detail['timestamp'],
                 '%Y-%m-%dT%H:%M:%S'
