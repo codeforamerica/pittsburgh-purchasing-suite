@@ -121,6 +121,8 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
     @property
     def scout_contract_status(self):
+        '''Returns a string with the contract's status.
+        '''
         if self.expiration_date:
             if days_from_today(self.expiration_date) <= 0 and self.children and self.is_archived:
                 return 'expired_replaced'
@@ -138,10 +140,31 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
     @property
     def current_contract_stage(self):
+        '''The contract's current stage
+
+        Because the :py:class:`~purchasing.data.contract_stages.ContractStage` model
+        has a three-part compound primary key, we pass the contract's ID, the
+        contract's :py:class:`~purchasing.data.flows.Flow` id and its
+        :py:class:`~purchasing.data.stages.Stage` id
+        '''
         return ContractStage.get_one(self.id, self.flow.id, self.current_stage.id)
 
     def get_spec_number(self):
         '''Returns the spec number for a given contract
+
+        The spec number is a somewhat unique identifier for contracts used by
+        Allegheny County. Because of the history of purchasing between the City
+        and the County, the City uses spec numbers when they are available (
+        this tends to be contracts with County, A-Bid, and B-Bid
+        :py:class:`~purchasing.data.contracts.ContractType`.
+
+        The majority of contracts do not have spec numbers, but these numbers
+        are quite important and used regularly for the contracts that do have them.
+
+        Returns:
+            A :py:class:`~purchasing.data.contracts.ContractProperty` object, either
+            with the key of "Spec Number" or an empty object if none with that name
+            exists
         '''
         try:
             return [i for i in self.properties if i.key.lower() == 'spec number'][0]
@@ -149,6 +172,18 @@ class ContractBase(RefreshSearchViewMixin, Model):
             return ContractProperty()
 
     def update_with_spec_number(self, data, company=None):
+        '''Action to update both a contract and its spec number
+
+        Because a spec number is not a direct property of a contract,
+        we have to go through some extra steps to update it.
+
+        Arguments:
+            data: Form data to use in updating a contract
+
+        Keyword Arguments:
+            company: A :py:class:`~purchasing.data.companies.Company` to
+                add to the companies that are servicing the contract
+        '''
         spec_number = self.get_spec_number()
 
         new_spec = data.pop('spec_number', None)
@@ -160,7 +195,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
             spec_number.value = None
         self.properties.append(spec_number)
 
-        if company:
+        if company and company not in self.companies:
             self.companies.append(company)
 
         self.update(**data)
@@ -177,17 +212,55 @@ class ContractBase(RefreshSearchViewMixin, Model):
         ).all()
 
     def filter_action_log(self):
-        '''Filter actions that have been reverted
+        '''Returns a filtered action log for this contract
+
+        Because stages can be restarted, simple ordering by time an action was
+        taken will lead to incorrectly ordered (and far too many) actions. Filtering
+        these down is a multi-step process, which proceeds roughly as follows:
+
+        1. Sort all actions based on the time that they were taken. This ensures
+           that when we filter, we will get the most recent action. Putting them
+           into proper time order for display takes place later
+        2. Group actions by their respective :py:class:`~purchasing.data.stages.Stage`
+        3. For each group of actions that takes place in each stage:
+
+            a. Grab the most recent start or restart action for that stage (filtered
+               by whether that action was taken on a stage prior to our current stage
+               in our flow's stage order)
+            b. Grab the most recent end action for that stage (filtered
+               by whether that action was taken on a stage prior to our current stage
+               in our flow's stage order, or the same stage)
+            c. Grab all other actions that took place on that stage
+        4. Re-sort them based on the action's sort key, which will put them into the
+           proper order for display
         '''
-        all_actions = sorted(self.build_complete_action_log(), key=lambda x: (x.contract_stage.stage_id, -time.mktime(x.taken_at.timetuple())))
+        all_actions = sorted(
+            self.build_complete_action_log(), key=lambda x: (
+                x.contract_stage.stage_id, -time.mktime(x.taken_at.timetuple())
+            )
+        )
+
         filtered_actions = []
 
         for stage_id, group_of_actions in groupby(all_actions, lambda x: x.contract_stage.stage_id):
             actions = list(group_of_actions)
-            filtered_actions.append(next(ifilter(lambda x: x.is_start_type and x.contract_stage.happens_before_or_on(self.current_stage_id), actions), []))
-            filtered_actions.append(next(ifilter(lambda x: x.is_exited_type and x.contract_stage.happens_before(self.current_stage_id), actions), []))
+            # append start types
+            filtered_actions.append(next(
+                ifilter(
+                    lambda x: x.is_start_type and x.contract_stage.happens_before_or_on(self.current_stage_id), actions
+                ),
+                [])
+            )
+            # append end types
+            filtered_actions.append(next(
+                ifilter(
+                    lambda x: x.is_exited_type and x.contract_stage.happens_before(self.current_stage_id), actions
+                ), [])
+            )
+            # extend with all other types
             filtered_actions.extend([x for x in actions if x.is_other_type])
 
+        # return the resorted
         return sorted(ifilter(lambda x: hasattr(x, 'taken_at'), filtered_actions), key=lambda x: x.get_sort_key())
 
     def get_contract_stages(self):
@@ -238,19 +311,37 @@ class ContractBase(RefreshSearchViewMixin, Model):
             self.get_current_stage().exited is not None
 
     def add_follower(self, user):
+        '''Add a follower from a contract's list of followers
+
+        Arguments:
+            user: A :py:class:`~purchasing.users.models.User`
+
+        Returns:
+            A two-tuple to use to flash an alert of (the message to display,
+            the class to style the message with)
+        '''
         if user not in self.followers:
             self.followers.append(user)
             return ('Successfully subscribed!', 'alert-success')
         return ('Already subscribed!', 'alert-info')
 
     def remove_follower(self, user):
+        '''Remove a follower from a contract's list of followers
+
+        Arguments:
+            user: A :py:class:`~purchasing.users.models.User`
+
+        Returns:
+            A two-tuple to use to flash an alert of (the message to display,
+            the class to style the message with)
+        '''
         if user in self.followers:
             self.followers.remove(user)
             return ('Successfully unsubscribed', 'alert-success')
         return ('You haven\'t subscribed to this contract!', 'alert-warning')
 
     def transfer_followers_to_children(self):
-        '''Transfer relationships from parent to all children
+        '''Transfer relationships from parent to all children and reset parent's followers
         '''
         for child in self.children:
             child.followers = self.followers
@@ -274,7 +365,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
             self.children = []
 
     def complete(self):
-        '''Do the steps to mark a contract as complete:
+        '''Do the steps to mark a contract as complete
 
         1. Transfer the followers to children
         2. Modify description to make contract explicitly completed/archived
@@ -301,20 +392,40 @@ class ContractBase(RefreshSearchViewMixin, Model):
         '''Takes a contract object and clones it
 
         The clone always strips the following properties:
+
         * Current Stage
 
         If the strip flag is set to true, the following are also stripped
+
         * Contract HREF
         * Financial ID
         * Expiration Date
 
         If the new_conductor_contract flag is set to true, the following are set:
+
         * is_visible set to False
         * is_archived set to False
 
         Relationships are handled as follows:
+
         * Stage, Flow - Duplicated
         * Properties, Notes, Line Items, Companies, Stars, Follows kept on old
+
+        Arguments:
+            instance: The instance of the contract to clone, will become
+                the parent of the cloned contract unless a different
+                ``parent_id`` is passed as a keyword argument
+
+        Keyword Arguments:
+            parent_id: The parent id of the contract to be passed, defaults to None
+            strip: Boolean, if true, the contract href, financial id and expiration
+                date of the cloned contract will all be stripped. Defaults to True
+            new_conductor_contract: Boolean to mark if we are going to be starting
+                new work in Conductor with the clone. If true, set both
+                ``is_visible`` and ``is_archived`` to False. Defaults to True
+
+        Returns:
+            clone: The cloned contract created from the passed instance
         '''
         clone = cls(**instance.as_dict())
         clone.id, clone.current_stage = None, None
@@ -376,7 +487,32 @@ class ContractBase(RefreshSearchViewMixin, Model):
         return actions
 
     def transition(self, user, destination=None, complete_time=None):
-        '''Routing method -- figure out which actual method to call
+        '''Transition the contract to the appropriate stage.
+
+        * If the contract has no current stage, transition it to the first
+          stage
+        * If the contract has a "destination", transition it to that destination
+        * If the current stage of the contract is the last stage of the contract's
+          flow order, exit the last stage and move to completion
+        * If it is anything else, transition forward one stage in the flow order
+
+        Arguments:
+            user: The user taking the actions
+
+        Keyword Arguments:
+            destination: An optional revere destination to allow for rewinding
+                to any point in time. Defaults to None
+            complete_time: A time other than the current time to perform
+                the transitions. If one is given, the relevant
+                :py:class:`~purchasing.data.contract_stages.ContractStageActionItem`
+                datetime fields
+                and :py:class:`~purchasing.data.contract_stages.ContractStage`
+                enter and exit times are marked with the passed time. The actions'
+                taken_at times are still marked with the current time, however.
+
+        Returns:
+            A list of :py:class:`~purchasing.data.contract_stages.ContractStageActionItem`
+            objects which describe the actions in transition
         '''
         complete_time = complete_time if complete_time else datetime.datetime.utcnow()
         if self.current_stage_id is None:
@@ -407,6 +543,10 @@ class ContractBase(RefreshSearchViewMixin, Model):
         4. Strip the contract's current stage id.
         5. Transition into the first stage of the new order. This will
            ensure that everything is being logged in the correct order.
+
+        Arguments:
+            new_flow_id: ID of the new flow to switch to
+            user: The user performing the switch
         '''
         old_flow = self.flow.flow_name
         old_action_log = self.filter_action_log()
@@ -460,7 +600,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
         return new_contract_stages[0], self
 
     def build_subscribers(self):
-        '''
+        '''Build a list of subscribers and others to populate contacts in conductor
         '''
         department_users, county_purchasers, eorc = User.get_subscriber_groups(self.department_id)
 
