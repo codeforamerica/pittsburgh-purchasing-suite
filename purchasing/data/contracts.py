@@ -23,45 +23,94 @@ contract_user_association_table = Table(
 )
 
 class ContractBase(RefreshSearchViewMixin, Model):
-    '''Contract model
+    '''Base contract model
+
+    Attributes:
+        id: Primary key unique ID
+        financial_id: Financial identifier for the contract.
+            In Pittsburgh, this is called the "controller number"
+            because it is assigned by the City Controller's office
+        expiration_date: Date when the contract expires
+        description: Short description of what the contract covers
+        contract_href: Link to the actual contract document
+        followers: A many-to-many relationship with
+            :py:class:`~purchasing.users.models.User` objects
+            for people who will receive updates about when the
+            contract will be updated
+        is_archived: Whether the contract is archived. Archived
+            contracts do not appear by default on Scout search
+
+        contract_type_id: Foreign key to
+            :py:class:`~purchasing.data.contracts.ContractType`
+        contract_type: Sqlalchemy relationship to
+            :py:class:`~purchasing.data.contracts.ContractType`
+        department_id: Foreign key to
+            :py:class:`~purchasing.users.models.Department`
+        department: Sqlalchemy relationship to
+            :py:class:`~purchasing.users.models.Department`
+
+        opportunity: An :py:class:`~purchasing.opportunities.models.Opportunity`
+            created via conductor for this contract
+
+        is_visible: A flag as to whether or not the contract should
+            be visible in Conductro
+        assigned_to: Foreign key to
+            :py:class:`~purchasing.users.models.User`
+        assigned: Sqlalchemy relationship to
+            :py:class:`~purchasing.users.models.User`
+        flow_id: Foreign key to
+            :py:class:`~purchasing.data.flows.Flow`
+        current_flow: Sqlalchemy relationship to
+            :py:class:`~purchasing.data.flows.Flow`
+        current_stage_id: Foreign key to
+            :py:class:`~purchasing.data.stages.Stage`
+        current_stage: Sqlalchemy relationship to
+            :py:class:`~purchasing.data.stages.Stage`
+        parent_id: Contract self-reference. When new work is started
+            on a contract, a clone of that contract is made and
+            the contract that was cloned is assigned as the new
+            contract's ``parent``
+        children: A list of all of this object's children
+            (all contracts) that have this contract's id as
+            their ``parent_id``
     '''
     __tablename__ = 'contract'
 
+    # base contract information
     id = Column(db.Integer, primary_key=True)
     financial_id = Column(db.String(255))
     expiration_date = Column(db.Date)
     description = Column(db.Text, index=True)
     contract_href = Column(db.Text)
-    current_flow = db.relationship('Flow', lazy='joined')
-    flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
-    current_stage = db.relationship('Stage', lazy='joined')
-    current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True, index=True)
     followers = db.relationship(
         'User',
         secondary=contract_user_association_table,
         backref='contracts_following',
     )
+    is_archived = Column(db.Boolean, default=False, nullable=False)
 
+    # contract type/department relationships
     contract_type_id = ReferenceCol('contract_type', ondelete='SET NULL', nullable=True)
     contract_type = db.relationship('ContractType', backref=backref(
         'contracts', lazy='dynamic'
     ))
-
-    assigned_to = ReferenceCol('users', ondelete='SET NULL', nullable=True)
-    assigned = db.relationship('User', backref=backref(
-        'assignments', lazy='dynamic', cascade='none'
-    ), foreign_keys=assigned_to)
-
     department_id = ReferenceCol('department', ondelete='SET NULL', nullable=True, index=True)
     department = db.relationship('Department', backref=backref(
         'contracts', lazy='dynamic', cascade='none'
     ))
 
-    is_visible = Column(db.Boolean, default=True, nullable=False)
-    is_archived = Column(db.Boolean, default=False, nullable=False)
-
     opportunity = db.relationship('Opportunity', uselist=False, backref='opportunity')
 
+    # conductor information
+    is_visible = Column(db.Boolean, default=True, nullable=False)
+    assigned_to = ReferenceCol('users', ondelete='SET NULL', nullable=True)
+    assigned = db.relationship('User', backref=backref(
+        'assignments', lazy='dynamic', cascade='none'
+    ), foreign_keys=assigned_to)
+    flow_id = ReferenceCol('flow', ondelete='SET NULL', nullable=True)
+    current_flow = db.relationship('Flow', lazy='joined')
+    current_stage_id = ReferenceCol('stage', ondelete='SET NULL', nullable=True, index=True)
+    current_stage = db.relationship('Stage', lazy='joined')
     parent_id = Column(db.Integer, db.ForeignKey('contract.id'))
     children = db.relationship('ContractBase', backref=backref(
         'parent', remote_side=[id], lazy='subquery'
@@ -252,20 +301,20 @@ class ContractBase(RefreshSearchViewMixin, Model):
         '''Takes a contract object and clones it
 
         The clone always strips the following properties:
-            + Current Stage
+        * Current Stage
 
         If the strip flag is set to true, the following are also stripped
-            + Contract HREF
-            + Financial ID
-            + Expiration Date
+        * Contract HREF
+        * Financial ID
+        * Expiration Date
 
         If the new_conductor_contract flag is set to true, the following are set:
-            + is_visible set to False
-            + is_archived set to False
+        * is_visible set to False
+        * is_archived set to False
 
         Relationships are handled as follows:
-            + Stage, Flow - Duplicated
-            + Properties, Notes, Line Items, Companies, Stars, Follows kept on old
+        * Stage, Flow - Duplicated
+        * Properties, Notes, Line Items, Companies, Stars, Follows kept on old
         '''
         clone = cls(**instance.as_dict())
         clone.id, clone.current_stage = None, None
@@ -430,6 +479,15 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
 class ContractType(Model):
     '''Model for contract types
+
+    Attributes:
+        id: Primary key unique ID
+        name: Name of the contract type
+        allow_opportunities: Boolean flag as to whether to allow
+            opportunities to be posted
+        opportunity_response_instructions: HTML string of instructions
+            for bidders on how to respond to opportunities of this
+            type
     '''
     __tablename__ = 'contract_type'
 
@@ -443,24 +501,49 @@ class ContractType(Model):
 
     @classmethod
     def opportunity_type_query(cls):
-        '''
+        '''Query factory filtered to include only types that allow opportunities
         '''
         return cls.query.filter(cls.allow_opportunities == True)
 
     @classmethod
     def query_factory_all(cls):
-        '''
+        '''Query factory to return all contract types
         '''
         return cls.query.order_by(cls.name)
 
     @classmethod
     def get_type(cls, type_name):
-        '''
+        '''Get an individual type based on a passed type name
+
+        Arguments:
+            type_name: Name of the type to look up
+
+        Returns:
+            One :py:class:`~purchasing.data.contracts.ContractType` object
         '''
         return cls.query.filter(db.func.lower(cls.name) == type_name.lower()).first()
 
 class ContractProperty(RefreshSearchViewMixin, Model):
     '''Model for contract properties
+
+    The contract property model effectively serves as a key-value
+    storage unit for properties that exist on a subset of contracts.
+    For example, a common unit for County contracts is the so-called
+    "spec number", an identified used by Allegheny County for their
+    electronic bidding system. Other contract types (such as PA state and
+    COSTARS contracts), do not have this property but do have others
+    (such as manufacturers offered, etc.). Therefore, we use this
+    model as an extended key-value store for the base
+    :py:class:`purchasing.data.contracts.ContractBase` model
+
+    Attributes:
+        id: Primary key unique ID
+        contract: Sqlalchemy relationship to
+            :py:class:`~purchasing.data.contracts.ContractBase`
+        contract_id: Foreign key to
+            :py:class:`~purchasing.data.contracts.ContractBase`
+        key: The key for the property (for example, Spec Number)
+        value: The value for the property (for example, 7137)
     '''
     __tablename__ = 'contract_property'
 
@@ -477,6 +560,18 @@ class ContractProperty(RefreshSearchViewMixin, Model):
 
 class ContractNote(Model):
     '''Model for contract notes
+
+    Attributes:
+        id: Primary key unique ID
+        contract: Sqlalchemy relationship to
+            :py:class:`~purchasing.data.contracts.ContractBase`
+        contract_id: Foreign key to
+            :py:class:`~purchasing.data.contracts.ContractBase`
+        note: Text of the note to be taken
+        taken_by_id: Foreign key to
+            :py:class:`~purchasing.users.models.User`
+        taken_by: Sqlalchemy relationship to
+            :py:class:`~purchasing.users.models.User`
     '''
     __tablename__ = 'contract_note'
 
@@ -498,19 +593,25 @@ class LineItem(RefreshSearchViewMixin, Model):
     '''Model for contract line items
 
     Attributes:
-        id:
-        contract:
-        contract_id:
-        description:
-        manufacturer:
-        model_number:
-        quantity:
-        unit_of_measure:
-        unit_cost:
-        total_cost:
-        percentage:
-        company_name:
-        company_id:
+        id: Primary key unique ID
+        contract: Sqlalchemy relationship to
+            :py:class:`~purchasing.data.contracts.ContractBase`
+        contract_id: Foreign key to
+            :py:class:`~purchasing.data.contracts.ContractBase`
+        description: Description of the line item in question
+        manufacturer: Name of the manufacturer of the line item
+        model_number: A model number for the item
+        quantity: The quantity of the item on contract
+        unit_of_measure: The unit of measure (for example EACH)
+        unit_cost: Cost on a per-unit basis
+        total_cost: Total cost (unit_cost * quantity)
+        percentage: Whether or not the unit cost should be represented
+            as a percentage (NOTE: on the BidNet system, there is no
+            differentiation between a percentage discount off of an item
+            and actual unit cost for an item)
+        company_name: Name of the company that is providing the good
+        company_id: Foreign key to
+            :py:class:`~purchasing.data.companies.Company`
     '''
     __tablename__ = 'line_item'
 
