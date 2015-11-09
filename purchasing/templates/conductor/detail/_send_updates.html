@@ -80,7 +80,6 @@
       <div class="col-sm-10">
 
         {% for attachment in update_form.attachments %}
-        {{ attachment.csrf_token() }}
         <div class="js-attachment-container form-group row">
           <div class="col-sm-12">
             <span class="pull-right"><a class="js-multiform-remove hidden" data-parent-elem-class="js-attachment-container"><i class="fa fa-times text-danger"></i></a></span>

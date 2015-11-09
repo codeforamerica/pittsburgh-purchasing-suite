@@ -20,6 +20,7 @@ First, create a virtualenv and activate it. Then:
 .. code:: bash
 
     git clone git@github.com:codeforamerica/pittsburgh-purchasing-suite.git
+    cd pittsburgh-purchasing-suite
     # create the 'purchasing' database
     psql -c 'create database purchasing;'
     # set environmental variables - it is recommended that you set these for your

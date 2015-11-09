@@ -28,17 +28,16 @@ For a brief summary of our work, take a look at `our blog <http://yinzforamerica
 .. toctree::
     :maxdepth: 2
 
-    redeploy
-    develop
-
     beacon
     scout
     conductor
-
     public
     models
-    importers
 
+    redeploy
+    develop
+
+    importers
     other
 
 

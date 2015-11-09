@@ -71,6 +71,12 @@ class User(UserMixin, SurrogatePK, Model):
         foreign_keys=department_id, primaryjoin='User.department_id==Department.id'
     )
 
+    def __repr__(self):
+        return '<User({email!r})>'.format(email=self.email)
+
+    def __unicode__(self):
+        return self.email
+
     @property
     def full_name(self):
         '''Build full name of user
@@ -80,11 +86,36 @@ class User(UserMixin, SurrogatePK, Model):
         '''
         return "{0} {1}".format(self.first_name, self.last_name)
 
-    def __repr__(self):
-        return '<User({email!r})>'.format(email=self.email)
+    @classmethod
+    def department_user_factory(cls, department_id):
+        return cls.query.filter(
+            cls.department_id == department_id,
+            db.func.lower(Department.name) != 'equal opportunity review commission'
+        )
 
-    def __unicode__(self):
-        return self.email
+    @classmethod
+    def county_purchaser_factory(cls):
+        return cls.query.join(
+            Role, User.role_id == Role.id
+        ).filter(
+            Role.name == 'county'
+        )
+
+    @classmethod
+    def eorc_user_factory(cls):
+        return cls.query.join(
+            Department, User.department_id == Department.id
+        ).filter(
+            db.func.lower(Department.name) == 'equal opportunity review commission'
+        )
+
+    @classmethod
+    def get_subscriber_groups(cls, department_id):
+        return [
+            cls.department_user_factory(department_id).all(),
+            cls.county_purchaser_factory().all(),
+            cls.eorc_user_factory().all()
+        ]
 
     def get_following(self):
         '''Generate user contract subscriptions

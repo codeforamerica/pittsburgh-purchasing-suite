@@ -14,6 +14,7 @@ from purchasing.filters import days_from_today
 from purchasing.data.stages import Stage
 from purchasing.data.flows import Flow
 from purchasing.data.contract_stages import ContractStage, ContractStageActionItem
+from purchasing.users.models import User
 
 contract_user_association_table = Table(
     'contract_user_association', Model.metadata,
@@ -408,6 +409,24 @@ class ContractBase(RefreshSearchViewMixin, Model):
 
         db.session.commit()
         return new_contract_stages[0], self
+
+    def build_subscribers(self):
+        '''
+        '''
+        department_users, county_purchasers, eorc = User.get_subscriber_groups(self.department_id)
+
+        if self.parent is None:
+            followers = []
+        else:
+            followers = [i for i in self.parent.followers if i not in department_users]
+
+        subscribers = {
+            'Department Users': department_users,
+            'Followers': followers,
+            'County Purchasers': [i for i in county_purchasers if i not in department_users],
+            'EORC': eorc
+        }
+        return subscribers, sum([len(i) for i in subscribers.values()])
 
 class ContractType(Model):
     '''Model for contract types

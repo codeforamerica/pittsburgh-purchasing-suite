@@ -30,7 +30,7 @@ from purchasing.conductor.forms import (
 
 from purchasing.conductor.util import (
     UpdateFormObj, ConductorObj, ContractMetadataObj,
-    handle_form, build_subscribers, assign_a_contract
+    assign_a_contract
 )
 
 from purchasing.conductor.manager import blueprint
@@ -87,22 +87,30 @@ def detail(contract_id, stage_id=-1):
 
     active_tab = '#activity'
 
-    submitted_form = request.args.get('form', None)
+    submitted_form_name = request.args.get('form', None)
 
-    if submitted_form:
-        if handle_form(
-            forms[submitted_form], submitted_form, stage_id,
-            current_user, contract, active_stage
-        ):
+    if submitted_form_name:
+        submitted_form = forms[submitted_form_name]
+
+        if submitted_form.validate_on_submit():
+            action = ContractStageActionItem(
+                contract_stage_id=stage_id, action_type=submitted_form_name,
+                taken_by=current_user.id, taken_at=datetime.datetime.utcnow()
+            )
+            action = submitted_form.post_validate_action(action, contract, current_stage)
+
+            db.session.add(action)
+            db.session.commit()
+
             return redirect(url_for(
                 'conductor.detail', contract_id=contract_id, stage_id=stage_id
             ))
         else:
-            active_tab = '#' + submitted_form
+            active_tab = '#' + submitted_form_name
 
     actions = contract.filter_action_log()
     # actions = contract.build_complete_action_log()
-    subscribers, total_subscribers = build_subscribers(contract)
+    subscribers, total_subscribers = contract.build_subscribers()
     flows = Flow.query.filter(Flow.id != contract.flow_id).all()
 
     current_app.logger.info(
@@ -122,9 +130,7 @@ def detail(contract_id, stage_id=-1):
             current_user=current_user, active_stage=active_stage,
             current_stage=current_stage, flows=flows, subscribers=subscribers,
             total_subscribers=total_subscribers,
-            current_stage_enter=pytz.UTC.localize(
-                current_stage.entered
-            ).astimezone(current_app.config['DISPLAY_TIMEZONE']),
+            current_stage_enter=localize_datetime(current_stage.entered),
             categories=opportunity_form.get_categories(),
             subcategories=opportunity_form.get_subcategories()
         )
