@@ -16,7 +16,7 @@ class TestScoutJobs(BaseTestCase):
         super(TestScoutJobs, self).setUp()
         self.user = UserFactory.create()
         ContractBaseFactory.create(
-            expiration_date=datetime.date.today() + datetime.timedelta(120),
+            expiration_date=datetime.date.today() + datetime.timedelta(30),
             description='foobar',
             followers=[self.user]
         )
