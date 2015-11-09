@@ -14,7 +14,18 @@ from purchasing.data.contracts import ContractBase, ContractType
 from purchasing.users.models import Department
 
 class ContractMetadataObj(object):
-    '''
+    '''Base object to populate the contract metadata form
+
+    Sets the expiration date, financial id, spec number, and
+    department on the contract metadata form
+
+    Arguments:
+        contract: The :py:class:`~purchasing.data.contracts.ContractBase`
+            contract that is currently being worked
+            on, will be used to pre-populate the relevant form
+
+    See Also:
+        :py:class:`~purchasing.conductor.forms.ContractMetadataForm`
     '''
     def __init__(self, contract):
         self.expiration_date = contract.expiration_date
@@ -22,24 +33,39 @@ class ContractMetadataObj(object):
         self.spec_number = contract.get_spec_number().value
         self.department = contract.department
 
-class OpportunityFormObj(object):
-    '''
-    '''
-    def __init__(self, department, title, contact_email=None):
-        self.department = department
-        self.title = title
-        self.contact_email = contact_email
-
 class UpdateFormObj(object):
-    '''
+    '''Base object to populate the send email update form
+
+    Sets the cc email as the current user's email, and sets
+    the email body as the default message from the passed
+    :py:class:`~purchasing.data.stages.Stage`,
+    or an empty string.
+
+    Arguments:
+        stage: a :py:class:`~purchasing.data.stages.Stage`
+            object
+
+    See Also:
+        :py:class:`~purchasing.conductor.forms.SendUpdateForm`
     '''
     def __init__(self, stage):
         self.send_to_cc = current_user.email
         self.body = stage.default_message if stage.default_message else ''
 
+class ConductorToBeaconObj(object):
+    '''Base object to populate posting from Conductor to Beacon
 
-class ConductorObj(object):
-    '''
+    Sets the title of the opportunity as the contract's description,
+    and then sets the default opportunity type and department from
+    the app's configuration.
+
+    Arguments:
+        contract: The :py:class:`~purchasing.data.contracts.ContractBase`
+            contract that is currently being worked
+            on, will be used to pre-populate the relevant form
+
+    See Also:
+        :py:class:`~purchasing.conductor.forms.PostOpportunityForm`
     '''
     def __init__(self, contract):
         self.title = better_title(contract.description)
@@ -47,23 +73,31 @@ class ConductorObj(object):
         self.department = Department.get_dept(current_app.config.get('CONDUCTOR_DEPARTMENT', ''))
 
 def json_serial(obj):
-    '''
+    '''Add JSON serialization support for datetime and date objects
+
+    Arguments:
+        obj: Object to serialize into JSON
+
+    Returns:
+        If obj is a datetime or date object, serialize it by converting it
+        into an isoformat string. Otherwise, return the object itself
     '''
     if isinstance(obj, datetime.datetime) or isinstance(obj, datetime.date):
         return obj.isoformat()
-
-def create_opp_form_obj(contract, contact_email=None):
-    '''
-    '''
-    if contract.opportunity:
-        obj = contract.opportunity
-        obj.contact_email = contract.opportunity.contact.email
-    else:
-        obj = OpportunityFormObj(contract.department, contract.description, contact_email)
     return obj
 
 def parse_companies(companies):
-    '''
+    '''Normalize new and existing companies into Contract model fields
+
+    Arguments:
+        companies: A list of companies and new companies
+            passed in from the user's session.
+
+    Returns:
+        A list of dictionaries, normalized to be added as
+        properties to a new
+        :py:class:`~purchasing.data.contracts.ContractBase`
+        object
     '''
     cleaned = []
     for company in companies.get('companies'):
@@ -82,17 +116,58 @@ def parse_companies(companies):
     return cleaned
 
 def assign_a_contract(contract, flow, user, start_time=None, clone=True):
+    '''Assign a contract a flow and a user
+
+    If a flow is passed in, the following steps are performed:
+
+    1. If the ``clone`` flag is set to True, make a new cloned copy of the
+       passed :py:class:`~purchasing.data.contracts.ContractBase`
+    2. Try to create the contract stages for the passed
+       :py:class:`~purchasing.data.flows.Flow`
+    3. If that raises an error, it is because the contract stages for that
+       :py:class:`~purchasing.data.flows.Flow` already exist, so
+       rollback the transaction
+    4. Assign the contract's flow to the passed
+       :py:class:`~purchasing.data.flows.Flow` and its assigned user to
+       the passed :py:class:`~purchasing.users.models.User` and commit
+
+    Arguments:
+        contract: A :py:class:`~purchasing.data.contracts.ContractBase` object
+            to assign
+        flow: A :py:class:`~purchasing.data.flows.Flow` object to assign
+        user: A :py:class:`~purchasing.users.model.User` object to assign
+
+    Keyword Arguments:
+        start_time: An optional start time for starting work on the
+            :py:class:`~purchasing.data.contracts.ContractBase`
+            when it starts its first
+            :py:class:`~purchasing.data.contract_stages.ContractStage`
+        clone: A boolean flag of whether or not to make a clone of
+            the passed :py:class:`~purchasing.data.contracts.ContractBase`
+
+    Returns:
+        An assigned :py:class:`~purchasing.data.contracts.ContractBase` if we
+        are given a flow, False otherwise
     '''
-    '''
-    # if we don't have a flow, stop and throw an error
+    # if we don't have a flow, stop
     if not flow:
         return False
 
-    # if the contract is already assigned,
-    # resassign it and continue on
-    if contract.assigned_to and not contract.completed_last_stage():
-        contract.assigned_to = user.id
+    if clone:
+        contract = ContractBase.clone(contract)
+        db.session.add(contract)
+        db.session.commit()
 
+    try:
+        stages, _, _ = flow.create_contract_stages(contract)
+        actions = contract.transition(user, complete_time=start_time)
+        for i in actions:
+            db.session.add(i)
+        db.session.flush()
+    except IntegrityError:
+        # we already have the sequence for this, so just
+        # rollback and pass
+        db.session.rollback()
         if start_time:
             # if we have a start time, we are modifying the first
             # stage start time. check to make sure that we are
@@ -109,44 +184,15 @@ def assign_a_contract(contract, flow, user, start_time=None, clone=True):
                     db.session.add(i)
                 db.session.flush()
 
-        db.session.commit()
+    contract.flow = flow
+    contract.assigned_to = user.id
+    db.session.commit()
 
-        current_app.logger.info('CONDUCTOR ASSIGN - old contract "{}" assigned to {} with flow {}'.format(
-            contract.description, contract.assigned.email, contract.flow.flow_name
-        ))
+    current_app.logger.info('CONDUCTOR ASSIGN - new contract "{}" assigned to {} with flow {}'.format(
+        contract.description, contract.assigned.email, contract.flow.flow_name
+    ))
 
-        return contract
-
-    # otherwise, it's new work. perform the following:
-    # 1. create a cloned version of the contract
-    # 2. create the relevant contract stages
-    # 3. transition into the first stage
-    # 4. assign the contract to the user
-    else:
-        if clone:
-            contract = ContractBase.clone(contract)
-            db.session.add(contract)
-            db.session.commit()
-        try:
-            stages, _, _ = flow.create_contract_stages(contract)
-            actions = contract.transition(user, complete_time=start_time)
-            for i in actions:
-                db.session.add(i)
-            db.session.flush()
-        except IntegrityError:
-            # we already have the sequence for this, so just
-            # rollback and pass
-            db.session.rollback()
-            pass
-
-        contract.assigned_to = user.id
-        db.session.commit()
-
-        current_app.logger.info('CONDUCTOR ASSIGN - new contract "{}" assigned to {} with flow {}'.format(
-            contract.description, contract.assigned.email, contract.flow.flow_name
-        ))
-
-        return contract
+    return contract
 
 def convert_to_str(field):
     return str(field) if field else ''

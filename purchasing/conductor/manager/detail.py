@@ -29,7 +29,7 @@ from purchasing.conductor.forms import (
 )
 
 from purchasing.conductor.util import (
-    UpdateFormObj, ConductorObj, ContractMetadataObj,
+    UpdateFormObj, ConductorToBeaconObj, ContractMetadataObj,
     assign_a_contract
 )
 
@@ -72,7 +72,7 @@ def detail(contract_id, stage_id=-1):
     note_form = NoteForm()
     update_form = SendUpdateForm(obj=UpdateFormObj(current_stage))
     opportunity_form = PostOpportunityForm(
-        obj=contract.opportunity if contract.opportunity else ConductorObj(contract)
+        obj=contract.opportunity if contract.opportunity else ConductorToBeaconObj(contract)
     )
     metadata_form = ContractMetadataForm(obj=ContractMetadataObj(contract))
     complete_form = CompleteForm()
