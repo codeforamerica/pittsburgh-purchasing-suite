@@ -81,7 +81,9 @@
 
       <hr />
 
+      {% if contract.flow %}
       <p class="text-muted"><small>Not done yet? <a href="{{ url_for('conductor.transition', contract_id=contract.id, stage_id=contract.current_stage_id, destination=contract.flow.stage_order[-1]) }}">Revert to the last stage</a></small></p>
+      {% endif %}
 
       <div class="spacer-20"></div>
 
