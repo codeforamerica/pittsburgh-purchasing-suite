@@ -139,7 +139,8 @@ def detail(contract_id, stage_id=-1):
 @blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/transition', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def transition(contract_id, stage_id):
-
+    '''
+    '''
     contract = ContractBase.query.get(contract_id)
     stage = ContractStage.query.filter(ContractStage.id == stage_id).first()
     complete_form = CompleteForm(started=stage.entered)
@@ -189,6 +190,8 @@ def transition(contract_id, stage_id):
 @blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/extend')
 @requires_roles('conductor', 'admin', 'superadmin')
 def extend(contract_id, stage_id):
+    '''
+    '''
     contract = ContractBase.query.get(contract_id)
     if not contract:
         abort(404)
@@ -217,6 +220,8 @@ def extend(contract_id, stage_id):
 @blueprint.route('/contract/<int:contract_id>/stage/<int:stage_id>/flow-switch/<int:flow_id>')
 @requires_roles('conductor', 'admin', 'superadmin')
 def flow_switch(contract_id, stage_id, flow_id):
+    '''
+    '''
     contract = ContractBase.query.get(contract_id)
     if not contract:
         abort(404)
@@ -281,6 +286,8 @@ def kill_contract(contract_id):
 )
 @requires_roles('conductor', 'admin', 'superadmin')
 def delete_note(contract_id, stage_id, note_id):
+    '''
+    '''
     try:
         note = ContractStageActionItem.query.get(note_id)
         if note:
@@ -297,6 +304,8 @@ def delete_note(contract_id, stage_id, note_id):
 @blueprint.route('/contract/<int:contract_id>/assign/<int:user_id>')
 @requires_roles('conductor', 'admin', 'superadmin')
 def reassign(contract_id, user_id):
+    '''
+    '''
     contract = ContractBase.query.get(contract_id)
     assignee = User.query.get(user_id)
 
@@ -316,6 +325,8 @@ def reassign(contract_id, user_id):
 @blueprint.route('/contract/<int:contract_id>/start', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def start_work(contract_id=-1):
+    '''
+    '''
     contract = ContractBase.query.get(contract_id)
 
     if contract:

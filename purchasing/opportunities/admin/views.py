@@ -105,7 +105,7 @@ def edit(opportunity_id):
 def remove_document(opportunity_id, document_id):
     '''Remove a particular opportunity document
 
-    .. seealso:
+    .. seealso::
         :py:class:`~purchasing.opportunities.models.OpportunityForm`
 
     :status 302: Delete the relevant opportunity document and redirect to

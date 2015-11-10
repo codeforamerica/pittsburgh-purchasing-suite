@@ -8,19 +8,25 @@ from flask import (
 )
 from werkzeug import secure_filename
 
-from purchasing.utils import connect_to_s3, upload_file
 from purchasing.database import db
 from purchasing.data.contracts import ContractBase, ContractType
 from purchasing.data.importer.costars import main as import_costars
 from purchasing.decorators import requires_roles
 from purchasing.conductor.forms import FileUploadForm, ContractUploadForm
+from purchasing.conductor.util import upload_costars_contract
 
 from purchasing.conductor.upload import blueprint
 
 @blueprint.route('/costars', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def upload_costars():
-    '''
+    '''Uploads a new csv file with properly-formatted COSTARS data
+
+    :status 200: Renders the
+        :py:class:`~purchasing.conductor.forms.FileUploadForm`
+    :status 302: Saves the uploaded file through the
+        :py:class:`~purchasing.conductor.forms.FileUploadForm`
+        and redirects to processing to upload the saved file
     '''
     form = FileUploadForm()
     if form.validate_on_submit():
@@ -46,6 +52,10 @@ def upload_costars():
 @blueprint.route('/costars/processing')
 @requires_roles('conductor', 'admin', 'superadmin')
 def process():
+    '''Push the filepath and filename into the template to do the upload via ajax
+
+    :status 200: render the upload success template
+    '''
     filepath = session.pop('filepath', None)
     filename = session.pop('filename', None)
 
@@ -56,7 +66,14 @@ def process():
 @blueprint.route('/costars/_process', methods=['POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def process_costars_upload():
+    '''Perform the costars upload on the saved file
 
+    .. seealso::
+        :ref:`costars-importer`
+
+    :status 200: successful costars file read and upload
+    :status 500: error reading costars file
+    '''
     filepath = request.form.get('filepath')
     filename = request.form.get('filename')
     delete = request.form.get('_delete')
@@ -72,32 +89,20 @@ def process_costars_upload():
     except Exception, e:
         return jsonify({'status': 'error: {}'.format(e)}), 500
 
-def upload_costars_contract(_file):
-    filename = secure_filename(_file.filename)
-
-    if current_app.config['UPLOAD_S3']:
-        conn, bucket = connect_to_s3(
-            current_app.config['AWS_ACCESS_KEY_ID'],
-            current_app.config['AWS_SECRET_ACCESS_KEY'],
-            'costars'
-        )
-
-        file_href = upload_file(filename, bucket, input_file=_file, prefix='/', from_file=True)
-        return filename, file_href
-
-    else:
-        try:
-            os.mkdir(current_app.config['UPLOAD_DESTINATION'])
-        except:
-            pass
-
-        filepath = os.path.join(current_app.config['UPLOAD_DESTINATION'], filename)
-        _file.save(filepath)
-        return filename, filepath
-
 @blueprint.route('/costars/contracts', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def costars_contract_upload():
+    '''Upload a contract document pdf for costars
+
+    Because the COSTARS website streams contract documents via POST requests
+    instead having them live at some static endpoint, they are re-hosted in S3.
+
+    :status 200: render the upload costars document template
+    :status 302: attempt to upload a costars document to S3 and set the
+        ``contract_href`` on the relevant
+        :py:class:`~purchasing.data.contracts.ContractBase` object. Redirect
+        to the same page.
+    '''
     contracts = ContractBase.query.join(ContractType).filter(
         db.func.lower(ContractType.name) == 'costars',
         db.or_(

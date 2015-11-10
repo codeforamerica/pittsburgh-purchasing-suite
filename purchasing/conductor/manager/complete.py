@@ -62,6 +62,8 @@ def edit(contract_id):
 @blueprint.route('/contract/<int:contract_id>/edit/company', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def edit_company(contract_id):
+    '''
+    '''
     contract = ContractBase.query.get(contract_id)
 
     if contract and session.get('contract-{}'.format(contract_id)) is not None:
@@ -81,6 +83,8 @@ def edit_company(contract_id):
 @blueprint.route('/contract/<int:contract_id>/edit/contacts', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def edit_company_contacts(contract_id):
+    '''
+    '''
     contract = ContractBase.query.get(contract_id)
 
     if contract and session.get('contract-{}'.format(contract_id)) is not None and session.get('companies-{}'.format(contract_id)) is not None:
@@ -164,6 +168,8 @@ CONDUCTOR CONTRACT COMPLETE - company contacts for contract "{}" assigned. |New 
 @blueprint.route('/contract/<int:contract_id>/edit/success', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def success(contract_id):
+    '''
+    '''
     if session.pop('success-{}'.format(contract_id), None):
         contract = ContractBase.query.get(contract_id)
         return render_template('conductor/edit/success.html', contract=contract)

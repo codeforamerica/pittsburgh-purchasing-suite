@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import os
 
 from sqlalchemy.exc import IntegrityError
+
+from werkzeug import secure_filename
 
 from flask import current_app
 from flask_login import current_user
 
 from purchasing.database import db
 from purchasing.filters import better_title
+from purchasing.utils import connect_to_s3, upload_file
 
 from purchasing.data.contracts import ContractBase, ContractType
 from purchasing.users.models import Department
@@ -196,3 +200,34 @@ def assign_a_contract(contract, flow, user, start_time=None, clone=True):
 
 def convert_to_str(field):
     return str(field) if field else ''
+
+def upload_costars_contract(_file):
+    '''Upload a COSTARS pdf document to S3
+
+    Arguments:
+        _file: A werkzeug `FileStorage`_ object
+
+    Returns:
+        A two-tuple of (the name of the uploaded file, the path/url to the file)
+    '''
+    filename = secure_filename(_file.filename)
+
+    if current_app.config['UPLOAD_S3']:
+        conn, bucket = connect_to_s3(
+            current_app.config['AWS_ACCESS_KEY_ID'],
+            current_app.config['AWS_SECRET_ACCESS_KEY'],
+            'costars'
+        )
+
+        file_href = upload_file(filename, bucket, input_file=_file, prefix='/', from_file=True)
+        return filename, file_href
+
+    else:
+        try:
+            os.mkdir(current_app.config['UPLOAD_DESTINATION'])
+        except:
+            pass
+
+        filepath = os.path.join(current_app.config['UPLOAD_DESTINATION'], filename)
+        _file.save(filepath)
+        return filename, filepath

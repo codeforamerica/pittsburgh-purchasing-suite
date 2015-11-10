@@ -25,6 +25,8 @@ For each row in a given csv file:
 3. Convert expiration dates, financial ids, and contract types to meaningful information for the data model, including looking up or creating new :py:class:`~purchasing.data.contracts.ContractType` objects as necessary
 4. Use the converted data to look up or create new :py:class:`~purchasing.data.contracts.ContractBase`, with the linked :py:class:`~purchasing.data.companies.Company` from the first step.
 
+.. _costars-importer:
+
 COSTARS Importer
 ----------------
 

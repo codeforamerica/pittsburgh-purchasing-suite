@@ -64,5 +64,5 @@ Metrics
    :blueprints: conductor_metrics
    :undoc-endpoints: conductor_metrics.static
 
-
+.. _FileStorage: http://werkzeug.pocoo.org/docs/0.10/datastructures/#werkzeug.datastructures.FileStorage
 
