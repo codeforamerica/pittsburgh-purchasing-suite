@@ -3,11 +3,10 @@
 from __future__ import unicode_literals
 
 import datetime
-from purchasing.database import db
+from purchasing.database import db, get_or_create
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from purchasing.data.importer import (
-    extract, get_or_create, convert_empty_to_none,
-    determine_company_contact
+    extract, convert_empty_to_none, determine_company_contact
 )
 
 from purchasing.utils import turn_off_sqlalchemy_events, turn_on_sqlalchemy_events
@@ -83,7 +82,7 @@ def main(file_target='./files/2015-10-27-state-contracts.csv'):
             )
 
             parent_number, new_parent_number = get_or_create(
-                db.session, ContractProperty, commit=False,
+                db.session, ContractProperty,
                 contract_id=contract.id,
                 key='Parent Number',
                 value=convert_empty_to_none(row.get('PARENT'))
@@ -93,7 +92,7 @@ def main(file_target='./files/2015-10-27-state-contracts.csv'):
                 db.session.add(parent_number)
 
             contract_number, new_contract_number = get_or_create(
-                db.session, ContractProperty, commit=False,
+                db.session, ContractProperty,
                 contract_id=contract.id,
                 key='Contract Number',
                 value=convert_empty_to_none(row.get('CONTRACT'))

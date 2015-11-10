@@ -10,11 +10,9 @@ from bs4 import BeautifulSoup
 from urlparse import urlparse
 
 from sqlalchemy import or_
-from purchasing.database import db
+from purchasing.database import db, get_or_create
 from purchasing.data.contracts import ContractBase, ContractProperty, LineItem
 from purchasing.public.models import AppStatus
-
-from purchasing.data.importer import get_or_create
 
 BASE_COUNTY_URL = 'http://www.govbids.com/scripts/PAPG/public/OpenBids/ViewSolicitations.asp?' + \
     'page=1&Agency=1100&AgencyName=Allegheny+County+-+Division+of+Purchasing+and+Supplies&DisplayBy=' + \

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from purchasing.database import db
+from purchasing.database import db, get_or_create
 from purchasing.opportunities.models import Category
-from purchasing.data.importer import (
-    extract, get_or_create, convert_empty_to_none
-)
+from purchasing.data.importer import extract, convert_empty_to_none
 
 def parse_codes(codes):
     if codes is None:

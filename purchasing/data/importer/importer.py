@@ -3,6 +3,8 @@
 import csv
 
 def convert_empty_to_none(val):
+    '''
+    '''
     return val if val not in ['', 'None'] else None
 
 def extract(file_target, first_row_headers=[]):
@@ -24,6 +26,8 @@ def extract(file_target, first_row_headers=[]):
     return data
 
 def determine_company_contact(row):
+    '''
+    '''
     try:
         first_name, last_name = row.get('CONTACT').split()
     except:
@@ -59,15 +63,3 @@ def determine_company_contact(row):
         ))
 
     return None
-
-def get_or_create(session, model, commit=True, **kwargs):
-    instance = session.query(model).filter_by(**kwargs).first()
-    if instance:
-        return instance, False
-    else:
-        params = dict((k, v) for k, v in kwargs.iteritems())
-        instance = model(**params)
-        session.add(instance)
-        if commit:
-            session.commit()
-        return instance, True

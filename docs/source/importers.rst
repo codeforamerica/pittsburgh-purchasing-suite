@@ -19,10 +19,11 @@ The X-Drive importer (also known as the old contract importer) is tasked with pe
 The way the importer handles this is roughly as follows:
 
 For each row in a given csv file:
+
 1. Look up or create (via :py:func:`~purchasing.database.get_or_create`) companies based on their names.
 2. Look up or create (via the same function as above) company contacts based on their names/addresses/phone/email/etc., linking them with the found or created company from the above step
 3. Convert expiration dates, financial ids, and contract types to meaningful information for the data model, including looking up or creating new :py:class:`~purchasing.data.contracts.ContractType` objects as necessary
-4. Use the converted data to look up or create new :py:class:`~purchasing.data.contracts.ContractBase`, with the linked :py:class:`~purchasing.data.companies.Company` from step 1.
+4. Use the converted data to look up or create new :py:class:`~purchasing.data.contracts.ContractBase`, with the linked :py:class:`~purchasing.data.companies.Company` from the first step.
 
 COSTARS Importer
 ----------------

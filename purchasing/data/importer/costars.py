@@ -5,14 +5,13 @@ import datetime
 from difflib import SequenceMatcher as SM
 
 from purchasing.data.importer import (
-    extract, get_or_create, convert_empty_to_none,
-    determine_company_contact
+    extract, convert_empty_to_none, determine_company_contact
 )
 
 from sqlalchemy.exc import InvalidRequestError
 
 from purchasing.utils import turn_off_sqlalchemy_events, turn_on_sqlalchemy_events
-from purchasing.database import db
+from purchasing.database import db, get_or_create
 from purchasing.data.contracts import ContractBase, ContractProperty, LineItem, ContractType
 from purchasing.data.companies import Company, CompanyContact
 
@@ -168,7 +167,7 @@ def main(filetarget, filename, access_key, access_secret, bucket):
                 elif k == 'County Located':
                     if row.get('County Located') != '':
                         county_located, new_county_located = get_or_create(
-                            db.session, ContractProperty, commit=False,
+                            db.session, ContractProperty,
                             contract_id=contract.id,
                             key='Located in',
                             value=convert_empty_to_none(
@@ -187,7 +186,7 @@ def main(filetarget, filename, access_key, access_secret, bucket):
                     if convert_empty_to_none(row.get('Manufacturers')):
 
                         manufacturer, new_manufacturer = get_or_create(
-                            db.session, ContractProperty, commit=False,
+                            db.session, ContractProperty,
                             contract_id=contract.id,
                             key='List of manufacturers',
                             value=convert_empty_to_none(row.get('Manufacturers'))
@@ -201,7 +200,7 @@ def main(filetarget, filename, access_key, access_secret, bucket):
                 else:
                     if convert_to_bool(convert_empty_to_none(v)):
                         line_item, new_line_item = get_or_create(
-                            db.session, LineItem, commit=False,
+                            db.session, LineItem,
                             contract_id=contract.id,
                             description=convert_empty_to_none(k)
                         )
