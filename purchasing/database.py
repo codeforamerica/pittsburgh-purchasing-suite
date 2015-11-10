@@ -67,7 +67,23 @@ def ReferenceCol(tablename, nullable=False, ondelete=None, pk_name='id', **kwarg
         nullable=nullable, **kwargs)
 
 class Model(CRUDMixin, db.Model):
-    """Base model class that includes CRUD convenience methods."""
+    '''Base model class that includes CRUD convenience methods.
+
+    All models that inherit from this model automatically have several
+    additional attributes attached to them:
+
+    Attributes:
+        created_at: Timestamp for when the model was created
+        updated_at: Timestamp for when the model was updated
+        created_by_id: Foreign key to
+            :py:class:`~purchasing.data.users.User`
+        created_by: Sqlalchemy relationship to
+            :py:class:`~purchasing.data.users.User`
+        updated_by_id: Foreign key to
+            :py:class:`~purchasing.data.users.User`
+        updated_by: Sqlalchemy relationship to
+            :py:class:`~purchasing.data.users.User`
+    '''
     __abstract__ = True
 
     created_at = Column(db.DateTime)

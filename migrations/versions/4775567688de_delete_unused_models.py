@@ -23,6 +23,7 @@ def upgrade():
     op.alter_column('vendor', 'created_at',
                existing_type=postgresql.TIMESTAMP(),
                nullable=True)
+    op.drop_column('contract_stage', 'notes')
     ### end Alembic commands ###
 
 
@@ -48,4 +49,5 @@ def downgrade():
     sa.ForeignKeyConstraint(['updated_by_id'], [u'users.id'], name=u'updated_by_id_fkey'),
     sa.PrimaryKeyConstraint('id', name=u'stage_property_pkey')
     )
+    op.add_column('contract_stage', sa.Column('notes', sa.TEXT(), autoincrement=False, nullable=True))
     ### end Alembic commands ###
