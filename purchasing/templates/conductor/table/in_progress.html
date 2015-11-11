@@ -104,11 +104,8 @@
           <li><a href="{{ url_for('scout.contract', contract_id=contract.id) }}">
             <span class="fa-stack"><i class="fa fa-fw fa-search"></i></span> View on Scout
           </a></li>
-          <li><a href="{{ url_for('conductor.remove', contract_id=contract.id) }}">
-            <span class="fa-stack"><i class="fa fa-fw fa-chain-broken"></i></span> Remove contract from Conductor only
-          </a></li>
           <li><a href="{{ url_for('conductor.kill_contract', contract_id=contract.id) }}">
-            <span class="fa-stack"><i class="fa fa-fw fa-times-circle"></i></span> Remove contract from Scout and Conductor
+            <span class="fa-stack"><i class="fa fa-fw fa-times-circle"></i></span> Remove contract from Conductor
           </a></li>
         </ul>
       </div>

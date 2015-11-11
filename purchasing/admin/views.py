@@ -150,6 +150,7 @@ class ConductorContractAdmin(ContractBaseAdmin):
 
     column_list = [
         'description', 'expiration_date', 'current_stage', 'current_flow', 'assigned',
+        'is_archived'
     ]
 
     form_columns = [
@@ -169,18 +170,16 @@ class ConductorContractAdmin(ContractBaseAdmin):
         '''Override default get query to limit to assigned contracts
         '''
         return super(ConductorContractAdmin, self).get_query().filter(
-            ContractBase.current_stage_id is not None,
+            ContractBase.current_stage_id != None,
             ContractBase.is_visible == False,
-            ContractBase.is_archived == False
         )
 
     def get_count_query(self):
         '''Override default get count query to conform to above
         '''
         return super(ConductorContractAdmin, self).get_count_query().filter(
-            ContractBase.current_stage_id is not None,
+            ContractBase.current_stage_id != None,
             ContractBase.is_visible == False,
-            ContractBase.is_archived == False
         )
 
     def create_form(self):
