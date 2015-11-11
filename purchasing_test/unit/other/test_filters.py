@@ -10,7 +10,8 @@ from flask_testing import TestCase as FlaskTestCase
 from purchasing.app import create_app as _create_app
 from purchasing.filters import (
     better_title, format_currency, days_from_today,
-    datetimeformat, format_days_from_today, newline_to_br
+    datetimeformat, format_days_from_today, newline_to_br,
+    external_link_warning
 )
 
 class TestFilters(TestCase):
@@ -92,3 +93,15 @@ class TestDateTimeFormat(FlaskTestCase):
             newline_to_br(None, 'test\ntest\r\n\r\ntest\r\n\r\ntest'),
             '<p>test<br>\ntest</p>\n\n<p>test</p>\n\n<p>test</p>'
         )
+
+class TestExternalLinkWarning(FlaskTestCase):
+    def create_app(self):
+        return _create_app()
+
+    def test_external_link_on(self):
+        self.app.config['EXTERNAL_LINK_WARNING'] = True
+        self.assertEquals(external_link_warning(), 'js-external-link')
+
+    def test_external_link_off(self):
+        self.app.config['EXTERNAL_LINK_WARNING'] = False
+        self.assertEquals(external_link_warning(), '')

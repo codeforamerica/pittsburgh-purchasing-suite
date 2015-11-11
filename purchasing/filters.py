@@ -162,6 +162,8 @@ def newline_to_br(eval_ctx, value):
     return result.lstrip()
 
 def external_link_warning():
+    '''Checks external link config setting and returns string needed to trigger extlink.js if True
+    '''
     if current_app.config.get('EXTERNAL_LINK_WARNING') is True:
         return 'js-external-link'
     return ''

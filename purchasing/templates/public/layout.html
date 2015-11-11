@@ -9,3 +9,10 @@
 {% block nav %}
   {% include "public/nav.html" %}
 {% endblock %}
+
+{% block js %}
+  {{ super() }}
+  {% assets "publicjs" %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+{% endblock %}
