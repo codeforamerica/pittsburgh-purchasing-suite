@@ -45,7 +45,7 @@ $(document).ready(function() {
     var e = $('.datetimepicker');
 
     e.datetimepicker({
-      format: 'YYYY-MM-DD h:mma',
+      format: 'MM/DD/YYYY h:mma',
       maxDate: moment(e.attr('data-maximum'), 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm'),
       minDate: moment(e.attr('data-started'), 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm'),
       defaultDate: moment(e.attr('data-maximum'), 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm'),
