@@ -271,3 +271,6 @@ def assign_a_contract(contract, flow, user, start_time=None, clone=True):
         ))
 
         return contract
+
+def convert_to_str(field):
+    return str(field) if field else ''

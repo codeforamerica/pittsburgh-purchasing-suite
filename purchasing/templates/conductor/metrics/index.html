@@ -6,7 +6,7 @@
 
 <div class="container">
 
-  <h3>Choose a flow to view and download</h3>
+  <h3>Choose a flow to view and download, or <a href="{{ url_for('conductor_metrics.download_all') }}">download everything</a>.</h3>
 
   {% for flow in flows %}
     <div class="col-md-4">
