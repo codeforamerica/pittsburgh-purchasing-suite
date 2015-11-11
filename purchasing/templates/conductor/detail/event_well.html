@@ -23,7 +23,7 @@
   {% if stage.entered and stage.exited %}
     <div class="event event-complete {% if stage.id == active_stage.id %}event-active{% endif %}">
       <p><a href="{{ url_for('conductor.detail', contract_id=stage.contract_id, stage_id=stage.id) }}">{{ stage.name }}</a></p>
-      <p class="event-date"><small>Completed {{ format_days_from_today(stage.exited)|lower }} ({{ stage.exited|datetimeformat('%m/%d/%y') }})</small></p>
+      <p class="event-date"><small>Completed {{ format_days_from_today(stage.exited)|lower }} ({{ stage.exited|datetimeformat('%m/%d/%y %-I:%M %p', to_date=False) }})</small></p>
       <p class="text-muted"><small>Took
         {% if stage.days_spent > 0 %}{{ stage.days_spent|int }} days
         {% else %}{{ stage.hours_spent|int }} hours
@@ -37,7 +37,7 @@
         <a href="{{ url_for('conductor.detail', contract_id=stage.contract_id, stage_id=stage.id) }}">{{ stage.name }}</a>
       </p>
       <p class="event-date"><small>Started {{ format_days_from_today(stage.entered)|lower }}</small></p>
-      <p class="text-muted"><small>{{ stage.entered|datetimeformat('%m/%d/%y') }}</small></p>
+      <p class="text-muted"><small>{{ stage.entered|datetimeformat('%m/%d/%y %-I:%M %p', to_date=False) }}</small></p>
     </div>
   {% else %}
     <div class="event {% if stage.id == active_stage.id %}event-active{% endif %} event-not-started">

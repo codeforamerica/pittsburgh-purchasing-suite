@@ -65,7 +65,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
     ))
 
     def __unicode__(self):
-        return self.description
+        return '{} (ID: {})'.format(self.description, self.id)
 
     @property
     def scout_contract_status(self):
