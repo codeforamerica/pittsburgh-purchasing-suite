@@ -33,7 +33,7 @@ def index():
         parent, ContractBase.parent
     ).filter(
         db.func.lower(ContractProperty.key) == 'spec number',
-        ContractType.name == 'County'
+        db.func.lower(ContractType.name).in_(['county', 'a-bid', 'b-bid'])
     ).subquery()
 
     in_progress = db.session.query(
