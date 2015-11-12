@@ -8,6 +8,7 @@ from purchasing.database import db
 
 from purchasing.data.stages import Stage
 from purchasing.data.flows import Flow
+from purchasing.data.companies import Company
 from purchasing.data.contracts import ContractBase, ContractProperty, ContractType
 from purchasing.data.contract_stages import ContractStage
 
@@ -25,12 +26,15 @@ def index():
 
     parent_specs = db.session.query(
         ContractBase.id, ContractProperty.value,
-        parent.expiration_date, parent.contract_href
+        parent.expiration_date, parent.contract_href,
+        Company.company_name
     ).join(
         ContractProperty,
         ContractBase.parent_id == ContractProperty.contract_id
     ).join(
         parent, ContractBase.parent
+    ).outerjoin(
+        Company, parent.companies
     ).filter(
         db.func.lower(ContractProperty.key) == 'spec number',
         db.func.lower(ContractType.name).in_(['county', 'a-bid', 'b-bid'])
@@ -45,7 +49,11 @@ def index():
         ContractBase.description, Flow.flow_name,
         Stage.name.label('stage_name'), ContractStage.entered,
         User.first_name, User.email,
-        Department.name.label('department')
+        Department.name.label('department'),
+        db.func.array_remove(
+            db.func.array_agg(parent_specs.c.company_name),
+            None
+        ).label('companies')
     ).outerjoin(Department).join(
         ContractStage, db.and_(
             ContractStage.stage_id == ContractBase.current_stage_id,
@@ -66,6 +74,16 @@ def index():
         ContractBase.assigned_to != None,
         ContractBase.is_visible == False,
         ContractBase.is_archived == False
+    ).group_by(
+        ContractBase.id,
+        ContractProperty.value.label('spec_number'),
+        parent_specs.c.value.label('parent_spec'),
+        parent_specs.c.expiration_date.label('parent_expiration'),
+        parent_specs.c.contract_href.label('parent_contract_href'),
+        ContractBase.description, Flow.flow_name,
+        Stage.name.label('stage_name'), ContractStage.entered,
+        User.first_name, User.email,
+        Department.name.label('department')
     ).all()
 
     all_contracts = db.session.query(
@@ -73,10 +91,14 @@ def index():
         ContractBase.financial_id, ContractBase.expiration_date,
         ContractProperty.value.label('spec_number'),
         ContractBase.contract_href, ContractBase.department,
-        User.first_name, User.email
+        User.first_name, User.email,
+        db.func.array_remove(
+            db.func.array_agg(Company.company_name),
+            None
+        ).label('companies')
     ).join(ContractType).outerjoin(
         User, User.id == ContractBase.assigned_to
-    ).outerjoin(
+    ).outerjoin(Company, ContractBase.companies).outerjoin(
         Department, Department.id == ContractBase.department_id
     ).outerjoin(
         ContractProperty, ContractProperty.contract_id == ContractBase.id
@@ -85,6 +107,12 @@ def index():
         db.func.lower(ContractProperty.key) == 'spec number',
         ContractBase.children == None,
         ContractBase.is_visible == True
+    ).group_by(
+        ContractBase.id, ContractBase.description,
+        ContractBase.financial_id, ContractBase.expiration_date,
+        ContractProperty.value.label('spec_number'),
+        ContractBase.contract_href, ContractBase.department,
+        User.first_name, User.email
     ).order_by(ContractBase.expiration_date).all()
 
     conductors = User.query.join(Role, User.role_id == Role.id).filter(

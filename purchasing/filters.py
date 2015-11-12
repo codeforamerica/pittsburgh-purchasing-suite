@@ -143,6 +143,13 @@ def print_user_name(user_id):
 def localize(date):
     return pytz.UTC.localize(date).astimezone(current_app.config['DISPLAY_TIMEZONE'])
 
+def display_dedupe_array(arr):
+    '''Dedupe and sort an array
+    '''
+    if arr:
+        return '; '.join(sorted(list(set(arr))))
+    return ''
+
 @evalcontextfilter
 def newline_to_br(eval_ctx, value):
     '''Replaces newline characters with <br> tags
