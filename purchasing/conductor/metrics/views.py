@@ -61,7 +61,7 @@ def download_all():
     * A query that gets all contracts that have no children
     * A query that gets all contracts which have parents
 
-    Returns:
+    :return:
         A tsv follow with the following fields: the contract's id
         (item_number) contract's parent id (parent_item_number),
         the contract's description (description), the contract's
