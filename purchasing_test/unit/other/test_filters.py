@@ -5,9 +5,8 @@ import datetime
 import pytz
 
 from unittest import TestCase
-from flask import current_app
+from flask import current_app, Flask
 from flask_testing import TestCase as FlaskTestCase
-from purchasing.app import create_app as _create_app
 from purchasing.filters import (
     better_title, format_currency, days_from_today,
     datetimeformat, format_days_from_today, newline_to_br,
@@ -57,10 +56,11 @@ class TestFilters(TestCase):
         self.assertEquals(format_days_from_today(datetime.date.today() - datetime.timedelta(2)), '2 days ago')
 
 
-class TestDateTimeFormat(FlaskTestCase):
+class TestConfigBasedFilters(FlaskTestCase):
     def create_app(self):
         os.environ['CONFIG'] = 'purchasing.settings.TestConfig'
-        return _create_app()
+        app = Flask(__name__)
+        return app
 
     def test_datetimeformat(self):
         '''Test datetime format filter
@@ -94,14 +94,13 @@ class TestDateTimeFormat(FlaskTestCase):
             '<p>test<br>\ntest</p>\n\n<p>test</p>\n\n<p>test</p>'
         )
 
-class TestExternalLinkWarning(FlaskTestCase):
-    def create_app(self):
-        return _create_app()
-
     def test_external_link_on(self):
-        self.app.config['EXTERNAL_LINK_WARNING'] = True
+        current_app.config['EXTERNAL_LINK_WARNING'] = 'True'
         self.assertEquals(external_link_warning(), 'js-external-link')
 
     def test_external_link_off(self):
-        self.app.config['EXTERNAL_LINK_WARNING'] = False
+        try:
+            del current_app.config['EXTERNAL_LINK_WARNING']
+        except KeyError:
+            pass
         self.assertEquals(external_link_warning(), '')

@@ -35,6 +35,8 @@ class Config(object):
     DISPLAY_TIMEZONE = pytz.timezone(os_env.get('DISPLAY_TIMEZONE', 'US/Eastern'))
     CONDUCTOR_TYPE = 'County'
     CONDUCTOR_DEPARTMENT = 'Multiple Departments'
+    EXTERNAL_LINK_WARNING = os_env.get('EXTERNAL_LINK_WARNING', None)
+
 
 class ProdConfig(Config):
     """Production configuration."""
@@ -55,7 +57,6 @@ class ProdConfig(Config):
     CACHE_TYPE = 'redis'
     CACHE_REDIS_URL = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
     CACHE_DEFAULT_TIMEOUT = 30
-    EXTERNAL_LINK_WARNING = False
 
 class DevConfig(Config):
     """Development configuration."""
@@ -78,7 +79,6 @@ class DevConfig(Config):
     UGLIFYJS_BIN = os.path.join(PROJECT_ROOT, 'node_modules', '.bin', 'uglifyjs')
     LESS_BIN = os.path.join(PROJECT_ROOT, 'node_modules', '.bin', 'lessc')
     # MAIL_SUPPRESS_SEND = True
-    EXTERNAL_LINK_WARNING = True
 
 class TestConfig(Config):
     ADMIN_EMAIL = 'foo@foo.com'
