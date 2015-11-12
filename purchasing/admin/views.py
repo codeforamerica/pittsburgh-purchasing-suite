@@ -210,7 +210,7 @@ class ContractTypeAdmin(AuthMixin, BaseModelViewAdmin):
     ]
 
 class DepartmentAdmin(AuthMixin, BaseModelViewAdmin):
-    pass
+    form_excluded_columns = GLOBAL_EXCLUDE + ['users', 'opportunities', 'contracts']
 
 class QuerySelect2TagsWidget(Select2Widget):
     def __init__(self, *args, **kwargs):
