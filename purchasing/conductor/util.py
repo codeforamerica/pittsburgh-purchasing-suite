@@ -126,20 +126,29 @@ def assign_a_contract(contract, flow, user, start_time=None, clone=True):
 
     1. If the ``clone`` flag is set to True, make a new cloned copy of the
        passed :py:class:`~purchasing.data.contracts.ContractBase`
-    2. Try to create the contract stages for the passed
+    2. Try to get or create the contract stages for the passed
        :py:class:`~purchasing.data.flows.Flow`
-    3. If that raises an error, it is because the contract stages for that
-       :py:class:`~purchasing.data.flows.Flow` already exist, so
-       rollback the transaction
-    4. Assign the contract's flow to the passed
+    3. Inspect the output for the "revert" flag -- if the flag is set,
+       that means that we are resetting the entry time on the first stage.
+       In order to do this, we clear out the current stage information, which
+       will make the contract transition to the first stage of it's flow
+    4. If that raises an error, it is because something went wrong
+       with the creation/getting of the contract stages
+    5. Assign the contract's flow to the passed
        :py:class:`~purchasing.data.flows.Flow` and its assigned user to
        the passed :py:class:`~purchasing.users.models.User` and commit
+
+    See Also:
+        * :py:meth:`~purchasing.data.flows.Flow.create_contract_stages`
+          for how stages are gotten/created
+        * :py:meth:`~purchasing.data.contracts.ContractBase.transition`
+          for how the contract handles transitioning into different stages
 
     Arguments:
         contract: A :py:class:`~purchasing.data.contracts.ContractBase` object
             to assign
         flow: A :py:class:`~purchasing.data.flows.Flow` object to assign
-        user: A :py:class:`~purchasing.users.model.User` object to assign
+        user: A :py:class:`~purchasing.users.models.User` object to assign
 
     Keyword Arguments:
         start_time: An optional start time for starting work on the
@@ -163,7 +172,12 @@ def assign_a_contract(contract, flow, user, start_time=None, clone=True):
         db.session.commit()
 
     try:
-        stages, _, _ = flow.create_contract_stages(contract)
+        stages, _, revert = flow.create_contract_stages(contract)
+
+        if revert and start_time and contract.get_first_stage().id == contract.current_stage_id:
+            contract.current_stage = None
+            contract.current_stage_id = None
+
         actions = contract.transition(user, complete_time=start_time)
         for i in actions:
             db.session.add(i)
@@ -172,21 +186,7 @@ def assign_a_contract(contract, flow, user, start_time=None, clone=True):
         # we already have the sequence for this, so just
         # rollback and pass
         db.session.rollback()
-        if start_time:
-            # if we have a start time, we are modifying the first
-            # stage start time. check to make sure that we are
-            # actually in the correct stage, then nuke the current
-            # stage and transition into the first stage with the
-            # new time
-            first_stage = contract.get_first_stage()
-            if first_stage.stage_id == contract.current_stage_id:
-                contract.current_stage = None
-                contract.current_stage_id = None
-
-                actions = contract.transition(user, complete_time=start_time)
-                for i in actions:
-                    db.session.add(i)
-                db.session.flush()
+        pass
 
     contract.flow = flow
     contract.assigned_to = user.id

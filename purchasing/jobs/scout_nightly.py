@@ -32,7 +32,7 @@ class ScoutJobBase(EmailJobBase):
     '''Base class for Scout email notifications
 
     See Also:
-        :py:class:`purchasing.notifications.Notification`
+        :py:class:`~purchasing.notifications.Notification`
     '''
     @property
     def notification_props(self):
@@ -93,7 +93,7 @@ class ScoutContractsExpireTodayJob(ScoutJobBase):
 
 @JobBase.register
 class ScoutContractsExpireSoonJob(ScoutJobBase):
-    '''
+    '''Get all contracts that are expiring in 30 days and send reminders
     '''
     @property
     def notification_props(self):
@@ -107,7 +107,7 @@ class ScoutContractsExpireSoonJob(ScoutJobBase):
 
         Returns:
             List of :py:class:`~purchasing.data.contracts.ContractBase` objects
-            that expire in 120 days
+            that expire in 30 days
         '''
         return ContractBase.query.filter(
             ContractBase.expiration_date ==

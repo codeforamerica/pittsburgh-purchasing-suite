@@ -425,7 +425,7 @@ class ContractBase(RefreshSearchViewMixin, Model):
                 ``is_visible`` and ``is_archived`` to False. Defaults to True
 
         Returns:
-            clone: The cloned contract created from the passed instance
+            The cloned contract created from the passed instance
         '''
         clone = cls(**instance.as_dict())
         clone.id, clone.current_stage = None, None
@@ -674,7 +674,7 @@ class ContractProperty(RefreshSearchViewMixin, Model):
     COSTARS contracts), do not have this property but do have others
     (such as manufacturers offered, etc.). Therefore, we use this
     model as an extended key-value store for the base
-    :py:class:`purchasing.data.contracts.ContractBase` model
+    :py:class:`~purchasing.data.contracts.ContractBase` model
 
     Attributes:
         id: Primary key unique ID

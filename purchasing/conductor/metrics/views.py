@@ -58,19 +58,25 @@ def download_all():
     '''Returns a tsv stream of all conductor contracts
 
     This works as a union of two large queries:
+
     * A query that gets all contracts that have no children
     * A query that gets all contracts which have parents
 
+    The downloaded tsv file has the following fields:
+
+    * the contract's id (item_number)
+    * contract's parent id (parent_item_number)
+    * the contract's description (description)
+    * the contract's expiration date (expiration_date)
+    * the contract parent's expiration date (parent_expiration)
+    * the department name (department)
+    * the assigned user's email address (assigned_to),
+    * the contract's spec number (spec_number)
+    * the contract parent's spec number (parent_spec)
+    * a string with the status of a contract (status)
+
     :return:
-        A tsv follow with the following fields: the contract's id
-        (item_number) contract's parent id (parent_item_number),
-        the contract's description (description), the contract's
-        expiration date (expiration_date) the contract parent's
-        expiration date (parent_expiration), the department name
-        (department), the assigned user's email address (assigned_to),
-        the contract's spec number (spec_number), the contract
-        parent's spec number (parent_spec), and a string with
-        the status of a contract
+        A streamed tsv with the fields described above
     '''
     results = db.session.execute('''
     SELECT * FROM (

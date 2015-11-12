@@ -155,7 +155,7 @@ class ContractStage(Model):
         is not in the flow's stage order, this always returns False.
 
         Arguments:
-            target_stage_id: A :py:class:`purchasing.data.stages.Stage` ID
+            target_stage_id: A :py:class:`~purchasing.data.stages.Stage` ID
         '''
         if target_stage_id not in self.flow.stage_order:
             return False

@@ -171,7 +171,7 @@ class CategoryForm(Form):
         3. Removed the ``Select All`` choice from the available categories
 
         Arguments:
-            all_categories: A list of :py:class`~purchasing.opportunities.models.Category` objects,
+            all_categories: A list of :py:class:`~purchasing.opportunities.models.Category` objects,
             or None. If None, defaults to all Categories.
         '''
         all_categories = all_categories if all_categories else Category.query.all()
@@ -303,7 +303,7 @@ class OpportunityDocumentForm(NoCSRFForm):
 
         Arguments:
             _id: The id of the :py:class:`~purchasing.opportunities.models.Opportunity`
-            the document will be attached to
+                the document will be attached to
 
         Returns:
             A two-tuple of (the document name, the document filepath/url)
@@ -408,9 +408,12 @@ class OpportunityForm(CategoryForm):
         2. Formats the contact email for the form
         3. Localizes the ``planned_submission_end`` time
 
+        See Also:
+            :py:meth:`CategoryForm.display_cleanup`
+
         Arguments:
             opportunity: A :py:class:`purchasing.opportunities.model.Opportunity` object
-            or None.
+                or None.
         '''
         self.vendor_documents_needed.choices = RequiredBidDocument.generate_choices()
         if opportunity and not self.contact_email.data:
@@ -447,7 +450,7 @@ class OpportunityForm(CategoryForm):
         '''Processes category data and localizes ``planned_submission_end`` times
 
         See Also:
-            :py:meth:`purchasing.opportunities.forms.CategoryForm.process`
+            :py:meth:`CategoryForm.process`
         '''
         super(OpportunityForm, self).process(formdata, obj, data, **kwargs)
         if self.planned_submission_end.data and formdata:

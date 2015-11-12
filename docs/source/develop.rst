@@ -17,7 +17,7 @@ Quick local installation using Make
 
 First, create a virtualenv and activate it. Then:
 
-.. code:: bash
+.. code-block:: bash
 
     git clone git@github.com:codeforamerica/pittsburgh-purchasing-suite.git
     cd pittsburgh-purchasing-suite
@@ -42,7 +42,7 @@ If you want to walk through the complete setup captured above in ``make setup``,
 Python app:
 """""""""""
 
-.. code:: bash
+.. code-block:: bash
 
     # clone the repo
     git clone https://github.com/codeforamerica/pittsburgh-purchasing-suite
@@ -69,7 +69,7 @@ If you would like to send email over the Gmail SMTP server, you will need to add
 Database:
 """""""""
 
-.. code:: bash
+.. code-block:: bash
 
     # login to postgres. If you are using postgres.app, you can click
     # the little elephant in your taskbar to open this instead of using
@@ -79,7 +79,7 @@ Database:
 
 Once you’ve created your database, you’ll need to open ``purchasing/settings.py`` and edit the ``DevConfig`` object to use the proper `SQLAlchemy database configuration string`_. If you named your database ``purchasing``, you probably won’t have to change anything. Then:
 
-.. code:: bash
+.. code-block:: bash
 
     # upgrade your database to the latest version
     python manage.py db upgrade
@@ -93,7 +93,7 @@ If you haven’t installed `npm`_, please consult this `howto <https://github.co
 
 Once you install node, run the following:
 
-.. code:: bash
+.. code-block:: bash
 
     # install bower, less, and uglifyjs
     # you may need to use sudo
@@ -108,7 +108,7 @@ Right now, the Pittsburgh Purchasing Suite uses `persona`_ to handle authenticat
 
 A manage task has been created to allow you to quickly create a user to access the admin and other staff-only tasks. To add an email, run the following command (NOTE: if you updated your database as per above, you will probably want to give youself a role of 1, which will give you superadmin privledges), putting your email/desired role in the appropriate places:
 
-.. code:: bash
+.. code-block:: bash
 
     python manage.py seed_user -e <your-email-here> -r <your-desired-role>
 
@@ -119,14 +119,14 @@ Up and running
 
 If you boot up the app right now, it will have no data. If you want to add some data, a small manage task has been added to allow for quick data importation.
 
-.. code:: bash
+.. code-block:: bash
 
     # run the data importers
     python manage.py seed
 
 Now you should be ready to roll with some seed data to get you started!
 
-.. code:: bash
+.. code-block:: bash
 
     # run the server
     python manage.py server
@@ -138,13 +138,13 @@ To get started with development, you won’t need to do any additional setup. Ho
 
 Get started by installing redis. On OSX, you can use `homebrew`_:
 
-.. code:: bash
+.. code-block:: bash
 
     brew install redis
 
 Once this is all installed, you should see a handy command you can use to start the Redis cluster locally (something like the following):
 
-.. code:: bash
+.. code-block:: bash
 
     redis-server /usr/local/etc/redis.conf
 
@@ -152,13 +152,13 @@ Now, redis should be up and running. Before we launch our web app, we’ll need 
 
 At this point, you’ll be abel to boot up the celery worker. Our app’s celery workers live in ``purchasing/celery_worker.py``. Start them as follows:
 
-.. code:: bash
+.. code-block:: bash
 
     celery --app=purchasing.celery_worker:celery worker --loglevel=debug
 
 You can log at a higher level than debug (info, for example), if you want to get fewer messages. Finally, we’ll need to start our web app. You can do this as normal:
 
-.. code:: bash
+.. code-block:: bash
 
     python manage.py server
 
@@ -169,20 +169,20 @@ Testing
 
 In order to run the tests, you will need to create a test database. You can follow the same procedures outlined in the install section. By default, the database should be named ``purchasing_test``:
 
-.. code:: bash
+.. code-block:: bash
 
     psql
     create database purchasing_test;
 
 Tests are located in the ``purchasing_test`` directory. To run the tests, run
 
-.. code:: bash
+.. code-block:: bash
 
     PYTHONPATH=. nosetests purchasing_test/
 
 from inside the root directory. For more coverage information, run
 
-.. code:: bash
+.. code-block:: bash
 
     PYTHONPATH=. nosetests purchasing_test/ -v --with-coverage --cover-package=purchasing_test --cover-erase
 

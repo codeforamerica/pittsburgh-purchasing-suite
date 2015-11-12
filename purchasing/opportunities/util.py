@@ -9,13 +9,14 @@ from purchasing.users.models import User, Role
 from purchasing.opportunities.models import Vendor, Opportunity
 
 def parse_contact(contact_email, department):
-    '''Finds or creates a :py:class:`purchasing.users.models.User` as the contact
+    '''Finds or creates a user as the contact
 
     Arguments:
-        contact_email: The email address of the user. If the user cannot
+        contact_email: The email address of the
+            :py:class:`~purchasing.users.models.User`. If the user cannot
             be found in the database, the domain of their email must match the
             configured ``CITY_DOMAIN``
-        department: The :py:class:`purchasing.users.models.Department` of the user
+        department: The :py:class:`~purchasing.users.models.Department` of the user
 
     Returns:
         The ID of the new/existing contact
@@ -54,7 +55,7 @@ def select_multi_checkbox(field, ul_class='', **kwargs):
     '''Custom multi-select widget for vendor documents needed
 
     Returns:
-        SelectMulti checkbox with tooltip labels
+        SelectMulti checkbox widget with tooltip labels
     '''
     kwargs.setdefault('type', 'checkbox')
     field_id = kwargs.pop('id', field.id)
@@ -85,12 +86,13 @@ class SignupData(object):
         self.business_name = business_name
 
 def init_form(form, model=None):
-    '''Initialize a form from either a given model or a
-        :py:class:`purchasing.opportunities.util.SignupData` object
+    '''Initialize a passed form given a model or object
 
     Arguments:
         form: The form to initialize
         model: a Model used to instantiate the form with data
+            If none, use a new instance of
+            :py:class:`purchasing.opportunities.util.SignupData`
 
     Returns:
         The passed form, initialized with either the passed model

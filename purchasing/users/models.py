@@ -172,7 +172,7 @@ class Department(SurrogatePK, Model):
     '''Department model
 
     Attributes:
-        Name of department
+        name: Name of department
     '''
     __tablename__ = 'department'
 

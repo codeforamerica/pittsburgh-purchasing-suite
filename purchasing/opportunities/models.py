@@ -446,10 +446,10 @@ class Opportunity(Model):
 
         If a new Opportunity is created and it has a publish date before or
         on today's date, it will trigger an immediate publish email send. This
-        operates in a very similar way to the nightly :py:class:`
-        ~purchasing.jobs.beacon_nightly.BeaconNewOppotunityOpenJob`. It will
-        build a list of all vendors signed up to the Opportunity or to any of
-        the categories that describe the Opportunity.
+        operates in a very similar way to the nightly
+        :py:class:`~purchasing.jobs.beacon_nightly.BeaconNewOppotunityOpenJob`.
+        It will build a list of all vendors signed up to the Opportunity
+        or to any of the categories that describe the Opportunity.
         '''
         if self.is_published and not self.publish_notification_sent:
             opp_categories = [i.id for i in self.categories]
@@ -531,8 +531,8 @@ class RequiredBidDocument(Model):
 
     See Also:
         These models get rendered into a select multi with the descriptions rendered
-        in tooltips. For more on how this works, see the :py:func:`
-        ~purchasing.opportunities.utils.select_multi_checkbox`.
+        in tooltips. For more on how this works, see the
+        :py:func:`~purchasing.opportunities.utils.select_multi_checkbox`.
 
     Attributes:
         id: Primary key unique ID
@@ -562,8 +562,8 @@ class RequiredBidDocument(Model):
         '''Builds a list of custom CHOICES
 
         Returns:
-            List of two-tuples described in the :py:meth:`~
-            purchasing.opportunities.models.RequiredBidDocument.get_choices`
+            List of two-tuples described in the
+            :py:meth:`RequiredBidDocument.get_choices`
             method
         '''
         return [i.get_choices() for i in cls.query.all()]

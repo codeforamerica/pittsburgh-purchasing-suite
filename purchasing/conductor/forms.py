@@ -96,7 +96,14 @@ class CompleteForm(Form):
         started: Datetime of what the minimum time should be,
             such as when the
             :py:class:`~purchasing.data.contract_stages.ContractStage`
-            started
+            started. Because the ``complete`` form attribute uses the
+            :py:func:`~purchasing.conductor.validators.validate_date`
+            validator, passing a minumim is important to ensure the validator
+            works properly (if you want to make sure that
+            :py:class:`~purchasing.data.contract_stages.ContractStage`
+            objects don't end before they start. Optional to allow the first
+            stage in a give :py:class:`~purchasing.data.flows.Flow` to start
+            in the past.
     '''
     complete = DateTimeField(
         validators=[validate_date]

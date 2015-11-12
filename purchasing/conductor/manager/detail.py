@@ -322,7 +322,7 @@ def remove(contract_id):
     which won't affect the contract's visibility on :doc:`/scout`
     but will remove it from the conductor "all contracts" list.
 
-    :param: contract_id: Primary key ID for a
+    :param contract_id: Primary key ID for a
         :py:class:`~purchasing.data.contracts.ContractBase`
 
     :status 302: Set contract visibility to false and redirect to

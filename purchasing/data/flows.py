@@ -193,9 +193,9 @@ class Flow(Model):
 
         Returns:
             * Results - a dictionary of lists which can be used to generate
-                a .csv or .tsv file to be downloaded by the client
+              a .csv or .tsv file to be downloaded by the client
             * Headers - A list of strings which can be used to create the
-                headers for the downloadable file
+              headers for the downloadable file
         '''
         raw_data = self.get_metrics_csv_data()
         results = defaultdict(list)
