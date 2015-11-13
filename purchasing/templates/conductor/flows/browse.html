@@ -6,24 +6,63 @@
 
 <div class="container">
   <div class="col-md-8 col-md-offset-2">
-    <h3>Browse Flows</h3>
 
-    <h4>Click on a flow name to see more details</h4>
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+      <li role="presentation" class="active"><a href="#tab-active" aria-controls="home" role="tab" data-toggle="tab">Active</a></li>
+      <li role="presentation"><a href="#tab-archived" aria-controls="profile" role="tab" data-toggle="tab">Archived</a></li>
+    </ul>
 
-    <table class="table table-condensed table-striped">
-      <tbody>
-      <thead>
-        <tr><th>Name</th><th>Status</th></tr>
-      </thead>
-      {% for flow in flows %}
-        <tr>
-          <td><a href="{{ url_for('conductor.flow_detail', flow_id=flow.id) }}">{{ flow.flow_name }}</a></td>
-          <td>{% if flow.is_archived %}Archived{% else %}Active{% endif %}</td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+    <!-- Tab panes -->
+    <div class="tab-content">
+      <div role="tabpanel" class="tab-pane active" id="tab-active">
 
+        {% if active|length > 0 %}
+        <h3>Browse Active Flows</h3>
+
+        <p>Click on a flow name to see more details</p>
+
+        <table class="table table-condensed table-striped">
+          <tbody>
+          <thead>
+            <tr><th>Name</th></tr>
+          </thead>
+          {% for flow in active %}
+            <tr>
+              <td><a href="{{ url_for('conductor.flow_detail', flow_id=flow.id) }}">{{ flow.flow_name }}</a></td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <h3>No active flows!</h3>
+        {% endif %}
+      </div>
+
+      <div role="tabpanel" class="tab-pane" id="tab-archived">
+
+        {% if archived|length > 0 %}
+        <h3>Browse Archived Flows</h3>
+
+        <p>Click on a flow name to see more details</p>
+
+        <table class="table table-condensed table-striped">
+          <tbody>
+          <thead>
+            <tr><th>Name</th></tr>
+          </thead>
+          {% for flow in archived %}
+            <tr>
+              <td><a href="{{ url_for('conductor.flow_detail', flow_id=flow.id) }}">{{ flow.flow_name }}</a></td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <h3>No archived flows!</h3>
+        {% endif %}
+      </div>
+    </div>
   </div>
 </div>
 

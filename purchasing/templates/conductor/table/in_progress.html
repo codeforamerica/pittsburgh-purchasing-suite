@@ -22,7 +22,8 @@
     data-full-description="{{ contract.description|title }}"
     data-item-number="{{ contract.id }}"
     data-spec-number="{{ contract.spec_number }}"
-    data-parent-spec-number={% if contract.parent_spec %}"{{ contract.parent_spec }}"}{% else %}"--"{% endif %}>
+    data-parent-spec-number={% if contract.parent_spec %}"{{ contract.parent_spec }}"}{% else %}"--"{% endif %}
+    data-companies="{{ contract.companies|display_dedupe_array|title }}">
 
       <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
 

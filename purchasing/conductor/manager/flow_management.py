@@ -35,8 +35,14 @@ def new_flow():
 @blueprint.route('/flows')
 @requires_roles('conductor', 'admin', 'superadmin')
 def flows_list():
-    flows = Flow.query.all()
-    return render_template('conductor/flows/browse.html', flows=flows)
+    flows = Flow.query.order_by(Flow.flow_name).all()
+    active, archived = [], []
+    for flow in flows:
+        if flow.is_archived:
+            archived.append(flow)
+        else:
+            active.append(flow)
+    return render_template('conductor/flows/browse.html', active=active, archived=archived)
 
 @blueprint.route('/flow/<int:flow_id>', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')

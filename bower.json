@@ -3,7 +3,7 @@
   "dependencies": {
     "bootstrap": "~3.2.0",
     "c3": "~0.4.10",
-    "datatables": "~1.10.7",
+    "datatables": "1.10.7",
     "eonasdan-bootstrap-datetimepicker": "~4.17.37",
     "html5shiv": "~3.7.3",
     "jquery": "~1.11.0",

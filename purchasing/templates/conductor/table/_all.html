@@ -16,7 +16,8 @@
     <tr class="{%- if days_from_today(contract.expiration_date) < 60 -%}contract-row-expiring-danger
     {%- elif days_from_today(contract.expiration_date) < 120 -%}contract-row-expiring-warning
     {%- endif -%}"
-    data-full-description="{{ contract.description|title }}">
+    data-full-description="{{ contract.description|title }}"
+    data-companies="{{ contract.companies|display_dedupe_array|title }}">
 
       <td>{{ contract.email }}</td><!-- assigned to filter flag, hidden by datatables -->
       <td class="details-control"><i class="fa fa-plus"></i></td>

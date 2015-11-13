@@ -60,7 +60,8 @@ class TestConductorFlows(TestConductorSetup):
     def test_conductor_flow_browse(self):
         browse = self.client.get('/conductor/flows')
         self.assert200(browse)
-        self.assertEquals(len(self.get_context_variable('flows')), 3)
+        self.assertEquals(len(self.get_context_variable('active')), 3)
+        self.assertEquals(len(self.get_context_variable('archived')), 0)
 
     def test_conductor_edit(self):
         self.assertEquals(Flow.query.count(), 3)

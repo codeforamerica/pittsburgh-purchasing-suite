@@ -22,7 +22,7 @@ class Role(SurrogatePK, Model):
 
     @classmethod
     def no_admins(cls):
-        return cls.query.filter(~cls.name.in_(['superadmin', 'admin']))
+        return cls.query.filter(cls.name != 'superadmin')
 
 class User(UserMixin, SurrogatePK, Model):
 
