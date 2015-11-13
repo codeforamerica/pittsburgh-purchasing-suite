@@ -160,3 +160,10 @@ def newline_to_br(eval_ctx, value):
     if eval_ctx and eval_ctx.autoescape:
         result = Markup(result)
     return result.lstrip()
+
+def external_link_warning():
+    '''Checks external link config setting and returns string needed to trigger extlink.js if True
+    '''
+    if current_app.config.get('EXTERNAL_LINK_WARNING') is not None:
+        return 'js-external-link'
+    return ''

@@ -25,7 +25,8 @@ from purchasing.extensions import (
 from purchasing.filters import (
     url_for_other_page, thispage, format_currency, better_title,
     days_from_today, datetimeformat, format_days_from_today,
-    newline_to_br, localize, now, print_user_name, display_dedupe_array
+    newline_to_br, localize, now, print_user_name, display_dedupe_array,
+    external_link_warning
 )
 
 # import models so that flask-migrate can auto-detect
@@ -126,6 +127,7 @@ def register_jinja_extensions(app):
     app.jinja_env.globals['days_from_today'] = days_from_today
     app.jinja_env.globals['format_days_from_today'] = format_days_from_today
     app.jinja_env.globals['_now'] = now
+    app.jinja_env.globals['external_link_warning'] = external_link_warning
     app.jinja_env.filters['print_user_name'] = print_user_name
     app.jinja_env.filters['currency'] = format_currency
     app.jinja_env.filters['title'] = better_title

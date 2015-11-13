@@ -35,6 +35,8 @@ class Config(object):
     DISPLAY_TIMEZONE = pytz.timezone(os_env.get('DISPLAY_TIMEZONE', 'US/Eastern'))
     CONDUCTOR_TYPE = 'County'
     CONDUCTOR_DEPARTMENT = 'Multiple Departments'
+    EXTERNAL_LINK_WARNING = os_env.get('EXTERNAL_LINK_WARNING', None)
+
 
 class ProdConfig(Config):
     """Production configuration."""

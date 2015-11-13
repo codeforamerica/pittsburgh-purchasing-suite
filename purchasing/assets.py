@@ -46,6 +46,11 @@ vendorjs = Bundle(
     output='public/js/common.js'
 )
 
+publicjs = Bundle(
+    'js/shared/extlink.js',
+    filters='uglifyjs',
+    output='public/js/public.js')
+
 opportunitiesjs = Bundle(
     'js/shared/*.js',
     'js/opportunities/*.js',
@@ -55,6 +60,7 @@ opportunitiesjs = Bundle(
 
 scoutjs = Bundle(
     'js/scout/*.js',
+    'js/shared/extlink.js',
     filters='uglifyjs',
     output='public/js/scout.js'
 )
@@ -98,6 +104,7 @@ test_assets = Environment()
 # register our javascript bundles
 assets.register('ie8', ie8)
 assets.register('vendorjs', vendorjs)
+assets.register('publicjs', publicjs)
 assets.register('adminjs', adminjs)
 assets.register('opportunitiesjs', opportunitiesjs)
 assets.register('scoutjs', scoutjs)

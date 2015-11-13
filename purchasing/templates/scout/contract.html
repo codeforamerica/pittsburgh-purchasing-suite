@@ -29,7 +29,7 @@
         </p>
         {% endif %}
         {% if contract.contract_href %}
-          <a href="{{ contract.contract_href }}" target="_blank">
+          <a class="{{ external_link_warning() }}" href="{{ contract.contract_href }}" target="_blank">
             View contract
             <span class="fa-stack fa-1x">
               <i class="fa fa-file-pdf-o"></i>
