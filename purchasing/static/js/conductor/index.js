@@ -28,7 +28,7 @@ $(document).ready(function() {
     // column 4 (formatted "days since")
     'aoColumnDefs': [
       { 'orderable': false, 'aTargets': [1] },
-      { 'bVisible': false, 'aTargets': [0, 5] },
+      { 'bVisible': false, 'aTargets': [0, 6] },
       { 'iDataSort': 6, 'aTargets': [7] }
     ],
   });
