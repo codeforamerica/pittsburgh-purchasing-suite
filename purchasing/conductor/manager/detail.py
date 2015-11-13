@@ -330,7 +330,7 @@ def start_work(contract_id=-1):
                 db.session, ContractBase, description=form.data.get('description'),
                 department=form.data.get('department'), is_visible=False
             )
-        else:
+        elif not first_stage:
             contract = ContractBase.clone(contract)
             contract.description = form.data.get('description')
             contract.department = form.data.get('department')
@@ -339,7 +339,7 @@ def start_work(contract_id=-1):
 
         assigned = assign_a_contract(
             contract, form.data.get('flow'), form.data.get('assigned'),
-            start_time=form.data.get('start').astimezone(pytz.UTC),
+            start_time=form.data.get('start').astimezone(pytz.UTC).replace(tzinfo=None),
             clone=False
         )
         db.session.commit()

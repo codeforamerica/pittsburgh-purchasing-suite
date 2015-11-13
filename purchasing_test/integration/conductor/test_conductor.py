@@ -176,6 +176,13 @@ class TestConductor(TestConductorSetup):
         # should load successfully on first stage
         self.assert200(self.client.get(start_url))
 
+        self.client.post(start_url, data={
+            'description': 'totally new wow', 'flow': self.flow.id,
+            'assigned': self.conductor.id, 'department': self.department.id,
+            'start': datetime.datetime.now() - datetime.timedelta(1)
+
+        })
+
         transition_url = self.build_detail_view(assign) + '/transition'
         self.client.get(transition_url)
 

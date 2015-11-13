@@ -233,6 +233,23 @@ def assign_a_contract(contract, flow, user, start_time=None, clone=True):
     # resassign it and continue on
     if contract.assigned_to and not contract.completed_last_stage():
         contract.assigned_to = user.id
+
+        if start_time:
+            # if we have a start time, we are modifying the first
+            # stage start time. check to make sure that we are
+            # actually in the correct stage, then nuke the current
+            # stage and transition into the first stage with the
+            # new time
+            first_stage = contract.get_first_stage()
+            if first_stage.stage_id == contract.current_stage_id:
+                contract.current_stage = None
+                contract.current_stage_id = None
+
+                actions = contract.transition(user, complete_time=start_time)
+                for i in actions:
+                    db.session.add(i)
+                db.session.flush()
+
         db.session.commit()
 
         current_app.logger.info('CONDUCTOR ASSIGN - old contract "{}" assigned to {} with flow {}'.format(
