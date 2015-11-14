@@ -57,6 +57,7 @@ NIGP Importer
 Categories for commodities and services used in :doc:`/beacon` are based on the `National Institute for Governmental Purchasing (NIGP) <http://www.nigp.org/eweb/StartPage.aspx>`_ codes. In order to facilitate a more straightforward signup process, codes and descriptions were combined, grouped, and consolidated in ``purchasing/data/importer/files/2015-07-01-nigp-cleaned.csv``.
 
 The NIGP Importer is tasked with the following actions:
+
 * Creating new :py:class:`~purchasing.opportunities.models.Category` objects
 
 The way the importer handles this is roughly as follows:
@@ -70,11 +71,45 @@ For each row in NIGP category file:
 State Contract Importer
 -----------------------
 
+State contracts adopted by the City of Pittsburgh were collected via the `State of Pennsylvania eMarketplace search tool <http://www.emarketplace.state.pa.us/BidContracts.aspx>`_ and live in the app's source under ``purchasing/data/importer/files/2015-10-27-state-contracts.csv``
+
+The State Contract Importer is tasked with the following actions:
+
+* Creating new :py:class:`~purchasing.data.companies.Company` objects
+* Creating new :py:class:`~purchasing.data.companies.CompanyContact` objects
+* Creating new :py:class:`~purchasing.data.contracts.ContractBase` objects
+* Linking all of these entities together as is appropriate
+* Handling contract numbers as well as parent contract numbers and linking them as properties to new Contract objects
+
+The way the importer handles this is roughly as follows:
+
+For each row in a given csv file:
+
+1. Look up or create (via :py:func:`~purchasing.database.get_or_create`) companies based on their names.
+2. Look up or create (via the same function as above) company contacts based on their names/addresses/phone/email/etc., linking them with the found or created company from the above step
+3. Convert expiration dates, financial ids, and contract types to meaningful information for the data model, including looking up or creating new :py:class:`~purchasing.data.contracts.ContractType` objects as necessary
+4. Use the converted data to look up or create new :py:class:`~purchasing.data.contracts.ContractBase`, with the linked :py:class:`~purchasing.data.companies.Company` from the first step
+
+
 County Scraper
 --------------
 
 Stages and Flows
 ----------------
+
+Contracts in :doc:`/conductor` are moved through stages according to the flows they are a part of. These are created via the admin interface, but are seeded for development with this importer.
+
+The Stages and Flows seed task is tasked with the following actions:
+
+* Creating three new :py:class:`~purchasing.data.stages.Stage` objects
+* Creating one new :py:class:`~purchasing.data.flows.Flow` object
+* Linking these entities together as is appropriate
+
+The way the seed task handles this is roughly as follows:
+
+1. Create three new stages
+2. Create one new flow and seed with the new stages arranged in order
+
 
 Importer Utilities
 ------------------
