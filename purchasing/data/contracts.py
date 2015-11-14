@@ -625,6 +625,8 @@ class ContractType(Model):
         name: Name of the contract type
         allow_opportunities: Boolean flag as to whether to allow
             opportunities to be posted
+        managed_by_conductor: Boolean flag as to whether contracts
+            of these types are managed through :doc:`/conductor`
         opportunity_response_instructions: HTML string of instructions
             for bidders on how to respond to opportunities of this
             type
@@ -634,6 +636,7 @@ class ContractType(Model):
     id = Column(db.Integer, primary_key=True, index=True)
     name = Column(db.String(255))
     allow_opportunities = Column(db.Boolean, default=False)
+    managed_by_conductor = Column(db.Boolean, default=False)
     opportunity_response_instructions = Column(db.Text)
 
     def __unicode__(self):

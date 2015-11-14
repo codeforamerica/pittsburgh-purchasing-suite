@@ -30,7 +30,9 @@ class TestConductorSetup(BaseTestCase):
     def setUp(self):
         super(TestConductorSetup, self).setUp()
         # create a conductor and general staff person
-        self.county_type = ContractTypeFactory.create(**{'name': 'County', 'allow_opportunities': True})
+        self.county_type = ContractTypeFactory.create(**{
+            'name': 'County', 'allow_opportunities': True, 'managed_by_conductor': True
+        })
         self.department = DepartmentFactory.create(**{'name': 'test department'})
 
         self.conductor_role_id = insert_a_role('conductor')

@@ -33,9 +33,10 @@ def index():
     ``is_visible``.
 
     ``all_contracts`` contains all contracts that are eligible
-    to show up in conductor to be worked on. For this installation, these are
-    County, A-Bid, and B-Bid contract types. Additionally, these are filtered
-    by having no ``children``, and ``is_visible`` set to True
+    to show up in conductor to be worked on. These are filtered based on the
+    :py:class:`~purchasing.data.contracts.ContractType`
+    ``managed_by_conductor`` field. Additionally, these are
+    filtered by having no ``children``, and ``is_visible`` set to True
 
     .. seealso:: :py:class:`~purchasing.data.contracts.ContractBase`,
         :py:class:`~purchasing.data.contract_stages.ContractStage`,
@@ -58,7 +59,7 @@ def index():
         Company, parent.companies
     ).filter(
         db.func.lower(ContractProperty.key) == 'spec number',
-        db.func.lower(ContractType.name).in_(['county', 'a-bid', 'b-bid'])
+        ContractType.managed_by_conductor == True
     ).subquery()
 
     in_progress = db.session.query(
@@ -124,7 +125,7 @@ def index():
     ).outerjoin(
         ContractProperty, ContractProperty.contract_id == ContractBase.id
     ).filter(
-        db.func.lower(ContractType.name).in_(['county', 'a-bid', 'b-bid']),
+        ContractType.managed_by_conductor == True,
         db.func.lower(ContractProperty.key) == 'spec number',
         ContractBase.children == None,
         ContractBase.is_visible == True
