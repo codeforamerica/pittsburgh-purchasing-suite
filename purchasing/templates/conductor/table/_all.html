@@ -10,6 +10,7 @@
     <th>Expires</th>
     <th>Assigned</th>
     <th>Actions</th>
+    <th>Full Description (Hidden)</th>
   </thead>
   <tbody>
     {% for contract in _all %}
@@ -84,6 +85,8 @@
         </ul>
       </div>
       </td><!-- button dropdowns -->
+
+      <td>{{ contract.description }}</td><!-- full description for search -->
 
     </tr>
     {% endfor%}

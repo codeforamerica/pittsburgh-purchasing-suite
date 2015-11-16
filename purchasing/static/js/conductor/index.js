@@ -15,7 +15,7 @@ $(document).ready(function() {
 
     'aoColumnDefs': [
       { 'orderable': false, 'aTargets': [1] },
-      { 'bVisible': false, 'aTargets': [0, 4, 7] },
+      { 'bVisible': false, 'aTargets': [0, 4, 7, 11] },
       { 'iDataSort': 7, 'aTargets': [8] },
       { 'iDataSort': 3, 'aTargets': [4] }
     ],
@@ -28,7 +28,7 @@ $(document).ready(function() {
     // column 4 (formatted "days since")
     'aoColumnDefs': [
       { 'orderable': false, 'aTargets': [1] },
-      { 'bVisible': false, 'aTargets': [0, 6] },
+      { 'bVisible': false, 'aTargets': [0, 6, 10] },
       { 'iDataSort': 6, 'aTargets': [7] }
     ],
   });
