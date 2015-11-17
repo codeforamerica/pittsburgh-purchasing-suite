@@ -54,8 +54,7 @@ def profile():
 
 @blueprint.route('/auth', methods=['POST'])
 def auth():
-    '''
-    Endpoint from AJAX request for authentication from persona
+    '''Endpoint from AJAX request for authentication from persona
     '''
 
     data = urllib.urlencode({

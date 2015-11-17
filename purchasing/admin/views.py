@@ -208,7 +208,8 @@ def get_stages():
 
 class ContractTypeAdmin(AuthMixin, BaseModelViewAdmin):
     form_columns = [
-        'name', 'allow_opportunities', 'opportunity_response_instructions'
+        'name', 'allow_opportunities', 'managed_by_conductor',
+        'opportunity_response_instructions'
     ]
 
 class DepartmentAdmin(AuthMixin, BaseModelViewAdmin):

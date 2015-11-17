@@ -44,7 +44,7 @@ In order to deploy the Pittsburgh Purchasing Suite, the following environmental 
 
     The secret key protects the app's session, forms, and other pieces. For more information about how Flask uses secret keys, please look at `this stack overflow answer <http://stackoverflow.com/a/22463969>`_. To generate a secret key, you can run the following snippet directly from bash:
 
-    .. codeblock::
+    .. code-block:: bash
 
         python -c "import os; print os.urandom(24).encode('hex')"
 

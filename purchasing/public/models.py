@@ -36,6 +36,9 @@ class AcceptedEmailDomains(Model):
     We also do this by restricting new user creation to people who have
     a certain set of email domains.
 
+    See Also:
+        :ref:`persona`
+
     Attributes:
         id (int): Primary key
         domain (str): string of an acceptable domain (for example, ``pittsburghpa.gov``)
