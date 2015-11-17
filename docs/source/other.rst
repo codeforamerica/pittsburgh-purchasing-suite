@@ -7,6 +7,8 @@ Notifications
 .. automodule:: purchasing.notifications
     :members:
 
+.. _nightly-jobs:
+
 Nightly Jobs
 ------------
 
@@ -18,6 +20,8 @@ Nightly Jobs
 
 Admin
 -----
+
+.. _persona:
 
 Persona
 -------

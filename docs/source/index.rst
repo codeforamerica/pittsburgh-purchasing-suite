@@ -34,12 +34,11 @@ For a brief summary of our work, take a look at `our blog <http://yinzforamerica
     public
     models
 
-    redeploy
-    develop
-
     importers
     other
 
+    redeploy
+    develop
 
 Indices and tables
 ==================

@@ -50,6 +50,8 @@ Main
    :blueprints: conductor
    :undoc-endpoints: conductor.static
 
+.. _conductor-uploads:
+
 Uploads
 ^^^^^^^
 

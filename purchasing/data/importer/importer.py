@@ -3,17 +3,29 @@
 import csv
 
 def convert_empty_to_none(val):
-    '''
+    '''Converts empty or "None" strings to None Types
+
+    Arguments:
+        val: The field to be converted
+
+    Returns:
+        The passed value if the value is not an empty string or
+        'None', ``None`` otherwise.
     '''
     return val if val not in ['', 'None'] else None
 
 def extract(file_target, first_row_headers=[]):
-    '''
-    Pulls csv data out of a file target.
+    '''Pulls csv data out of a file target.
 
-    Returns a list of strings. Takes an optional
-    "first_row_headers" parameter. If this is not empty,
-    it will be used as the fieldnames in the DictReader
+    Arguments:
+        file_target: a file object
+
+    Keyword Arguments:
+        first_row_headers: An optional list of headers that can
+            be used as the keys in the returned DictReader
+
+    Returns:
+        A :py:class:`~csv.DictReader` object.
     '''
     data = []
 
@@ -26,7 +38,15 @@ def extract(file_target, first_row_headers=[]):
     return data
 
 def determine_company_contact(row):
-    '''
+    '''Convert input data to
+
+    Arguments:
+        row: An input row of data from an input spreadsheet
+
+    Returns:
+        A dict object which can be used to create a new
+        :py:class:`~purchasing.data.companies.CompanyContact`
+        object
     '''
     try:
         first_name, last_name = row.get('CONTACT').split()

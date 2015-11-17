@@ -25,6 +25,7 @@ For each row in a given csv file:
 3. Convert expiration dates, financial ids, and contract types to meaningful information for the data model, including looking up or creating new :py:class:`~purchasing.data.contracts.ContractType` objects as necessary
 4. Use the converted data to look up or create new :py:class:`~purchasing.data.contracts.ContractBase`, with the linked :py:class:`~purchasing.data.companies.Company` from the first step
 
+.. _costars-importer:
 
 COSTARS Importer
 ----------------
@@ -50,6 +51,7 @@ For each row in COSTARS spreadsheet file:
 4. Use the converted data to look up or create new :py:class:`~purchasing.data.contracts.ContractBase`, with the linked :py:class:`~purchasing.data.companies.Company` from the first step
 5. Check to see if contract has matching PDF file and build URL for View Contract link
 
+.. _nigp-importer:
 
 NIGP Importer
 -------------
@@ -94,7 +96,23 @@ For each row in a given csv file:
 County Scraper
 --------------
 
+See Also:
+    :py:class:`~purchasing.jobs.scout_nightly.CountyScrapeJob`, :py:func:`~purchasing.tasks.scrape_county_task`
 
+The County Scraper attempts to scrape line item information to build :py:class:`~purchasing.data.contracts.LineItem` objects to link with :py:class:`~purchasing.data.contracts.ContractBase` objects. It does this by generating links to all un-scraped contracts and trying to hit those links and parse out the information contained there. The HTML generated on the site is not particularly good (for example, "checked" radio boxes are, in fact, not radio boxes but *images* of radio boxes and tables abound), so the process is a bit brittle.
+
+The scraping is divided into two distinct steps:
+
+1. From the main page of all contracts, build links to all of the individual contract pages. Because these follow a regular server-generated pattern, it is much faster to build them internally instead of trying to scrape them out of the HTML.
+2. For each of the generated links, go through and try to parse out individual line items:
+
+    a. Get the contract object to append line items to based on the contract description and the IFB (spec) number (see :py:meth:`~purchasing.data.contracts.ContractBase.get_spec_number` for more information on spec numbers).
+    b. Using `Beautiful Soup <http://www.crummy.com/software/BeautifulSoup/>`_, we go through an individual page of awards and pull out the line items. Note that we have to deal with some pretty non-compliant HTML (including unclosed table tags and an early-terminating form tag), which makes this a bit trickier. The basic method is:
+
+        1. Get all of the tables on the page
+        2. Exclude "metadata" tables (the first five and last table)
+        3. From this point, the tables alternate: "item" tables are tables that contain line items. "Award" tables are tables that contain information about the awarded company of the previous item. This mean that we need to parse two tables to get the full information about a single line item.
+    c. Once we have both the line item information and the award information for each line item contained in an individual page, we are able to create the :py:class:`~purchasing.data.contracts.LineItem` object and try to find the relevant company for that line item as well.
 
 Stages and Flows
 ----------------
