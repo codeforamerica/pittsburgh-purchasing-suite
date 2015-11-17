@@ -29,6 +29,7 @@
         {{ macros.with_errors(complete_form.complete, **{
           'class': 'datetimepicker form-control',
           'data-started': active_stage.entered|localize,
+          'data-default': active_stage.entered|localize,
           'data-maximum': _now()
         } )}}
       </div>
@@ -72,6 +73,7 @@
         {{ macros.with_errors(complete_form.complete, **{
           'class': 'datetimepicker form-control',
           'data-started': active_stage.entered|localize,
+          'data-default': _now(),
           'data-maximum': _now()
         } )}}
       </div>
