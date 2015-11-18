@@ -6,7 +6,7 @@ import datetime
 from flask import current_app
 
 from purchasing.database import Column, Model, db, ReferenceCol
-from purchasing.utils import localize_today
+from purchasing.utils import localize_today, localize_now
 
 from sqlalchemy.schema import Table
 from sqlalchemy.orm import backref
@@ -137,7 +137,10 @@ class Opportunity(Model):
 
     @property
     def is_submission_end(self):
-        return self.coerce_to_date(self.planned_submission_end) <= localize_today() and self.is_public
+        return pytz.UTC.localize(self.planned_submission_end).astimezone(
+            current_app.config['DISPLAY_TIMEZONE']
+        ) <= localize_now() and \
+            self.is_public
 
     @property
     def has_docs(self):
