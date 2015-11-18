@@ -5,6 +5,10 @@ Scout is a tool for City Purchasers to search for contract information, includin
 
 Scout also features Contract and Company detail pages, with pricing, detail, and metadata information for contracts and contact information for companies.
 
+.. seealso::
+
+    `How to use Scout <https://docs.google.com/document/d/1hV5_yHKWWgU2qgtPI011cdiWOvXewRJK3v-MaXEXEkA/export?format=pdf>`_, an internal product guide for more information about the user interface and user experience.
+
 Models used
 -----------
 
@@ -32,7 +36,9 @@ Views
 ------
 
 .. autoflask:: purchasing.app:create_app()
-    :endpoints: scout.explore, scout.search, scout.search_feedback, scout.filter_no_department, scout.filter, scout.contract, scout.company, scout.feedback, scout.subscribe, scout.unsubscribe
+    :endpoints:
+        scout.explore, scout.search, scout.search_feedback, scout.filter_no_department,
+        scout.filter, scout.contract, scout.company, scout.feedback, scout.subscribe, scout.unsubscribe
 
 Nightly Jobs
 ------------

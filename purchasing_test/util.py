@@ -11,7 +11,7 @@ from purchasing.data.flows import Flow
 from purchasing.users.models import Role, User
 from purchasing_test.factories import (
     UserFactory, RoleFactory, StageFactory, FlowFactory, DepartmentFactory,
-    StagePropertyFactory, ContractBaseFactory, ContractPropertyFactory,
+    ContractBaseFactory, ContractPropertyFactory,
     CompanyFactory, OpportunityFactory, RequiredBidDocumentFactory
 )
 
@@ -48,13 +48,6 @@ def insert_a_stage(name='foo', send_notifs=False, post_opportunities=False, defa
         'default_message': default_message
     })
 
-    properties = [
-        dict(stage=stage, key='foo', value='bar'),
-        dict(stage=stage, key='baz', value='qux')
-    ]
-
-    for property in properties:
-        StagePropertyFactory.create(**property)
     return stage
 
 def get_a_stage_property():

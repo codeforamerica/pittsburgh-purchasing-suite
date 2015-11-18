@@ -61,6 +61,8 @@ def get_default():
     ).astimezone(current_app.config['DISPLAY_TIMEZONE'])
 
 def validate_integer(form, field):
+    '''Ensures that a passed value can be coerced to an integer
+    '''
     if field.data:
         try:
             int(field.data)
@@ -68,6 +70,13 @@ def validate_integer(form, field):
             raise ValidationError('This must be an integer!')
 
 def validate_date(form, field):
+    '''Ensures that a date occured after a form's started and before its maximum time
+
+    Note:
+        This validator is only meant to be used on forms that have
+        ``started`` and ``maximum`` instance variables, like the
+        :py:class:`~purchasing.conductor.forms.CompleteForm`
+    '''
     if field.data:
         utc_data = current_app.config['DISPLAY_TIMEZONE'].localize(field.data).astimezone(pytz.UTC).replace(tzinfo=None)
         if utc_data < form.started or utc_data > form.maximum:

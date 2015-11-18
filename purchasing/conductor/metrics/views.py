@@ -15,7 +15,9 @@ from purchasing.conductor.metrics import blueprint
 @blueprint.route('/')
 @requires_roles('conductor', 'admin', 'superadmin')
 def index():
-    '''
+    '''Metrics home view
+
+    :status 200: Render metrics index template
     '''
     flows = Flow.query.all()
     return render_template('conductor/metrics/index.html', flows=flows)
@@ -23,7 +25,11 @@ def index():
 @blueprint.route('/download/<int:flow_id>')
 @requires_roles('conductor', 'admin', 'superadmin')
 def download_tsv_flow(flow_id):
-    '''
+    '''Download entry/exit stats for a given flow
+
+    :status 200: Download a tab-separated file with entry/exit information
+        for each contract with a given :py:class:`~purchasing.data.flows.Flow`
+    :status 404: Could not find given :py:class:`~purchasing.data.flows.Flow`
     '''
     flow = Flow.query.get(flow_id)
     if flow:
@@ -52,19 +58,25 @@ def download_all():
     '''Returns a tsv stream of all conductor contracts
 
     This works as a union of two large queries:
+
     * A query that gets all contracts that have no children
     * A query that gets all contracts which have parents
 
-    Returns:
-        A tsv follow with the following fields: the contract's id
-        (item_number) contract's parent id (parent_item_number),
-        the contract's description (description), the contract's
-        expiration date (expiration_date) the contract parent's
-        expiration date (parent_expiration), the department name
-        (department), the assigned user's email address (assigned_to),
-        the contract's spec number (spec_number), the contract
-        parent's spec number (parent_spec), and a string with
-        the status of a contract
+    The downloaded tsv file has the following fields:
+
+    * the contract's id (item_number)
+    * contract's parent id (parent_item_number)
+    * the contract's description (description)
+    * the contract's expiration date (expiration_date)
+    * the contract parent's expiration date (parent_expiration)
+    * the department name (department)
+    * the assigned user's email address (assigned_to),
+    * the contract's spec number (spec_number)
+    * the contract parent's spec number (parent_spec)
+    * a string with the status of a contract (status)
+
+    :return:
+        A streamed tsv with the fields described above
     '''
     results = db.session.execute('''
     SELECT * FROM (
@@ -144,6 +156,27 @@ def download_all():
 @blueprint.route('/overview/<int:flow_id>')
 @requires_roles('conductor', 'admin', 'superadmin')
 def flow_overview(flow_id):
+    '''Metrics dashboard page for a given flow
+
+    Metrics dashboards support charts to answer the following questions:
+
+    * Stage-level average days spent: for each
+      :py:class:`~purchasing.data.stages.Stage` in the stage order
+      for the given :py:class:`~purchasing.data.flows.Flow`,
+      what is the average time contracts spend in that stage?
+    * Stage-level in-progress distribution charts: for each
+      :py:class:`~purchasing.data.stages.Stage` in the stage order
+      for the given :py:class:`~purchasing.data.flows.Flow`,
+      what is the distribution of in-progress contracts?
+    * Individual stage average distribution detail: For a given
+      :py:class:`~purchasing.data.stages.Stage`, what is the breakdown
+      on timing for each individual
+      :py:class:`~purchasing.data.contracts.ContractBase`?
+
+    :status 200: View metrics dashboards for all contracts
+        with a given :py:class:`~purchasing.data.flows.Flow`
+    :status 404: Could not find given :py:class:`~purchasing.data.flows.Flow`
+    '''
     flow = Flow.query.get(flow_id)
     if flow:
         return render_template('conductor/metrics/overview.html', flow=flow)
@@ -152,6 +185,21 @@ def flow_overview(flow_id):
 @blueprint.route('/overview/<int:flow_id>/data')
 @requires_roles('conductor', 'admin', 'superadmin')
 def flow_data(flow_id):
+    '''Data to support the metrics charts
+
+    The returned object contains the ``complete`` and ``current``
+    dictionaries as described in :py:meth:`~purchasing.data.flows.Flow.build_metrics_data`
+    along with a ``stageOrder`` key of the flow's stage order for proper
+    sorting on the client side and ``stageDataObj``, which contains metadata
+    about each stage in the proper order
+
+    .. seealso::
+        :py:meth:`purchasing.data.flows.Flow.build_metrics_data`
+
+    :status 200: Get data to build dashboards around a given
+        :py:class:`~purchasing.data.flows.Flow`
+    :status 404: Could not find given :py:class:`~purchasing.data.flows.Flow`
+    '''
     flow = Flow.query.get(flow_id)
     if flow:
         results = flow.build_metrics_data()

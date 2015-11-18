@@ -28,18 +28,17 @@ For a brief summary of our work, take a look at `our blog <http://yinzforamerica
 .. toctree::
     :maxdepth: 2
 
-    redeploy
-    develop
-
     beacon
     scout
     conductor
-
     public
     models
 
+    importers
     other
 
+    redeploy
+    develop
 
 Indices and tables
 ==================
@@ -47,4 +46,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

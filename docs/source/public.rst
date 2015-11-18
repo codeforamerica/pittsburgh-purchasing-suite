@@ -1,17 +1,35 @@
 Public & users
 ==============
 
-Models
-------
+Models used
+-----------
 
-.. automodule:: purchasing.users.models
-    :members:
+* :py:class:`purchasing.users.models.User`
+* :py:class:`purchasing.users.models.Role`
+* :py:class:`purchasing.users.models.Department`
+* :py:class:`purchasing.public.models.AppStatus`
+* :py:class:`purchasing.public.models.AcceptedEmailDomains`
 
-.. automodule:: purchasing.public.models
+
+Forms
+-----
+
+.. automodule:: purchasing.users.forms
     :members:
 
 Views
 -----
 
+Users
+^^^^^
+
 .. autoflask:: purchasing.app:create_app()
-   :blueprints: public, users
+   :blueprints: users
+   :undoc-endpoints: users.static
+
+Public
+^^^^^^
+
+.. autoflask:: purchasing.app:create_app()
+   :blueprints: public
+   :undoc-endpoints: public.static

@@ -28,6 +28,22 @@ from purchasing.conductor.manager import blueprint
 @requires_roles('conductor', 'admin', 'superadmin')
 def edit(contract_id):
     '''Update information about a contract
+
+    :param contract_id: Primary key ID for a
+        :py:class:`~purchasing.data.contracts.ContractBase`
+
+    .. seealso::
+        :py:class:`~purchasing.conductor.forms.EditContractForm`
+        for the form to edit the contract information, and
+        :py:meth:`~purchasing.data.contracts.ContractBase.update_with_spec_number`
+        for information on how the contract is updated.
+
+    :status 200: Render the edit contract form
+    :status 302: Redirect to the conductor detail page if the contract was
+        not completed, the edit company page if the edit form was filled
+        and the contract isn't being extended, and back to the conductor
+        detial view if the contract isn't finished yet
+    :status 404: Could not find the contract
     '''
     contract = ContractBase.query.get(contract_id)
     completed_last_stage = contract.completed_last_stage()
@@ -62,6 +78,24 @@ def edit(contract_id):
 @blueprint.route('/contract/<int:contract_id>/edit/company', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def edit_company(contract_id):
+    '''Update information about companies
+
+    :param contract_id: Primary key ID for a
+        :py:class:`~purchasing.data.contracts.ContractBase`
+
+    .. seealso::
+        :py:func:`~purchasing.conductor.util.parse_companies` for information
+        on how the companies are cleaned and normalized, and
+        :py:class:`~purchasing.conductor.forms.CompanyListForm` for
+        more on the form used in this view
+
+    :status 200: Render the company/controller number view
+    :status 302: Redirect to the company contact view if the
+        company form is submitted correctly, and the edit
+        contract view if that form hasn't been completed
+        yet
+    :status 404: Contract not found
+    '''
     contract = ContractBase.query.get(contract_id)
 
     if contract and session.get('contract-{}'.format(contract_id)) is not None:
@@ -81,6 +115,29 @@ def edit_company(contract_id):
 @blueprint.route('/contract/<int:contract_id>/edit/contacts', methods=['GET', 'POST'])
 @requires_roles('conductor', 'admin', 'superadmin')
 def edit_company_contacts(contract_id):
+    '''Update information about company contacts, and save all information
+
+    New :py:class:`~purchasing.data.contracts.ContractBase` objects
+    are created for each unique controller number. Notifications are
+    also sent to all of the original contract's followers to say that
+    the contract information has been replaced/updated with new info.
+
+    :param contract_id: Primary key ID for a
+        :py:class:`~purchasing.data.contracts.ContractBase`
+
+    .. seealso::
+
+        * :py:class:`~purchasing.conductor.forms.CompanyContactListForm`
+        * :py:meth:`~purchasing.data.contracts.ContractBase.create`
+        * :py:meth:`~purchasing.data.contracts.ContractBase.complete`
+        * :py:class:`~purchasing.notifications.Notification`
+
+    :status 200: Render the CompanyContactListForm form
+    :status 302: Post the data and redirect back to the success view, or
+        redirect back to contract or company views if those haven't
+        been completed yet.
+    :status 404: Contract not found
+    '''
     contract = ContractBase.query.get(contract_id)
 
     if contract and session.get('contract-{}'.format(contract_id)) is not None and session.get('companies-{}'.format(contract_id)) is not None:
@@ -161,9 +218,17 @@ CONDUCTOR CONTRACT COMPLETE - company contacts for contract "{}" assigned. |New 
         return redirect(url_for('conductor.edit_company', contract_id=contract_id))
     abort(404)
 
-@blueprint.route('/contract/<int:contract_id>/edit/success', methods=['GET', 'POST'])
+@blueprint.route('/contract/<int:contract_id>/edit/success')
 @requires_roles('conductor', 'admin', 'superadmin')
 def success(contract_id):
+    '''Render the success template after completing a contract
+
+    :param contract_id: Primary key ID for a
+        :py:class:`~purchasing.data.contracts.ContractBase`
+
+    :status 200: Render the success template
+    :status 302: Redirect back to the edit company contacts
+    '''
     if session.pop('success-{}'.format(contract_id), None):
         contract = ContractBase.query.get(contract_id)
         return render_template('conductor/edit/success.html', contract=contract)
@@ -173,6 +238,14 @@ def success(contract_id):
 @requires_roles('conductor', 'admin', 'superadmin')
 def url_exists(contract_id):
     '''Check to see if a url returns an actual page
+
+    :param contract_id: Primary key ID for a
+        :py:class:`~purchasing.data.contracts.ContractBase`
+
+    :status 2xx: Successful HEAD request -- valid URL
+    :status 404: Invalid URL given
+    :status 4xx: Something went wrong checking that URL
+    :status 5xx: Something went wrong checking that URL
     '''
     url = request.json.get('url', '')
     if url == '':

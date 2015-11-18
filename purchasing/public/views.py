@@ -33,6 +33,8 @@ def static_from_root():
 
 @blueprint.route('/_status')
 def status():
+    '''Reports about App Status
+    '''
     response = {
         'status': 'ok',
         'dependencies': ['Celery', 'Postgres', 'Redis', 'S3', 'Sendgrid'],

@@ -30,19 +30,21 @@ def build_filter(req_args, fields, search_for, filter_form, _all):
     the passed in ``filter_form``, setting the *checked* property on the appropriate
     form fields.
 
-    :param req_args: request.args from Flask.request
-    :param fields: list of three-tuples. Each three-tuple should contain the following:
-            * database column name
-            * desired output display name
-            * Model property that maps to the specific column name in question.
+    Arguments:
+        req_args: request.args from Flask.request
+        fields: list of three-tuples. Each three-tuple should contain the following:
 
-        For build_filter, only the column name and Model property are used. For :func:`build_cases`, all are used.
+                * database column name
+                * desired output display name
+                * Model property that maps to the specific column name in question.
 
-    :param search_for: string search term
-    :param filter_form:
-    :param _all: Boolean -- true if we are searching across all fields, false otherwise
+            For build_filter, only the column name and Model property are used. For :func:`build_cases`, all are used.
 
-    :return:
+        search_for: string search term
+        filter_form:
+        _all: Boolean -- true if we are searching across all fields, false otherwise
+
+    Returns:
         List of clauses that can be used in `Sqlalchemy query filters`_
     '''
     clauses = []
@@ -59,18 +61,20 @@ def build_filter(req_args, fields, search_for, filter_form, _all):
 def build_cases(req_args, fields, search_for, _all):
     '''Build case statements for categorizing search matches in scout search
 
-    :param req_args: request.args from Flask.request
-    :param fields: list of three-tuples. Each three-tuple should contain the following:
-            * database column name
-            * desired output display name
-            * Model property that maps to the specific column name in question.
+    Arguments:
+        req_args: request.args from Flask.request
+        fields: list of three-tuples. Each three-tuple should contain the following:
 
-        For build_cases, all three parts of the tuple are used
+                * database column name
+                * desired output display name
+                * Model property that maps to the specific column name in question.
 
-    :param search_for: string search term
-    :param _all: Boolean -- true if we are searching across all fields, false otherwise
+            For build_cases, all three parts of the tuple are used
 
-    :return:
+        search_for: string search term
+        _all: Boolean -- true if we are searching across all fields, false otherwise
+
+    Returns:
         List of clauses that can be used in a
         `Sqlalchemy case expressions`_
     '''
@@ -88,10 +92,11 @@ def build_cases(req_args, fields, search_for, _all):
 def feedback_handler(contract, search_for=None):
     '''Allow user to send feedback on the data present in a specific contract
 
-    :param contract: :py:class:`~purchasing.data.contracts.ContractBase` object
-    :param search_for: search term or None.
+    Arguments:
+        contract: :py:class:`~purchasing.data.contracts.ContractBase` object
+        search_for: search term or None.
 
-    :return:
+    Returns:
         Redirects to or renders the appropriate feedback handling template
     '''
     form = FeedbackForm()
@@ -145,10 +150,12 @@ def add_archived_filter(query, archived):
     to search expired contracts. If the flag is passed, "archived" contracts, (which
     are either expired or manually flagged as no longer usuable) are shown as well.
 
-    :param query: Sqlalchemy contract search query
-    :param archived: Boolean to determine if archived contracts should be included in search results
+    Arguments:
+        query: Sqlalchemy contract search query
+        archived: Boolean to determine if archived contracts should be included in search results
 
-    :return: Original query with additional exclusionary filters and optionally archived contracts
+    Returns:
+        Original query with additional exclusionary filters and optionally archived contracts
     '''
     query = query.filter(
         ContractBase.financial_id != None,
@@ -170,13 +177,14 @@ def find_contract_metadata(search_for, case_statements, filter_or, filter_and, a
     returns out a list of search results objects to be rendered into
     the template.
 
-    :param search_for: User's search term
-    :param case_statements: An iterable of `Sqlalchemy case expressions`_
-    :param filter_or: An iterable of `Sqlalchemy query filters`_, used for non-exclusionary filtering
-    :param filter_and: An iterable of `Sqlalchemy query filters`_, used for exclusionary filtering
-    :param archived: Boolean of whether or not to add the ``is_archived`` filter
+    Arguments:
+        search_for: User's search term
+        case_statements: An iterable of `Sqlalchemy case expressions`_
+        filter_or: An iterable of `Sqlalchemy query filters`_, used for non-exclusionary filtering
+        filter_and: An iterable of `Sqlalchemy query filters`_, used for exclusionary filtering
+        archived: Boolean of whether or not to add the ``is_archived`` filter
 
-    :return:
+    Returns:
         A Sqlalchemy resultset that contains the fields to render the
         search results view.
     '''
@@ -224,10 +232,11 @@ def find_contract_metadata(search_for, case_statements, filter_or, filter_and, a
 def return_all_contracts(filter_and, archived=False):
     '''Return all contracts in the event of an empty search
 
-    :param filter_and: An iterable of `Sqlalchemy query filters`_, used for exclusionary filtering
-    :param archived: Boolean of whether or not to add the ``is_archived`` filter
+    Arguments:
+        filter_and: An iterable of `Sqlalchemy query filters`_, used for exclusionary filtering
+        archived: Boolean of whether or not to add the ``is_archived`` filter
 
-    :return:
+    Returns:
         A Sqlalchemy resultset that contains the fields to render the
         search results view.
     '''

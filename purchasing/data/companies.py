@@ -4,7 +4,6 @@ from sqlalchemy.orm import backref
 from sqlalchemy.schema import Table
 
 from purchasing.database import db, Model, ReferenceCol, RefreshSearchViewMixin, Column
-from purchasing.data.contracts import ContractBase
 
 company_contract_association_table = Table(
     'company_contract_association', Model.metadata,
@@ -13,6 +12,14 @@ company_contract_association_table = Table(
 )
 
 class Company(RefreshSearchViewMixin, Model):
+    '''Model for individual Compnaies
+
+    Attributes:
+        id: Primary key unique ID
+        company_name: Name of the company
+        contracts: Many-to-many relationship with the :py:class:`
+            purchasing.data.contracts.ContractBase` model
+    '''
     __tablename__ = 'company'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -26,7 +33,33 @@ class Company(RefreshSearchViewMixin, Model):
     def __unicode__(self):
         return self.company_name
 
+    @classmethod
+    def all_companies_query_factory(cls):
+        '''Query factory of all company ids and names ordered by name
+        '''
+        return db.session.query(
+            db.distinct(cls.id).label('id'), cls.company_name
+        ).order_by(cls.company_name)
+
+
 class CompanyContact(RefreshSearchViewMixin, Model):
+    '''Model for Company Contacts
+
+    Attributes:
+        id: Primary key unique ID
+        company_id: Foreign key relationship to a :py:class:`~purchasing.data.companies.Company`
+        company: Sqlalchemy relationship with a :py:class:`~purchasing.data.companies.Company`
+        first_name: First name of the contact
+        last_name: Last name of the contact
+        addr1: First line of the contact's address
+        addr2: Second line of the contract's address
+        city: Contact address city
+        state: Contact address state
+        zip_code: Contact address zip code
+        phone_number: Contact phone number
+        fax_number: Contact fax number
+        email: Contact email
+    '''
     __tablename__ = 'company_contact'
 
     id = Column(db.Integer, primary_key=True, index=True)
@@ -50,18 +83,3 @@ class CompanyContact(RefreshSearchViewMixin, Model):
         return '{first} {last}'.format(
             first=self.first_name, last=self.last_name
         )
-
-
-def get_all_companies_query():
-    return db.session.query(db.distinct(Company.id).label('id'), Company.company_name).order_by(Company.company_name)
-
-def assign_contract_to_company(contracts_list):
-    for ix, contract in enumerate(contracts_list):
-        if isinstance(contract, ContractBase):
-            pass
-        elif isinstance(contract, int):
-            contracts_list[ix] = ContractBase.query.get(contract)
-        else:
-            raise Exception('Contract must be a Contract object or a contract id')
-
-    return contracts_list

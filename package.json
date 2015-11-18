@@ -3,6 +3,7 @@
   "license": "ISC",
   "homepage": "https://github.com/codeforamerica/pittsburgh-purchasing-suite#readme",
   "dependencies": {
+    "bower": "^1.6.5",
     "less": "^2.5.1",
     "uglifyjs": "^2.4.10"
   }

@@ -33,7 +33,8 @@ def city_domain_email(form, field):
 def max_words(_max=500):
     '''Checks that a text-area field has fewer than the allowed number of words.
 
-    :param _max: Maximum words allowed, defaults to 500
+    Arguments:
+        _max: Maximum words allowed, defaults to 500
     '''
     message = 'Text cannot be more than {} words! You had {} words.'
 

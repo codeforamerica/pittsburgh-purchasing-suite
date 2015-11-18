@@ -27,6 +27,11 @@ def load_user(userid):
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def new():
     '''Create a new opportunity
+
+    :status 200: Render the opportunity create/edit template
+    :status 302: Post data for a new opportunity via the
+        :py:class:`~purchasing.opportunities.forms.OpportunityForm`
+        and redirect to the edit view of the created opportunity
     '''
     form = OpportunityForm()
 
@@ -56,6 +61,11 @@ def new():
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def edit(opportunity_id):
     '''Edit an opportunity
+
+    :status 200: Render the opportunity create/edit template
+    :status 302: Post data for the relevant opportunity to edit via the
+        :py:class:`~purchasing.opportunities.forms.OpportunityForm`
+        and redirect to the edit view of the opportunity
     '''
     opportunity = Opportunity.query.get(opportunity_id)
 
@@ -90,15 +100,23 @@ def edit(opportunity_id):
         return redirect(url_for('opportunities.detail', opportunity_id=opportunity_id))
     abort(404)
 
-@blueprint.route('/opportunities/<int:opportunity_id>/document/<int:document_id>/remove', methods=['GET', 'POST'])
+@blueprint.route('/opportunities/<int:opportunity_id>/document/<int:document_id>/remove')
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def remove_document(opportunity_id, document_id):
+    '''Remove a particular opportunity document
+
+    .. seealso::
+        :py:class:`~purchasing.opportunities.models.OpportunityForm`
+
+    :status 302: Delete the relevant opportunity document and redirect to
+        the edit view for the opportunity whose document was deleted
+    '''
     try:
         document = OpportunityDocument.query.get(document_id)
         # TODO: delete the document from S3
         if document:
             current_app.logger.info(
-                'BEACON DELETE DOCUMENT:\n Opportunity ID: {}\n Document: {}\n Location: {}'.format(
+'''BEACON DELETE DOCUMENT: | Opportunity ID: {} | Document: {} | Location: {}'''.format(
                     opportunity_id, document.name, document.href
                 )
             )
@@ -111,10 +129,21 @@ def remove_document(opportunity_id, document_id):
         flash('Something went wrong: {}'.format(e.message), 'alert-danger')
     return redirect(url_for('opportunities_admin.edit', opportunity_id=opportunity_id))
 
-@blueprint.route('/opportunities/<int:opportunity_id>/publish', methods=['GET'])
+@blueprint.route('/opportunities/<int:opportunity_id>/publish')
 @requires_roles('admin', 'superadmin', 'conductor')
 def publish(opportunity_id):
     '''Publish an opportunity
+
+    If an :py:class:`~purchasing.opportunities.models.Opportunity` has
+    been created by a non-admin, it will be stuck in a "pending" state
+    until it has been approved by an admin. This view function handles
+    the publication event for a specific
+    :py:class:`~purchasing.opportunities.models.Opportunity`
+
+    :status 200: Publish the relevant opportunity and send the relevant
+        publication emails
+    :status 404: :py:class:`~purchasing.opportunities.models.Opportunity`
+        not found
     '''
     opportunity = Opportunity.query.get(opportunity_id)
     if opportunity:
@@ -143,10 +172,12 @@ def publish(opportunity_id):
         return redirect(url_for('opportunities_admin.pending'))
     abort(404)
 
-@blueprint.route('/opportunities/pending', methods=['GET'])
+@blueprint.route('/opportunities/pending')
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def pending():
     '''View which contracts are currently pending approval
+
+    :status 200: Render the pending template
     '''
     pending = Opportunity.query.filter(
         Opportunity.is_public == False,
@@ -172,6 +203,11 @@ def pending():
 @requires_roles('admin', 'superadmin', 'conductor')
 def archive(opportunity_id):
     '''Archives opportunities in pending view
+
+    :status 302: Archive the :py:class:`~purchasing.opportunities.models.Opportunity`
+        and redirect to the pending view
+    :status 404: :py:class:`~purchasing.opportunities.models.Opportunity`
+        not found
     '''
     opportunity = Opportunity.query.get(opportunity_id)
     if opportunity:
@@ -179,7 +215,7 @@ def archive(opportunity_id):
         db.session.commit()
 
         current_app.logger.info(
-            '''BEACON ARCHIVED: ID: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {} '''.format(
+'''BEACON ARCHIVED: ID: {} | Title: {} | Publish Date: {} | Submission Start Date: {} | Submission End Date: {} '''.format(
                 opportunity.id, opportunity.title.encode('ascii', 'ignore'), str(opportunity.planned_publish),
                 str(opportunity.planned_submission_start), str(opportunity.planned_submission_end)
             )
@@ -195,6 +231,8 @@ def archive(opportunity_id):
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def signups():
     '''Basic dashboard view for category-level signups
+
+    :status 200: Download a tab-separated file of all vendor signups
     '''
     def stream():
         # yield the title columns

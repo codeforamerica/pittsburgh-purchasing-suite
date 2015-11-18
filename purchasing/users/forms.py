@@ -6,6 +6,14 @@ from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from purchasing.users.models import Department
 
 class DepartmentForm(Form):
+    '''Allows user to update profile information
+
+    Attributes:
+        department: sets user department based on choice of available
+            departments or none value
+        first_name: sets first_name value based on user input
+        last_name: sets last_name value based on user input
+    '''
     department = QuerySelectField(
         query_factory=Department.query_factory,
         get_pk=lambda i: i.id,

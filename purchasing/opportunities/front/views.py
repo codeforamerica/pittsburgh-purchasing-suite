@@ -21,6 +21,8 @@ from purchasing.users.models import User, Role
 @blueprint.route('/')
 def splash():
     '''Landing page for opportunities site
+
+    :status 200: Successfully render the splash page
     '''
     current_app.logger.info('BEACON FRONT SPLASH VIEW')
     return render_template(
@@ -30,6 +32,11 @@ def splash():
 @blueprint.route('/signup', methods=['GET', 'POST'])
 def signup():
     '''The signup page for vendors
+
+    :status 200: Render the
+        :py:class:`~purchasing.opportunities.forms.SignupForm`
+    :status 302: Process the signup form post, redirect
+        the vendor back to the splash page
     '''
     session_vendor = Vendor.query.filter(
         Vendor.email == session.get('email'),
@@ -126,6 +133,13 @@ def signup():
 @blueprint.route('/manage', methods=['GET', 'POST'])
 def manage():
     '''Manage a vendor's signups
+
+    :status 200: render the
+        :py:class:`~purchasing.opportunities.forms.UnsubscribeForm`
+    :status 302: post the
+        :py:class:`~purchasing.opportunities.forms.UnsubscribeForm`
+        and change the user's email subscriptions and redirect them
+        back to the management page.
     '''
     form = init_form(UnsubscribeForm)
     form_categories = []
@@ -188,6 +202,10 @@ def manage():
 @blueprint.route('/opportunities', methods=['GET', 'POST'])
 def browse():
     '''Browse available opportunities
+
+    :status 200: render the browse template page
+    :status 302: subscribe to one or multiple opportunities via
+        the :py:class:`~purchasing.opportunities.forms.OpportunitySignupForm`
     '''
     _open, upcoming = [], []
 
@@ -222,6 +240,8 @@ def browse():
 @blueprint.route('/opportunities/expired', methods=['GET'])
 def expired():
     '''View expired contracts
+
+    :status 200: render the expired opportunities templates
     '''
     expired = Opportunity.query.filter(
         Opportunity.planned_submission_end < datetime.date.today(),
@@ -237,6 +257,10 @@ def expired():
 @blueprint.route('/opportunities/<int:opportunity_id>', methods=['GET', 'POST'])
 def detail(opportunity_id):
     '''View one opportunity in detail
+
+    :status 200: Render the opportunity's detail template
+    :status 302: Signup for this particular opportunity via the
+        :py:class:`~purchasing.opportunities.forms.OpportunitySignupForm`
     '''
     opportunity = Opportunity.query.get(opportunity_id)
     if opportunity and opportunity.can_view(current_user):

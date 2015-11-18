@@ -14,3 +14,9 @@ notifications:
   webhooks: http://project-monitor.codeforamerica.org/projects/6a9169a2-749e-197b-b402-d7b2fd555d31/status
   slack:
     secure: VW0HQTnMb4L8svSdzHZMx16Mte79Y4DmZxeItWtSvdlKUT/oKwYuzLASA/o3/ixNBLugcfxht+rTnQQITnKlwQ5n4gxvV2ynXyBi4YAkYr3lvc74pvfsbiE1Auv7NYiX6dPZW9OAtKYZVVxIJTp7PiLpeyDiQVe2Ro0r3GtK4y8=
+  email:
+    on_success: never
+    on_failure: change
+branches:
+  only:
+    - master

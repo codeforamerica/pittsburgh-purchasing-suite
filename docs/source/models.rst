@@ -10,6 +10,8 @@ Model
 .. autoclass:: purchasing.database.Model
     :members:
 
+.. autofunction:: purchasing.database.get_or_create
+
 RefreshSearchViewMixin
 """"""""""""""""""""""
 
@@ -54,9 +56,6 @@ Stages
 """"""
 
 .. autoclass:: purchasing.data.stages.Stage
-    :members:
-
-.. autoclass:: purchasing.data.stages.StageProperty
     :members:
 
 Flows
@@ -118,10 +117,16 @@ Users
 .. autoclass:: purchasing.users.models.Department
     :members:
 
+.. autoclass:: purchasing.users.models.AnonymousUser
+    :members:
+
 App Status
 """"""""""
 
 .. autoclass:: purchasing.public.models.AppStatus
+    :members:
+
+.. autoclass:: purchasing.public.models.AcceptedEmailDomains
     :members:
 
 Job Status
@@ -129,3 +134,6 @@ Job Status
 
 .. autoclass:: purchasing.jobs.job_base.JobStatus
     :members:
+
+.. _sqla query: http://docs.sqlalchemy.org/en/rel_1_0/orm/query.html#the-query-object
+.. _TSVECTOR: http://www.postgresql.org/docs/9.4/static/datatype-textsearch.html

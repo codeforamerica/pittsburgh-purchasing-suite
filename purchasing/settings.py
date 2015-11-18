@@ -16,10 +16,11 @@ class Config(object):
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
     BROWSERID_URL = os_env.get('BROWSERID_URL')
     PER_PAGE = 50
-    ADMIN_EMAIL = os_env.get('ADMIN_EMAIL', 'bsmithgall@codeforamerica.org')
     MAIL_DEFAULT_SENDER = os_env.get('MAIL_DEFAULT_SENDER', 'no-reply@buildpgh.com')
     BEACON_SENDER = os_env.get('BEACON_SENDER', 'beaconbot@buildpgh.com')
     CONDUCTOR_SENDER = os_env.get('CONDUCTOR_SENDER', 'conductorbot@buildpgh.com')
+    MAIL_USERNAME = os_env.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     UPLOAD_S3 = True
@@ -48,8 +49,6 @@ class ProdConfig(Config):
     S3_USE_HTTPS = True
     FLASK_ASSETS_USE_S3 = True
     UGLIFYJS_EXTRA_ARGS = ['-m']
-    MAIL_USERNAME = os_env.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
     MAIL_SERVER = 'smtp.sendgrid.net'
     MAIL_MAX_EMAILS = 100
     CELERY_BROKER_URL = os_env.get('REDIS_URL', 'redis://localhost:6379/0')
@@ -67,8 +66,6 @@ class DevConfig(Config):
     DEBUG_TB_ENABLED = True
     BROWSERID_URL = os_env.get('BROWSERID_URL', 'http://127.0.0.1:9000')
     MAIL_SERVER = 'smtp.gmail.com'  # Use gmail in dev: https://support.google.com/mail/answer/1173270?hl=en
-    MAIL_USERNAME = os_env.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os_env.get('MAIL_PASSWORD')
     ASSETS_DEBUG = True
     UPLOAD_S3 = False
     UPLOAD_DESTINATION = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'uploads'))
@@ -81,7 +78,6 @@ class DevConfig(Config):
     # MAIL_SUPPRESS_SEND = True
 
 class TestConfig(Config):
-    ADMIN_EMAIL = 'foo@foo.com'
     TESTING = True
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os_env.get('DATABASE_URL', 'postgresql://localhost/purchasing_test')

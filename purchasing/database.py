@@ -67,7 +67,23 @@ def ReferenceCol(tablename, nullable=False, ondelete=None, pk_name='id', **kwarg
         nullable=nullable, **kwargs)
 
 class Model(CRUDMixin, db.Model):
-    """Base model class that includes CRUD convenience methods."""
+    '''Base model class that includes CRUD convenience methods.
+
+    All models that inherit from this model automatically have several
+    additional attributes attached to them:
+
+    Attributes:
+        created_at: Timestamp for when the model was created
+        updated_at: Timestamp for when the model was updated
+        created_by_id: Foreign key to
+            :py:class:`~purchasing.data.users.User`
+        created_by: Sqlalchemy relationship to
+            :py:class:`~purchasing.data.users.User`
+        updated_by_id: Foreign key to
+            :py:class:`~purchasing.data.users.User`
+        updated_by: Sqlalchemy relationship to
+            :py:class:`~purchasing.data.users.User`
+    '''
     __abstract__ = True
 
     created_at = Column(db.DateTime)
@@ -131,8 +147,33 @@ def refresh_search_view(mapper, connection, target):
         else:
             return
 
-# modified from http://stackoverflow.com/questions/12753450/sqlalchemy-mixins-and-event-listener
 class RefreshSearchViewMixin(object):
+    '''Mixin to trigger a search view refresh.
+
+    Concretely, any Model that subclasses this mixin will trigger a
+    refresh of the search view after any additions, modifications, or
+    deletions.
+
+    Any model that subclasses this mixin will have two new classmethods
+    attached: an ``event_handler`` method, which handles what should
+    happen when the events are fired by SQLAlchemy, and a ``__declare_last__``
+    method, which allows the events to be attached to the models after all
+    the SQLAlchemy mappers are declared. In this case, our ``event_handler``
+    is used to trigger a referesh on our materialized search view.
+
+    See Also:
+        For a brief discussion on using Model mixins to create event listeners,
+        please refer to `this stackoverflow thread
+        <http://stackoverflow.com/questions/12753450/sqlalchemy-mixins-and-event-listener>`_
+
+        For detailed discussion of the implementation, please read `this blog post
+        <http://bensmithgall.com/blog/full-text-search-sqlalchemy-part-ii/>`_
+
+        The search view is primarily used by Scout. For more, see:
+
+        * :py:mod:`purchasing.data.searches` for more on the search query
+        * :py:class:`~purchasing.scout.forms.SearchForm` for the search form construction
+    '''
 
     @classmethod
     def event_handler(cls, *args, **kwargs):
@@ -141,7 +182,7 @@ class RefreshSearchViewMixin(object):
     @classmethod
     def __declare_last__(cls):
         for event_name in LISTEN_FOR_EVENTS:
-            sqlalchemy.event.listen(cls, event_name, cls.event_handler)
+            sqlalchemy.event.listen(cls, event_name, cls.event_handler, propagate=False)
 
 # From Mike Bayer's "Building the app" talk
 # https://speakerdeck.com/zzzeek/building-the-app
@@ -162,8 +203,22 @@ class SurrogatePK(object):
             return cls.query.get(int(id))
         return None
 
-# for details, see http://skien.cc/blog/2014/01/15/sqlalchemy-and-race-conditions-implementing/
 def get_or_create(session, model, create_method='', create_method_kwargs=None, **kwargs):
+    '''Get a method or create it if it doesn't exist.
+
+    For implementation details, see `this post
+    <http://skien.cc/blog/2014/01/15/sqlalchemy-and-race-conditions-implementing/>`_
+
+    Arguments:
+        session: SQLAlchemy database session
+        model: The model object to find or create
+        create_method: Optional custom instantiation method for model
+        create_method_kwargs: Optional instantiation kwargs for model
+        **kwargs: Any arguments needed to find or create the model
+
+    Returns:
+        Two-tuple of (Created/Found model, True if found False if created)
+    '''
     try:
         return session.query(model).filter_by(**kwargs).one(), True
     except NoResultFound:

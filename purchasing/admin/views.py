@@ -2,8 +2,6 @@
 
 from flask import request
 
-import pytz
-
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 from purchasing.extensions import admin, db
@@ -16,7 +14,7 @@ from purchasing.data.contracts import ContractBase, ContractProperty, ContractTy
 from purchasing.data.contract_stages import ContractStage
 from purchasing.data.companies import Company, CompanyContact, company_contract_association_table
 from purchasing.data.flows import Flow
-from purchasing.data.stages import Stage, StageProperty
+from purchasing.data.stages import Stage
 
 from purchasing.opportunities.models import RequiredBidDocument, Category
 
@@ -210,7 +208,8 @@ def get_stages():
 
 class ContractTypeAdmin(AuthMixin, BaseModelViewAdmin):
     form_columns = [
-        'name', 'allow_opportunities', 'opportunity_response_instructions'
+        'name', 'allow_opportunities', 'managed_by_conductor',
+        'opportunity_response_instructions'
     ]
 
 class DepartmentAdmin(AuthMixin, BaseModelViewAdmin):
@@ -263,7 +262,6 @@ class FlowAdmin(ConductorAuthMixin, BaseModelViewAdmin):
         super(FlowAdmin, self).update_model(form, model)
 
 class StageAdmin(ConductorAuthMixin, BaseModelViewAdmin):
-    inline_models = ((StageProperty, dict(form_excluded_columns=GLOBAL_EXCLUDE)), )
     can_delete = False
 
     form_columns = ['name', 'post_opportunities', 'default_message']

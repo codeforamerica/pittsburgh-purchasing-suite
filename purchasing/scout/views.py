@@ -123,6 +123,10 @@ def search():
         * :py:class:`~purchasing.scout.forms.SearchForm` for the search form construction
         * :py:func:`~purchasing.scout.util.build_filter` for how filters are built
         * :py:func:`~purchasing.scout.util.build_cases` for how case statements are built
+
+    :status 200: Render the search template with the given results
+    :status 302: Pop the passed form arguments to the request URL
+        and redirect to the search view
     '''
     if request.method == 'POST':
         args = request.form.to_dict()
@@ -282,7 +286,7 @@ def search_feedback(search_for):
     :param search_for: Search term.
 
     .. seealso ::
-        :py:mod:`purchasing.scout.util.feedback_handler` for information on how
+        :py:func:`~purchasing.scout.util.feedback_handler` for information on how
         the feedback is processed and handled
     '''
     contract = ContractBase(description='Search term: ' + search_for)
@@ -292,10 +296,11 @@ def search_feedback(search_for):
 def feedback(contract_id):
     '''Provide feedback about a contract
 
-    :param contract_id: Unique ID for a :py:class:`purchasing.data.contracts.ContractBase` object
+    :param contract_id: Unique ID for a
+        :py:class:`~purchasing.data.contracts.ContractBase` object
 
     .. seealso ::
-        :py:mod:`~purchasing.scout.util.feedback_handler` for information on how
+        :py:func:`~purchasing.scout.util.feedback_handler` for information on how
         the feedback is processed and handled
     '''
     contract = ContractBase.query.get(contract_id)
@@ -309,6 +314,9 @@ def subscribe(contract_id):
     '''Subscribes a user to receive updates about a particular contract
 
     :param contract_id: Unique ID for a :py:class:`~purchasing.data.contracts.ContractBase` object
+
+    :status 302: Subscribe the current user and redirect to the page they came from
+    :status 404: Contract not found
     '''
     contract = ContractBase.query.get(contract_id)
     next_url = request.args.get('next', '/scout')
@@ -330,14 +338,14 @@ def subscribe(contract_id):
         db.session.rollback()
         abort(404)
 
-    abort(403)
-
 @blueprint.route('/contracts/<int:contract_id>/unsubscribe')
 @requires_roles('staff', 'admin', 'superadmin', 'conductor')
 def unsubscribe(contract_id):
     '''Unsubscribes a user from receiving updates about a particular contract
 
     :param contract_id: Unique ID for a :py:class:`~purchasing.data.contracts.ContractBase` object
+    :status 302: Unsubscribe the current user and redirect to the page they came from
+    :status 404: Contract not found
     '''
     contract = ContractBase.query.get(contract_id)
     next_url = request.args.get('next', '/scout')
@@ -358,5 +366,3 @@ def unsubscribe(contract_id):
     elif contract is None:
         db.session.rollback()
         abort(404)
-
-    abort(403)
