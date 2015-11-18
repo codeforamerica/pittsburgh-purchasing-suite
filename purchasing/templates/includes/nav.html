@@ -16,26 +16,26 @@
             </a>
             <ul class="dropdown-menu" role="menu">
               <li><a href="{{ url_for('public.home') }}">
-                <span class="fa-stack fa-1x">
+                <span class="custom-logos">
                   <i class="fa fa-black fa-home"></i>
                 </span>
                 Home
               </a></li>
               <li><a href="{{ url_for('scout.explore') }}">
-                <span class="fa-stack fa-1x">
+                <span class="custom-logos">
                   <img class="nav-dropdown" src="{{ url_for('static', filename='img/scout_logo_binoculars_black.png') }}">
                 </span>
                 Scout
               </a></li>
               <li><a href="{{ url_for('opportunities.splash') }}">
-                <span class="fa-stack fa-1x">
-                  <i class="fa fa-black fa-envelope"></i>
+                <span class="custom-logos">
+                  <img class="nav-dropdown" src="{{ url_for('static', filename='img/Beacon_logo_medium_black.png') }}">
                 </span>
                 Beacon
               </a></li>
               {% if not _current_user.is_anonymous() and _current_user.is_conductor() %}
               <li><a href="{{ url_for('conductor.index') }}">
-                <span class="fa-stack fa-1x">
+                <span class="custom-logos">
                   <i class="fa fa-black fa-train"></i>
                 </span>
                 Conductor
