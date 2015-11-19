@@ -66,3 +66,6 @@ class TestConductorMetrics(TestConductorSetup):
 
         self.assertEquals(status['not started'], 1)
         self.assertEquals(status['started'], 2)
+
+    def test_metrics_data(self):
+        self.assert200(self.client.get('/conductor/metrics/overview/{}/data'.format(self.flow.id)))
