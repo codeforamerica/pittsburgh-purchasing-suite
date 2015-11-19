@@ -26,7 +26,7 @@ from purchasing.data.contracts import ContractType
 from purchasing.opportunities.util import parse_contact, select_multi_checkbox
 from purchasing.opportunities.validators import (
     email_present, city_domain_email, max_words,
-    after_today, validate_phone_number
+    after_now, validate_phone_number
 )
 
 from purchasing.utils import connect_to_s3, _get_aggressive_cache_headers
@@ -392,7 +392,7 @@ class OpportunityForm(CategoryForm):
     description = fields.TextAreaField(validators=[max_words(), DataRequired()])
     planned_publish = fields.DateField(validators=[DataRequired()])
     planned_submission_start = fields.DateField(validators=[DataRequired()])
-    planned_submission_end = DateTimeField(validators=[after_today, DataRequired()])
+    planned_submission_end = DateTimeField(validators=[after_now, DataRequired()])
     vendor_documents_needed = QuerySelectMultipleField(
         widget=select_multi_checkbox,
         query_factory=RequiredBidDocument.generate_choices,

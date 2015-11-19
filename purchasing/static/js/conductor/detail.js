@@ -48,7 +48,7 @@ $(document).ready(function() {
       format: 'MM/DD/YYYY h:mma',
       maxDate: moment(e.attr('data-maximum'), 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm'),
       minDate: moment(e.attr('data-started'), 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm'),
-      defaultDate: moment(e.attr('data-maximum'), 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm'),
+      defaultDate: moment(e.attr('data-default'), 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm'),
       keepInvalid: true
     }).on('dp.error', function(e) {
       $('.js-datepicker-validator').removeClass('hidden');

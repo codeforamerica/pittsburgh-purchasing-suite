@@ -323,6 +323,7 @@ class DocumentAdmin(AuthMixin, BaseModelViewAdmin):
 
 class OpportunityAdmin(AuthMixin, BaseModelViewAdmin):
     can_create = False
+    can_edit = False
 
     column_list = ['contact', 'department', 'title', 'description', 'is_public', 'is_archived']
 

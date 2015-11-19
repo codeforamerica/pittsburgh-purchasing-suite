@@ -15,7 +15,7 @@ from purchasing.users.models import User
 from purchasing.opportunities.models import Opportunity, Vendor, Category, OpportunityDocument
 from purchasing.opportunities.forms import OpportunityDocumentForm
 
-from purchasing_test.factories import OpportunityDocumentFactory, VendorFactory
+from purchasing_test.factories import OpportunityDocumentFactory
 
 from purchasing_test.integration.opportunities.test_opportunities_base import TestOpportunitiesAdminBase
 
@@ -125,7 +125,7 @@ class TestOpportunitiesAdmin(TestOpportunitiesAdminBase):
         new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
         self.assertEquals(Opportunity.query.count(), 4)
         self.assert200(new_contract)
-        self.assertTrue('The deadline has to be after today!' in new_contract.data)
+        self.assertTrue('The deadline has to be after the current time!' in new_contract.data)
 
         bad_data['description'] = 'TOO LONG! ' * 500
         new_contract = self.client.post('/beacon/admin/opportunities/new', data=bad_data)
