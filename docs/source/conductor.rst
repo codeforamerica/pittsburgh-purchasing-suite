@@ -5,6 +5,10 @@ Conductor is a tool for the Office of Management and Budget (OMB) to manage cont
 
 Once a contract is in progress, Conductors complete various stages by marking them as such in the UI. They can also perform various actions in each stage, including making notes, sending emails to different people interested in the process, change metadata about the contract, and adverstise through a new Opportunity on :doc:`beacon`.
 
+.. seealso::
+
+    `How to use Conductor <https://docs.google.com/document/d/1gJa8RzbiV91UDNyRTBLGXmZIYuXtnY8BOK6VNyCbqSg/export?format=pdf>`_, an internal product guide for more information about the user interface and user experience.
+
 Models Used
 -----------
 
