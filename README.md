@@ -1,22 +1,27 @@
-[![Build Status](https://travis-ci.org/codeforamerica/pittsburgh-purchasing-suite.svg?branch=master)](https://travis-ci.org/codeforamerica/pittsburgh-purchasing-suite)
+[![Build Status](https://travis-ci.org/codeforamerica/pittsburgh-purchasing-suite.svg?branch=master)](https://travis-ci.org/codeforamerica/pittsburgh-purchasing-suite) [![Documentation Status](https://readthedocs.org/projects/pittsburgh-purchasing/badge/?version=latest)](https://pittsburgh-purchasing.readthedocs.org/en/latest/?badge=latest)
 
 # Pittsburgh Purchasing Suite
 
 ## What is it?
 
-The Pittsburgh Purchasing Suite is a collection of small applets backed by a common data store. These applets allow users to manage, view, and advertise contracts.
+The Pittsburgh Purchasing Suite is a collection of small applets backed by a common data store. These applets allow users to manage, view, and advertise contracts. Read all about it in the [Team Pittsburgh End of Year Report](https://docs.google.com/presentation/d/1Rw_nMTUQTbFxnq9x-uQIPGC0IdnwdWPB2yHVAY1mG0g/edit?usp=sharing)
 
 #### What's the status?
 Core Pittsburgh Purchasing Suite features are in alpha, with other features in different stages of early development.
 
 ##### Feature status:
 
-| Feature | Status |
-|---------|--------|
-| **Scout** - a tool to look up contracts | [Alpha Deployed](https://www.buildpgh.com/scout) |
-| **Atlas** - a tool to explore the procurement process | Deprecated |
-| **Beacon** - a tool to be notified about new opportunities | [Alpha Deployed](https://www.buildpgh.com/beacon) |
-| **Conductor** - a tool for managing contracts & contract renewal | [Alpha Deployed](https://www.buildpgh.com/conductor) (required login) |
+| Feature | Status | User Guides (PDF) |
+|---------|--------|------------|
+| **Scout** - a tool to look up contracts | [Beta Deployed](https://www.buildpgh.com/scout) | [User Guide](https://docs.google.com/document/d/1hV5_yHKWWgU2qgtPI011cdiWOvXewRJK3v-MaXEXEkA/export?format=pdf) |
+| **Atlas** - a tool to explore the procurement process | Deprecated | n/a |
+| **Beacon** - a tool to be notified about new opportunities | [Beta Deployed](https://www.buildpgh.com/beacon) | [User Guide](https://docs.google.com/document/d/1z2ujIVJ0pa0lN9rO_1W3MrLTUe_smpwrWyXpWZEVp4Q/export?format=pdf) |
+| **Conductor** - a tool for managing contracts & contract renewal | [Beta Deployed](https://www.buildpgh.com/conductor) (required login) | [User Guide](https://docs.google.com/document/d/1gJa8RzbiV91UDNyRTBLGXmZIYuXtnY8BOK6VNyCbqSg/export?format=pdf) |
+| **Admin** - an administrative backend built with [Flask-admin](https://flask-admin.readthedocs.org/en/latest/) | [Beta Deployed](https://www.buildpgh.com/admin/) | [User Guide](https://docs.google.com/document/d/1fjPSmQxTxIkvcOT5RjtG69_oRFDoZGdOdcbQd85C3aI/export?format=pdf) |
+
+##### Technical Documentation
+
+In addition to the user guides listed above, technical documentation for the Pittsburgh Purchasing Suite is available on [Read the Docs](https://pittsburgh-purchasing.readthedocs.org/). If you want to build the docs yourself, make sure you have the development dependencies installed. Then you can use the `make doc` command to build the docs from source.
 
 ## Who made it?
 The purchasing suite is a project of the 2015 Pittsburgh Code for America [fellowship team](http://codeforamerica.org/governments/pittsburgh).
@@ -195,10 +200,6 @@ from inside the root directory. For more coverage information, run
 ```bash
 PYTHONPATH=. nosetests purchasing_test/ -v --with-coverage --cover-package=purchasing_test --cover-erase
 ```
-
-#### Documentation
-
-Technical documentation for the Pittsburgh Purchasing suite is available on [Read the Docs](http://pittsburgh-purchasing.readthedocs.org/). To build the docs, make sure you have the development dependencies installed. Then you can use the `make doc` command to build the docs from source.
 
 ## License
 See [LICENSE.md](https://github.com/codeforamerica/pittsburgh-purchasing-suite/blob/master/LICENSE.md).
