@@ -13,11 +13,11 @@ Core Pittsburgh Purchasing Suite features are in alpha, with other features in d
 
 | Feature | Status | User Guides (PDF) |
 |---------|--------|------------|
-| **Scout** - a tool to look up contracts | [Beta Deployed](https://www.buildpgh.com/scout) | https://docs.google.com/document/d/1hV5_yHKWWgU2qgtPI011cdiWOvXewRJK3v-MaXEXEkA/export?format=pdf |
+| **Scout** - a tool to look up contracts | [Beta Deployed](https://www.buildpgh.com/scout) | [User Guide](https://docs.google.com/document/d/1hV5_yHKWWgU2qgtPI011cdiWOvXewRJK3v-MaXEXEkA/export?format=pdf) |
 | **Atlas** - a tool to explore the procurement process | Deprecated | n/a |
-| **Beacon** - a tool to be notified about new opportunities | [Beta Deployed](https://www.buildpgh.com/beacon) | https://docs.google.com/document/d/1z2ujIVJ0pa0lN9rO_1W3MrLTUe_smpwrWyXpWZEVp4Q/export?format=pdf |
-| **Conductor** - a tool for managing contracts & contract renewal | [Beta Deployed](https://www.buildpgh.com/conductor) (required login) | https://docs.google.com/document/d/1gJa8RzbiV91UDNyRTBLGXmZIYuXtnY8BOK6VNyCbqSg/export?format=pdf |
-| **Admin** - an administrative backend built with [Flask-admin](https://flask-admin.readthedocs.org/en/latest/) | [Beta Deployed](https://www.buildpgh.com/admin/) | https://docs.google.com/document/d/1fjPSmQxTxIkvcOT5RjtG69_oRFDoZGdOdcbQd85C3aI/export?format=pdf |
+| **Beacon** - a tool to be notified about new opportunities | [Beta Deployed](https://www.buildpgh.com/beacon) | [User Guide](https://docs.google.com/document/d/1z2ujIVJ0pa0lN9rO_1W3MrLTUe_smpwrWyXpWZEVp4Q/export?format=pdf) |
+| **Conductor** - a tool for managing contracts & contract renewal | [Beta Deployed](https://www.buildpgh.com/conductor) (required login) | [User Guide](https://docs.google.com/document/d/1gJa8RzbiV91UDNyRTBLGXmZIYuXtnY8BOK6VNyCbqSg/export?format=pdf) |
+| **Admin** - an administrative backend built with [Flask-admin](https://flask-admin.readthedocs.org/en/latest/) | [Beta Deployed](https://www.buildpgh.com/admin/) | [User Guide](https://docs.google.com/document/d/1fjPSmQxTxIkvcOT5RjtG69_oRFDoZGdOdcbQd85C3aI/export?format=pdf) |
 
 ##### Technical Documentation
 
