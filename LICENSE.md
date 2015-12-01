@@ -1,4 +1,5 @@
-Copyright (c) 2015, Code for America
+Copyright for portions of the Pittsburgh Purchasing Suite are held by Code for America, 2015. All other copyright for this project are held by the City of Pittsburgh, 2015.
+
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:

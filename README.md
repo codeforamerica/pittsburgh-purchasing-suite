@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/codeforamerica/pittsburgh-purchasing-suite.svg?branch=master)](https://travis-ci.org/codeforamerica/pittsburgh-purchasing-suite) [![Documentation Status](https://readthedocs.org/projects/pittsburgh-purchasing/badge/?version=latest)](https://pittsburgh-purchasing.readthedocs.org/en/latest/?badge=latest)
+[![Build Status](https://travis-ci.org/CityofPittsburgh/pittsburgh-purchasing-suite.svg)](https://travis-ci.org/CityofPittsburgh/pittsburgh-purchasing-suite) [![Documentation Status](https://readthedocs.org/projects/pittsburgh-purchasing/badge/?version=latest)](https://pittsburgh-purchasing.readthedocs.org/en/latest/?badge=latest)
 
 # Pittsburgh Purchasing Suite
 
