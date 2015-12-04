@@ -176,7 +176,7 @@ def signup_for_opp(form, opportunity, multi=False):
         'OPPORTUNITY: {opportunities}'.format(
             email=form.data.get('email'),
             business_name=form.data.get('business_name'),
-            opportunities=', '.join([i.description for i in email_opportunities])
+            opportunities=', '.join([i.title.encode('ascii', 'ignore') for i in email_opportunities])
         )
     )
 
