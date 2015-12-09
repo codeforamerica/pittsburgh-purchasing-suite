@@ -15,9 +15,8 @@
   </thead>
   <tbody>
     {% for contract in in_progress %}
-    <tr class="{%- if days_from_today(contract.entered) < -14 -%}contract-row-expiring-danger
-    {%- elif days_from_today(contract.entered) < -7 -%}contract-row-expiring-warning
-    {%- endif -%}" data-department="{{ contract.department }}"
+    <tr
+    data-department="{{ contract.department }}"
     data-controller="{{ contract.financial_id or 'None' }}"
     data-full-description="{{ contract.description|title }}"
     data-item-number="{{ contract.id }}"
@@ -53,7 +52,11 @@
       <td>{{ contract.parent_expiration }}</td><!-- expiration date for sorting -->
       <td>
         {% if contract.parent_expiration %}
-        <strong class="highlight">{{ format_days_from_today(contract.parent_expiration) }}</strong><br>
+        <strong
+        class="{%- if days_from_today(contract.parent_expiration) < -14 -%}contract-expiring-danger
+        {%- elif days_from_today(contract.parent_expiration) < -7 -%}contract-expiring-warning
+        {%- endif -%}"
+        >{{ format_days_from_today(contract.parent_expiration) }}</strong><br>
         <span class="text-muted text-normal">
           <small>{{ contract.parent_expiration|datetimeformat('%m/%d/%Y') }}</small>
         </span>
@@ -67,7 +70,10 @@
       <td>{{ contract.entered }}</td><!-- current stage started for sorting, hidden by datatables -->
 
       <td>
-        <strong class="highlight">{{ format_days_from_today(contract.entered) }}</strong><br />
+        <strong class="{%- if days_from_today(contract.entered) < -14 -%}contract-expiring-danger
+        {%- elif days_from_today(contract.entered) < -7 -%}contract-expiring-warning
+        {%- endif -%}" >
+        {{ format_days_from_today(contract.entered) }}</strong><br />
         <span class="text-muted">
           <small>Started: {{ contract.entered|datetimeformat('%m/%d/%Y') }}</small>
         </span>
@@ -85,11 +91,16 @@
             {% endfor %}
           </ul>
         </div>
-      </td>
+      </td><!-- assigned to -->
 
       <td>
       <div class="dropdown">
-        <button class="btn btn-default btn-sm dropdown-toggle highlight" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        <button
+          class="btn btn-default btn-sm dropdown-toggle
+          {% if days_from_today(contract.entered) < -14 -%}contract-expiring-danger
+          {%- elif days_from_today(contract.entered) < -7 -%}contract-expiring-warning
+          {%- endif -%}" type="button" id="actionDropdown-{{ contract.id }}"
+          data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
           Actions
           <span class="caret"></span>
         </button>
