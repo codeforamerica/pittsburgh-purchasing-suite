@@ -84,12 +84,12 @@
           </div>
         </div>
 
-        {% if opportunity.documents_needed and opportunity.documents_needed|length > 0 %}
+        {% if opportunity.has_vendor_documents() %}
         <div class="row detail-requirements">
           <h3><strong>What do I need?</strong></h3>
           <p>You will need the following documents to bid on this opportunity:</p>
           <ul>
-            {% for doc in opportunity.get_needed_documents() %}
+            {% for doc in opportunity.get_vendor_documents() %}
               {% if doc|lower not in ['other', 'not sure'] %}
               <li>
                 {{ doc.display_name }} <br>

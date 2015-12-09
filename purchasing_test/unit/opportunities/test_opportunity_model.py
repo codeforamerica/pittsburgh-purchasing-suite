@@ -104,6 +104,27 @@ class TestOpportunityModel(TestCase):
         self.assertFalse(opportunity.can_edit(creator))
         self.assertTrue(opportunity.can_edit(admin))
 
+    def test_has_vendor_documents_needed_true(self):
+        opportunity = OpportunityFactory.build(vendor_documents_needed=[1])
+        self.assertTrue(opportunity.has_vendor_documents())
+
+    def test_has_vendor_documents_needed_false(self):
+        opportunity = OpportunityFactory.build()
+        self.assertFalse(opportunity.has_vendor_documents())
+
+        opportunity2 = OpportunityFactory.build(vendor_documents_needed=[])
+        self.assertFalse(opportunity.has_vendor_documents())
+
+    def test_vendor_documents_needed_no_docs(self):
+        opportunity = OpportunityFactory.build()
+        self.assertEquals(opportunity.get_vendor_documents(), [])
+
+    @patch('purchasing.opportunities.models.RequiredBidDocument.query')
+    def test_vendor_documents_needed_with_docs(self, query):
+        opportunity = OpportunityFactory.build(vendor_documents_needed=[1])
+        opportunity.get_vendor_documents()
+        self.assertTrue(query.filter.called)
+
     def test_opportunity_has_docs_true(self):
         opp = OpportunityFactory.build(
             is_public=False, planned_publish=self.yesterday,
