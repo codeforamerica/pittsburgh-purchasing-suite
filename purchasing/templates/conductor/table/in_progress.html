@@ -53,8 +53,8 @@
       <td>
         {% if contract.parent_expiration %}
         <strong
-        class="{%- if days_from_today(contract.parent_expiration) < -14 -%}contract-expiring-danger
-        {%- elif days_from_today(contract.parent_expiration) < -7 -%}contract-expiring-warning
+        class="{%- if days_from_today(contract.parent_expiration) < 60 -%}contract-expiring-danger
+        {%- elif days_from_today(contract.parent_expiration) < 120 -%}contract-expiring-warning
         {%- endif -%}"
         >{{ format_days_from_today(contract.parent_expiration) }}</strong><br>
         <span class="text-muted text-normal">
