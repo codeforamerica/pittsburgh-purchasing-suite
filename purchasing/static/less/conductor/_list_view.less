@@ -29,28 +29,28 @@ table.dataTable.display tbody tr.even:hover, {
   background-color: #fcfcfc;
 }
 
-table.dataTable.display tbody tr.contract-row-expiring-warning .highlight {
+table.dataTable.display tbody tr td strong.contract-expiring-warning {
   color: @contract-expiring-warning;
   font-weight: bold;
 }
-table.dataTable.display tbody tr.contract-row-expiring-warning .btn.highlight {
+table.dataTable.display tbody tr td .btn.contract-expiring-warning {
   background-color: @contract-expiring-warning;
   color: @btn-warning-color;
   border-color: darken(@contract-expiring-warning, 5%);
 }
 
 // Other styles for list page
-table.dataTable.display tbody tr.contract-row-expiring-danger .highlight {
+table.dataTable.display tbody tr td strong.contract-expiring-danger {
   color: @contract-expiring-danger;
   font-weight: bold;
 }
-table.dataTable.display tbody tr.contract-row-expiring-danger .btn.highlight {
+table.dataTable.display tbody tr td .btn.contract-expiring-danger {
   background-color: @contract-expiring-danger;
   color: @btn-danger-color;
   border-color: darken(@contract-expiring-danger, 5%);
 }
 
-table.dataTable.display tbody tr.contract-row-expiring-danger .btn:hover.highlight {
+table.dataTable.display tbody tr td .btn:hover.contract-expiring-danger {
   background-color: darken(@contract-expiring-danger, 5%);
   color: @btn-danger-color;
   border-color: darken(@contract-expiring-danger, 7%);

@@ -14,9 +14,7 @@
   </thead>
   <tbody>
     {% for contract in _all %}
-    <tr class="{%- if days_from_today(contract.expiration_date) < 60 -%}contract-row-expiring-danger
-    {%- elif days_from_today(contract.expiration_date) < 120 -%}contract-row-expiring-warning
-    {%- endif -%}"
+    <tr
     data-full-description="{{ contract.description|title }}"
     data-companies="{{ contract.companies|display_dedupe_array|title }}">
 
@@ -35,7 +33,12 @@
       <td>{{ contract.expiration_date }}</td><!-- expiration date for sorting -->
       <td>
         {% if contract.expiration_date %}
-        <strong class="highlight">{{ format_days_from_today(contract.expiration_date) }}</strong><br>
+        <strong
+          class="{%- if days_from_today(contract.expiration_date) < 60 -%}contract-expiring-danger
+          {%- elif days_from_today(contract.expiration_date) < 120 -%}contract-expiring-warning
+          {%- endif -%}">
+          {{ format_days_from_today(contract.expiration_date) }}
+        </strong><br>
         <span class="text-muted">
           <small>{{ contract.expiration_date|datetimeformat('%m/%d/%Y') }}</small>
         </span>
@@ -60,7 +63,13 @@
 
       <td>
       <div class="dropdown">
-        <button class="btn btn-default btn-sm dropdown-toggle highlight" type="button" id="actionDropdown-{{ contract.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        <button
+          class="btn btn-default btn-sm dropdown-toggle
+          {% if days_from_today(contract.expiration_date) < 60 -%}contract-expiring-danger
+          {%- elif days_from_today(contract.expiration_date) < 120 -%}contract-expiring-warning
+          {%- endif -%}"
+          type="button" id="actionDropdown-{{ contract.id }}"
+          data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
           Actions
           <span class="caret"></span>
         </button>
