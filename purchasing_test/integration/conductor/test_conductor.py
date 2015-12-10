@@ -425,7 +425,11 @@ class TestConductor(TestConductorSetup):
     @patch('urllib2.urlopen')
     def test_url_validation(self, urlopen):
         mock_open = Mock()
-        mock_open.getcode.side_effect = [200, urllib2.HTTPError('', 404, 'broken', {}, file)]
+        mock_open.getcode.side_effect = [
+            200,
+            urllib2.HTTPError('', 404, 'broken', {}, file),
+            urllib2.URLError('')
+        ]
         urlopen.return_value = mock_open
 
         post_url = '/conductor/contract/{}/edit/url-exists'.format(self.contract1.id)
@@ -447,6 +451,12 @@ class TestConductor(TestConductorSetup):
             headers={'Content-Type': 'application/json;charset=UTF-8'}
         )
         self.assertEquals(json.loads(post3.data).get('status'), 404)
+
+        post4 = self.client.post(
+            post_url, data=json.dumps(dict(url='doesnotwork')),
+            headers={'Content-Type': 'application/json;charset=UTF-8'}
+        )
+        self.assertEquals(json.loads(post4.data).get('status'), 500)
 
     def test_conductor_contract_post_note(self):
         assign = self.assign_contract()
