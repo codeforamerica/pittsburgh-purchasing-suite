@@ -5,7 +5,7 @@ import datetime
 from flask import current_app, url_for
 from werkzeug.datastructures import MultiDict
 
-from purchasing.extensions import mail
+from purchasing.extensions import mail, db
 from purchasing.opportunities.models import Vendor
 
 from purchasing_test.util import insert_a_role, insert_a_user, insert_an_opportunity
@@ -275,15 +275,16 @@ class TestOpportunitiesSubscriptions(TestOpportunitiesAdminBase):
             ('email', 'new@foo.com'), ('business_name', 'foo'),
             ('opportunity', str(self.opportunity3.id)),
             ('opportunity', str(self.opportunity4.id)),
-            ('opportunity', str(self.opportunity3.id))
+            ('opportunity', str(self.opportunity3.id)),
+            ('opportunity', str(self.opportunity1.id))
         ]))
 
         self.assertEquals(Vendor.query.count(), 2)
 
         # should subscribe that vendor to the opportunity
-        self.assertEquals(len(Vendor.query.filter(Vendor.email == 'new@foo.com').first().opportunities), 2)
+        self.assertEquals(len(Vendor.query.filter(Vendor.email == 'new@foo.com').first().opportunities), 3)
         for i in Vendor.query.get(1).opportunities:
-            self.assertTrue(i.id in [self.opportunity3.id, self.opportunity4.id])
+            self.assertTrue(i.id in [self.opportunity1.id, self.opportunity3.id, self.opportunity4.id])
 
         # should redirect and flash properly
         self.assertEquals(post.status_code, 302)
@@ -294,9 +295,13 @@ class TestOpportunitiesSubscriptions(TestOpportunitiesAdminBase):
         self.assert200(self.client.get('/beacon/opportunities/{}'.format(self.opportunity1.id)))
 
     def test_signup_for_opportunity(self):
+        self.opportunity1.is_public = True
+        self.opportunity1.planned_publish = datetime.date.today() - datetime.timedelta(2)
+        db.session.commit()
+
         with mail.record_messages() as outbox:
             self.assertEquals(Vendor.query.count(), 1)
-            post = self.client.post('/beacon/opportunities/{}'.format(self.opportunity3.id), data={
+            post = self.client.post('/beacon/opportunities/{}'.format(self.opportunity1.id), data={
                 'email': 'new@foo.com', 'business_name': 'foo'
             })
             # should create a new vendor
@@ -305,7 +310,7 @@ class TestOpportunitiesSubscriptions(TestOpportunitiesAdminBase):
             # should subscribe that vendor to the opportunity
             self.assertEquals(len(Vendor.query.filter(Vendor.email == 'new@foo.com').first().opportunities), 1)
             self.assertTrue(
-                self.opportunity3.id in [
+                self.opportunity1.id in [
                     i.id for i in Vendor.query.filter(Vendor.email == 'new@foo.com').first().opportunities
                 ]
             )

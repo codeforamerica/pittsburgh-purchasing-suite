@@ -367,15 +367,25 @@ class Opportunity(Model):
         '''
         return [i.email for i in self.vendors]
 
-    def get_needed_documents(self):
-        '''Returns a list of all needed bid documents
+    def has_vendor_documents(self):
+        '''Returns a Boolean for whether there are required bid documents
 
         See Also:
             :py:class:`~purchasing.opportunities.models.RequiredBidDocument`
         '''
-        return RequiredBidDocument.query.filter(
-            RequiredBidDocument.id.in_(self.documents_needed)
-        ).all()
+        return self.vendor_documents_needed and len(self.vendor_documents_needed) > 0
+
+    def get_vendor_documents(self):
+        '''Returns a list of documents the the vendor will need to provide
+
+        See Also:
+            :py:class:`~purchasing.opportunities.models.RequiredBidDocument`
+        '''
+        if self.has_vendor_documents():
+            return RequiredBidDocument.query.filter(
+                RequiredBidDocument.id.in_(self.vendor_documents_needed)
+            ).all()
+        return []
 
     def get_events(self):
         '''Returns the opportunity dates out as a nice ordered list for rendering

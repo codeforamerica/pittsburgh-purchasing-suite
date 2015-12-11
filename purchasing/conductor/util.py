@@ -12,7 +12,10 @@ from flask_login import current_user
 
 from purchasing.database import db
 from purchasing.filters import better_title
-from purchasing.utils import connect_to_s3, upload_file
+from purchasing.utils import (
+    connect_to_s3, upload_file, turn_off_sqlalchemy_events,
+    turn_on_sqlalchemy_events, refresh_search_view
+)
 
 from purchasing.data.contracts import ContractBase, ContractType
 from purchasing.users.models import Department
@@ -213,14 +216,21 @@ def upload_costars_contract(_file):
     filename = secure_filename(_file.filename)
 
     if current_app.config['UPLOAD_S3']:
-        conn, bucket = connect_to_s3(
-            current_app.config['AWS_ACCESS_KEY_ID'],
-            current_app.config['AWS_SECRET_ACCESS_KEY'],
-            'costars'
-        )
+        try:
+            turn_off_sqlalchemy_events()
+            conn, bucket = connect_to_s3(
+                current_app.config['AWS_ACCESS_KEY_ID'],
+                current_app.config['AWS_SECRET_ACCESS_KEY'],
+                'costars'
+            )
 
-        file_href = upload_file(filename, bucket, input_file=_file, prefix='/', from_file=True)
-        return filename, file_href
+            file_href = upload_file(filename, bucket, input_file=_file, prefix='/', from_file=True)
+            return filename, file_href
+        except Exception:
+            raise
+        finally:
+            turn_on_sqlalchemy_events()
+            refresh_search_view()
 
     else:
         try:

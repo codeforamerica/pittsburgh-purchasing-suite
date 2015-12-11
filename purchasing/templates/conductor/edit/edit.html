@@ -31,7 +31,6 @@
       </p>
       {% endif %}
 
-
       <form class="form" method="POST" action="{{ url_for('conductor.edit', contract_id=contract.id) }}">
         {{ form.csrf_token() }}
 
