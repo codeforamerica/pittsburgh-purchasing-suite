@@ -259,3 +259,5 @@ def url_exists(contract_id):
         return jsonify({'status': response.getcode()})
     except urllib2.HTTPError, e:
         return jsonify({'status': e.getcode()})
+    except urllib2.URLError, e:
+        return jsonify({'status': 500})
