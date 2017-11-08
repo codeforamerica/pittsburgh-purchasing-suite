@@ -24,7 +24,7 @@ Core Pittsburgh Purchasing Suite features are in alpha, with other features in d
 In addition to the user guides listed above, technical documentation for the Pittsburgh Purchasing Suite is available on [Read the Docs](https://pittsburgh-purchasing.readthedocs.org/). If you want to build the docs yourself, make sure you have the development dependencies installed. Then you can use the `make doc` command to build the docs from source.
 
 ## Who made it?
-The purchasing suite is a project of the 2015 Pittsburgh Code for America [fellowship team](http://codeforamerica.org/governments/pittsburgh).
+The purchasing suite is a project of the 2015 Pittsburgh Code for America [fellowship team](https://www.codeforamerica.org/products/pittsburgh-procurement-suite).
 
 ## How
 
